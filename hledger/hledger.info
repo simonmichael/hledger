@@ -1,4 +1,4 @@
-This is hledger.info, produced by makeinfo version 7.2 from stdin.
+This is hledger.info, produced by makeinfo version 7.3 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -24,7 +24,7 @@ accounting and a simple, editable file format.  hledger is inspired by
 and largely compatible with ledger(1), and largely interconvertible with
 beancount(1).
 
-   This manual is for hledger's command line interface, version 1.51.99.
+   This manual is for hledger's command line interface, version 1.52.
 It also describes the common options, file formats and concepts used by
 all hledger programs.  It might accidentally teach you some
 bookkeeping/accounting as well!  You don't need to know everything in
@@ -738,8 +738,9 @@ they support:
      aliases or CSV rules, where backreferences can be used in the
      replacement string to reference capturing groups in the search
      regexp.  Otherwise, if you write '\1', it will match the digit '1'.
-  6. they do not support mode modifiers ('(?s)'), character classes
-     ('\w', '\d'), or anything else not mentioned above.
+  6. they do not support lazy quantifiers ('*?'), mode modifiers
+     ('(?s)'), character classes ('\w', '\d'), or anything else not
+     mentioned above.
   7. they may not (I'm guessing not) properly support right-to-left or
      bidirectional text.
 
@@ -1046,13 +1047,19 @@ styling.  If you see junk characters, you might need to configure your
 pager to handle ANSI codes.  Or you could disable colour as described
 above.
 
-   If you are using the 'less' pager, hledger automatically appends a
-number of options to the 'LESS' variable to enable ANSI colour and a
-number of other conveniences.  (At the time of writing: -chop-long-lines
--hilite-unread -ignore-case -no-init -quit-at-eof -quit-if-one-screen
--RAW-CONTROL-CHARS -shift=8 -squeeze-blank-lines -use-backslash ).  If
-these don't work well, you can set your preferred options in the
-'HLEDGER_LESS' variable, which will be used instead.
+   If you are using the 'less' pager, hledger tries to provide a
+consistently pleasant experience by running it with some extra options
+added to your 'LESS' environment variable:
+
+   -chop-long-lines -hilite-unread -ignore-case -no-init
+-quit-if-one-screen -shift=8 -squeeze-blank-lines -use-backslash
+
+   and when colour output is enabled:
+
+   -RAW-CONTROL-CHARS
+
+   You can prevent this by setting your preferred options in the
+'HLEDGER_LESS' variable, which will be used instead of 'LESS'.
 
 
 File: hledger.info,  Node: HTML output,  Next: CSV / TSV output,  Prev: Text output,  Up: Output format
@@ -1387,6 +1394,8 @@ part.
 * Postings::
 * Account names::
 * Amounts::
+* Costs::
+* Cost basis / lot syntax::
 * Balance assertions::
 * Posting comments::
 * Transaction balancing::
@@ -1711,9 +1720,15 @@ File: hledger.info,  Node: Code,  Next: Description,  Prev: Status,  Up: Journal
 ========
 
 After the status mark, but before the description, you can optionally
-write a transaction "code", enclosed in parentheses.  This is a good
-place to record a check number, or some other important transaction id
-or reference number.
+write a transaction "code", such as a check number or transaction id,
+enclosed in parentheses,
+
+   This has a few limitations: The code must not contain a closing
+parenthesis (or it will be truncated).  Codes tend to disrupt alignment
+of the register report, making it harder to scan visually.  And you
+can't store more than one value there per transaction.  For these
+reasons you might want to avoid the code field and use tags(#tags]
+instead.
 
 
 File: hledger.info,  Node: Description,  Next: Transaction comments,  Prev: Code,  Up: Journal
@@ -1938,7 +1953,7 @@ postings.
 permanently, by account aliases.
 
 
-File: hledger.info,  Node: Amounts,  Next: Balance assertions,  Prev: Account names,  Up: Journal
+File: hledger.info,  Node: Amounts,  Next: Costs,  Prev: Account names,  Up: Journal
 
 8.11 Amounts
 ============
@@ -1983,7 +1998,6 @@ EUR 1E3
 * Decimal marks::
 * Digit group marks::
 * Commodity::
-* Costs::
 
 
 File: hledger.info,  Node: Decimal marks,  Next: Digit group marks,  Up: Amounts
@@ -2036,7 +2050,7 @@ INR 9,99,99,999.00
       1 000 000.00   ; <- no-break space
 
 
-File: hledger.info,  Node: Commodity,  Next: Costs,  Prev: Digit group marks,  Up: Amounts
+File: hledger.info,  Node: Commodity,  Prev: Digit group marks,  Up: Amounts
 
 8.11.3 Commodity
 ----------------
@@ -2063,63 +2077,151 @@ hledger displays them in output.  This is explained in Commodity display
 style below.
 
 
-File: hledger.info,  Node: Costs,  Prev: Commodity,  Up: Amounts
+File: hledger.info,  Node: Costs,  Next: Cost basis / lot syntax,  Prev: Amounts,  Up: Journal
 
-8.11.4 Costs
-------------
+8.12 Costs
+==========
 
-After a posting amount, you can note its cost (when buying) or selling
-price (when selling) in another commodity, by writing either '@
-UNITPRICE' or '@@ TOTALPRICE' after it.  This indicates a conversion
-transaction, where one commodity is exchanged for another.
+In traditional double entry bookkeeping, to record a transaction where
+one commodity is exchanged for another, you add extra equity postings to
+balance the two commodities.  Eg:
 
-   (You might also see this called "transaction price" in hledger docs,
-discussions, or code; that term was directionally neutral and reminded
-that it is a price specific to a transaction, but we now just call it
-"cost", with the understanding that the transaction could be a purchase
-or a sale.)
+2026-01-01 buy euros
+  assets:dollars     $-123
+  equity:conversion   $123
+  equity:conversion  €-100
+  assets:euros        €100
 
-   Costs are usually written explicitly with '@' or '@@', but can also
-be inferred automatically for simple multi-commodity transactions.
-Note, if costs are inferred, the order of postings is significant; the
-first posting will have a cost attached, in the commodity of the second.
+   hledger offers a more convenient @/@@ "cost notation" as an
+alternative: instead of equity postings, you can write the "conversion
+rate" or "transacted price" after a posting amount.  hledger docs
+generically call this "cost", whether buying or selling.  It can be
+written as either '@ UNITPRICE' or '@@ TOTALPRICE'.  Eg you could write
+the above as:
 
-   As an example, here are several ways to record purchases of a foreign
-currency in hledger, using the cost notation either explicitly or
-implicitly:
+2026-01-01 buy euros
+  assets:dollars     $-123
+  assets:euros        €100 @ $1.23    ; unit cost (exchange rate)
 
-  1. Write the price per unit, as '@ UNITPRICE' after the amount:
+   or:
 
-     2009/1/1
-       assets:euros     €100 @ $1.35  ; one hundred euros purchased at $1.35 each
-       assets:dollars                 ; balancing amount is -$135.00
+2026-01-01 buy euros
+  assets:dollars     $-123
+  assets:euros        €100 @@ $123    ; total cost
 
-  2. Write the total price, as '@@ TOTALPRICE' after the amount:
+   The cost should normally be a positive amount.  Negative costs are
+supported, but can be confusing, as discussed at -infer-market-prices:
+market prices from transactions.
 
-     2009/1/1
-       assets:euros     €100 @@ $135  ; one hundred euros purchased at $135 for the lot
-       assets:dollars
+   Costs participate in transaction balancing.  Amounts are converted to
+their cost before checking if the transaction is balanced.  You could
+also write the above less redundantly, like so:
 
-  3. Specify amounts for all postings, using exactly two commodities,
-     and let hledger infer the price that balances the transaction.
-     Note the effect of posting order: the price is added to first
-     posting, making it '€100 @@ $135', as in example 2:
+2026-01-01 buy euros
+  assets:dollars                      ; $-123 is inferred
+  assets:euros        €100 @ $1.23
 
-     2009/1/1
-       assets:euros     €100          ; one hundred euros purchased
-       assets:dollars  $-135          ; for $135
+   or:
 
-   Amounts can be converted to cost at report time using the '-B/--cost'
-flag; this is discussed more in the Cost reporting section.
+2026-01-01 buy euros
+  assets:dollars                      ; $-123 is inferred
+  assets:euros        €100 @@ $123
 
-   Note that the cost normally should be a positive amount, though it's
-not required to be.  This can be a little confusing, see discussion at
--infer-market-prices: market prices from transactions.
+   or even:
+
+2026-01-01 buy euros
+  assets:euros        €100            ;  @@ $123 is inferred
+  assets:dollars     $-123
+
+   This last form works for transactions involving exactly two
+commodities, with neither cost notation nor equity postings.  Note, the
+order of postings is significant: the cost will be attached to the first
+(top) posting.  So we had to switch the order of postings, to get the
+same meaning as above.  Also, this form is the easiest to make
+undetected errors with; so it is rejected by 'hledger check balanced',
+and by strict mode.
+
+   Advantages of cost notation:
+
+  1. it's more compact and easier to read and write
+  2. hledger reports can show such amounts converted to their cost, when
+     you add the '-B/--cost' flag (see Cost reporting).
+
+   Advantages of equity postings
+
+  1. they help to keep the accounting equation balanced (if you care
+     about that)
+  2. they translate easily to any other double entry accounting system.
+
+   Most hledger users use cost notation and don't use equity postings.
+
+   But you can always convert cost notation to equity postings by adding
+'--infer-equity'.  Eg try 'hledger print -x --infer-equity'.
+
+   And you can usually convert equity postings to cost notation by
+adding '--infer-costs' (see Requirements for detecting equity conversion
+postings).  Eg try 'hledger print -x --infer-costs'.
+
+   Finally: using both equity postings and cost notation at the same
+time is allowed, as long as the journal entry is well formed such that
+the equity postings / cost equivalences can be detected.  (Otherwise
+you'll get an error message saying that the transaction is unbalanced.):
+
+2026-01-01 buy euros
+  assets:dollars     $-123
+  equity:conversion   $123
+  equity:conversion  €-100
+  assets:euros        €100 @ $1.23
+
+   So in principle you could enable both '--infer-equity' and
+'--infer-costs' in your config file, and your reports would have the
+advantages of both.
 
 
-File: hledger.info,  Node: Balance assertions,  Next: Posting comments,  Prev: Amounts,  Up: Journal
+File: hledger.info,  Node: Cost basis / lot syntax,  Next: Balance assertions,  Prev: Costs,  Up: Journal
 
-8.12 Balance assertions
+8.13 Cost basis / lot syntax
+============================
+
+If you are buying some commodity to hold as an investment, it may be
+important to keep track of
+
+  1. its original acquisition cost
+  2. its original acquisition date
+  3. and a sequence number or label, if needed, to disambiguate multiple
+     acquisitions on the same day, or to serve as a mnemonic for easy
+     reference.
+
+   In hledger we call these three the "cost basis"; and if an amount
+being acquired has a cost basis, we call it a "lot".  Tax authorities
+often require that lots are tracked carefully and disposed of (sold) in
+a certain order.
+
+   Note, though "cost basis" sounds similar to the "cost" (transacted
+price) discussed above, they are distinct concepts.  In some
+transactions the transacted price and basis cost are the same, but in
+others they are not.
+
+   So cost basis has its own syntax, also called "lot syntax".
+hledger's lot syntax is like Ledger's: one or more of the following
+annotations, following the main amount:
+
+   * '{LOTUNITCOST}' or '{{LOTTOTALCOST}}' (see lot price)
+   * '[LOTDATE]' (see lot date)
+   * '(LOTLABEL)' (see lot note)
+
+   hledger does not yet do anything with this lot syntax, except to
+preserve it and show it in 'print''s 'txt', 'beancount', and 'json'
+output.  This means you can use this syntax in your hledger journals
+(plus an amountless extra posting to help transactions balance, if
+needed), then use the 'print' command to export to Ledger or Beancount
+or rustledger, to use their lots/gains reports (see Export Lots
+workflow).
+
+
+File: hledger.info,  Node: Balance assertions,  Next: Posting comments,  Prev: Cost basis / lot syntax,  Up: Journal
+
+8.14 Balance assertions
 =======================
 
 hledger supports Ledger-style balance assertions in journal files.
@@ -2159,7 +2261,7 @@ does not disable balance assignments, described below).
 
 File: hledger.info,  Node: Assertions and ordering,  Next: Assertions and multiple files,  Up: Balance assertions
 
-8.12.1 Assertions and ordering
+8.14.1 Assertions and ordering
 ------------------------------
 
 hledger calculates and checks an account's balance assertions in date
@@ -2176,7 +2278,7 @@ updating.
 
 File: hledger.info,  Node: Assertions and multiple files,  Next: Assertions and costs,  Prev: Assertions and ordering,  Up: Balance assertions
 
-8.12.2 Assertions and multiple files
+8.14.2 Assertions and multiple files
 ------------------------------------
 
 If an account has transactions appearing in multiple files, balance
@@ -2202,7 +2304,7 @@ order.  (Discussion welcome.)
 
 File: hledger.info,  Node: Assertions and costs,  Next: Assertions and commodities,  Prev: Assertions and multiple files,  Up: Balance assertions
 
-8.12.3 Assertions and costs
+8.14.3 Assertions and costs
 ---------------------------
 
 Balance assertions ignore costs, and should normally be written without
@@ -2220,7 +2322,7 @@ costs), and because balance _assignments_ do use costs (see below).
 
 File: hledger.info,  Node: Assertions and commodities,  Next: Assertions and subaccounts,  Prev: Assertions and costs,  Up: Balance assertions
 
-8.12.4 Assertions and commodities
+8.14.4 Assertions and commodities
 ---------------------------------
 
 The balance assertions described so far are "*single commodity balance
@@ -2269,7 +2371,7 @@ specified commodities and no others.  It can be done by
 
 File: hledger.info,  Node: Assertions and subaccounts,  Next: Assertions and status,  Prev: Assertions and commodities,  Up: Balance assertions
 
-8.12.5 Assertions and subaccounts
+8.14.5 Assertions and subaccounts
 ---------------------------------
 
 All of the balance assertions above (both '=' and '==') are
@@ -2288,7 +2390,7 @@ by adding a star after the equals ('=*' or '==*'):
 
 File: hledger.info,  Node: Assertions and status,  Next: Assertions and virtual postings,  Prev: Assertions and subaccounts,  Up: Balance assertions
 
-8.12.6 Assertions and status
+8.14.6 Assertions and status
 ----------------------------
 
 Balance assertions always consider postings of all statuses (unmarked,
@@ -2298,7 +2400,7 @@ pending, or cleared); they are not affected by the '-U'/'--unmarked' /
 
 File: hledger.info,  Node: Assertions and virtual postings,  Next: Assertions and auto postings,  Prev: Assertions and status,  Up: Balance assertions
 
-8.12.7 Assertions and virtual postings
+8.14.7 Assertions and virtual postings
 --------------------------------------
 
 Balance assertions always consider both real and virtual postings; they
@@ -2307,7 +2409,7 @@ are not affected by the '--real/-R' flag or 'real:' query.
 
 File: hledger.info,  Node: Assertions and auto postings,  Next: Assertions and precision,  Prev: Assertions and virtual postings,  Up: Balance assertions
 
-8.12.8 Assertions and auto postings
+8.14.8 Assertions and auto postings
 -----------------------------------
 
 Balance assertions _are_ affected by the '--auto' flag, which generates
@@ -2326,7 +2428,7 @@ these.  So to avoid making fragile assertions, either:
 
 File: hledger.info,  Node: Assertions and precision,  Next: Assertions and hledger add,  Prev: Assertions and auto postings,  Up: Balance assertions
 
-8.12.9 Assertions and precision
+8.14.9 Assertions and precision
 -------------------------------
 
 Balance assertions compare the exactly calculated amounts, which are not
@@ -2337,7 +2439,7 @@ assertion failure messages show exact amounts.
 
 File: hledger.info,  Node: Assertions and hledger add,  Prev: Assertions and precision,  Up: Balance assertions
 
-8.12.10 Assertions and hledger add
+8.14.10 Assertions and hledger add
 ----------------------------------
 
 Balance assertions can be included in the amounts given in 'add'.  All
@@ -2357,7 +2459,7 @@ with '-I'.
 
 File: hledger.info,  Node: Posting comments,  Next: Transaction balancing,  Prev: Balance assertions,  Up: Journal
 
-8.13 Posting comments
+8.15 Posting comments
 =====================
 
 Text following ';', at the end of a posting line, and/or on indented
@@ -2374,7 +2476,7 @@ tags, which are not ignored.
 
 File: hledger.info,  Node: Transaction balancing,  Next: Tags,  Prev: Posting comments,  Up: Journal
 
-8.14 Transaction balancing
+8.16 Transaction balancing
 ==========================
 
 How exactly does hledger decide when a transaction is balanced ?
@@ -2420,7 +2522,7 @@ hit this problem, it's easy to fix:
 
 File: hledger.info,  Node: Tags,  Next: Directives,  Prev: Transaction balancing,  Up: Journal
 
-8.15 Tags
+8.17 Tags
 =========
 
 Tags are a way to add extra labels or data fields to transactions,
@@ -2477,7 +2579,7 @@ account assets:checking    ; acct-number: 123-45-6789
 
 File: hledger.info,  Node: Tag propagation,  Next: Displaying tags,  Up: Tags
 
-8.15.1 Tag propagation
+8.17.1 Tag propagation
 ----------------------
 
 In addition to what they are attached to, tags also affect related data
@@ -2516,7 +2618,7 @@ transaction    p2tag, atag    posting, p2tag and atag from second
 
 File: hledger.info,  Node: Displaying tags,  Next: When to use tags ?,  Prev: Tag propagation,  Up: Tags
 
-8.15.2 Displaying tags
+8.17.2 Displaying tags
 ----------------------
 
 You can use the 'tags' command to list tag names or values.
@@ -2529,7 +2631,7 @@ ways (eg appended to account names, like pseudo subaccounts).
 
 File: hledger.info,  Node: When to use tags ?,  Next: Tag names,  Prev: Displaying tags,  Up: Tags
 
-8.15.3 When to use tags ?
+8.17.3 When to use tags ?
 -------------------------
 
 Tags provide more dimensions of categorisation, complementing accounts
@@ -2544,7 +2646,7 @@ your usual account categories.
 
 File: hledger.info,  Node: Tag names,  Prev: When to use tags ?,  Up: Tags
 
-8.15.4 Tag names
+8.17.4 Tag names
 ----------------
 
 What is allowed in a tag name ?  Most non-whitespace characters.  Eg '😀
@@ -2578,13 +2680,13 @@ hledger.  They are explained elsewhere, but here's a quick reference:
    The second group above (generated-transaction, etc.)  are normally
 hidden, with a '_' prefix added.  This means 'print' doesn't show them
 by default; but you can still use them in queries.  You can add the
-'--verbose-tags' flag to make them visible, which can be useful for
-troubleshooting.
+'--verbose-tags' flag to make them visible in 'print' output, which can
+be useful for troubleshooting.
 
 
 File: hledger.info,  Node: Directives,  Next: account directive,  Prev: Tags,  Up: Journal
 
-8.16 Directives
+8.18 Directives
 ===============
 
 Besides transactions, there is something else you can put in a 'journal'
@@ -2624,7 +2726,7 @@ Declare market prices                     'P'
 
 File: hledger.info,  Node: Directives and multiple files,  Next: Directive effects,  Up: Directives
 
-8.16.1 Directives and multiple files
+8.18.1 Directives and multiple files
 ------------------------------------
 
 Directives vary in their scope, ie which journal entries and which input
@@ -2644,7 +2746,7 @@ directives in your files.
 
 File: hledger.info,  Node: Directive effects,  Prev: Directives and multiple files,  Up: Directives
 
-8.16.2 Directive effects
+8.18.2 Directive effects
 ------------------------
 
 Here are all hledger's directives, with their effects and scope
@@ -2705,7 +2807,7 @@ directives*
 
 File: hledger.info,  Node: account directive,  Next: alias directive,  Prev: Directives,  Up: Journal
 
-8.17 'account' directive
+8.19 'account' directive
 ========================
 
 'account' directives can be used to declare accounts (ie, the places
@@ -2739,32 +2841,43 @@ account assets:bank:checking
 * Menu:
 
 * Account comments::
+* Account tags::
 * Account error checking::
 * Account display order::
 * Account types::
 
 
-File: hledger.info,  Node: Account comments,  Next: Account error checking,  Up: account directive
+File: hledger.info,  Node: Account comments,  Next: Account tags,  Up: account directive
 
-8.17.1 Account comments
+8.19.1 Account comments
 -----------------------
 
 Text following *two or more spaces* and ';' at the end of an account
 directive line, and/or following ';' on indented lines immediately below
-it, form comments for that account.  They are ignored except they may
-contain tags, which are not ignored.
+it, form comments for that account.
 
-   The two-space requirement for same-line account comments is because
-';' is allowed in account names.
+   Same-line account comments require two+ spaces before ';' because
+that character can appear in account names.
 
 account assets:bank:checking    ; same-line comment, at least 2 spaces before the semicolon
   ; next-line comment
   ; some tags - type:A, acctnum:12345
 
 
-File: hledger.info,  Node: Account error checking,  Next: Account display order,  Prev: Account comments,  Up: account directive
+File: hledger.info,  Node: Account tags,  Next: Account error checking,  Prev: Account comments,  Up: account directive
 
-8.17.2 Account error checking
+8.19.2 Account tags
+-------------------
+
+An account directive's comment may contain tags.  These will be
+propagated to all postings using that account, as hidden but queryable
+posting tags, except where the posting already a tag of the same name.
+(Posting tags override account tags.)
+
+
+File: hledger.info,  Node: Account error checking,  Next: Account display order,  Prev: Account tags,  Up: account directive
+
+8.19.3 Account error checking
 -----------------------------
 
 By default, accounts need not be declared; they come into existence when
@@ -2795,7 +2908,7 @@ account directive.  Some notes:
 
 File: hledger.info,  Node: Account display order,  Next: Account types,  Prev: Account error checking,  Up: account directive
 
-8.17.3 Account display order
+8.19.4 Account display order
 ----------------------------
 
 Account directives also cause hledger to display accounts in a
@@ -2837,7 +2950,7 @@ the other.
 
 File: hledger.info,  Node: Account types,  Prev: Account display order,  Up: account directive
 
-8.17.4 Account types
+8.19.5 Account types
 --------------------
 
 hledger knows that in accounting there are three main account types:
@@ -2851,15 +2964,20 @@ hledger knows that in accounting there are three main account types:
 'Revenue'   'R'   inflows (also known as 'Income')
 'Expense'   'X'   outflows
 
-   hledger also uses a couple of subtypes:
+   hledger also uses a few subtypes:
 
-'Cash'         'C'   liquid assets
-'Conversion'   'V'   commodity conversions equity
+'Cash'                   'C'                      liquid assets (subtype
+                                                  of Asset)
+'Conversion'             'V'                      commodity conversions
+                                                  equity (subtype of
+                                                  Equity)
+'Gain'                   'G'                      capital gains/losses
+                                                  (subtype of Revenue)
 
-   As a convenience, hledger will detect these types automatically from
-english account names.  But it's better to declare them explicitly by
-adding a 'type:' tag in the account directives.  The tag's value can be
-any of the types or one-letter abbreviations above.
+   As a convenience, hledger will detect most of these types
+automatically from english account names.  But it's better to declare
+them explicitly by adding a 'type:' tag in the account directives.  The
+tag's value can be any of the types or one-letter abbreviations above.
 
    Here is a typical set of account type declarations.  Subaccounts will
 inherit their parent's type, or can override it:
@@ -2874,6 +2992,8 @@ account assets:bank        ; type: C
 account assets:cash        ; type: C
 
 account equity:conversion  ; type: V
+
+account revenues:capital   ; type: G
 
    This enables the easy balancesheet, balancesheetequity, cashflow and
 incomestatement reports, and querying by type:.
@@ -2920,7 +3040,7 @@ incomestatement reports, and querying by type:.
 
 File: hledger.info,  Node: alias directive,  Next: commodity directive,  Prev: account directive,  Up: Journal
 
-8.18 'alias' directive
+8.20 'alias' directive
 ======================
 
 You can define account alias rules which rewrite your account names, or
@@ -2957,7 +3077,7 @@ more on this below.
 
 File: hledger.info,  Node: Basic aliases,  Next: Regex aliases,  Up: alias directive
 
-8.18.1 Basic aliases
+8.20.1 Basic aliases
 --------------------
 
 To set an account alias, use the 'alias' directive in your journal file.
@@ -2981,7 +3101,7 @@ alias checking = assets:bank:wells fargo:checking
 
 File: hledger.info,  Node: Regex aliases,  Next: Combining aliases,  Prev: Basic aliases,  Up: alias directive
 
-8.18.2 Regex aliases
+8.20.2 Regex aliases
 --------------------
 
 There is also a more powerful variant that uses a regular expression,
@@ -3015,7 +3135,7 @@ of option argument), so it can contain trailing whitespace.
 
 File: hledger.info,  Node: Combining aliases,  Next: Aliases and multiple files,  Prev: Regex aliases,  Up: alias directive
 
-8.18.3 Combining aliases
+8.20.3 Combining aliases
 ------------------------
 
 You can define as many aliases as you like, using journal directives
@@ -3052,7 +3172,7 @@ which aliases are being applied when.
 
 File: hledger.info,  Node: Aliases and multiple files,  Next: end aliases directive,  Prev: Combining aliases,  Up: alias directive
 
-8.18.4 Aliases and multiple files
+8.20.4 Aliases and multiple files
 ---------------------------------
 
 As explained at Directives and multiple files, 'alias' directives do not
@@ -3084,7 +3204,7 @@ include c.journal  ; also affected
 
 File: hledger.info,  Node: end aliases directive,  Next: Aliases can generate bad account names,  Prev: Aliases and multiple files,  Up: alias directive
 
-8.18.5 'end aliases' directive
+8.20.5 'end aliases' directive
 ------------------------------
 
 You can clear (forget) all currently defined aliases (seen in the
@@ -3095,7 +3215,7 @@ end aliases
 
 File: hledger.info,  Node: Aliases can generate bad account names,  Next: Aliases and account types,  Prev: end aliases directive,  Up: alias directive
 
-8.18.6 Aliases can generate bad account names
+8.20.6 Aliases can generate bad account names
 ---------------------------------------------
 
 Be aware that account aliases can produce malformed account names, which
@@ -3126,7 +3246,7 @@ $ hledger print --alias old="new  USD" | hledger -f- print
 
 File: hledger.info,  Node: Aliases and account types,  Prev: Aliases can generate bad account names,  Up: alias directive
 
-8.18.7 Aliases and account types
+8.20.7 Aliases and account types
 --------------------------------
 
 If an account with a type declaration (see Declaring accounts > Account
@@ -3150,7 +3270,7 @@ $ hledger accounts --types -1 --alias assets=bassetts
 
 File: hledger.info,  Node: commodity directive,  Next: decimal-mark directive,  Prev: alias directive,  Up: Journal
 
-8.19 'commodity' directive
+8.21 'commodity' directive
 ==========================
 
 The 'commodity' directive performs several functions:
@@ -3193,23 +3313,22 @@ command line option.
 * Menu:
 
 * Commodity directive syntax::
+* Commodity tags::
 * Commodity error checking::
 
 
-File: hledger.info,  Node: Commodity directive syntax,  Next: Commodity error checking,  Up: commodity directive
+File: hledger.info,  Node: Commodity directive syntax,  Next: Commodity tags,  Up: commodity directive
 
-8.19.1 Commodity directive syntax
+8.21.1 Commodity directive syntax
 ---------------------------------
 
 A commodity directive is normally the word 'commodity' followed by a
-sample amount (and optionally a comment).  Only the amount's symbol and
+sample amount, and optionally a comment.  Only the amount's symbol and
 the number's format is significant.  Eg:
 
 commodity $1000.00
 commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no-symbol commodity
-
-   Commodities do not have tags (tags in the comment will be ignored).
 
    A commodity directive's sample amount must always include a period or
 comma decimal mark (this rule helps disambiguate decimal marks and digit
@@ -3243,9 +3362,21 @@ commodity INR
   an unsupported subdirective  ; ignored by hledger
 
 
-File: hledger.info,  Node: Commodity error checking,  Prev: Commodity directive syntax,  Up: commodity directive
+File: hledger.info,  Node: Commodity tags,  Next: Commodity error checking,  Prev: Commodity directive syntax,  Up: commodity directive
 
-8.19.2 Commodity error checking
+8.21.2 Commodity tags
+---------------------
+
+A commodity directive's comment may contain tags.  These will be
+propagated to all postings using that commodity in their main amount, as
+hidden but queryable posting tags, except where the posting already a
+tag of the same name.  (Posting tags override account tags override
+commodity tags.)
+
+
+File: hledger.info,  Node: Commodity error checking,  Prev: Commodity tags,  Up: commodity directive
+
+8.21.3 Commodity error checking
 -------------------------------
 
 In strict mode ('-s'/'--strict') (or when you run 'hledger check
@@ -3257,7 +3388,7 @@ have no commodity symbol.)  It works like account error checking
 
 File: hledger.info,  Node: decimal-mark directive,  Next: include directive,  Prev: commodity directive,  Up: Journal
 
-8.20 'decimal-mark' directive
+8.22 'decimal-mark' directive
 =============================
 
 You can use a 'decimal-mark' directive - usually one per file, at the
@@ -3277,7 +3408,7 @@ thousands separators).
 
 File: hledger.info,  Node: include directive,  Next: P directive,  Prev: decimal-mark directive,  Up: Journal
 
-8.21 'include' directive
+8.23 'include' directive
 ========================
 
 You can pull in the content of additional files by writing an include
@@ -3331,14 +3462,14 @@ error that's hard to pinpoint: a good troubleshooting command is
 
 File: hledger.info,  Node: P directive,  Next: payee directive,  Prev: include directive,  Up: Journal
 
-8.22 'P' directive
+8.24 'P' directive
 ==================
 
 The 'P' directive declares a market price, which is a conversion rate
 between two commodities on a certain date.  This allows value reports to
 convert amounts of one commodity to their value in another, on or after
 that date.  These prices are often obtained from a stock exchange,
-cryptocurrency exchange, the or foreign exchange market.
+cryptocurrency exchange, or the foreign exchange market.
 
    The format is:
 
@@ -3361,10 +3492,10 @@ amount values in another commodity.  See Value reporting.
 
 File: hledger.info,  Node: payee directive,  Next: tag directive,  Prev: P directive,  Up: Journal
 
-8.23 'payee' directive
+8.25 'payee' directive
 ======================
 
-'payee PAYEE NAME'
+     payee PAYEE NAME
 
    This directive can be used to declare a limited set of payees which
 may appear in transaction descriptions.  The "payees" check will report
@@ -3384,10 +3515,10 @@ payee ""
 
 File: hledger.info,  Node: tag directive,  Next: Periodic transactions,  Prev: payee directive,  Up: Journal
 
-8.24 'tag' directive
+8.26 'tag' directive
 ====================
 
-'tag TAGNAME'
+     tag TAGNAME
 
    This directive can be used to declare a limited set of tag names
 allowed in tags.  TAGNAME should be a valid tag name (no spaces).  Eg:
@@ -3404,7 +3535,7 @@ check your tags .
 
 File: hledger.info,  Node: Periodic transactions,  Next: Auto postings,  Prev: tag directive,  Up: Journal
 
-8.25 Periodic transactions
+8.27 Periodic transactions
 ==========================
 
 The '~' directive declares a "periodic rule" which generates temporary
@@ -3452,7 +3583,7 @@ this whole section, or at least the following tips:
 
 File: hledger.info,  Node: Periodic rule syntax,  Next: Periodic rules and relative dates,  Up: Periodic transactions
 
-8.25.1 Periodic rule syntax
+8.27.1 Periodic rule syntax
 ---------------------------
 
 A periodic transaction rule looks like a normal journal entry, with the
@@ -3477,7 +3608,7 @@ dates).
 
 File: hledger.info,  Node: Periodic rules and relative dates,  Next: Two spaces between period expression and description!,  Prev: Periodic rule syntax,  Up: Periodic transactions
 
-8.25.2 Periodic rules and relative dates
+8.27.2 Periodic rules and relative dates
 ----------------------------------------
 
 Partial or relative dates (like '12/31', '25', 'tomorrow', 'last week',
@@ -3496,7 +3627,7 @@ dates.
 
 File: hledger.info,  Node: Two spaces between period expression and description!,  Prev: Periodic rules and relative dates,  Up: Periodic transactions
 
-8.25.3 Two spaces between period expression and description!
+8.27.3 Two spaces between period expression and description!
 ------------------------------------------------------------
 
 If the period expression is followed by a transaction description, these
@@ -3521,7 +3652,7 @@ accidentally alter their meaning, as in this example:
 
 File: hledger.info,  Node: Auto postings,  Next: Other syntax,  Prev: Periodic transactions,  Up: Journal
 
-8.26 Auto postings
+8.28 Auto postings
 ==================
 
 The '=' directive declares an "auto posting rule", which adds extra
@@ -3618,7 +3749,7 @@ output into the journal file to make it permanent.
 
 File: hledger.info,  Node: Auto postings and multiple files,  Next: Auto postings and dates,  Up: Auto postings
 
-8.26.1 Auto postings and multiple files
+8.28.1 Auto postings and multiple files
 ---------------------------------------
 
 An auto posting rule can affect any transaction in the current file, or
@@ -3628,7 +3759,7 @@ sibling files (when multiple '-f'/'--file' are used - see #1212).
 
 File: hledger.info,  Node: Auto postings and dates,  Next: Auto postings and transaction balancing / inferred amounts / balance assertions,  Prev: Auto postings and multiple files,  Up: Auto postings
 
-8.26.2 Auto postings and dates
+8.28.2 Auto postings and dates
 ------------------------------
 
 A posting date (or secondary date) in the matched posting, or (taking
@@ -3638,7 +3769,7 @@ used in the generated posting.
 
 File: hledger.info,  Node: Auto postings and transaction balancing / inferred amounts / balance assertions,  Next: Auto posting tags,  Prev: Auto postings and dates,  Up: Auto postings
 
-8.26.3 Auto postings and transaction balancing / inferred amounts /
+8.28.3 Auto postings and transaction balancing / inferred amounts /
 -------------------------------------------------------------------
 
 balance assertions Currently, auto postings are added:
@@ -3658,7 +3789,7 @@ infer amounts.
 
 File: hledger.info,  Node: Auto posting tags,  Next: Auto postings on forecast transactions only,  Prev: Auto postings and transaction balancing / inferred amounts / balance assertions,  Up: Auto postings
 
-8.26.4 Auto posting tags
+8.28.4 Auto posting tags
 ------------------------
 
 Automated postings will have some extra tags:
@@ -3680,7 +3811,7 @@ will have these tags added:
 
 File: hledger.info,  Node: Auto postings on forecast transactions only,  Prev: Auto posting tags,  Up: Auto postings
 
-8.26.5 Auto postings on forecast transactions only
+8.28.5 Auto postings on forecast transactions only
 --------------------------------------------------
 
 Tip: you can can make auto postings that will apply to forecast
@@ -3691,7 +3822,7 @@ generating new journal entries to be saved in the journal.
 
 File: hledger.info,  Node: Other syntax,  Prev: Auto postings,  Up: Journal
 
-8.27 Other syntax
+8.29 Other syntax
 =================
 
 hledger journal format supports quite a few other features, mainly to
@@ -3713,12 +3844,14 @@ you decide if you want to use them.
 * Valuation expressions::
 * Virtual postings::
 * Other Ledger directives::
-* Other cost/lot notations::
+* Ledger virtual costs::
+* Ledger lot syntax::
+* Ledger fixed lot costs::
 
 
 File: hledger.info,  Node: Balance assignments,  Next: Bracketed posting dates,  Up: Other syntax
 
-8.27.1 Balance assignments
+8.29.1 Balance assignments
 --------------------------
 
 Ledger-style balance assignments are also supported.  These are like
@@ -3761,7 +3894,7 @@ trustworthy in an audit.
 
 File: hledger.info,  Node: Balance assignments and costs,  Next: Balance assignments and multiple files,  Up: Balance assignments
 
-8.27.1.1 Balance assignments and costs
+8.29.1.1 Balance assignments and costs
 ......................................
 
 A cost in a balance assignment will cause the calculated amount to have
@@ -3777,7 +3910,7 @@ $ hledger print --explicit
 
 File: hledger.info,  Node: Balance assignments and multiple files,  Prev: Balance assignments and costs,  Up: Balance assignments
 
-8.27.1.2 Balance assignments and multiple files
+8.29.1.2 Balance assignments and multiple files
 ...............................................
 
 Balance assignments handle multiple files like balance assertions.  They
@@ -3787,7 +3920,7 @@ but not from previous sibling or parent files.
 
 File: hledger.info,  Node: Bracketed posting dates,  Next: D directive,  Prev: Balance assignments,  Up: Other syntax
 
-8.27.2 Bracketed posting dates
+8.29.2 Bracketed posting dates
 ------------------------------
 
 For setting posting dates and secondary posting dates, Ledger's
@@ -3804,10 +3937,10 @@ syntax.
 
 File: hledger.info,  Node: D directive,  Next: apply account directive,  Prev: Bracketed posting dates,  Up: Other syntax
 
-8.27.3 'D' directive
+8.29.3 'D' directive
 --------------------
 
-'D AMOUNT'
+     D AMOUNT
 
    This directive sets a default commodity, to be used for any
 subsequent commodityless amounts (ie, plain numbers) seen while parsing
@@ -3850,7 +3983,7 @@ Ledger's 'D'.
 
 File: hledger.info,  Node: apply account directive,  Next: Y directive,  Prev: D directive,  Up: Other syntax
 
-8.27.4 'apply account' directive
+8.29.4 'apply account' directive
 --------------------------------
 
 This directive sets a default parent account, which will be prepended to
@@ -3886,10 +4019,10 @@ portable, and less trustworthy in an audit.
 
 File: hledger.info,  Node: Y directive,  Next: Secondary dates,  Prev: apply account directive,  Up: Other syntax
 
-8.27.5 'Y' directive
+8.29.5 'Y' directive
 --------------------
 
-'Y YEAR'
+     Y YEAR
 
    or (deprecated backward-compatible forms):
 
@@ -3924,7 +4057,7 @@ date.
 
 File: hledger.info,  Node: Secondary dates,  Next: Star comments,  Prev: Y directive,  Up: Other syntax
 
-8.27.6 Secondary dates
+8.29.6 Secondary dates
 ----------------------
 
 A secondary date is written after the primary date, following an equals
@@ -3960,7 +4093,7 @@ instead.
 
 File: hledger.info,  Node: Star comments,  Next: Valuation expressions,  Prev: Secondary dates,  Up: Other syntax
 
-8.27.7 Star comments
+8.29.7 Star comments
 --------------------
 
 Lines beginning with '*' (star/asterisk) are also comment lines.  This
@@ -3977,7 +4110,7 @@ losing ledger mode's features.
 
 File: hledger.info,  Node: Valuation expressions,  Next: Virtual postings,  Prev: Star comments,  Up: Other syntax
 
-8.27.8 Valuation expressions
+8.29.8 Valuation expressions
 ----------------------------
 
 Ledger allows a valuation function or value to be written in double
@@ -3986,7 +4119,7 @@ parentheses after an amount.  hledger ignores these.
 
 File: hledger.info,  Node: Virtual postings,  Next: Other Ledger directives,  Prev: Valuation expressions,  Up: Other syntax
 
-8.27.9 Virtual postings
+8.29.9 Virtual postings
 -----------------------
 
 A posting with parentheses around the account name, like '(some:account)
@@ -4016,9 +4149,9 @@ bracketed, are called _real postings_.  You can exclude virtual postings
 from reports with the '-R/--real' flag or a 'real:1' query.
 
 
-File: hledger.info,  Node: Other Ledger directives,  Next: Other cost/lot notations,  Prev: Virtual postings,  Up: Other syntax
+File: hledger.info,  Node: Other Ledger directives,  Next: Ledger virtual costs,  Prev: Virtual postings,  Up: Other syntax
 
-8.27.10 Other Ledger directives
+8.29.10 Other Ledger directives
 -------------------------------
 
 These other Ledger directives are currently accepted but ignored.  This
@@ -4047,49 +4180,47 @@ value       EXPR
 hledger/Ledger syntax comparison.
 
 
-File: hledger.info,  Node: Other cost/lot notations,  Prev: Other Ledger directives,  Up: Other syntax
+File: hledger.info,  Node: Ledger virtual costs,  Next: Ledger lot syntax,  Prev: Other Ledger directives,  Up: Other syntax
 
-8.27.11 Other cost/lot notations
---------------------------------
+8.29.11 Ledger virtual costs
+----------------------------
 
-A slight digression for Ledger and Beancount users.
+In Ledger, '(@) UNITCOST' and '(@@) TOTALCOST' are virtual costs, which
+do not generate market prices.  In hledger, these are equivalent to '@'
+and '@@'.
 
-   *Ledger* has a number of cost/lot-related notations:
+
+File: hledger.info,  Node: Ledger lot syntax,  Next: Ledger fixed lot costs,  Prev: Ledger virtual costs,  Up: Other syntax
 
-   * '@ UNITCOST' and '@@ TOTALCOST'
-        * expresses a conversion rate, as in hledger
-        * when buying, also creates a lot that can be selected at
-          selling time
+8.29.12 Ledger lot syntax
+-------------------------
 
-   * '(@) UNITCOST' and '(@@) TOTALCOST' (virtual cost)
-        * like the above, but also means "this cost was exceptional,
-          don't use it when inferring market prices".
+In Ledger, these optional annotations after an amount help specify the
+cost basis of a newly acquired lot, or select existing lot(s) to dispose
+of:
+
+   * '{LOTUNITCOST}' and '{{LOTTOTALCOST}}' (lot price)
+   * '[LOTDATE]' (lot date)
+   * '(LOTNOTE)' (lot note)
+
+   hledger does not yet calculate lots itself, but it accepts these
+annotations and will show them in 'print''s 'txt', 'beancount', and
+'json' output formats.  This means you can use this syntax in your
+hledger journals (with an amountless extra posting to help transactions
+balance, when needed), and use the 'print' command to export to Ledger
+or Beancount when you want to calculate lots and capital gains.
+
+
+File: hledger.info,  Node: Ledger fixed lot costs,  Prev: Ledger lot syntax,  Up: Other syntax
+
+8.29.13 Ledger fixed lot costs
+------------------------------
 
    * '{=UNITCOST}' and '{{=TOTALCOST}}' (fixed price)
         * when buying, means "this cost is also the fixed value, don't
           let it fluctuate in value reports"
 
-   * '{UNITCOST}' and '{{TOTALCOST}}' (lot price)
-        * can be used identically to '@ UNITCOST' and '@@ TOTALCOST',
-          also creates a lot
-        * when selling, combined with '@ ...', selects an existing lot
-          by its cost basis.  Does not check if that lot is present.
-
-   * '[YYYY/MM/DD]' (lot date)
-        * when buying, attaches this acquisition date to the lot
-        * when selling, selects a lot by its acquisition date
-
-   * '(SOME TEXT)' (lot note)
-        * when buying, attaches this note to the lot
-        * when selling, selects a lot by its note
-
-   Currently, hledger
-
-   * accepts any or all of the above in any order after the posting
-     amount
-   * supports '@' and '@@'
-   * treats '(@)' and '(@@)' as synonyms for '@' and '@@'
-   * and ignores the rest.  (This can break transaction balancing.)
+   Probably equivalent to '@'/'@@', I'm not sure.
 
    *Beancount* has simpler notation and different behaviour:
 
@@ -4967,11 +5098,10 @@ There are two kinds of matcher:
      ,1,000'
 
   2. Field matchers expect either a CSV field number, or a CSV field
-     name declared with 'fields'.  (Don't use a hledger field name here,
-     unless it is also a CSV field name.)  A non-CSV field name will
-     cause the matcher to match against '""' (the empty string), and
-     does not raise an error, allowing easier reuse of common rules with
-     different CSV files.
+     name declared with 'fields'.  Anything else will cause it to match
+     against the empty string, and probably fail silently (this makes it
+     easier to reuse common rules with different CSV files).  Don't use
+     a hledger field name here (see CSV fields and hledger fields).
 
    You can also prefix a matcher with '!' (and optional space) to negate
 it.  Eg '! whole foods', '! %3 whole foods', '!%description whole foods'
@@ -6370,6 +6500,14 @@ be 1-4.
 'last/this/next day/week/month/quarter/year'
 
      -1, 0, 1 periods from the current period
+'last/this/next tuesday'
+
+     the previous occurrence of the named day, or the next occurrence
+     after today
+'last/this/next february'
+
+     the previous occurrence of 1st of the named month, or the next
+     occurrence after the current month
 'in n days/weeks/months/quarters/years'
 
      n periods from the current period
@@ -6727,23 +6865,23 @@ overview of hledger's queries:
    * By default, a query argument is treated as a case-insensitive
      substring pattern for matching account names.  Eg:
 
-     'dining groceries'
-     'car:fuel'
+          dining groceries
+          car:fuel
 
    * Patterns containing spaces or other special characters must be
      enclosed in single or double quotes:
 
-     ''personal care''
+          'personal care'
 
    * Patterns are actually regular expressions, so you can add regexp
      metacharacters for more precision (or you may need to
      backslash-escape certain characters; see "Regular expressions"
      above):
 
-     ''^expenses\b''
-     ''food$''
-     ''fuel|repair''
-     ''accounts (payable|receivable)''
+          '^expenses\b'
+          'food$'
+          'fuel|repair'
+          'accounts (payable|receivable)'
 
    * To match something other than the account name, you can add a query
      type prefix, such as:
@@ -6759,9 +6897,9 @@ overview of hledger's queries:
 
    * To negate a query, add a 'not:' prefix:
 
-     'not:status:'*''
-     'not:desc:'opening|closing''
-     'not:cur:USD'
+          not:status:'*'
+          not:desc:'opening|closing'
+          not:cur:USD
 
    * Multiple query terms can be combined, as space-separated queries
      Eg: 'hledger print date:2022 desc:amazon desc:amzn' (show
@@ -6896,10 +7034,14 @@ File: hledger.info,  Node: date query,  Next: date2 query,  Prev: desc query,  U
 
 *'date:PERIODEXPR'*
 Match dates (or with the '--date2' flag, secondary dates) within the
-specified period.  PERIODEXPR is a period expression with no report
-interval.  Examples:
+specified period.  PERIODEXPR is a period expression.  Examples:
 'date:2016', 'date:thismonth', 'date:2/1-2/15',
 'date:2021-07-27..nextquarter'.
+
+   PERIODEXPR may include a report interval (since 1.52).  On the
+command line, this is equivalent to specifying a report interval with a
+command line option.  In other contexts (hledger-ui, hledger-web), the
+report interval may be ignored.
 
 
 File: hledger.info,  Node: date2 query,  Next: depth query,  Prev: date query,  Up: Query types
@@ -6909,7 +7051,8 @@ File: hledger.info,  Node: date2 query,  Next: depth query,  Prev: date query,  
 
 *'date2:PERIODEXPR'*
 If you use secondary dates: this matches secondary dates within the
-specified period.  It is not affected by the '--date2' flag.
+specified period.  It is not affected by the '--date2' flag.  A report
+interval in PERIODEXPR will be ignored.
 
 
 File: hledger.info,  Node: depth query,  Next: note query,  Prev: date2 query,  Up: Query types
@@ -6969,10 +7112,10 @@ File: hledger.info,  Node: type query,  Next: tag query,  Prev: status query,  U
 *'type:TYPECODES'*
 Match by account type (see Declaring accounts > Account types).
 'TYPECODES' is one or more of the single-letter account type codes
-'ALERXCV', case insensitive.  Note 'type:A' and 'type:E' will also match
-their respective subtypes 'C' (Cash) and 'V' (Conversion).  Certain
-kinds of account alias can disrupt account types, see Rewriting accounts
-> Aliases and account types.
+'ALERXCVG', case insensitive.  Note 'type:A', 'type:E', and 'type:R'
+will also match their respective subtypes 'C' (Cash), 'V' (Conversion),
+and 'G' (Gain).  Certain kinds of account alias can disrupt account
+types, see Rewriting accounts > Aliases and account types.
 
 
 File: hledger.info,  Node: tag query,  Prev: type query,  Up: Query types
@@ -7794,7 +7937,9 @@ symbol.  You can customise the "equity:conversion" part by declaring an
 account with the 'V'/'Conversion' account type.
 
    Note you will need to add account declarations for these to your
-journal, if you use 'check accounts' or 'check --strict'.
+journal, if you use 'check accounts' or 'check --strict'.  (And unlike
+normal postings, generated equity postings do not inherit tags from
+account declarations.)
 
 
 File: hledger.info,  Node: Combining costs and equity conversion postings,  Next: Requirements for detecting equity conversion postings,  Prev: Inferring equity conversion postings,  Up: Cost reporting
@@ -8908,21 +9053,26 @@ or press control-d or control-c to exit.
      commodity symbol repeated on amounts in the journal.
    * 'add' creates entries in journal format; it won't work with
      timeclock or timedot files.
+   * There is a known issue on Windows if this hledger version is built
+     from stackage: the prompts will show ANSI junk instead of colours
+     (#2410).  You can avoid this by using official hledger release
+     binaries or by building it with haskeline >=0.8.4; or by running
+     'add' with '--color=no', perhaps configured in your config file.
 
    Examples:
 
    * Record new transactions, saving to the default journal file:
 
-     'hledger add'
+          hledger add
 
    * Add transactions to 2024.journal, but also load 2023.journal for
      completions:
 
-     'hledger add --file 2024.journal --file 2023.journal'
+          hledger add --file 2024.journal --file 2023.journal
 
    * Provide answers for the first four prompts:
 
-     'hledger add today 'best buy' expenses:supplies '$20''
+          hledger add today 'best buy' expenses:supplies '$20'
 
    There is a detailed tutorial at https://hledger.org/add.html.
 
@@ -9899,6 +10049,7 @@ Flags:
                             total/balance (includes postings before report
                             start date) (default)
      --invert               display all amounts with reversed sign
+     --drop=N               omit N leading account name parts
      --heading=YN           show heading row above table: yes (default) or no
   -w --width=N              set output width (default: terminal width). -wN,M
                             sets description width as well.
@@ -10020,6 +10171,7 @@ Flags:
                             description closest to DESC
   -r --related              show postings' siblings instead
      --invert               display all amounts with reversed sign
+     --drop=N               omit N leading account name parts
      --sort=FIELDS          sort by: date, desc, account, amount, absamount,
                             or a comma-separated combination of these. For a
                             descending sort, prefix with -. (Default: date)
@@ -10071,6 +10223,8 @@ $ hledger register checking -b 2008/6 --historical
 
    The '--depth' option limits the amount of sub-account detail
 displayed.
+
+   The '--drop' option will trim leading segments from account names.
 
    The '--average'/'-A' flag shows the running average posting amount
 instead of the running total (so, the final number displayed is the
@@ -10132,6 +10286,13 @@ $ hledger register --monthly assets --depth 1
 these will be adjusted outward if necessary to contain a whole number of
 intervals.  This ensures that the first and last intervals are full
 length and comparable to the others in the report.
+
+   If you have a deeply nested account tree some reports might benefit
+from trimming leading segments from the account names using '--drop'.
+
+$ hledger register --monthly income --drop 1
+2008/01                 salary                                 $-1          $-1
+2008/06                 gifts                                  $-1          $-2
 
    With '-m DESC'/'--match=DESC', register does a fuzzy search for one
 recent posting whose description is most similar to DESC. DESC should
@@ -10453,7 +10614,7 @@ types).  Or if no such accounts are declared, it shows accounts
    More precisely: all accounts matching this case insensitive regular
 expression:
 
-   '^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|currentcash)(:|$)'
+     ^assets?(:.+)?:(cash|bank|che(ck|que?)(ing)?|savings?|currentcash)(:|$)
 
    and their subaccounts.
 
@@ -10837,7 +10998,7 @@ $ hledger -f examples/sample.journal balance --format "%20(account) %12(total)"
 account/balance pair.  It may contain any suitable text, with data
 fields interpolated like so:
 
-   '%[MIN][.MAX](FIELDNAME)'
+     %[MIN][.MAX](FIELDNAME)
 
    * MIN pads with spaces to at least this width (optional)
 
@@ -11138,8 +11299,7 @@ experimentation to get familiar with all the report modes.
 
    There are three important option groups:
 
-   'hledger balance [CALCULATIONMODE] [ACCUMULATIONMODE] [VALUATIONMODE]
-...'
+     hledger balance [CALCULATIONMODE] [ACCUMULATIONMODE] [VALUATIONMODE] ...
 
 * Menu:
 
@@ -12848,7 +13008,7 @@ File: hledger.info,  Node: Set LEDGER_FILE on unix,  Next: Set LEDGER_FILE on ma
 It depends on your shell, but running these commands in the terminal
 will work for many people; adapt if needed:
 
-$ echo 'export LEDGER_FILE=~/finance/my.journal' >> ~/.profile
+$ echo 'export LEDGER_FILE=~/finance/main.journal' >> ~/.profile
 $ source ~/.profile
 
    When correctly configured:
@@ -12869,7 +13029,7 @@ In a terminal window, follow the unix procedure above.
   1. Add an entry to '~/.MacOSX/environment.plist' like
 
      {
-       "LEDGER_FILE" : "~/finance/my.journal"
+       "LEDGER_FILE" : "~/finance/main.journal"
      }
 
   2. Run 'killall Dock' in a terminal window (or restart the machine),
@@ -12886,13 +13046,17 @@ File: hledger.info,  Node: Set LEDGER_FILE on Windows,  Prev: Set LEDGER_FILE on
 33.4.3 Set LEDGER_FILE on Windows
 ---------------------------------
 
-Using the gui is easiest:
+It can be easier to create a default file at
+'C:\Users\USER\.hledger.journal', and have it include your other files.
+See I'm on Windows, how do I keep my files in AppData
+
+   Otherwise: using the gui is easiest:
 
   1. In task bar, search for 'environment variables', and choose "Edit
      environment variables for your account".
   2. Create or change a 'LEDGER_FILE' setting in the User variables
      pane.  A typical value would be
-     'C:\Users\USERNAME\finance\my.journal'.
+     'C:\Users\USER\finance\main.journal'.
   3. Click OK to complete the change.
   4. And open a new powershell window.  (Existing windows won't see the
      change.)
@@ -12901,7 +13065,7 @@ Using the gui is easiest:
 
   1. In a powershell window, run
      '[Environment]::SetEnvironmentVariable("LEDGER_FILE",
-     "C:\User\USERNAME\finance\my.journal",
+     "C:\User\USER\finance\main.journal",
      [System.EnvironmentVariableTarget]::User)'
   2. And open a new powershell window.  (Existing windows won't see the
      change.)
@@ -13322,405 +13486,410 @@ See hledger and Ledger for full details.
 
 Tag Table:
 Node: Top208
-Node: PART 1 USER INTERFACE4093
-Node: Input4232
-Node: Text encoding5324
-Node: Data formats6073
-Node: Standard input7807
-Node: Multiple files8196
-Node: Strict mode8933
-Node: Commands9767
-Node: Add-on commands11049
-Node: Options12100
-Node: Special characters19250
-Node: Escaping shell special characters20240
-Node: Escaping regular expression special characters21599
-Node: Escaping in other situations23114
-Node: Unicode characters24262
-Node: Regular expressions25683
-Node: hledger's regular expressions28942
-Node: Argument files30583
-Node: Config files31480
-Node: Shell completions34749
-Node: Output35238
-Node: Output destination35429
-Node: Output format35987
-Node: Text output37773
-Node: Box-drawing characters38757
-Node: Colour39257
-Node: Paging39843
-Node: HTML output41362
-Node: CSV / TSV output41780
-Node: FODS output42034
-Node: Beancount output42838
-Node: Beancount account names44339
-Node: Beancount commodity names44880
-Node: Beancount virtual postings45527
-Node: Beancount metadata45843
-Node: Beancount costs46623
-Node: Beancount operating currency47039
-Node: SQL output47489
-Node: JSON output48280
-Node: Commodity styles49097
-Node: Debug output50107
-Node: Environment50939
-Node: PART 2 DATA FORMATS52108
-Node: Journal52251
-Node: Journal cheatsheet54716
-Node: Comments60967
-Node: Transactions61911
-Node: Dates63048
-Node: Simple dates63200
-Node: Posting dates63816
-Node: Status64989
-Node: Code66755
-Node: Description67090
-Node: Payee and note67777
-Node: Transaction comments68868
-Node: Postings69384
-Node: Debits and credits70700
-Node: Account names71259
-Node: Two space delimiter72216
-Node: Account hierarchy73621
-Node: Other account name features74504
-Node: Amounts74922
-Node: Decimal marks75951
-Node: Digit group marks77055
-Node: Commodity77690
-Node: Costs78807
-Node: Balance assertions81059
-Node: Assertions and ordering82307
-Node: Assertions and multiple files83026
-Node: Assertions and costs84194
-Node: Assertions and commodities84841
-Node: Assertions and subaccounts86500
-Node: Assertions and status87160
-Node: Assertions and virtual postings87580
-Node: Assertions and auto postings87945
-Node: Assertions and precision88820
-Node: Assertions and hledger add89304
-Node: Posting comments90052
-Node: Transaction balancing90592
-Node: Tags92800
-Node: Tag propagation94319
-Node: Displaying tags95818
-Node: When to use tags ?96211
-Node: Tag names96875
-Node: Directives98856
-Node: Directives and multiple files100313
-Node: Directive effects101258
-Node: account directive104414
-Node: Account comments105864
-Node: Account error checking106523
-Node: Account display order108060
-Node: Account types109258
-Node: alias directive112533
-Node: Basic aliases113744
-Node: Regex aliases114619
-Node: Combining aliases115666
-Node: Aliases and multiple files117120
-Node: end aliases directive117903
-Node: Aliases can generate bad account names118271
-Node: Aliases and account types119104
-Node: commodity directive119996
-Node: Commodity directive syntax121789
-Node: Commodity error checking123438
-Node: decimal-mark directive123913
-Node: include directive124492
-Node: P directive126715
-Node: payee directive127749
-Node: tag directive128371
-Node: Periodic transactions128983
-Node: Periodic rule syntax131137
-Node: Periodic rules and relative dates131960
-Node: Two spaces between period expression and description!132737
-Node: Auto postings133698
-Node: Auto postings and multiple files136984
-Node: Auto postings and dates137389
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions137830
-Node: Auto posting tags138676
-Node: Auto postings on forecast transactions only139571
-Node: Other syntax140041
-Node: Balance assignments140813
-Node: Balance assignments and costs142341
-Node: Balance assignments and multiple files142763
-Node: Bracketed posting dates143186
-Node: D directive143884
-Node: apply account directive145657
-Node: Y directive146524
-Node: Secondary dates147512
-Node: Star comments148997
-Node: Valuation expressions149689
-Node: Virtual postings149988
-Node: Other Ledger directives151612
-Node: Other cost/lot notations152374
-Node: CSV155215
-Node: CSV rules cheatsheet157415
-Node: source159713
-Node: Data cleaning / data generating commands161117
-Node: archive163016
-Node: encoding163944
-Node: separator164987
-Node: skip165640
-Node: date-format166290
-Node: timezone167235
-Node: newest-first168361
-Node: intra-day-reversed169074
-Node: decimal-mark169676
-Node: CSV fields and hledger fields170174
-Node: fields list172050
-Node: Field assignment173875
-Node: Field names175094
-Node: date field176426
-Node: date2 field176590
-Node: status field176785
-Node: code field176975
-Node: description field177163
-Node: comment field177380
-Node: account field177937
-Node: amount field178655
-Node: currency field181494
-Node: balance field181902
-Node: if block182425
-Node: Matchers183952
-Node: Multiple matchers185880
-Node: Match groups186688
-Node: if table187581
-Node: balance-type189644
-Node: include190471
-Node: Working with CSV191040
-Node: Rapid feedback191629
-Node: Valid CSV192212
-Node: File Extension193088
-Node: Reading CSV from standard input193823
-Node: Reading multiple CSV files194209
-Node: Reading files specified by rule194685
-Node: Valid transactions196082
-Node: Deduplicating importing196907
-Node: Regular expressions in CSV rules198153
-Node: Setting amounts199645
-Node: Amount signs202183
-Node: Setting currency/commodity203248
-Node: Amount decimal places204624
-Node: Referencing other fields205881
-Node: How CSV rules are evaluated206989
-Node: Well factored rules209706
-Node: CSV rules examples210196
-Node: Bank of Ireland210394
-Node: Coinbase211991
-Node: Amazon213174
-Node: Paypal215016
-Node: Timeclock222766
-Node: Timedot226819
-Node: Timedot examples230296
-Node: PART 3 REPORTING CONCEPTS232573
-Node: Time periods232737
-Node: Report start & end date233010
-Node: Smart dates234486
-Node: Report intervals236609
-Node: Date adjustments237183
-Node: Start date adjustment237403
-Node: End date adjustment238306
-Node: Period headings239087
-Node: Period expressions240020
-Node: Period expressions with a report interval241925
-Node: More complex report intervals242373
-Node: Multiple weekday intervals244489
-Node: Depth245500
-Node: Combining depth options246486
-Node: Queries247436
-Node: Query types250108
-Node: acct query250483
-Node: amt query250794
-Node: code query251491
-Node: cur query251686
-Node: desc query252292
-Node: date query252475
-Node: date2 query252871
-Node: depth query253162
-Node: note query253498
-Node: payee query253764
-Node: real query254045
-Node: status query254250
-Node: type query254490
-Node: tag query255023
-Node: Negative queries255652
-Node: not query255834
-Node: Space-separated queries256121
-Node: Boolean queries256809
-Node: expr query258127
-Node: any query258807
-Node: all query259260
-Node: Queries and command options259842
-Node: Queries and account aliases260290
-Node: Queries and valuation260615
-Node: Pivoting260977
-Node: Generating data263260
-Node: Forecasting265060
-Node: --forecast265716
-Node: Inspecting forecast transactions266817
-Node: Forecast reports268150
-Node: Forecast tags269259
-Node: Forecast period in detail269879
-Node: Forecast troubleshooting270967
-Node: Budgeting272038
-Node: Amount formatting272598
-Node: Commodity display style272842
-Node: Rounding274683
-Node: Trailing decimal marks275288
-Node: Amount parseability276221
-Node: Cost reporting277830
-Node: Recording costs278661
-Node: Reporting at cost280388
-Node: Equity conversion postings281153
-Node: Inferring equity conversion postings283798
-Node: Combining costs and equity conversion postings284940
-Node: Requirements for detecting equity conversion postings286165
-Node: Infer cost and equity by default ?287687
-Node: Value reporting288124
-Node: -X Value in specified commodity289082
-Node: -V Value in default commoditys289942
-Node: Valuation date290679
-Node: Finding market price291511
-Node: --infer-market-prices market prices from transactions292891
-Node: Valuation commodity295935
-Node: --value Flexible valuation297368
-Node: Valuation examples299211
-Node: Interaction of valuation and queries301355
-Node: Effect of valuation on reports302072
-Node: PART 4 COMMANDS309922
-Node: Help commands312711
-Node: commands312897
-Node: demo313105
-Node: help314198
-Node: User interface commands315903
-Node: repl316114
-Node: Examples318378
-Node: run318936
-Node: Examples 2321351
-Node: ui322375
-Node: web322512
-Node: Data entry commands322640
-Node: add322901
-Node: add and balance assertions325475
-Node: add and balance assignments326049
-Node: import326742
-Node: Import dry run327821
-Node: Overlap detection328769
-Node: First import331655
-Node: Importing balance assignments332850
-Node: Import and commodity styles333905
-Node: Import archiving334339
-Node: Import special cases335164
-Node: Deduplication335382
-Node: Varying file name335873
-Node: Multiple versions336257
-Node: Basic report commands337364
-Node: accounts337665
-Node: codes340177
-Node: commodities341199
-Node: descriptions342207
-Node: files342667
-Node: notes342964
-Node: payees343476
-Node: prices344633
-Node: stats345525
-Node: tags347583
-Node: Standard report commands349407
-Node: print349712
-Node: print amount explicitness352443
-Node: print alignment353381
-Node: print amount style353695
-Node: print parseability354925
-Node: print other features356202
-Node: print output format357164
-Node: aregister360449
-Node: aregister and posting dates364914
-Node: register365815
-Node: Custom register output373055
-Node: balancesheet374240
-Node: balancesheetequity379205
-Node: cashflow384540
-Node: incomestatement389353
-Node: Advanced report commands394202
-Node: balance394410
-Node: balance features399831
-Node: Simple balance report401934
-Node: Balance report line format403744
-Node: Filtered balance report406104
-Node: List or tree mode406623
-Node: Depth limiting408136
-Node: Dropping top-level accounts408903
-Node: Showing declared accounts409413
-Node: Sorting by amount410143
-Node: Percentages410997
-Node: Multi-period balance report411704
-Node: Balance change end balance414456
-Node: Balance report modes416093
-Node: Calculation mode416772
-Node: Accumulation mode417476
-Node: Valuation mode418577
-Node: Combining balance report modes419921
-Node: Budget report421951
-Node: Using the budget report424251
-Node: Budget date surprises426527
-Node: Selecting budget goals427891
-Node: Budgeting vs forecasting428839
-Node: Balance report layout430516
-Node: Wide layout431721
-Node: Tall layout434126
-Node: Bare layout435432
-Node: Tidy layout437496
-Node: Balance report output439040
-Node: Some useful balance reports439814
-Node: roi441074
-Node: Spaces and special characters in --inv and --pnl443321
-Node: Semantics of --inv and --pnl444047
-Node: IRR and TWR explained446134
-Node: Chart commands449545
-Node: activity449726
-Node: Data generation commands450223
-Node: close450429
-Node: close --clopen453494
-Node: close --close455390
-Node: close --open455914
-Node: close --assert456164
-Node: close --assign456491
-Node: close --retain457170
-Node: close customisation458027
-Node: close and balance assertions459705
-Node: close examples461227
-Node: Retain earnings461464
-Node: Migrate balances to a new file461967
-Node: More detailed close examples463329
-Node: rewrite463551
-Node: Re-write rules in a file466111
-Node: Diff output format467412
-Node: rewrite vs print --auto468682
-Node: Maintenance commands469396
-Node: check469615
-Node: Basic checks470698
-Node: Strict checks471764
-Node: Other checks472637
-Node: Custom checks474339
-Node: diff474778
-Node: setup475986
-Node: test478853
-Node: PART 5 COMMON TASKS479756
-Node: Getting help480205
-Node: Constructing command lines481106
-Node: Starting a journal file481971
-Node: Setting LEDGER_FILE483375
-Node: Set LEDGER_FILE on unix483663
-Node: Set LEDGER_FILE on mac484180
-Node: Set LEDGER_FILE on Windows484908
-Node: Setting opening balances486631
-Node: Recording transactions489973
-Node: Reconciling490718
-Node: Reporting493127
-Node: Migrating to a new file497261
-Node: BUGS497717
-Node: Troubleshooting498543
+Node: PART 1 USER INTERFACE4090
+Node: Input4229
+Node: Text encoding5321
+Node: Data formats6070
+Node: Standard input7804
+Node: Multiple files8193
+Node: Strict mode8930
+Node: Commands9764
+Node: Add-on commands11046
+Node: Options12097
+Node: Special characters19247
+Node: Escaping shell special characters20237
+Node: Escaping regular expression special characters21596
+Node: Escaping in other situations23111
+Node: Unicode characters24259
+Node: Regular expressions25680
+Node: hledger's regular expressions28939
+Node: Argument files30610
+Node: Config files31507
+Node: Shell completions34776
+Node: Output35265
+Node: Output destination35456
+Node: Output format36014
+Node: Text output37800
+Node: Box-drawing characters38784
+Node: Colour39284
+Node: Paging39870
+Node: HTML output41411
+Node: CSV / TSV output41829
+Node: FODS output42083
+Node: Beancount output42887
+Node: Beancount account names44388
+Node: Beancount commodity names44929
+Node: Beancount virtual postings45576
+Node: Beancount metadata45892
+Node: Beancount costs46672
+Node: Beancount operating currency47088
+Node: SQL output47538
+Node: JSON output48329
+Node: Commodity styles49146
+Node: Debug output50156
+Node: Environment50988
+Node: PART 2 DATA FORMATS52157
+Node: Journal52300
+Node: Journal cheatsheet54803
+Node: Comments61054
+Node: Transactions61998
+Node: Dates63135
+Node: Simple dates63287
+Node: Posting dates63903
+Node: Status65076
+Node: Code66842
+Node: Description67461
+Node: Payee and note68148
+Node: Transaction comments69239
+Node: Postings69755
+Node: Debits and credits71071
+Node: Account names71630
+Node: Two space delimiter72587
+Node: Account hierarchy73992
+Node: Other account name features74875
+Node: Amounts75293
+Node: Decimal marks76299
+Node: Digit group marks77403
+Node: Commodity78038
+Node: Costs79141
+Node: Cost basis / lot syntax82710
+Node: Balance assertions84373
+Node: Assertions and ordering85637
+Node: Assertions and multiple files86356
+Node: Assertions and costs87524
+Node: Assertions and commodities88171
+Node: Assertions and subaccounts89830
+Node: Assertions and status90490
+Node: Assertions and virtual postings90910
+Node: Assertions and auto postings91275
+Node: Assertions and precision92150
+Node: Assertions and hledger add92634
+Node: Posting comments93382
+Node: Transaction balancing93922
+Node: Tags96130
+Node: Tag propagation97649
+Node: Displaying tags99148
+Node: When to use tags ?99541
+Node: Tag names100205
+Node: Directives102204
+Node: Directives and multiple files103661
+Node: Directive effects104606
+Node: account directive107762
+Node: Account comments109229
+Node: Account tags109816
+Node: Account error checking110225
+Node: Account display order111758
+Node: Account types112956
+Node: alias directive116660
+Node: Basic aliases117871
+Node: Regex aliases118746
+Node: Combining aliases119793
+Node: Aliases and multiple files121247
+Node: end aliases directive122030
+Node: Aliases can generate bad account names122398
+Node: Aliases and account types123231
+Node: commodity directive124123
+Node: Commodity directive syntax125935
+Node: Commodity tags127501
+Node: Commodity error checking127979
+Node: decimal-mark directive128442
+Node: include directive129021
+Node: P directive131244
+Node: payee directive132278
+Node: tag directive132903
+Node: Periodic transactions133518
+Node: Periodic rule syntax135672
+Node: Periodic rules and relative dates136495
+Node: Two spaces between period expression and description!137272
+Node: Auto postings138233
+Node: Auto postings and multiple files141519
+Node: Auto postings and dates141924
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions142365
+Node: Auto posting tags143211
+Node: Auto postings on forecast transactions only144106
+Node: Other syntax144576
+Node: Balance assignments145393
+Node: Balance assignments and costs146921
+Node: Balance assignments and multiple files147343
+Node: Bracketed posting dates147766
+Node: D directive148464
+Node: apply account directive150240
+Node: Y directive151107
+Node: Secondary dates152098
+Node: Star comments153583
+Node: Valuation expressions154275
+Node: Virtual postings154574
+Node: Other Ledger directives156198
+Node: Ledger virtual costs156956
+Node: Ledger lot syntax157298
+Node: Ledger fixed lot costs158151
+Node: CSV159721
+Node: CSV rules cheatsheet161921
+Node: source164219
+Node: Data cleaning / data generating commands165623
+Node: archive167522
+Node: encoding168450
+Node: separator169493
+Node: skip170146
+Node: date-format170796
+Node: timezone171741
+Node: newest-first172867
+Node: intra-day-reversed173580
+Node: decimal-mark174182
+Node: CSV fields and hledger fields174680
+Node: fields list176556
+Node: Field assignment178381
+Node: Field names179600
+Node: date field180932
+Node: date2 field181096
+Node: status field181291
+Node: code field181481
+Node: description field181669
+Node: comment field181886
+Node: account field182443
+Node: amount field183161
+Node: currency field186000
+Node: balance field186408
+Node: if block186931
+Node: Matchers188458
+Node: Multiple matchers190361
+Node: Match groups191169
+Node: if table192062
+Node: balance-type194125
+Node: include194952
+Node: Working with CSV195521
+Node: Rapid feedback196110
+Node: Valid CSV196693
+Node: File Extension197569
+Node: Reading CSV from standard input198304
+Node: Reading multiple CSV files198690
+Node: Reading files specified by rule199166
+Node: Valid transactions200563
+Node: Deduplicating importing201388
+Node: Regular expressions in CSV rules202634
+Node: Setting amounts204126
+Node: Amount signs206664
+Node: Setting currency/commodity207729
+Node: Amount decimal places209105
+Node: Referencing other fields210362
+Node: How CSV rules are evaluated211470
+Node: Well factored rules214187
+Node: CSV rules examples214677
+Node: Bank of Ireland214875
+Node: Coinbase216472
+Node: Amazon217655
+Node: Paypal219497
+Node: Timeclock227247
+Node: Timedot231300
+Node: Timedot examples234777
+Node: PART 3 REPORTING CONCEPTS237054
+Node: Time periods237218
+Node: Report start & end date237491
+Node: Smart dates238967
+Node: Report intervals241338
+Node: Date adjustments241912
+Node: Start date adjustment242132
+Node: End date adjustment243035
+Node: Period headings243816
+Node: Period expressions244749
+Node: Period expressions with a report interval246654
+Node: More complex report intervals247102
+Node: Multiple weekday intervals249218
+Node: Depth250229
+Node: Combining depth options251215
+Node: Queries252165
+Node: Query types254867
+Node: acct query255242
+Node: amt query255553
+Node: code query256250
+Node: cur query256445
+Node: desc query257051
+Node: date query257234
+Node: date2 query257848
+Node: depth query258189
+Node: note query258525
+Node: payee query258791
+Node: real query259072
+Node: status query259277
+Node: type query259517
+Node: tag query260075
+Node: Negative queries260704
+Node: not query260886
+Node: Space-separated queries261173
+Node: Boolean queries261861
+Node: expr query263179
+Node: any query263859
+Node: all query264312
+Node: Queries and command options264894
+Node: Queries and account aliases265342
+Node: Queries and valuation265667
+Node: Pivoting266029
+Node: Generating data268312
+Node: Forecasting270112
+Node: --forecast270768
+Node: Inspecting forecast transactions271869
+Node: Forecast reports273202
+Node: Forecast tags274311
+Node: Forecast period in detail274931
+Node: Forecast troubleshooting276019
+Node: Budgeting277090
+Node: Amount formatting277650
+Node: Commodity display style277894
+Node: Rounding279735
+Node: Trailing decimal marks280340
+Node: Amount parseability281273
+Node: Cost reporting282882
+Node: Recording costs283713
+Node: Reporting at cost285440
+Node: Equity conversion postings286205
+Node: Inferring equity conversion postings288850
+Node: Combining costs and equity conversion postings290096
+Node: Requirements for detecting equity conversion postings291321
+Node: Infer cost and equity by default ?292843
+Node: Value reporting293280
+Node: -X Value in specified commodity294238
+Node: -V Value in default commoditys295098
+Node: Valuation date295835
+Node: Finding market price296667
+Node: --infer-market-prices market prices from transactions298047
+Node: Valuation commodity301091
+Node: --value Flexible valuation302524
+Node: Valuation examples304367
+Node: Interaction of valuation and queries306511
+Node: Effect of valuation on reports307228
+Node: PART 4 COMMANDS315078
+Node: Help commands317867
+Node: commands318053
+Node: demo318261
+Node: help319354
+Node: User interface commands321059
+Node: repl321270
+Node: Examples323534
+Node: run324092
+Node: Examples 2326507
+Node: ui327531
+Node: web327668
+Node: Data entry commands327796
+Node: add328057
+Node: add and balance assertions330991
+Node: add and balance assignments331565
+Node: import332258
+Node: Import dry run333337
+Node: Overlap detection334285
+Node: First import337171
+Node: Importing balance assignments338366
+Node: Import and commodity styles339421
+Node: Import archiving339855
+Node: Import special cases340680
+Node: Deduplication340898
+Node: Varying file name341389
+Node: Multiple versions341773
+Node: Basic report commands342880
+Node: accounts343181
+Node: codes345693
+Node: commodities346715
+Node: descriptions347723
+Node: files348183
+Node: notes348480
+Node: payees348992
+Node: prices350149
+Node: stats351041
+Node: tags353099
+Node: Standard report commands354923
+Node: print355228
+Node: print amount explicitness357959
+Node: print alignment358897
+Node: print amount style359211
+Node: print parseability360441
+Node: print other features361718
+Node: print output format362680
+Node: aregister365965
+Node: aregister and posting dates370492
+Node: register371393
+Node: Custom register output379114
+Node: balancesheet380299
+Node: balancesheetequity385264
+Node: cashflow390599
+Node: incomestatement395412
+Node: Advanced report commands400261
+Node: balance400469
+Node: balance features405890
+Node: Simple balance report407993
+Node: Balance report line format409803
+Node: Filtered balance report412163
+Node: List or tree mode412682
+Node: Depth limiting414195
+Node: Dropping top-level accounts414962
+Node: Showing declared accounts415472
+Node: Sorting by amount416202
+Node: Percentages417056
+Node: Multi-period balance report417763
+Node: Balance change end balance420515
+Node: Balance report modes422152
+Node: Calculation mode422831
+Node: Accumulation mode423535
+Node: Valuation mode424636
+Node: Combining balance report modes425980
+Node: Budget report428010
+Node: Using the budget report430310
+Node: Budget date surprises432586
+Node: Selecting budget goals433950
+Node: Budgeting vs forecasting434898
+Node: Balance report layout436575
+Node: Wide layout437780
+Node: Tall layout440185
+Node: Bare layout441491
+Node: Tidy layout443555
+Node: Balance report output445099
+Node: Some useful balance reports445873
+Node: roi447133
+Node: Spaces and special characters in --inv and --pnl449380
+Node: Semantics of --inv and --pnl450106
+Node: IRR and TWR explained452193
+Node: Chart commands455604
+Node: activity455785
+Node: Data generation commands456282
+Node: close456488
+Node: close --clopen459553
+Node: close --close461449
+Node: close --open461973
+Node: close --assert462223
+Node: close --assign462550
+Node: close --retain463229
+Node: close customisation464086
+Node: close and balance assertions465764
+Node: close examples467286
+Node: Retain earnings467523
+Node: Migrate balances to a new file468026
+Node: More detailed close examples469388
+Node: rewrite469610
+Node: Re-write rules in a file472170
+Node: Diff output format473471
+Node: rewrite vs print --auto474741
+Node: Maintenance commands475455
+Node: check475674
+Node: Basic checks476757
+Node: Strict checks477823
+Node: Other checks478696
+Node: Custom checks480398
+Node: diff480837
+Node: setup482045
+Node: test484912
+Node: PART 5 COMMON TASKS485815
+Node: Getting help486264
+Node: Constructing command lines487165
+Node: Starting a journal file488030
+Node: Setting LEDGER_FILE489434
+Node: Set LEDGER_FILE on unix489722
+Node: Set LEDGER_FILE on mac490241
+Node: Set LEDGER_FILE on Windows490971
+Node: Setting opening balances492876
+Node: Recording transactions496218
+Node: Reconciling496963
+Node: Reporting499372
+Node: Migrating to a new file503506
+Node: BUGS503962
+Node: Troubleshooting504788
 
 End Tag Table
 
