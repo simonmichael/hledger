@@ -17,7 +17,66 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# ff93dcab
+# c13e3837
+
+- ;doc: update embedded manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: set version to 1.52
+
+- fix:lib:invertAmount: with zero amounts, do nothing instead of failing [#2476]
+  Previously invertAmount would raise a "Ratio has zero denominator"
+  exception if the amount's quantity was zero. Now it's a no-op in that case.
+
+- fix:lib, ui: fix the root cause of dots on empty list screens [#2476], [#2550]
+  fitText has already been fixed to guard against a negative width,
+  but here is the root cause of the dots we were seeing on non-mac machines.
+  An unguarded division, when the denominator was 0, produced NaN :: Double,
+  and later that was rounded. In Haskell, round on NaN/Infinity gives undefined behavior —
+  GHC passes it straight through to the hardware instruction, so the
+  result is whatever the CPU does:
+
+    - ARM64 (Apple Silicon Macs): The FCVTZS instruction returns 0 for NaN inputs.
+      So maxchangewidth = round (0 * maxamtswidth) = 0 (all widths stay non-negative, no dots).
+
+    - x86-64 (Linux, Windows, and Intel Macs): The CVTSD2SI instruction
+      returns the "integer indefinite" value for NaN: 0x8000000000000000 = minBound :: Int.
+      The huge negative number overflowed the subsequent arithmetic,
+      producing negative column widths, causing fitText to show "..".
+
+  Now we add and use a new divideSafe helper.
+
+  (And removed some old defensive code from RegisterScreen.)
+
+- fix:ui: Display All Transactions correctly [#2476], [#2550] (Tuong Nguyen Manh)
+  Even if there there are no displayitems left, there are still blankitems
+  in the List. With this the List is not technically empty and will
+  therefore keep showing a selection.
+  This is fixed by actively removing the list selection if there are no
+  displayitems left.
+
+  Also, if there are only blankitems left, the colwidths cacluation in
+  the RegisterScreen produces negative widths. The fitText function would
+  then see that the 0-length of the blankitems is greater than the
+  negative widths and ellipsify.
+  This is fixed in the RegisterScreen by ensuring that no negative widths
+  are passed and more generally in the fitText function by treating
+  negative max widths as 0.
+
+- fix:add,import: read all -f files, not just the first [#2553]
+  This fixes a regression in 1.51.2.
+  withPossibleJournal was only reading the first -f file (NE.head),
+  discarding the rest. This broke autocompletion in `add` and multi-file
+  reading in `import` when multiple -f flags were given.
+
+  Add readPossibleJournalFiles (plural) which reads the first file
+  tolerantly (may not exist) and the rest normally, then combines them.
+
+- ;doc: changelogs draft
+
+
+
 
 - feat: commodity tags can be declared, affecting postings in that commodity
 
