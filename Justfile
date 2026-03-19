@@ -19,7 +19,7 @@
 # https://github.com/casey/just/discussions
 #
 # Here are other tools required by some of the scripts below:
-# - bash            - required, to ensure a predictable default shell
+# - bash            - (not the old /bin/bash on mac)
 # - ghc             - a haskell compiler in PATH (installing with ghcup is recommended)
 # - ghcid           - recompiles and optionally runs tests on file change
 # - stack           - installs haskell libs, runs ghc
