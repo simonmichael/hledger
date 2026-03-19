@@ -25,15 +25,9 @@ See also the hledger changelog.
 
 # c13e3837
 
-- ;doc: update embedded manuals
+Fixes
 
-- ;cabal: update cabal files
-
-- ;pkg: set version to 1.52
-
-- dev:ui: use divideSafe in a few more places [#2476]
-
-- fix:lib, ui: fix the root cause of dots on empty list screens [#2476], [#2550]
+- fix the root cause of dots on empty list screens [#2476], [#2550]
   fitText has already been fixed to guard against a negative width,
   but here is the root cause of the dots we were seeing on non-mac machines.
   An unguarded division, when the denominator was 0, produced NaN :: Double,
@@ -53,7 +47,7 @@ See also the hledger changelog.
 
   (And removed some old defensive code from RegisterScreen.)
 
-- fix:ui: Display All Transactions correctly [#2476], [#2550] (Tuong Nguyen Manh)
+- Display All Transactions correctly [#2476], [#2550] (Tuong Nguyen Manh)
   Even if there there are no displayitems left, there are still blankitems
   in the List. With this the List is not technically empty and will
   therefore keep showing a selection.
@@ -68,54 +62,26 @@ See also the hledger changelog.
   are passed and more generally in the fitText function by treating
   negative max widths as 0.
 
-- imp:ui: keep --theme=default as deprecated alias for light; reorder themes [#2551]
+- dark theme: also update positive balances' selection colour [#2551]
 
-- fix:ui: dark theme: also update positive balances' selection colour [#2551]
-
-- fix:ui: document new J/K jump keys, fix whitespace [#2551]
-
-- ui: implement 10-row J/K jumps in Register screen as well (RahulShankarV52)
-  Resolves #1911.
-
-- ui: implement 10-row J/K jumps in RegisterScreen (RahulShankarV52)
-  Partially addresses #1911 by adding capital J and K keybindings to leap 10 rows at a time. Included bounds checking to prevent jumping into blank padding.
-
-- ui: rename default theme to light and modernize selection colors (RahulShankarV52)
-  Addresses #2168 and #2175 by explicitly naming the light theme and updating selection highlights to cyan for better visibility in modern terminals.
-
-- ;doc: changelogs draft
-
-
-
-
-- fix:cli: run the less pager more robustly [#2544]
+- run the less pager more robustly [#2544]
   The LESS env var configuration previously performed at startup
   has been moved into runPager, improved, and clarified.
   General and colour-specific options are now added to LESS separately.
   And before running less we now test less --version for problems,
   to catch more kinds of less failure and report them more clearly.
 
-- ;doc:changelogs: 1.51.2
+Improvements
 
-- ;cabal: update cabal files
+- keep --theme=default as deprecated alias for light; reorder themes [#2551]
 
-- hledger-ui: allow vty-crossplatform 0.5 (Jens Petersen)
+- implement 10-row J/K jumps in all screens (RahulShankarV52)
+  Capital J and K keybindings leap 10 rows at a time, with bounds checking
+  to prevent jumping into blank padding. [#1911]
 
-- cabal: update cabal files
-
-- ;pkg: allow base 4.22 / ghc 9.14
-
-- ;doc: merge change docs from 1.51.1
-
-- ;doc:changelogs, relnotes: merge 1.50.5
-
-- ;doc: update embedded manuals
-
-- ;cabal: update cabal files
-
-- ;pkg: set version to 1.51.99
-
-- ;doc: finalise changelogs for 1.51 on 2025-12-05
+- rename default theme to light and modernize selection colors (RahulShankarV52)
+  Explicitly names the light theme and updates selection highlights to cyan
+  for better visibility in modern terminals. [#2168], [#2175]
 
 
 # 1.51.2 2026-01-08
