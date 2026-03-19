@@ -23,7 +23,20 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# ff93dcab
+# c13e3837
+
+- ;doc: update embedded manuals
+
+- ;cabal: update cabal files
+
+- ;pkg: set version to 1.52
+
+- doc:web: update openapi.yaml for 1.50 (n0vdd)
+
+- ;doc: changelogs draft
+
+
+
 
 - fix:cli: run the less pager more robustly [#2544]
   The LESS env var configuration previously performed at startup
