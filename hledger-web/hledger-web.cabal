@@ -203,7 +203,7 @@ library
     , yesod >=1.4 && <1.7
     , yesod-core >=1.4 && <1.7
     , yesod-form >=1.4 && <1.8
-    , yesod-static >=1.4 && <1.7
+    , yesod-static >=1.4 && <1.6.1.1
     , yesod-test
   default-language: GHC2021
   if (flag(dev)) || (flag(library-only))
