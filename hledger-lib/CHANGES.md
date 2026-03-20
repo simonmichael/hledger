@@ -21,22 +21,14 @@ For user-visible changes, see the hledger package changelog.
 
 Breaking changes
 
-- Add a CostBasis field to Amount.
+- A cost basis field (`acostbasis`) has been added to Amount (to store Ledger/Beancount-style cost basis annotations).
 
 Fixes
 
-- invertAmount: with zero amounts, do nothing instead of failing. [#2476]
+- invertAmount: with zero amounts, do nothing instead of failing.
   Previously `invertAmount` would raise a "Ratio has zero denominator"
   exception if the amount's quantity was zero. Now it's a no-op in that case.
-
-Improvements
-
-- Properly convert {{LOTTOTALCOST}} to a unit cost internally.
-  Previously we were ignoring the different semantics of {{ }}.
-  Now we convert it to a unit cost by dividing by the amount quantity.
-  Internally, a cost basis's cost is always a unit cost.
-
-- Hledger.Utils.IO: clarify `expandPath`, `expandHomePath`.
+  [#2476]
 
 [#2476]: https://github.com/simonmichael/hledger/issues/2476
 

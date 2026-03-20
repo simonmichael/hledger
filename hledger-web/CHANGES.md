@@ -27,15 +27,12 @@ See also the hledger changelog.
 
 Fixes
 
-- The less pager is now invoked more robustly. [#2544]
-  LESS environment variable configuration has been moved from startup
-  into the pager runner and improved.
-  Before running less, we now test `less --version`
-  to catch and report more kinds of failure clearly.
+- The less pager (used for displaying help, eg) is now invoked more robustly; we catch and report more kinds of failure clearly.
+  [#2544]
 
 Docs
 
-- Update openapi.yaml for 1.50.
+- openapi.yaml (the OpenAPI spec for hledger-web's JSON API) has been updated.
   (n0vdd)
 
 [#2544]: https://github.com/simonmichael/hledger/issues/2544
