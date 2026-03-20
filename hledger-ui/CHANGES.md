@@ -23,7 +23,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# c13e3837
+# 1.52 2026-03-20
 
 Fixes
 

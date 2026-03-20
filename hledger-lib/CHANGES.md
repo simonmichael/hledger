@@ -17,7 +17,7 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# c13e3837
+# 1.52 2026-03-20
 
 Breaking changes
 
