@@ -24,7 +24,7 @@ Doc updates
 
 - ACHIEVEMENTS
 - ANNOUNCE
-- issue template: improvements
+- Issue template: improvements
 - README: badges updates
 - REGRESSIONS
 - RELEASING
@@ -32,30 +32,35 @@ Doc updates
 
 Infrastructure/Misc
 
-- ghtestbinnotes: fix urls
 - just: note newer bash required
+- just: specify (and require) bash as default shell [#2527]
 - just: cleanup; depend less on ghc in PATH
-- just file perfhelp cleanup (Marko Kocic)
+- just: cleanup, use standard prelude
+- just: add compile.sh to build Haskell scripts
 - just: google-search-console
 - just: perfhelp
 - just: perftest: tail the perf log
-- Replace gsed with sed in justfile (Marko Kocic)
+- just: ghrel-bin-upload -> ghrel-upload, fix
+- just: tools: compile tools scripts
+- just file perfhelp cleanup (Marko Kocic)
 - just test: run doctests last to reduce double compilation (Marko Kocic)
 - just test: avoid double compilation of everything [#2528]
-- just: specify (and require) bash as default shell [#2527]
-- just: cleanup, use standard prelude
-- just tools: compiles tools scripts
-- just: add compile.sh to build haskell scripts
-- just: ghrel-bin-upload -> ghrel-upload, fix
-- github issue template updates
-- workflows: binaries-windows: update for new ghc
+- Replace gsed with sed in justfile (Marko Kocic)
+- ghtestbinnotes: fix URLs
+- GitHub issue template updates
+- workflows: binaries-windows: update for new GHC
 - workflows: binaries-linux: caching, cleanup improvements
 - workflows: rename nightly -> testbin
 - workflows: ensure linux binary uses fixed haskeline [#2410]
-- update testbin scripts, use testlatest tag / testbin branch
+- Update testbin scripts, use testlatest tag / testbin branch
 - stack: bump snapshots
-- scripts: fix all the scripts in ./bin [#2497] (Dmitry Astapov)
-- commit dummy addon scripts so addons.test works in fresh clones/worktrees
+- scripts: fix all scripts in bin/ [#2497] (Dmitry Astapov)
+- Commit dummy addon scripts so addons.test works in fresh clones/worktrees
+
+[#2410]: https://github.com/simonmichael/hledger/issues/2410
+[#2497]: https://github.com/simonmichael/hledger/issues/2497
+[#2527]: https://github.com/simonmichael/hledger/issues/2527
+[#2528]: https://github.com/simonmichael/hledger/issues/2528
 
 
 # 1.51.2 2026-01-08

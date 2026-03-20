@@ -27,61 +27,46 @@ See also the hledger changelog.
 
 Fixes
 
-- fix the root cause of dots on empty list screens [#2476], [#2550]
-  fitText has already been fixed to guard against a negative width,
-  but here is the root cause of the dots we were seeing on non-mac machines.
-  An unguarded division, when the denominator was 0, produced NaN :: Double,
-  and later that was rounded. In Haskell, round on NaN/Infinity gives undefined behavior —
-  GHC passes it straight through to the hardware instruction, so the
-  result is whatever the CPU does:
+- Fix the root cause of ".." dots appearing on empty list screens on non-Mac platforms.
+  An unguarded division by zero produced NaN, which different CPU architectures
+  handle differently when rounding to Int: ARM64 (Apple Silicon) returns 0,
+  while x86-64 (Linux/Windows/Intel Macs) returns minBound, causing negative
+  column widths and the ".." display. Now uses a safe division helper.
+  [#2476], [#2550]
 
-    - ARM64 (Apple Silicon Macs): The FCVTZS instruction returns 0 for NaN inputs.
-      So maxchangewidth = round (0 * maxamtswidth) = 0 (all widths stay non-negative, no dots).
+- The "All Transactions" register screen now displays correctly when empty. [#2476], [#2550]
+  Previously, blank padding items could cause a stale selection and negative
+  column widths. Now the selection is cleared when there are no display items,
+  and negative widths are treated as zero.
+  (Tuong Nguyen Manh)
 
-    - x86-64 (Linux, Windows, and Intel Macs): The CVTSD2SI instruction
-      returns the "integer indefinite" value for NaN: 0x8000000000000000 = minBound :: Int.
-      The huge negative number overflowed the subsequent arithmetic,
-      producing negative column widths, causing fitText to show "..".
+- Dark theme: fix positive balances' selection colour. [#2551]
 
-  Now we add and use a new divideSafe helper.
-
-  (And removed some old defensive code from RegisterScreen.)
-
-- Display All Transactions correctly [#2476], [#2550] (Tuong Nguyen Manh)
-  Even if there there are no displayitems left, there are still blankitems
-  in the List. With this the List is not technically empty and will
-  therefore keep showing a selection.
-  This is fixed by actively removing the list selection if there are no
-  displayitems left.
-
-  Also, if there are only blankitems left, the colwidths cacluation in
-  the RegisterScreen produces negative widths. The fitText function would
-  then see that the 0-length of the blankitems is greater than the
-  negative widths and ellipsify.
-  This is fixed in the RegisterScreen by ensuring that no negative widths
-  are passed and more generally in the fitText function by treating
-  negative max widths as 0.
-
-- dark theme: also update positive balances' selection colour [#2551]
-
-- run the less pager more robustly [#2544]
-  The LESS env var configuration previously performed at startup
-  has been moved into runPager, improved, and clarified.
-  General and colour-specific options are now added to LESS separately.
-  And before running less we now test less --version for problems,
-  to catch more kinds of less failure and report them more clearly.
+- The less pager is now invoked more robustly. [#2544]
+  LESS environment variable configuration has been moved from startup
+  into the pager runner and improved.
+  Before running less, we now test `less --version`
+  to catch and report more kinds of failure clearly.
 
 Improvements
 
-- keep --theme=default as deprecated alias for light; reorder themes [#2551]
+- `--theme=default` is kept as a deprecated alias for `light`; themes are reordered. [#2551]
 
-- implement 10-row J/K jumps in all screens (RahulShankarV52)
-  Capital J and K keybindings leap 10 rows at a time, with bounds checking
-  to prevent jumping into blank padding. [#1911]
+- New J/K keybindings leap 10 rows at a time in all screens,
+  with bounds checking to prevent jumping into blank padding.
+  (RahulShankarV52) [#1911]
 
-- rename default theme to light and modernize selection colors (RahulShankarV52)
-  Explicitly names the light theme and updates selection highlights to cyan
-  for better visibility in modern terminals. [#2168], [#2175]
+- The default theme has been renamed to `light`, and selection colours
+  updated to cyan for better visibility in modern terminals.
+  (RahulShankarV52) [#2168], [#2175]
+
+[#1911]: https://github.com/simonmichael/hledger/issues/1911
+[#2168]: https://github.com/simonmichael/hledger/issues/2168
+[#2175]: https://github.com/simonmichael/hledger/issues/2175
+[#2476]: https://github.com/simonmichael/hledger/issues/2476
+[#2544]: https://github.com/simonmichael/hledger/issues/2544
+[#2550]: https://github.com/simonmichael/hledger/issues/2550
+[#2551]: https://github.com/simonmichael/hledger/issues/2551
 
 
 # 1.51.2 2026-01-08
