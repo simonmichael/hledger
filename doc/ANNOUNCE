@@ -1,7 +1,14 @@
-hledger-1.51.2 fixes some regressions and brings some minor improvements.
+I'm pleased to announce hledger-1.52. Highlights include:
 
-- https://github.com/simonmichael/hledger/releases/1.51.2
-- https://hledger.org/relnotes.html#2026-01-08-hledger-1512
+Preserve cost basis syntax,
+cost basis export examples,
+faster valuation,
+commodity tags,
+more robust paging,
+fixes.
+
+- https://github.com/simonmichael/hledger/releases/1.52
+- https://hledger.org/relnotes.html#2026-03-20-hledger-152
 - https://hledger.org/install
 
 #hledger is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, #plaintextaccounting software.
