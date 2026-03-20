@@ -21,22 +21,24 @@ For user-visible changes, see the hledger package changelog.
 
 Breaking changes
 
-- add a CostBasis field to Amount
+- Add a CostBasis field to Amount.
 
 Fixes
 
-- invertAmount: with zero amounts, do nothing instead of failing [#2476]
-  Previously invertAmount would raise a "Ratio has zero denominator"
+- invertAmount: with zero amounts, do nothing instead of failing. [#2476]
+  Previously `invertAmount` would raise a "Ratio has zero denominator"
   exception if the amount's quantity was zero. Now it's a no-op in that case.
 
 Improvements
 
-- properly convert {{LOTTOTALCOST}} to a unit cost internally
+- Properly convert {{LOTTOTALCOST}} to a unit cost internally.
   Previously we were ignoring the different semantics of {{ }}.
   Now we convert it to a unit cost by dividing by the amount quantity.
   Internally, a cost basis's cost is always a unit cost.
 
-- Hledger.Utils.IO: clarify expandPath, expandHomePath
+- Hledger.Utils.IO: clarify `expandPath`, `expandHomePath`.
+
+[#2476]: https://github.com/simonmichael/hledger/issues/2476
 
 
 # 1.51.2 2026-01-08

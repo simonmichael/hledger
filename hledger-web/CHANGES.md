@@ -27,16 +27,18 @@ See also the hledger changelog.
 
 Fixes
 
-- run the less pager more robustly [#2544]
-  The LESS env var configuration previously performed at startup
-  has been moved into runPager, improved, and clarified.
-  General and colour-specific options are now added to LESS separately.
-  And before running less we now test less --version for problems,
-  to catch more kinds of less failure and report them more clearly.
+- The less pager is now invoked more robustly. [#2544]
+  LESS environment variable configuration has been moved from startup
+  into the pager runner and improved.
+  Before running less, we now test `less --version`
+  to catch and report more kinds of failure clearly.
 
 Docs
 
-- update openapi.yaml for 1.50 (n0vdd)
+- Update openapi.yaml for 1.50.
+  (n0vdd)
+
+[#2544]: https://github.com/simonmichael/hledger/issues/2544
 
 
 # 1.51.2 2026-01-08

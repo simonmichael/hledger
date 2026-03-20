@@ -30,144 +30,107 @@ User-visible changes in the hledger command line tool and library.
 
 Features
 
-- aregister, register: Implement --drop flag (Caleb Maclennan)
-  This implements the same --drop functionality as the balance
-  commands have, allowing users to trim
-  leading account name components.
+- `aregister` and `register` now support `--drop` for trimming leading account name components,
+  like the `balance` command.
+  (Caleb Maclennan)
 
-- commodity tags can be declared, affecting postings in that commodity
+- Commodity tags can now be declared, affecting postings in that commodity.
 
-- accounts: add Gain (G) account type as subtype of Revenue [#2522] (g. nicholas d'andrea)
-  Add a new account type Gain with single-letter code G as a subtype of
-  Revenue, similar to how Cash is a subtype of Asset and Conversion is a
-  subtype of Equity. This enables tracking capital gains/losses separately
-  while still including them in income statements and close --retain.
+- `accounts`: new Gain (G) account type, a subtype of Revenue. [#2522]
+  This enables tracking capital gains/losses separately
+  while still including them in income statements and `close --retain`.
+  `type:G` matches only Gain accounts; `type:R` matches both Revenue and Gain.
+  Gain accounts are auto-detected from names matching patterns like
+  `income:gains`, `revenue:capital-gains`, `income:losses`.
+  (g. nicholas d'andrea)
 
-  Usage: account revenues:capital  ; type: G
+- Ledger-style lot info is now preserved and shown in `print` output (text, JSON, and beancount).
 
-  - type:G matches only Gain accounts
-  - type:R matches both Revenue and Gain (subtype matching)
-  - Auto-detection from account names matching:
-    ^(income|revenue)s?:(capital[- ]?)?(gains?|loss(es)?)(:|$)
-    e.g. income:gains, revenue:capital-gains, income:losses
+- `date:` queries can now set a report interval, eg `date:weekly` or `date:'weekly from last month'`.
+  This removes the need to use `-W`/`-p` for this, and enables configuring
+  report intervals in hledger-ui and hledger-web.
 
-- preserve Ledger-style lot info, and show it in print's json & txt output
-
-- print: show lot info in beancount output; update docs
-
-- date: queries can now configure a report interval
-  Now it's possible to write date:weekly or date:'weekly from last month',
-  instead of using -W or -p. This fixes an inconsistency, and removes
-  an obstacle to configuring report intervals in places like hledger-ui and hledger-web.
-
-- smart dates now support "last|this|next WEEKDAY|MONTHNAME"
+- Smart dates now support "last|this|next WEEKDAY" and "last|this|next MONTHNAME".
 
 Fixes
 
-- balance reports: accounts revealed by `--empty --declared` now
+- `balance`: accounts revealed by `--empty --declared` now
   respect account display order, instead of being shown last.
   (Juliano Solanho, [#2564])
 
-- run: when running commands from stdin, don't hide errors [#2557]
-  When commands were piped to stdin, run was swallowing exceptions and
-  always returning exit code 0. This run mode now lets errors propagate
-  normally, consistent with hledger's other non-interactive commands.
+- `run`: commands piped to stdin no longer have errors silently swallowed. [#2557]
+  Previously, `run` always returned exit code 0 in this mode;
+  now it lets errors propagate normally.
 
-- fix options requiring a value consuming unrelated arguments [#2556]
-  When an option requiring a value (like --round or -f) appeared without one,
-  hledger's internal command line argument reordering could place unrelated
-  pre-command flags next to it, which would then be consumed as the value.
-  Eg `hledger -f test.journal print --round` would reorder to
-  `hledger print --round -f test.journal`, and --round would eat -f.
+- Fix options requiring a value (like `--round` or `-f`) consuming unrelated arguments. [#2556]
+  When such an option appeared without a value, hledger's argument reordering
+  could place an unrelated flag next to it, which would be consumed as the value.
+  Now pre-command arguments are inserted in a position that preserves their order.
 
-  Now when moving pre-command args, we insert them after the command,
-  before post-command args (not after them). This better preserves the
-  overall order of args, fixing this bug, and will hopefully be more robust.
+- `balance --budget`: CSV/TSV output no longer uses thousands separators. [#2555]
+  Previously, digit group marks (eg `EUR 42,000.00`) corrupted CSV structure.
 
-- balance: fix --budget CSV/TSV output using thousands separators [#2555]
-  balance --budget -O csv was formatting amounts with digit group marks
-  (thousands separators, eg EUR 42,000.00), corrupting CSV structure.
-  Now it uses the proper machineFmt, for machine-readable numbers.
+- `add`, `import`: read all `-f` files, not just the first. [#2553]
+  This fixes a regression in 1.51.2 which broke autocompletion in `add`
+  and multi-file reading in `import` when multiple `-f` flags were given.
 
-- add, import: read all -f files, not just the first [#2553]
-  This fixes a regression in 1.51.2,
-  which broke autocompletion in `add` and multi-file reading in `import`
-  when multiple -f flags were given.
+- The less pager is now invoked more robustly. [#2544]
+  LESS environment variable configuration has been moved from startup
+  into the pager runner and improved.
+  Before running less, we now test `less --version`
+  to catch and report more kinds of failure clearly.
 
-- run the less pager more robustly [#2544]
-  The LESS env var configuration previously performed at startup
-  has been moved into runPager, improved, and clarified.
-  General and colour-specific options are now added to LESS separately.
-  And before running less we now test less --version for problems,
-  to catch more kinds of less failure and report them more clearly.
-
-- postings generated by --infer-equity no longer inherit tags/comment [#2535]
-  Any comment, tags, and real/virtual/balanced virtual type of the cost
-  posting was being propagated to the new equity postings; now they are
-  not. (Posting date and posting status still are.)
+- Postings generated by `--infer-equity` no longer inherit the source posting's
+  tags, comment, or real/virtual type. [#2535]
+  (Posting date and status are still inherited.)
 
 Improvements
 
-- pager: drop --quit-at-eof from less options (and document those better)
+- Pager: `--quit-at-eof` is no longer passed to less (and less options are better documented).
 
-- pager: when less options are failing, fall back to unpaged output (and a warning)
+- Pager: when less options are causing failure, fall back to unpaged output with a warning.
 
-- pager: handle a number of runPager failure modes more robustly
+- Pager: various failure modes are handled more robustly.
 
-- add, import: also create directories when autocreating journal file
-  When autocreating a journal file specified by -f or LEDGER_FILE,
-  required parent directories will now also be autocreated if needed.
+- `add`, `import`: when autocreating a journal file, required parent directories are now also created.
 
-- valuation: optimize price lookup with pre-built indexes [#2511] (Oleg Bulatov)
-  Replace O(n log n) re-sorting of all prices on every valuation date
-  with O(log n) indexed lookups. By pre-building sorted price indexes
-  once at startup using O(n log n) time, we avoid redundant work
-  during reports.
+- Valuation: price lookups are now optimised with pre-built indexes. [#2511]
+  This replaces O(n log n) re-sorting on every valuation date with O(log n) indexed lookups,
+  significantly improving performance for `--value=end,COMM` with daily reports
+  over long periods and large price databases.
+  (Oleg Bulatov)
 
-  This significantly improves performance for --value=end,COMM with daily
-  reports over long periods and large price databases.
+- `setup`: show GHC/RTS output.
 
-- setup: ghc/RTS output
+- `setup`: show the LESS value more accurately, and test that less runs.
 
-- setup: show LESS value more accurately, and test that less runs
-  When the pager is less, setup was showing hledger's modified LESS
-  value rather than it's value in the environment. Now it shows both.
-  And if HLEDGER_LESS is defined, LESS is shown with an "overridden" indicator.
-  Also, now it tests less --version as runPager does, and reports
-  problems caused by LESS/HLEDGER_LESS settings (helps troubleshoot
-  problems like #2544).
+- `setup`: show the OS version, architecture, and compiler version.
 
-- setup: show the OS version
+- `setup`: show when built without OS thread support.
 
-- setup: show when built without OS thread support
+- `setup`: show more compact output when http fails; show warning before using http.
 
-- setup: show more compact output when http fails
-
-- setup: improve layout of top info; show warning before using http
-
-- setup: show os, architecture, and compiler version
+- `setup`: improve layout of top info.
 
 Docs
 
-- Account tags section: separate
-- aregister: Add new --drop flag (Caleb Maclennan)
+- Account tags: new separate section
+- aregister: document new --drop flag (Caleb Maclennan)
 - COMMON TASKS: Setting LEDGER_FILE: updates
 - Cost basis: edits
-- Cost basis / lot syntax: edits
-- Costs: edits
+- Cost basis / lot syntax: new section and edits
 - Costs: rewrite
 - csv: if: field matchers: clarify
-- hledger's regular expressions: no lazy quantifiers
 - Inferring equity conversion postings: note account tags limitation
 - journal: code: mention valid characters, recommend tags [#2563]
-- new Cost basis / lot syntax section
 - P directive: fix typo
-- register: Add new --drop flag with usage example (Caleb Maclennan)
-- Tag names: clarify --verbose-tags a little
+- register: document new --drop flag with usage example (Caleb Maclennan)
+- Regular expressions: note no lazy quantifiers
+- Tag names: clarify --verbose-tags
 
 Examples
 
-- csv: add Interactive Brokers example CSV rules files (#2508) (Ilja Kocken)
+- csv: add Interactive Brokers example CSV rules files [#2508] (Ilja Kocken)
 - csv: fidelity updates
 - csv: Open Collective updates
 - csv/cctax: notes on exporting to cryptocurrency tax calculators
@@ -176,16 +139,26 @@ Examples
 
 Scripts/addons
 
-- smooth: accept ACCTPAT, matching case-insensitively as infix (like aregister)
+- `smooth`: accept ACCTPAT, matching case-insensitively as infix (like `aregister`).
 
-- fancyassertions: nicer show call (Joshua Chapman)
-  Now uses showMixedAmount to properly format the amount as expected by users.
+- `fancyassertions`: use `showMixedAmount` for properly formatted output.
+  (Joshua Chapman)
 
-- bashrc: drop clashy month aliases
-- bashrc: fix LEDGER_FILE typo, cleanup
-- ledgereval
-- readme: fix ledgereval link
+- bashrc: drop clashy month aliases; fix LEDGER_FILE typo; cleanup.
+- `ledgereval`: new script.
+- bin/README: fix ledgereval link.
 
+[#2508]: https://github.com/simonmichael/hledger/issues/2508
+[#2511]: https://github.com/simonmichael/hledger/issues/2511
+[#2522]: https://github.com/simonmichael/hledger/issues/2522
+[#2535]: https://github.com/simonmichael/hledger/issues/2535
+[#2544]: https://github.com/simonmichael/hledger/issues/2544
+[#2553]: https://github.com/simonmichael/hledger/issues/2553
+[#2555]: https://github.com/simonmichael/hledger/issues/2555
+[#2556]: https://github.com/simonmichael/hledger/issues/2556
+[#2557]: https://github.com/simonmichael/hledger/issues/2557
+[#2563]: https://github.com/simonmichael/hledger/issues/2563
+[#2564]: https://github.com/simonmichael/hledger/issues/2564
 
 
 # 1.51.2 2026-01-08
