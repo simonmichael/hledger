@@ -10,7 +10,7 @@ Doc updates
 
 Website
 
-Infrastructure/Misc
+Infrastructure/tools
 
 -->
 
@@ -22,40 +22,30 @@ For package-specific changes, see the hledger package changelogs.
 
 Doc updates
 
-- ACHIEVEMENTS
-- ANNOUNCE
-- Issue template: improvements
-- README: badges updates
-- REGRESSIONS
-- RELEASING
-- relnotes
+- ACHIEVEMENTS, ANNOUNCE, README, REGRESSIONS, RELEASING
+- Github issue template improvements
 
-Infrastructure/Misc
+Infrastructure/tools
 
-- just: note newer bash required
-- just: specify (and require) bash as default shell [#2527]
-- just: cleanup; depend less on ghc in PATH
-- just: cleanup, use standard prelude
-- just: add compile.sh to build Haskell scripts
-- just: google-search-console
-- just: perfhelp
-- just: perftest: tail the perf log
-- just: ghrel-bin-upload -> ghrel-upload, fix
-- just: tools: compile tools scripts
-- just file perfhelp cleanup (Marko Kocic)
-- just test: run doctests last to reduce double compilation (Marko Kocic)
-- just test: avoid double compilation of everything [#2528]
-- Replace gsed with sed in justfile (Marko Kocic)
-- ghtestbinnotes: fix URLs
-- GitHub issue template updates
-- workflows: binaries-windows: update for new GHC
-- workflows: binaries-linux: caching, cleanup improvements
-- workflows: rename nightly -> testbin
-- workflows: ensure linux binary uses fixed haskeline [#2410]
-- Update testbin scripts, use testlatest tag / testbin branch
-- stack: bump snapshots
-- scripts: fix all scripts in bin/ [#2497] (Dmitry Astapov)
-- Commit dummy addon scripts so addons.test works in fresh clones/worktrees
+- fix URLs in github test binaries release doc
+- github issue templates updated
+- Justfile scripts
+  - specify and require (newish) bash as default shell [#2527]
+  - depend less on ghc in PATH
+  - add compile.sh to build Haskell scripts
+  - just ghrel-bin-upload -> ghrel-upload, fix
+  - just google-search-console
+  - just perfhelp (Simon Michael, Marko Kocić)
+  - just perftest
+  - just test: run doctests last to reduce double compilation (Marko Kocić) [#2528]
+  - just tools
+  - replace gsed with sed (Marko Kocić)
+- github workflows
+  - binaries-windows: update for new GHC
+  - binaries-linux: caching, cleanup improvements
+  - nightly -> testbin
+  - ensure linux binary uses fixed haskeline [#2410]
+  - testbin: update, use testlatest tag / testbin branch
 
 [#2410]: https://github.com/simonmichael/hledger/issues/2410
 [#2497]: https://github.com/simonmichael/hledger/issues/2497

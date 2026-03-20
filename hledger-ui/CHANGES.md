@@ -27,38 +27,23 @@ See also the hledger changelog.
 
 Fixes
 
-- Fix the root cause of ".." dots appearing on empty list screens on non-Mac platforms.
-  An unguarded division by zero produced NaN, which different CPU architectures
-  handle differently when rounding to Int: ARM64 (Apple Silicon) returns 0,
-  while x86-64 (Linux/Windows/Intel Macs) returns minBound, causing negative
-  column widths and the ".." display. Now uses a safe division helper.
-  [#2476], [#2550]
+- List screens with no items now correctly appear empty on all platforms.
+  (An unguarded division by zero was disrupting the display on non-ARM machines.)
+  (Tuong Nguyen Manh, Simon Michael) [#2476], [#2550]
 
-- The "All Transactions" register screen now displays correctly when empty. [#2476], [#2550]
-  Previously, blank padding items could cause a stale selection and negative
-  column widths. Now the selection is cleared when there are no display items,
-  and negative widths are treated as zero.
-  (Tuong Nguyen Manh)
-
-- Dark theme: fix positive balances' selection colour. [#2551]
-
-- The less pager is now invoked more robustly. [#2544]
-  LESS environment variable configuration has been moved from startup
-  into the pager runner and improved.
-  Before running less, we now test `less --version`
-  to catch and report more kinds of failure clearly.
+- The less pager (used for displaying help, eg) is now invoked more robustly; we catch and report more kinds of failure clearly.
+  [#2544]
 
 Improvements
 
-- `--theme=default` is kept as a deprecated alias for `light`; themes are reordered. [#2551]
+- New capital `J`/`K` keybindings move down/up 10 rows at a time.
+  (Rahul Shankar V, Simon Michael) [#1911], [#2551]
 
-- New J/K keybindings leap 10 rows at a time in all screens,
-  with bounds checking to prevent jumping into blank padding.
-  (RahulShankarV52) [#1911]
+- The `default` theme has been renamed to `light`.
+  (Rahul Shankar V, Simon Michael) [#2168], [#2551]
 
-- The default theme has been renamed to `light`, and selection colours
-  updated to cyan for better visibility in modern terminals.
-  (RahulShankarV52) [#2168], [#2175]
+- The selection colour has been changed to cyan, for better visibility in typical terminals.
+  (Rahul Shankar V, Simon Michael) [#2175], [#2551]
 
 [#1911]: https://github.com/simonmichael/hledger/issues/1911
 [#2168]: https://github.com/simonmichael/hledger/issues/2168
