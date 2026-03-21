@@ -7783,7 +7783,7 @@ misc fixes**
 * balance: `--drop` is now ignored when not in flat mode, 
   rather than producing a corrupted report ([#754](https://github.com/simonmichael/hledger/issues/754))
 
-* budget: `--drop` now preserves the <unbudgeted> top-level account in `--budget` reports
+* budget: `--drop` now preserves the `<unbudgeted>` top-level account in `--budget` reports
 
 * register: in CSV output, the code field is now included ([#746](https://github.com/simonmichael/hledger/issues/746))
 
@@ -8011,7 +8011,7 @@ Alvaro Fernando García.
 
 * period expressions: support "every 2nd Thursday of month" (Dmitry Astapov)
 
-* period expressions: support "every Tuesday", short for "every <n>th day of week" (Dmitry Astapov)
+* period expressions: support "every Tuesday", short for `every <n>th day of week` (Dmitry Astapov)
 
 ### hledger cli 1.5
 
@@ -10005,7 +10005,7 @@ Queries:
   balance reports, filtering out unwanted currencies entirely. Eg
   hledger balance cur:'\$' now reports only the dollar amounts even if
   there are multi-currency transactions or postings.
-- Amount queries like amt:N, amt:<N and amt:>N, where N is not 0, now do an unsigned
+- Amount queries like `amt:N`, `amt:<N` and `amt:>N`, where N is not 0, now do an unsigned
   comparison of the amount and N. That is, they compare the absolute magnitude.
   To do a signed comparison instead, write N with its sign (eg amt:+N, amt:<+N, amt:>-N).
 - Fix: amount queries no longer give false positives on multi-commodity amounts.
