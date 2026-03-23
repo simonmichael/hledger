@@ -1062,8 +1062,8 @@ ghrel-upload:
     gh release upload --clobber "$VER" tmp/hledger-mac-x64.tar.gz
     gh release upload --clobber "$VER" tmp/hledger-windows-x64.zip
 
-# After major release: in master, tag the start of a new dev cycle ("OLDVER.99") and push the tag.
-devtag-push:
+# After major release: in master, bump versions for a new dev cycle ("OLDVER.99")
+@devver:
     #!/usr/bin/env bash
     set -euo pipefail
     RELVER=$(just relver)
@@ -1071,10 +1071,6 @@ devtag-push:
     just _on-master-branch
     echo "Setting versions to $DEVVER.."
     ./Shake setversion "$DEVVER" -c
-    echo "Creating tag $DEVVER.."
-    git tag --force --sign "$DEVVER" -m "start of post-$RELVER dev cycle"
-    echo "Pushing tag $DEVVER.."
-    git push origin "$DEVVER"
 
 # Between releases: push HEAD to github testbin branch and start building new platform binaries.
 testbin:
