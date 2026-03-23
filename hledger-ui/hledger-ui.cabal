@@ -100,7 +100,7 @@ library
     , transformers
     , vector
     , vty >=6.1 && <6.6
-    , vty-crossplatform >=0.4.0.0 && <0.5.0.0
+    , vty-crossplatform >=0.4.0.0 && <0.6.0.0
   default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
