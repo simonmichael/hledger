@@ -205,7 +205,7 @@ parseLotName parseAmt t = do
   if T.null inner
     then Right $ CostBasis Nothing Nothing Nothing
     else do
-      let parts = map T.strip $ splitOnCommas inner
+      let parts = map T.strip $ splitParts inner
       parseParts parts
   where
     parseParts parts = go parts Nothing Nothing Nothing
@@ -233,25 +233,72 @@ parseLotName parseAmt t = do
             (read [d1,d2])
         _ -> Nothing
 
-    -- Split on commas, but not within double-quoted strings.
-    -- E.g. @"2026-01-15, \"my, label\", $50"@ -> @["2026-01-15", "\"my, label\"", "$50"]@.
-    splitOnCommas :: Text -> [Text]
-    splitOnCommas s
-      | T.null s  = []
-      | otherwise = let (part, rest) = takeField s
-                    in part : if T.null rest then [] else splitOnCommas rest
+    -- Split the inner text of a lot name into up to 3 parts (date, label, cost)
+    -- by peeling known-format prefixes in DLC order, exploiting the fact that
+    -- dates and labels have unambiguous syntax.  This avoids splitting on commas,
+    -- which would break when the cost amount contains a decimal comma (e.g. @1,5@)
+    -- or when the commodity symbol contains commas (e.g. @"an, odd, commodity"@).
+    -- After each part, @,@ followed by optional whitespace is consumed.
+    --
+    -- Examples:
+    -- @"2026-01-15, \"my, label\", €1,50"@               -> @["2026-01-15", "\"my, label\"", "€1,50"]@
+    -- @"2026-01-15, \"an, odd, commodity\" 1,5"@          -> @["2026-01-15", "\"an, odd, commodity\" 1,5"]@
+    -- @"2026-01-15, \"a, b\", \"an, odd, commodity\" 1,5" -> @["2026-01-15", "\"a, b\"", "\"an, odd, commodity\" 1,5"]@
+    -- @"$100"@                                            -> @["$100"]@
+    splitParts :: Text -> [Text]
+    splitParts s =
+      let (mdate, s1) = peelDate s
+          (mlabel, s2) = peelLabel s1
+          mcost = let c = T.strip s2 in if T.null c then Nothing else Just c
+      in catMaybes [mdate, mlabel, mcost]
 
-    -- Consume one comma-separated field (respecting double quotes), returning
-    -- (field, remaining-after-comma).
-    takeField :: Text -> (Text, Text)
-    takeField = go T.empty False
-      where
-        go acc inQuote s
-          | T.null s             = (acc, T.empty)
-          | c == '"'             = go (T.snoc acc c) (not inQuote) cs
-          | c == ',' && not inQuote = (acc, cs)
-          | otherwise            = go (T.snoc acc c) inQuote cs
-          where (c, cs) = (T.head s, T.tail s)
+    -- Try to peel a date (YYYY-MM-DD) from the front. Returns the date text
+    -- and the remainder after stripping a comma separator, or Nothing and the
+    -- unchanged input. Requires that the date candidate is followed by end of
+    -- string, a comma, or whitespace (to avoid greedily consuming digits that
+    -- are part of a cost amount).
+    peelDate :: Text -> (Maybe Text, Text)
+    peelDate s
+      | T.length s >= 10
+      , let (candidate, rest) = T.splitAt 10 s
+      , isDatePart candidate
+      , T.null rest || T.head rest == ',' || T.head rest == ' '
+      = (Just candidate, stripSep rest)
+      | otherwise = (Nothing, s)
+
+    -- Try to peel a double-quoted label from the front. Scans from the opening
+    -- quote to the next closing quote. A quoted string is only treated as a
+    -- label if it is followed by a comma separator or end of input. If it is
+    -- followed by digits or other amount-starting characters (after optional
+    -- whitespace), it is a quoted commodity symbol that belongs to the cost
+    -- amount, so we leave it alone.
+    peelLabel :: Text -> (Maybe Text, Text)
+    peelLabel s
+      | Just s' <- T.stripPrefix "\"" s
+      = let (inner, rest) = T.break (== '"') s'
+        in case T.uncons rest of
+             Just ('"', rest')
+               | looksLikeCostRemainder rest' -> (Nothing, s)  -- quoted commodity symbol, not a label
+               | otherwise -> (Just ("\"" <> inner <> "\""), stripSep rest')
+             _ -> (Nothing, s)  -- malformed, leave for parseAmt
+      | otherwise = (Nothing, s)
+
+    -- After a closing quote, does the remainder look like it continues as a
+    -- cost amount (i.e. the quoted string was a commodity symbol, not a label)?
+    -- True when the next non-space character is a digit, sign, or decimal mark.
+    looksLikeCostRemainder :: Text -> Bool
+    looksLikeCostRemainder t' =
+      case T.uncons (T.stripStart t') of
+        Just (c, _) -> isDigit c || c == '+' || c == '-' || c == '.'
+        Nothing     -> False
+
+    -- Strip an optional comma and any surrounding whitespace.
+    stripSep :: Text -> Text
+    stripSep s0 =
+      let s1 = T.stripStart s0
+      in case T.uncons s1 of
+           Just (',', s2) -> T.stripStart s2
+           _              -> s1
 
 -- | Merge two 'CostBasis' values. For each field, if both are @Just@, they
 -- must agree (returns error if not); otherwise takes whichever is @Just@.
