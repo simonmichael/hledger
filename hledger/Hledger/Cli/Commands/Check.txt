@@ -68,6 +68,11 @@ Other checks
 These are not wanted by everyone, but can be run using the check
 command:
 
+- lots - all lot tracking calculations succeed. Checks lots tag values
+  on declarations, lot posting classification, calculation of lot
+  movements, capital gains, and correct balancing of disposal
+  transactions. Stops at the first error.
+
 - tags - all tags used must be declared. This prevents mis-spelled tag
   names. Note hledger fairly often finds unintended tags in comments.
 
