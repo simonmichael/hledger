@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-UI" "1" "February 2026" "hledger-ui-1.51.99 " "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "March 2026" "hledger-ui-1.99 " "hledger User Manuals"
 
 
 
@@ -17,7 +17,7 @@ or
 .PD
 \f[CR]hledger ui [OPTS] [QUERYARGS]\f[R]
 .SH DESCRIPTION
-This manual is for hledger\[aq]s terminal interface, version 1.51.99.
+This manual is for hledger\(aqs terminal interface, version 1.99.
 See also the hledger manual for common concepts and file formats.
 .PP
 hledger is a robust, user\-friendly, cross\-platform set of programs for
@@ -26,10 +26,10 @@ accounting and a simple, editable file format.
 hledger is inspired by and largely compatible with ledger(1), and
 largely interconvertible with beancount(1).
 .PP
-hledger\-ui is hledger\[aq]s terminal interface, providing an efficient
+hledger\-ui is hledger\(aqs terminal interface, providing an efficient
 full\-window text UI for viewing accounts and transactions, and some
 limited data entry capability.
-It is easier than hledger\[aq]s command\-line interface, and sometimes
+It is easier than hledger\(aqs command\-line interface, and sometimes
 quicker and more convenient than the web interface.
 .PP
 Like hledger, it reads from (and appends to) a journal file specified by
@@ -44,7 +44,7 @@ Unlike hledger, hledger\-ui hides all future\-dated transactions by
 default.
 They can be revealed, along with any rule\-generated periodic
 transactions, by pressing the F key (or starting with \-\-forecast) to
-enable \[dq]forecast mode\[dq].
+enable \(dqforecast mode\(dq.
 .SH OPTIONS
 Any arguments are interpreted as a hledger query which filters the data.
 hledger\-ui provides the following options:
@@ -53,20 +53,20 @@ hledger\-ui provides the following options:
 Flags:
   \-w \-\-watch                watch for data and date changes and reload
                             automatically
-     \-\-theme=THEME          use this custom display theme (default,
-                            greenterm, terminal, dark)
+     \-\-theme=THEME          use this custom display theme (light,
+                            dark, terminal, greenterm)
      \-\-cash                 start in the cash accounts screen
      \-\-bs                   start in the balance sheet accounts screen
      \-\-is                   start in the income statement accounts screen
      \-\-all                  start in the all accounts screen
-     \-\-register=ACCTREGEX   start in the (first matched) account\[aq]s register
+     \-\-register=ACCTREGEX   start in the (first matched) account\(aqs register
      \-\-change               show period balances (changes) at startup instead
                             of historical balances
   \-l \-\-flat                 show accounts as a flat list (default)
   \-t \-\-tree                 show accounts as a tree
 .EE
 .PP
-and also supports many of hledger\[aq]s general options:
+and also supports many of hledger\(aqs general options:
 .IP
 .EX
 General input/data transformation flags:
@@ -80,18 +80,18 @@ General input/data transformation flags:
      \-\-alias=A=B|/RGX/=RPL  transform account names from A to B, or by
                             replacing regular expression matches
      \-\-auto                 generate extra postings by applying auto posting
-                            rules (\[dq]=\[dq]) to all transactions
+                            rules (\(dq=\(dq) to all transactions
      \-\-forecast[=PERIOD]    Generate extra transactions from periodic rules
-                            (\[dq]\[ti]\[dq]), from after the latest ordinary transaction
+                            (\(dq\(ti\(dq), from after the latest ordinary transaction
                             until 6 months from now. Or, during the specified
                             PERIOD (the equals is required). Auto posting rules
                             will also be applied to these transactions. In
                             hledger\-ui, also make future\-dated transactions
                             visible at startup.
-  \-I \-\-ignore\-assertions    don\[aq]t check balance assertions by default
+  \-I \-\-ignore\-assertions    don\(aqt check balance assertions by default
      \-\-txn\-balancing=...    how to check that transactions are balanced:
-                            \[aq]old\[aq]:   use global display precision
-                            \[aq]exact\[aq]: use transaction precision (default)
+                            \(aqold\(aq:   use global display precision
+                            \(aqexact\(aq: use transaction precision (default)
      \-\-infer\-costs          infer conversion equity postings from costs
      \-\-infer\-equity         infer costs from conversion equity postings
      \-\-infer\-market\-prices  infer market prices from costs
@@ -111,7 +111,7 @@ General output/reporting flags (supported by some commands):
   \-Y \-\-yearly               multiperiod report with 1 year interval
   \-p \-\-period=PERIODEXP     set begin date, end date, and/or report interval,
                             with more flexibility
-     \-\-today=DATE           override today\[aq]s date (affects relative dates)
+     \-\-today=DATE           override today\(aqs date (affects relative dates)
      \-\-date2                match/use secondary dates instead (deprecated)
   \-U \-\-unmarked             include only unmarked postings/transactions
   \-P \-\-pending              include only pending postings/transactions
@@ -133,14 +133,14 @@ General output/reporting flags (supported by some commands):
      \-\-value=WHEN[,COMM]    show amounts converted to their value on the
                             specified date(s) in their default valuation
                             commodity or a specified commodity. WHEN can be:
-                            \[aq]then\[aq]:     value on transaction dates
-                            \[aq]end\[aq]:      value at period end(s)
-                            \[aq]now\[aq]:      value today
+                            \(aqthen\(aq:     value on transaction dates
+                            \(aqend\(aq:      value at period end(s)
+                            \(aqnow\(aq:      value today
                             YYYY\-MM\-DD: value on given date
-  \-c \-\-commodity\-style=S    Override a commodity\[aq]s display style.
-                            Eg: \-c \[aq].\[aq] or \-c \[aq]1.000,00 EUR\[aq]
+  \-c \-\-commodity\-style=S    Override a commodity\(aqs display style.
+                            Eg: \-c \(aq.\(aq or \-c \(aq1.000,00 EUR\(aq
      \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
-                            \[aq]y\[aq]/\[aq]yes\[aq] or \[aq]n\[aq]/\[aq]no\[aq].
+                            \(aqy\(aq/\(aqyes\(aq or \(aqn\(aq/\(aqno\(aq.
                             If YN is specified, the equals is required.
 
 General help flags:
@@ -163,11 +163,11 @@ If this is not working see Install > Shell completions.
 .SH MOUSE
 In most modern terminals, you can navigate through the screens with a
 mouse or touchpad:
-.IP \[bu] 2
+.IP \(bu 2
 Use mouse wheel or trackpad to scroll up and down
-.IP \[bu] 2
+.IP \(bu 2
 Click on list items to go deeper
-.IP \[bu] 2
+.IP \(bu 2
 Click on the left margin (column 0) to go back.
 .SH KEYS
 Keyboard gives more control.
@@ -183,6 +183,7 @@ The cursor keys navigate: \f[CR]RIGHT\f[R] or \f[CR]ENTER\f[R] goes
 deeper, \f[CR]LEFT\f[R] returns to the previous screen,
 \f[CR]UP\f[R]/\f[CR]DOWN\f[R]/\f[CR]PGUP\f[R]/\f[CR]PGDN\f[R]/\f[CR]HOME\f[R]/\f[CR]END\f[R]
 move up and down through lists.
+\f[CR]J\f[R]/\f[CR]K\f[R] jump down/up 10 items at a time.
 Emacs\-style
 (\f[CR]CTRL\-p\f[R]/\f[CR]CTRL\-n\f[R]/\f[CR]CTRL\-f\f[R]/\f[CR]CTRL\-b\f[R])
 and VI\-style (\f[CR]k\f[R],\f[CR]j\f[R],\f[CR]l\f[R],\f[CR]h\f[R])
@@ -212,7 +213,7 @@ Pressing \f[CR]SHIFT\-DOWN\f[R] narrows the report period, and pressing
 When narrowed, the current report period is displayed in the header
 line, pressing \f[CR]SHIFT\-LEFT\f[R] or \f[CR]SHIFT\-RIGHT\f[R] moves
 to the previous or next period, and pressing \f[CR]T\f[R] sets the
-period to \[dq]today\[dq].
+period to \(dqtoday\(dq.
 If you are using \f[CR]\-w/\-\-watch\f[R] and viewing a narrowed period
 containing today, the view will follow any changes in system date
 (moving to the period containing the new date).
@@ -226,22 +227,22 @@ arrow keys.
 .PP
 (Tip: arrow keys with Shift do not work out of the box in all terminal
 software.
-Eg in Apple\[aq]s Terminal, the SHIFT\-DOWN and SHIFT\-UP keys must be
-configured as follows: in Terminal\[aq]s preferences, click Profiles,
+Eg in Apple\(aqs Terminal, the SHIFT\-DOWN and SHIFT\-UP keys must be
+configured as follows: in Terminal\(aqs preferences, click Profiles,
 select your current profile on the left, click Keyboard on the right,
-click + and add this for SHIFT\-DOWN: \f[CR]\[rs]033[1;2B\f[R], click +
-and add this for SHIFT\-UP: \f[CR]\[rs]033[1;2A\f[R].
+click + and add this for SHIFT\-DOWN: \f[CR]\(rs033[1;2B\f[R], click +
+and add this for SHIFT\-UP: \f[CR]\(rs033[1;2A\f[R].
 \ In other terminals (Windows Terminal ?)
 you might need to configure SHIFT\-RIGHT and SHIFT\-LEFT to emit
-\f[CR]\[rs]033[1;2C\f[R] and \f[CR]\[rs]033[1;2D\f[R] respectively.)
+\f[CR]\(rs033[1;2C\f[R] and \f[CR]\(rs033[1;2D\f[R] respectively.)
 .PP
 \f[CR]ESCAPE\f[R] resets the UI state and jumps back to the top screen,
-restoring the app\[aq]s initial state at startup.
+restoring the app\(aqs initial state at startup.
 Or, it cancels minibuffer data entry or the help dialog.
 .PP
 \f[CR]CTRL\-l\f[R] redraws the screen and centers the selection if
-possible (selections near the top won\[aq]t be centered, since we
-don\[aq]t scroll above the top).
+possible (selections near the top won\(aqt be centered, since we
+don\(aqt scroll above the top).
 .PP
 \f[CR]g\f[R] reloads from the data file(s) and updates the current
 screen and any previous screens.
@@ -254,7 +255,7 @@ troubleshooting.
 re\-enabling balance assertions with the \f[CR]I\f[R] key also reloads
 the journal, like \f[CR]g\f[R].)
 .PP
-\f[CR]a\f[R] runs command\-line hledger\[aq]s add command, and reloads
+\f[CR]a\f[R] runs command\-line hledger\(aqs add command, and reloads
 the updated file.
 This allows some basic data entry.
 .PP
@@ -264,14 +265,14 @@ This key will be available if \f[CR]hledger\-iadd\f[R] is installed in
 $path.
 .PP
 \f[CR]E\f[R] runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default
-(\f[CR]emacsclient \-a \[dq]\[dq] \-nw\f[R]) on the journal file.
+(\f[CR]emacsclient \-a \(dq\(dq \-nw\f[R]) on the journal file.
 With some editors (emacs, vi), the cursor will be positioned at the
 current transaction when invoked from the register and transaction
 screens, and at the error location (if possible) when invoked from the
 error screen.
 .PP
 \f[CR]B\f[R] toggles cost mode, showing amounts converted to their
-cost\[aq]s commodity (see hledger manual > Cost reporting.
+cost\(aqs commodity (see hledger manual > Cost reporting.
 .PP
 \f[CR]V\f[R] toggles value mode, showing amounts converted to their
 market value (see hledger manual > Valuation flag).
@@ -291,7 +292,7 @@ end date without restarting, by pressing \f[CR]/\f[R] and adding a query
 like \f[CR]date:..YYYY\-MM\-DD\f[R].
 \- Either cost mode, or value mode, can be active, but not both at once.
 Cost mode takes precedence.
-\- There\[aq]s not yet any visual indicator that cost or value mode is
+\- There\(aqs not yet any visual indicator that cost or value mode is
 active, other than the amount values.
 .PP
 \f[CR]q\f[R] quits the application.
@@ -314,7 +315,7 @@ various types.
 Note some of these may not show anything until you have configured
 account types.
 .SS Cash accounts screen
-This screen shows \[dq]cash\[dq] (ie, liquid asset) accounts (like
+This screen shows \(dqcash\(dq (ie, liquid asset) accounts (like
 \f[CR]hledger balancesheet type:c\f[R]).
 It always shows balances (historical ending balances on the date shown
 in the title line).
@@ -335,38 +336,38 @@ It shows balances by default; you can toggle showing changes with the
 .SS Register screen
 This screen shows the transactions affecting a particular account.
 Each line represents one transaction, and shows:
-.IP \[bu] 2
+.IP \(bu 2
 the other account(s) involved, in abbreviated form.
 (If there are both real and virtual postings, it shows only the accounts
 affected by real postings.)
-.IP \[bu] 2
-the overall change to the current account\[aq]s balance; positive for an
+.IP \(bu 2
+the overall change to the current account\(aqs balance; positive for an
 inflow to this account, negative for an outflow.
-.IP \[bu] 2
+.IP \(bu 2
 the running total after the transaction.
 With the \f[CR]H\f[R] key you can toggle between
 .RS 2
-.IP \[bu] 2
+.IP \(bu 2
 the period total, which is from just the transactions displayed
-.IP \[bu] 2
+.IP \(bu 2
 or the historical total, which includes any undisplayed transactions
 before the start of the report period (and matching the filter query if
 any).
 This will be the running historical balance (what you would see on a
-bank\[aq]s website, eg) if not disturbed by a query.
+bank\(aqs website, eg) if not disturbed by a query.
 .RE
 .PP
-Note, this screen combines each transaction\[aq]s in\-period postings to
+Note, this screen combines each transaction\(aqs in\-period postings to
 a single line item, dated with the earliest in\-period transaction or
-posting date (like hledger\[aq]s \f[CR]aregister\f[R]).
+posting date (like hledger\(aqs \f[CR]aregister\f[R]).
 So custom posting dates can cause the running balance to be temporarily
 inaccurate.
 (See hledger manual > aregister and posting dates.)
 .PP
-Transactions affecting this account\[aq]s subaccounts will be included
-in the register if the accounts screen is in tree mode, or if it\[aq]s
-in list mode but this account has subaccounts which are not shown due to
-a depth limit.
+Transactions affecting this account\(aqs subaccounts will be included in
+the register if the accounts screen is in tree mode, or if it\(aqs in
+list mode but this account has subaccounts which are not shown due to a
+depth limit.
 In other words, the register always shows the transactions contributing
 to the balance shown on the accounts screen.
 Tree mode/list mode can be toggled with \f[CR]t\f[R] here also.
@@ -388,10 +389,10 @@ unlike command\-line hledger).
 Press \f[CR]RIGHT\f[R] to view the selected transaction in detail.
 .SS Transaction screen
 This screen shows a single transaction, as a general journal entry,
-similar to hledger\[aq]s print command and journal format
+similar to hledger\(aqs print command and journal format
 (hledger_journal(5)).
 .PP
-The transaction\[aq]s date(s) and any cleared flag, transaction code,
+The transaction\(aqs date(s) and any cleared flag, transaction code,
 description, comments, along with all of its account postings are shown.
 Simple transactions have two postings, but there can be more (or in
 certain cases, fewer).
@@ -402,9 +403,9 @@ In the title bar, the numbers in parentheses show your position within
 that account register.
 They will vary depending on which account register you came from
 (remember most transactions appear in multiple account registers).
-The #N number preceding them is the transaction\[aq]s position within
-the complete unfiltered journal, which is a more stable id (at least
-until the next reload).
+The #N number preceding them is the transaction\(aqs position within the
+complete unfiltered journal, which is a more stable id (at least until
+the next reload).
 .PP
 On this screen (and the register screen), the \f[CR]E\f[R] key will open
 your text editor with the cursor positioned at the current transaction
@@ -416,13 +417,13 @@ Once you have fixed the problem, press g again to reload and resume
 normal operation.
 (Or, you can press escape to cancel the reload attempt.)
 .SH WATCH MODE
-One of hledger\-ui\[aq]s best features is the auto\-reloading
+One of hledger\-ui\(aqs best features is the auto\-reloading
 \f[CR]\-w/\-\-watch\f[R] mode.
 With this flag, it will update the display automatically whenever
 changes are saved to the data files.
 .PP
 This is very useful when reconciling.
-A good workflow is to have your bank\[aq]s online register open in a
+A good workflow is to have your bank\(aqs online register open in a
 browser window, for reference; the journal file open in an editor
 window; and hledger\-ui in watch mode in a terminal window, eg:
 .IP
@@ -438,18 +439,18 @@ toggle cleared mode, or to explore the history.
 .SS \-\-watch problems
 \f[I]However.\f[R] There are limitations/unresolved bugs with
 \f[CR]\-\-watch\f[R]:
-.IP \[bu] 2
+.IP \(bu 2
 It may not work at all for you, depending on platform or system
 configuration.
 On some unix systems, increasing fs.inotify.max_user_watches or
 fs.file\-max parameters in /etc/sysctl.conf might help.
 (#836)
-.IP \[bu] 2
+.IP \(bu 2
 It may not detect changes made from outside a virtual machine, ie by an
 editor running on the host system.
-.IP \[bu] 2
+.IP \(bu 2
 It may not detect file changes on certain less common filesystems.
-.IP \[bu] 2
+.IP \(bu 2
 It may use increasing CPU and RAM over time, especially with large
 files.
 (This is probably not \-\-watch specific, you may be able to reproduce
@@ -457,16 +458,16 @@ it by pressing \f[CR]g\f[R] repeatedly.)
 (#1825)
 .PP
 Tips/workarounds:
-.IP \[bu] 2
-If \-\-watch won\[aq]t work for you, press \f[CR]g\f[R] to reload data
+.IP \(bu 2
+If \-\-watch won\(aqt work for you, press \f[CR]g\f[R] to reload data
 manually instead.
-.IP \[bu] 2
+.IP \(bu 2
 If \-\-watch is leaking resources over time, quit and restart (or
-suspend and resume) hledger\-ui when you\[aq]re not using it.
-.IP \[bu] 2
+suspend and resume) hledger\-ui when you\(aqre not using it.
+.IP \(bu 2
 When running hledger\-ui inside a VM, also make file changes inside the
 VM.
-.IP \[bu] 2
+.IP \(bu 2
 When working with files mounted from another machine, make sure the
 system clocks on both machines are roughly in agreement.
 .SH ENVIRONMENT
@@ -480,8 +481,7 @@ We welcome bug reports in the hledger issue tracker
 .PP
 Some known issues:
 .PP
-\f[CR]\-f\-\f[R] doesn\[aq]t work (hledger\-ui can\[aq]t read from
-stdin).
+\f[CR]\-f\-\f[R] doesn\(aqt work (hledger\-ui can\(aqt read from stdin).
 .PP
 \f[CR]\-\-watch\f[R] is not robust, especially with large files (see
 WATCH MODE above).

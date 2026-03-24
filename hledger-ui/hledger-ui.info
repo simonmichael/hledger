@@ -1,4 +1,4 @@
-This is hledger-ui.info, produced by makeinfo version 7.2 from stdin.
+This is hledger-ui.info, produced by makeinfo version 7.3 from stdin.
 
 INFO-DIR-SECTION User Applications
 START-INFO-DIR-ENTRY
@@ -18,8 +18,8 @@ plain text accounting app.
 or
 'hledger ui [OPTS] [QUERYARGS]'
 
-   This manual is for hledger's terminal interface, version 1.51.99.
-See also the hledger manual for common concepts and file formats.
+   This manual is for hledger's terminal interface, version 1.99.  See
+also the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
 for tracking money, time, or any other commodity, using double-entry
@@ -66,8 +66,8 @@ hledger-ui provides the following options:
 Flags:
   -w --watch                watch for data and date changes and reload
                             automatically
-     --theme=THEME          use this custom display theme (default,
-                            greenterm, terminal, dark)
+     --theme=THEME          use this custom display theme (light,
+                            dark, terminal, greenterm)
      --cash                 start in the cash accounts screen
      --bs                   start in the balance sheet accounts screen
      --is                   start in the income statement accounts screen
@@ -199,9 +199,9 @@ most screens:
 
    The cursor keys navigate: 'RIGHT' or 'ENTER' goes deeper, 'LEFT'
 returns to the previous screen, 'UP'/'DOWN'/'PGUP'/'PGDN'/'HOME'/'END'
-move up and down through lists.  Emacs-style
-('CTRL-p'/'CTRL-n'/'CTRL-f'/'CTRL-b') and VI-style ('k','j','l','h')
-movement keys are also supported.
+move up and down through lists.  'J'/'K' jump down/up 10 items at a
+time.  Emacs-style ('CTRL-p'/'CTRL-n'/'CTRL-f'/'CTRL-b') and VI-style
+('k','j','l','h') movement keys are also supported.
 
    (Tip: movement speed is limited by your keyboard repeat rate, to move
 faster you may want to adjust it.  On a mac, the Karabiner app is one
@@ -555,22 +555,22 @@ with the UI unresponsive.
 
 Tag Table:
 Node: Top221
-Node: OPTIONS1869
-Node: MOUSE8755
-Node: KEYS9087
-Node: SCREENS14229
-Node: Menu screen14969
-Node: Cash accounts screen15285
-Node: Balance sheet accounts screen15646
-Node: Income statement accounts screen15982
-Node: All accounts screen16367
-Node: Register screen16730
-Node: Transaction screen19173
-Node: Error screen20353
-Node: WATCH MODE20719
-Node: --watch problems21617
-Node: ENVIRONMENT22864
-Node: BUGS23097
+Node: OPTIONS1867
+Node: MOUSE8751
+Node: KEYS9083
+Node: SCREENS14267
+Node: Menu screen15007
+Node: Cash accounts screen15323
+Node: Balance sheet accounts screen15684
+Node: Income statement accounts screen16020
+Node: All accounts screen16405
+Node: Register screen16768
+Node: Transaction screen19211
+Node: Error screen20391
+Node: WATCH MODE20757
+Node: --watch problems21655
+Node: ENVIRONMENT22902
+Node: BUGS23135
 
 End Tag Table
 
