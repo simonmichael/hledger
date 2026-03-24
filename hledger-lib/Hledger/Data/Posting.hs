@@ -53,6 +53,7 @@ module Hledger.Data.Posting (
   commentAddTag,
   commentAddTagUnspaced,
   commentAddTagNextLine,
+  commentPrependTag,
   generatedTransactionTagName,
   modifiedTransactionTagName,
   generatedPostingTagName,
@@ -151,7 +152,7 @@ nullposting = Posting
                 ,paccount=""
                 ,pamount=nullmixedamt
                 ,pcomment=""
-                ,ptype=RegularPosting
+                ,preal=RealPosting
                 ,ptags=[]
                 ,pbalanceassertion=Nothing
                 ,ptransaction=Nothing
@@ -167,7 +168,7 @@ post acc amt = posting {paccount=acc, pamount=mixedAmount amt}
 
 -- | Make a virtual (unbalanced) posting to an account.
 vpost :: AccountName -> Amount -> Posting
-vpost acc amt = (post acc amt){ptype=VirtualPosting}
+vpost acc amt = (post acc amt){preal=VirtualPosting}
 
 -- | Make a posting to an account, maybe with a balance assertion.
 post' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
@@ -175,7 +176,7 @@ post' acc amt ass = posting {paccount=acc, pamount=mixedAmount amt, pbalanceasse
 
 -- | Make a virtual (unbalanced) posting to an account, maybe with a balance assertion.
 vpost' :: AccountName -> Amount -> Maybe BalanceAssertion -> Posting
-vpost' acc amt ass = (post' acc amt ass){ptype=VirtualPosting, pbalanceassertion=ass}
+vpost' acc amt ass = (post' acc amt ass){preal=VirtualPosting, pbalanceassertion=ass}
 
 nullassertion :: BalanceAssertion
 nullassertion = BalanceAssertion
@@ -215,14 +216,14 @@ originalPosting :: Posting -> Posting
 originalPosting p = fromMaybe p $ poriginal p
 
 showPosting :: Posting -> String
-showPosting p = T.unpack . T.unlines $ postingsAsLines False [p]
+showPosting p = T.unpack . T.unlines $ postingsAsLines defaultFmt False [p]
 
 -- | Render a posting, at the appropriate width for aligning with
 -- its siblings if any. Used by the rewrite command.
 showPostingLines :: Posting -> [Text]
-showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidth p
+showPostingLines p = first3 $ postingAsLines defaultFmt False False maxacctwidth maxamtwidth p
   where
-    linesWithWidths = map (postingAsLines False False maxacctwidth maxamtwidth) . maybe [p] tpostings $ ptransaction p
+    linesWithWidths = map (postingAsLines defaultFmt False False maxacctwidth maxamtwidth) . maybe [p] tpostings $ ptransaction p
     maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
     maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
@@ -244,10 +245,10 @@ showPostingLines p = first3 $ postingAsLines False False maxacctwidth maxamtwidt
 -- Amounts' display precisions, which may have been limited by commodity directives,
 -- will be increased if necessary to ensure this.
 --
-postingsAsLines :: Bool -> [Posting] -> [Text]
-postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
+postingsAsLines :: AmountFormat -> Bool -> [Posting] -> [Text]
+postingsAsLines basefmt onelineamounts ps = concatMap first3 linesWithWidths
   where
-    linesWithWidths = map (postingAsLines False onelineamounts maxacctwidth maxamtwidth) ps
+    linesWithWidths = map (postingAsLines basefmt False onelineamounts maxacctwidth maxamtwidth) ps
     maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
     maxamtwidth  = maximumBound 0 $ map third3 linesWithWidths
 
@@ -274,8 +275,8 @@ postingsAsLines onelineamounts ps = concatMap first3 linesWithWidths
 -- increased if needed to match the posting with the longest account name.
 -- This is used to align the amounts of a transaction's postings.
 --
-postingAsLines :: Bool -> Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
-postingAsLines elideamount onelineamounts acctwidth amtwidth p =
+postingAsLines :: AmountFormat -> Bool -> Bool -> Int -> Int -> Posting -> ([Text], Int, Int)
+postingAsLines basefmt elideamount onelineamounts acctwidth amtwidth p =
     (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisamtwidth)
   where
     -- This needs to be converted to strict Text in order to strip trailing
@@ -295,7 +296,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     pad amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
       where w = max 12 amtwidth - wbWidth amt  -- min. 12 for backwards compatibility
 
-    pacctstr p' = showAccountName Nothing (ptype p') (paccount p')
+    pacctstr p' = showAccountName Nothing (preal p') (paccount p')
     pstatusandacct p' = pstatusprefix p' <> pacctstr p'
     pstatusprefix p' = case pstatus p' of
         Unmarked -> ""
@@ -308,7 +309,7 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
     shownAmounts
       | elideamount = [mempty]
       | otherwise   = showMixedAmountLinesB displayopts $ pamount p
-        where displayopts = defaultFmt{
+        where displayopts = basefmt{
           displayZeroCommodity=True, displayForceDecimalMark=True, displayOneLine=onelineamounts
           }
     thisamtwidth = maximumBound 0 $ map wbWidth shownAmounts
@@ -329,11 +330,11 @@ postingAsLines elideamount onelineamounts acctwidth amtwidth p =
                                               c:cs -> (c,cs)
 
 -- | Show an account name, clipped to the given width if any, and
--- appropriately bracketed/parenthesised for the given posting type.
-showAccountName :: Maybe Int -> PostingType -> AccountName -> Text
+-- appropriately bracketed/parenthesised for the given posting realness.
+showAccountName :: Maybe Int -> PostingRealness -> AccountName -> Text
 showAccountName w = fmt
   where
-    fmt RegularPosting         = maybe id T.take w
+    fmt RealPosting            = maybe id T.take w
     fmt VirtualPosting         = wrap "(" ")" . maybe id (T.takeEnd . subtract 2) w
     fmt BalancedVirtualPosting = wrap "[" "]" . maybe id (T.takeEnd . subtract 2) w
 
@@ -359,13 +360,13 @@ commentSpace = ("  "<>)
 
 
 isReal :: Posting -> Bool
-isReal p = ptype p == RegularPosting
+isReal p = preal p == RealPosting
 
 isVirtual :: Posting -> Bool
-isVirtual p = ptype p == VirtualPosting
+isVirtual p = preal p == VirtualPosting
 
 isBalancedVirtual :: Posting -> Bool
-isBalancedVirtual p = ptype p == BalancedVirtualPosting
+isBalancedVirtual p = preal p == BalancedVirtualPosting
 
 hasAmount :: Posting -> Bool
 hasAmount = not . isMissingMixedAmount . pamount
@@ -470,11 +471,12 @@ postingAddTags p@Posting{ptags} tags = p{ptags=ptags `union` tags}
 -- | Add the given hidden tag to a posting; and with a true argument,
 -- also add the equivalent visible tag to the posting's tags and comment fields.
 -- If the posting already has these tags (with any value), do nothing.
-postingAddHiddenAndMaybeVisibleTag :: Bool -> HiddenTag -> Posting -> Posting
-postingAddHiddenAndMaybeVisibleTag verbosetags ht p@Posting{pcomment=c, ptags} =
+postingAddHiddenAndMaybeVisibleTag :: Bool -> Bool -> HiddenTag -> Posting -> Posting
+postingAddHiddenAndMaybeVisibleTag prepend verbosetags ht p@Posting{pcomment=c, ptags} =
   (p `postingAddTags` ([ht] <> [vt |verbosetags]))
-  {pcomment=if verbosetags && not hadtag then c `commentAddTag` vt else c}
+  {pcomment=if verbosetags && not hadtag then addFn c vt else c}
   where
+    addFn = if prepend then commentPrependTag else commentAddTag
     vt@(vname,_) = toVisibleTag ht
     hadtag = any ((== (T.toLower vname)) . T.toLower . fst) ptags  -- XXX should regex-quote vname
 
@@ -505,7 +507,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
   | costPostingTagName `elem` map fst (ptags p) = [p]
   -- tag the posting, and for each of its costs, add an equivalent pair of conversion postings after it
   | otherwise =
-    postingAddHiddenAndMaybeVisibleTag verbosetags (costPostingTagName,"") p :
+    postingAddHiddenAndMaybeVisibleTag False verbosetags (costPostingTagName,"") p :
     concatMap makeConversionPostings costs
   where
     costs = filter (isJust . acost) . amountsRaw $ pamount p
@@ -523,8 +525,8 @@ postingAddInferredEquityPostings verbosetags equityAcct p
         amtCommodity  = commodity amt
         costCommodity = commodity cost
         convp = nullposting{pdate=pdate p, pdate2=pdate2 p, pstatus=pstatus p, ptransaction=ptransaction p}
-          & postingAddHiddenAndMaybeVisibleTag verbosetags (conversionPostingTagName,"")
-          & postingAddHiddenAndMaybeVisibleTag verbosetags (generatedPostingTagName, "")
+          & postingAddHiddenAndMaybeVisibleTag False verbosetags (conversionPostingTagName,"")
+          & postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
         accountPrefix = mconcat [ equityAcct, ":", T.intercalate "-" $ sort [amtCommodity, costCommodity], ":"]
         -- Take the commodity of an amount and collapse consecutive spaces to a single space
         commodity = T.unwords . filter (not . T.null) . T.words . acommodity
@@ -558,6 +560,16 @@ commentAddTag c (t,v)
     c'  = T.stripEnd c
     tag = t <> ": " <> v
 
+-- | Add a tag at the start of a comment, comma-separated from any prior content.
+-- A space is inserted following the colon, before the value.
+commentPrependTag :: Text -> Tag -> Text
+commentPrependTag c (t,v)
+  | T.null c' = tag
+  | otherwise = tag `commentJoin` c'
+  where
+    c'  = T.stripEnd c
+    tag = t <> ": " <> v
+
 -- | Like commentAddTag, but omits the space after the colon.
 commentAddTagUnspaced :: Text -> Tag -> Text
 commentAddTagUnspaced c (t,v)
@@ -579,7 +591,7 @@ commentAddTagNextLine cmt (t,v) =
 tests_Posting = testGroup "Posting" [
 
   testCase "accountNamePostingType" $ do
-    accountNamePostingType "a" @?= RegularPosting
+    accountNamePostingType "a" @?= RealPosting
     accountNamePostingType "(a)" @?= VirtualPosting
     accountNamePostingType "[a]" @?= BalancedVirtualPosting
 

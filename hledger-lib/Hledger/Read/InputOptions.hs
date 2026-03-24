@@ -34,12 +34,12 @@ data InputOpts = InputOpts {
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time ?
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
-    ,auto_posting_tags_ :: Bool                 -- ^ propagate commodity and account tags to postings ? Can be disabled (for beancount export).
     ,verbose_tags_      :: Bool                 -- ^ add user-visible tags when generating/modifying transactions & postings ?
     ,reportspan_        :: DateSpan             -- ^ a dirty hack keeping the query dates in InputOpts. This rightfully lives in ReportSpec, but is duplicated here.
     ,auto_              :: Bool                 -- ^ generate extra postings according to auto posting rules ?
     ,infer_equity_      :: Bool                 -- ^ infer equity conversion postings from costs ?
     ,infer_costs_       :: Bool                 -- ^ infer costs from equity conversion postings ? distinct from BalancingOpts{infer_balancing_costs_}
+    ,lots_              :: Bool                 -- ^ calculate and display per-lot subaccounts for lotful commodities/accounts ?
     ,balancingopts_     :: BalancingOpts        -- ^ options for transaction balancing
     ,strict_            :: Bool                 -- ^ do extra correctness checks ?
     ,_defer             :: Bool                 -- ^ internal flag: postpone checks, because we are processing multiple files ?
@@ -57,12 +57,12 @@ definputopts = InputOpts
     , new_save_          = True
     , pivot_             = ""
     , forecast_          = Nothing
-    , auto_posting_tags_ = False
     , verbose_tags_      = False
     , reportspan_        = nulldatespan
     , auto_              = False
     , infer_equity_      = False
     , infer_costs_       = False
+    , lots_              = False
     , balancingopts_     = defbalancingopts
     , strict_            = False
     , _defer             = False

@@ -134,6 +134,9 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- amounts in opening/closing transactions should be too (#941, #1137)
     precise = amountSetFullPrecision
 
+    -- does this account have a lot subaccount component (e.g. assets:stocks:{2026-01-15, $50}) ?
+    isLotSubaccount a = lotBaseAccount a /= a
+
     -- interleave equity postings next to the corresponding closing posting, or put them all at the end ?
     interleaved = boolopt "interleaved" rawopts
 
@@ -164,8 +167,10 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
                   ,pamount           = mixedAmount $ precise b{aquantity=0, acost=Nothing}
                   -- after each commodity's last posting, assert 0 balance (#1035)
                   -- balance assertion amounts are unpriced (#824)
+                  -- lot subaccounts are skipped: assertions run before lot calculation,
+                  -- so the subaccount balance would be wrong when re-read
                   ,pbalanceassertion =
-                      if islast
+                      if islast && not (isLotSubaccount a)
                       then Just assertion{baamount=precise b}
                       else Nothing
                   }
@@ -184,8 +189,9 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
                     ,pamount           = mixedAmount . precise $ negate b
                     -- after each commodity's last posting, assert 0 balance (#1035)
                     -- balance assertion amounts are unpriced (#824)
+                    -- lot subaccounts are skipped (see Assert branch above)
                     ,pbalanceassertion =
-                        if islast
+                        if islast && not (isLotSubaccount a)
                         then Just assertion{baamount=precise b{aquantity=0, acost=Nothing}}
                         else Nothing
                     }

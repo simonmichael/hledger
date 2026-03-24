@@ -67,6 +67,7 @@ module Hledger.Query (
   matchesMixedAmount,
   matchesAmount,
   matchesCommodity,
+  matchesCommodityExtra,
   matchesTag,
   -- patternsMatchTags,
   matchesPriceDirective,
@@ -93,6 +94,7 @@ import Text.Megaparsec.Char (char, string, string')
 import Hledger.Utils hiding (words')
 import Hledger.Data.Types
 import Hledger.Data.AccountName
+import Hledger.Data.AccountType
 import Hledger.Data.Amount (amountsRaw, mixedAmount, nullamt, usd)
 import Hledger.Data.Dates
 import Hledger.Data.Posting
@@ -829,6 +831,17 @@ matchesCommodity (AnyPosting qs)  s = all (`matchesCommodity` s) qs
 matchesCommodity (AllPostings qs) s = all1 (`matchesCommodity` s) qs
 matchesCommodity _                _ = False
 
+-- | Like matchesCommodity, but also supporting Tag queries,
+-- using the provided function to look up a commodity's tags.
+matchesCommodityExtra :: (CommoditySymbol -> [Tag]) -> Query -> CommoditySymbol -> Bool
+matchesCommodityExtra ctags (Not q)           c = not $ matchesCommodityExtra ctags q c
+matchesCommodityExtra ctags (Or  qs)          c = any (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (And qs)          c = all (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (AnyPosting  qs)  c = all (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (AllPostings qs)  c = all1 (\q -> matchesCommodityExtra ctags q c) qs
+matchesCommodityExtra ctags (Tag npat vpat)   c = patternsMatchTags npat vpat $ ctags c
+matchesCommodityExtra _     q                 c = matchesCommodity q c
+
 -- | Does the match expression match this (simple) amount ?
 matchesAmount :: Query -> Amount -> Bool
 matchesAmount (Not q) a = not $ q `matchesAmount` a
@@ -1167,9 +1180,9 @@ tests_Query = testGroup "Query" [
       assertBool "" $ not $ (Not $ StatusQ Unmarked) `matchesPosting` nullposting{pstatus=Unmarked}
     ,testCase "positive match on true posting status acquired from transaction" $
       assertBool "" $ (StatusQ Cleared) `matchesPosting` nullposting{pstatus=Unmarked,ptransaction=Just nulltransaction{tstatus=Cleared}}
-    ,testCase "real:1 on real posting" $ assertBool "" $ (Real True) `matchesPosting` nullposting{ptype=RegularPosting}
-    ,testCase "real:1 on virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=VirtualPosting}
-    ,testCase "real:1 on balanced virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{ptype=BalancedVirtualPosting}
+    ,testCase "real:1 on real posting" $ assertBool "" $ (Real True) `matchesPosting` nullposting{preal=RealPosting}
+    ,testCase "real:1 on virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{preal=VirtualPosting}
+    ,testCase "real:1 on balanced virtual posting fails" $ assertBool "" $ not $ (Real True) `matchesPosting` nullposting{preal=BalancedVirtualPosting}
     ,testCase "acct:" $ assertBool "" $ (Acct $ toRegex' "'b") `matchesPosting` nullposting{paccount="'b"}
     ,testCase "tag:" $ do
       assertBool "" $ not $ (Tag (toRegex' "a") (Just $ toRegex' "r$")) `matchesPosting` nullposting

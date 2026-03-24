@@ -1,0 +1,89 @@
+# Tests for lot error behavior (formerly testing --lots-warn mode, which has been removed).
+
+# ** 1. no lots available with --lots errors (exits 1)
+<
+2026-02-01 sell
+    assets:stocks    -5 AAPL {$50} @ $55
+    assets:cash       $275
+    revenues:gains
+
+$ hledger -f- print --lots 2>/dev/null
+>=1
+
+# ** 2. Unclassified lotful commodity posting in asset account is a hard error with --lots.
+# AAPL has lots: tag, assets:broker is an asset account, but the posting has no cost basis
+# and no price, so classification fails. With --lots this is an error.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 mysterious
+    assets:broker    10 AAPL
+    income:mystery
+
+$ hledger -f- bal assets --lots 2>&1
+> /was not classified/
+>=1
+
+# ** 3. Zero-amount lotful posting (eg a balance assertion) is not an error with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 check balance
+    assets:broker    0 AAPL = 0 AAPL
+    income:mystery
+
+$ hledger -f- bal assets --lots 2>&1
+> !/was not classified/
+>=0
+
+# ** 4. Implicit zero-amount lotful posting (balance assignment inferring zero) is not an error with --lots.
+<
+commodity AAPL  ; lots:
+
+2026-01-15 check balance
+    assets:broker    = 0 AAPL
+    income:mystery
+
+$ hledger -f- bal assets --lots 2>&1
+> !/was not classified/
+>=0
+
+# ** 5. Non-lotful commodity in asset account does not error with --lots.
+<
+2026-01-15 normal
+    assets:checking    $100
+    income:salary
+
+$ hledger -f- bal assets --lots 2>&1
+> !/was not classified/
+>=0
+
+# ** 6. Gain posting does not trigger unclassified error with --lots.
+<
+account revenue:gains  ; type:V
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 sell
+    assets:stocks    -5 AAPL {$50} @ $60
+    assets:cash      $300
+    revenue:gains
+
+$ hledger -f- bal assets --lots 2>&1
+> !/was not classified/
+>=0
+
+# ** 7. Bare acquire with no inferable cost errors with --lots.
+<
+commodity T  ; lots:
+
+2026-01-17 buy
+    assets:wj       -52 A
+    assets:broker    2220 T  ; @ $0.01
+    equity:conversion
+
+$ hledger -f- bal assets --lots 2>&1
+> /has no cost basis or price/
+>=1

@@ -58,10 +58,18 @@ These provide extra error-catching power to help you keep your data clean and co
 
 - **accounts** - all account names used must be [declared](#account-error-checking).
   This prevents the use of mis-spelled or outdated account names.
+  (Except lot subaccounts, like `:{2026-01-15, $50}`, which are automatically exempt;
+  only their base account needs to be declared.)
 
 ### Other checks
 
 These are not wanted by everyone, but can be run using the `check` command:
+
+- **lots** - all lot tracking calculations succeed.
+  Checks lots tag values on declarations, lot posting classification,
+  calculation of lot movements, capital gains,
+  and correct balancing of disposal transactions.
+  Stops at the first error.
 
 - **tags** - all tags used must be [declared](#tag-directive).
   This prevents mis-spelled tag names.

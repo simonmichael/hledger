@@ -12,6 +12,7 @@ module Hledger.Data.JournalChecks (
   journalCheckAccounts,
   journalCheckBalanceAssertions,
   journalCheckCommodities,
+  journalCheckLots,
   journalCheckPayees,
   journalCheckPairedConversionPostings,
   journalCheckRecentAssertions,
@@ -35,13 +36,14 @@ import Hledger.Data.JournalChecks.Ordereddates
 import Hledger.Data.JournalChecks.Uniqueleafnames
 import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags, conversionPostingTagName, costPostingTagName, postingAsLines, generatedPostingTagName, generatedTransactionTagName, modifiedTransactionTagName)
 import Hledger.Data.Types
-import Hledger.Data.Amount (amountIsZero, amountsRaw, missingamt, oneLineFmt, showMixedAmountWith)
+import Hledger.Data.Amount (amountIsZero, amountsRaw, defaultFmt, missingamt, oneLineFmt, showMixedAmountWith)
 import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
 import Data.Time (diffDays)
 import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
+import Hledger.Data.Lots (lotBaseAccount, journalCalculateLots, journalInferAndCheckDisposalBalancing)
 
 -- | Run the extra -s/--strict checks on a journal, in order of priority,
 -- returning the first error message if any of them fail.
@@ -58,7 +60,7 @@ journalCheckAccounts :: Journal -> Either String ()
 journalCheckAccounts j = mapM_ checkacct (journalPostings j)
   where
     checkacct p@Posting{paccount=a}
-      | a `elem` journalAccountNamesDeclared j = Right ()
+      | acct `elem` journalAccountNamesDeclared j = Right ()
       | otherwise = Left $ printf (unlines [
            "%s:%d:"
           ,"%s"
@@ -67,8 +69,9 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
           ,"Consider adding an account directive. Examples:"
           ,""
           ,"account %s"
-          ]) f l ex a a
+          ]) f l ex acct acct
         where
+          acct = lotBaseAccount a
           (f,l,_mcols,ex) = makePostingAccountErrorExcerpt p
 
 -- | Check all balance assertions in the journal and return an error message if any of them fail.
@@ -316,7 +319,7 @@ findRecentAssertionError ps = do
     (showposting firsterrorp)
     where
       showposting p =
-        headDef "" $ first3 $ postingAsLines False True acctw amtw p{pcomment=""}
+        headDef "" $ first3 $ postingAsLines defaultFmt False True acctw amtw p{pcomment=""}
         where
           acctw = T.length $ paccount p
           amtw  = length $ showMixedAmountWith oneLineFmt $ pamount p
@@ -330,3 +333,13 @@ findRecentAssertionError ps = do
 --       (if baiLatestClearedAssertionStatus==Unmarked then " " else show baiLatestClearedAssertionStatus)
 --       (show baiLatestClearedAssertionDate)
 --       (diffDays today baiLatestClearedAssertionDate)
+
+-- | Check all lot tracking calculations: validate lot tag values on declarations,
+-- calculate per-lot subaccounts, and verify disposal transactions balance correctly.
+-- Equivalent to loading the journal with --lots --verbose-tags.
+journalCheckLots :: Journal -> Either String ()
+journalCheckLots j =
+  journalCheckLotsTagValues j
+  >>= journalCalculateLots True
+  >>= journalInferAndCheckDisposalBalancing True
+  >> Right ()

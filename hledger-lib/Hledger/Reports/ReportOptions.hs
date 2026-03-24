@@ -695,18 +695,12 @@ journalApplyValuationFromOptsWith rspec@ReportSpec{_rsReportOpts=ropts} j priceo
 mixedAmountApplyValuationAfterSumFromOptsWith :: ReportOpts -> Journal -> PriceOracle
                                               -> (Day -> MixedAmount -> MixedAmount)
 mixedAmountApplyValuationAfterSumFromOptsWith ropts j priceoracle =
-    case valuationAfterSum ropts of
-        Just mc -> case balancecalc_ ropts of
-            CalcGain -> gain mc
-            _        -> \d -> valuation mc d . costing
-        Nothing      -> const id
-  where
-    valuation mc d = mixedAmountValueAtDate priceoracle styles mc d
-    gain mc d = mixedAmountGainAtDate priceoracle styles mc d
-    costing = case fromMaybe NoConversionOp $ conversionop_ ropts of
-        NoConversionOp -> id
-        ToCost         -> styleAmounts styles . mixedAmountCost
-    styles = journalCommodityStyles j
+  case valuationAfterSum ropts of
+    Nothing -> const id
+    Just mc -> case balancecalc_ ropts of
+      CalcGain -> mixedAmountGainAtDate  priceoracle styles mc
+      _        -> mixedAmountValueAtDate priceoracle styles mc
+  where styles = journalCommodityStyles j
 
 -- | If the ReportOpts specify that we are performing valuation after summing amounts,
 -- return Just of the commodity symbol we're converting to, Just Nothing for the default,
