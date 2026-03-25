@@ -2,34 +2,11 @@
 
 The productivity benefits from AI-assisted software development are becoming obvious.
 And the disruptions, costs and risks of AI will keep becoming clearer.
+
 From 2026, in the hledger 2.x series, we are exploring the ethical and effective use of AI to assist hledger development.
 
 If you are a hledger user who objects to any use of AI, for one reason or another: I can understand.
-AI is probably too dangerous for humanity, but it's here and we're going to have to try to deal with it.
 The AI-free hledger 1.x still exists, will continue to receive regression fixes, and can be revived or forked at any time.
-
-## Rules of engagement
-
-Here are the current "rules of engagement" for AI use in the hledger project.
-
-- hledger does not use AI at runtime.
-
-- hledger 1.x (2007..2025) was developed without AI assistance.
-
-- hledger 2.x (2026..) is developed with careful AI assistance.
-
-- We aim to increase quality and maintainability, not decrease them.
-
-- The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
-
-- The human committer is responsible for everything in their commits.
-
-- We want to use only the more principled/trustworthy/sustainable tools and providers.
-  So we try to use only Anthropic, Ecosia, local LLMs, and such.
-
-- We try to keep track of, optimise, and limit our AI resource usage (measured by tokens in & out, eg).
-
-- We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
 
 ## Justification for AI use in this project
 
@@ -57,4 +34,27 @@ Here are the current "rules of engagement" for AI use in the hledger project.
   in preparation for more sustainable versions (local LLMs, ASIC LLMs) coming soon.
 
 - It is a learning experiment that can be discontinued or even rolled back at any time.
+
+## Rules of engagement
+
+Here are our current policies for AI use in hledger.
+
+- hledger does not use AI at runtime.
+
+- hledger 1.x (2007..2025) was developed without AI assistance.
+
+- hledger 2.x (2026..) is developed with careful AI assistance.
+
+- We aim to increase quality and maintainability, not decrease them.
+
+- The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
+
+- The human committer is responsible for everything in their commits.
+
+- We want to use only the more principled/trustworthy/sustainable tools and providers.
+  So we try to use only Anthropic, Ecosia, local LLMs, and such.
+
+- We try to keep track of, optimise, and limit our AI resource usage (measured by tokens in & out, eg).
+
+- We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
 
