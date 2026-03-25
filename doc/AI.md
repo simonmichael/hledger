@@ -1,38 +1,46 @@
 # AI policy
 
 The productivity benefits from AI-assisted software development are becoming obvious.
-The many potential costs and risks will keep becoming clearer.
+And the disruptions, costs and risks of AI will keep becoming clearer.
+From 2026, in the hledger 2.x series, we are exploring the ethical and effective use of AI to assist hledger development.
 
-Here are some current policies for AI use in the hledger project:
+If you are a hledger user who objects to any use of AI, for one reason or another: I can understand.
+AI is probably too dangerous for humanity, but it's here and we're going to have to try to deal with it.
+The AI-free hledger 1.x still exists, will continue to receive regression fixes, and can be revived or forked at any time.
+
+## Rules of engagement
+
+Here are the current "rules of engagement" for AI use in the hledger project.
 
 - hledger does not use AI at runtime.
 
-- hledger 1.x (2007..2025) has been developed without AI assistance.
+- hledger 1.x (2007..2025) was developed without AI assistance.
 
 - hledger 2.x (2026..) is developed with careful AI assistance.
 
-- This bears repeating: careful AI assistance is not "vibe coding".
-  We aim to increase quality and maintainability, not decrease them.
+- We aim to increase quality and maintainability, not decrease them.
 
-- The codebase remains human maintainable. We can always stop using AI and keep moving forward.
+- The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
 
-- We aim to use only the more principled/trustworthy/sustainable tools and providers.
-  For now that means we prefer Anthropic, Ecosia, local LLMs, and such.
+- The human committer is responsible for everything in their commits.
 
-- We monitor and try to limit and optimise our AI resource usage (represented by tokens, cost, etc.)
+- We want to use only the more principled/trustworthy/sustainable tools and providers.
+  So we try to use only Anthropic, Ecosia, local LLMs, and such.
 
-- We monitor the impact of AI tools on the project, ourselves, and the planet and make adjustments as needed.
+- We try to keep track of, optimise, and limit our AI resource usage (measured by tokens in & out, eg).
 
-Justification for AI use in this project:
+- We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
+
+## Justification for AI use in this project
 
 - I needed it to fully design and implement robust tax lot tracking in hledger.
-  This is a feature that I have been wanting for years, but it was just too big/intricate to tackle.
+  This is a feature that I have been wanting for many years, but it was just too big/intricate to tackle.
   Use of AI tools made it possible. I think it's unlikely hledger would have ever got this feature without them.
 
-- Although similar features exist in other free software (Beancount/Ledger/rustledger/BittyTax/rotki/RP2/..),
-  I believe this new implementation provides flexibility currently not available elsewhere -
-  private, plain text, and capable of modelling real world lot operations and US pre- and post-2025 booking methods.
-  This (I hope) will provide value to many.
+- Although lot tracking features exist in other free software (Beancount/Ledger/rustledger/BittyTax/rotki/RP2/..),
+  I believe this new implementation provides flexibility currently not available elsewhere
+  (privately and precisely modelling real world lot movements as required for tax reporting in the US,
+  including pre- and post-2025 US booking methods).  This will (I hope) provide value to many.
 
 - I imagine it is overall more efficient in resources and human energy,
   for developers to use AI to develop efficient deterministic software,
@@ -50,6 +58,3 @@ Justification for AI use in this project:
 
 - It is a learning experiment that can be discontinued or even rolled back at any time.
 
-If you are a hledger user who objects to any use of AI, for one reason or another: I can understand.
-AI is a tool, probably too dangerous for us, but it's here and we're going to have to try to survive it.
-The AI-free hledger 1.x still exists, will continue to receive at least regression fixes, and can be revived or forked at any time if needed.
