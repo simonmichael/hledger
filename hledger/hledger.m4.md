@@ -7067,7 +7067,7 @@ $ hledger print --lots desc:sell
 ## Reduction methods
 
 When a disposal or transfer doesn't specify a particular lot (eg the amount is like `-5 AAPL {}`, or just `-5 AAPL`),
-hledger selects lot(s) automatically using a reduction method.
+hledger selects lot(s) automatically using a reduction method (AKA booking method).
 You can configure the method via the `lots:` tag on a commodity or account declaration (account tags override commodity tags):
 
 ```journal
