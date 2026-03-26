@@ -142,7 +142,7 @@ import Data.Function ((&))
 import Data.Functor ((<&>), ($>), void)
 import Data.List (find, genericReplicate, union)
 import Data.List.NonEmpty (NonEmpty(..))
-import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe)
 import Data.Map qualified as M
 import Data.Semigroup qualified as Sem
 import Data.Text (Text, stripEnd)
@@ -443,6 +443,8 @@ journalInferBasisFromAccountNames j = do
       Nothing   -> Right p
       Just name -> do
         cb <- parseLotName parseAmt name
+        when (isNothing (cbDate cb) || isNothing (cbCost cb)) $
+          Left $ "lot subaccount name must contain a date and cost: " ++ T.unpack name
         let updateAmt a = case acostbasis a of
               Nothing -> Right a{acostbasis = Just cb}
               Just existing -> do
