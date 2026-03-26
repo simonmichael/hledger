@@ -82,6 +82,42 @@ When checking account names, lot subaccounts are ignored; only the base account 
 Partial lot names are also used; these have some or all of the parts missing.
 The minimal partial lot name is rendered as {}.
 
+## Parsing lot names
+
+Full lot names can appear as the final part of account names, like `:{...}`.
+In such journal entries, the lot attributes are parsed from the lot subaccount name,
+as if they were written as amount annotations.
+(And if lot information is written in both places, they should agree.)
+
+When parsing, naive splitting on commas would fail because commas can appear inside:
+- cost amounts as decimal separators (e.g. `€1,50`)
+- quoted commodity symbols (e.g. `"an, odd, commodity" 1,5`)
+- quoted labels (e.g. `"a, b, b"`)
+
+Instead, parts are identified by **peeling known-format prefixes** in DLC order:
+
+1. **Peel date**: if the first 10 characters match `YYYY-MM-DD` and are followed
+   by end-of-string, comma, or whitespace, they are consumed as the date.
+   The trailing comma separator (if any) and surrounding whitespace are stripped.
+
+2. **Peel label**: if the remainder starts with `"`, scan to the next `"`.
+   The quoted string is a label only if followed by a comma or end-of-string.
+   If instead it is followed (after optional whitespace) by a digit, sign, or
+   decimal mark, then the quoted string is a commodity symbol belonging to the
+   cost amount, and it is left in place.
+
+3. **Cost**: whatever remains is passed to the amount parser as a single string.
+
+This approach handles all combinations of commas in dates, labels, commodity
+symbols, and decimal amounts without ambiguity.
+
+Examples:
+- `{2026-01-15, "my, label", €1,50}` → date `2026-01-15`, label `my, label`, cost `€1,50`
+- `{2026-01-15, "an, odd, commodity" 1,5}` → date `2026-01-15`, cost `"an, odd, commodity" 1,5` (no label; the quoted string is a commodity symbol)
+- `{2026-01-15, "a, b", "an, odd, commodity" 1,5}` → date `2026-01-15`, label `a, b`, cost `"an, odd, commodity" 1,5`
+- `{$100}` → cost `$100`
+- `{}` → empty cost basis
+
 ## Lot ids
 
 A lot's id is just the date and label parts.
