@@ -150,3 +150,11 @@ because the cost of designing and building it outweighed the need and the availa
     It feels like a waste of human spirit and energy.
     - Given the times, this was a good project to motivate exploring the new tech and surrounding issues,
     and how to use it or to respond to others using it.
+
+## Related
+
+- <https://www.congress.gov/crs-product/LSB10922>
+- <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
+- Kent Beck
+  - <https://tidyfirst.substack.com/t/genies>
+  - <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
