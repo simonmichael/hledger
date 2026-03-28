@@ -70,7 +70,8 @@ Major releases and user-visible changes.
 
 ## 2026-03-20 hledger-1.52
 
-**Preserve cost basis syntax, cost basis export examples, faster valuation, commodity tags, more robust paging, fixes.**
+**More robust paging, faster valuation, commodity tags, cost basis annotations which are preserved and can be exported (examples provided).**
+
 
 ### hledger 1.52
 
