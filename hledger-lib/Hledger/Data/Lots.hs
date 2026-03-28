@@ -1177,10 +1177,8 @@ processAcquirePosting needsLabels txnDate t lotState p = do
           Left $ showPos ++ "duplicate lot id: " ++ T.unpack lotName
                   ++ " for commodity " ++ T.unpack commodity
 
-        let -- For bare acquires with inferred CB, normalize transacted cost to UnitCost
-            -- in the posting's pamount (not in poriginal — that preserves what the user wrote).
-            p' = p{paccount = expectedAcct
-                   ,pamount  = mixedAmount $ if isBare && cbInferred then postingAmt{acost = amountNormalizeCostToUnit lotAmt} else postingAmt
+        let p' = p{paccount = expectedAcct
+                   ,pamount  = mixedAmount postingAmt
                    ,poriginal = Just (originalPosting p)}
         let lotState' = addLotState commodity lotId baseAcct lotStateAmt lotState
         return $ lotDbg t ("acquired " ++ show (aquantity lotAmt) ++ " "
@@ -1272,10 +1270,11 @@ processDisposePosting verbosetags j t lotState p = do
                   -- Build the dispose amount: negative consumed quantity,
                   -- keeping the original amount's commodity, style, cost, and cost basis.
                   disposeAmt = (amountSetQuantity (negate consumedQty) lotAmt){acostbasis = Just dispCb}
-              let -- For bare disposes with a price, normalize transacted cost to UnitCost.
-                  -- For bare disposes without a price (e.g. fee deductions), keep no cost.
+              let -- For bare disposes without a price (e.g. fee deductions), keep no cost.
+                  -- When splitting across multiple lots, normalize TotalCost to UnitCost
+                  -- (since TotalCost would be wrong for the split quantity).
                   disposeAmt' | isNothing (acost lotAmt) = disposeAmt{acost = Nothing}
-                              | isBare    = disposeAmt{acost = amountNormalizeCostToUnit lotAmt}
+                              | isBare && length selected > 1 = disposeAmt{acost = amountNormalizeCostToUnit lotAmt}
                               | otherwise = disposeAmt
                   -- poriginal preserves the user's original annotations, only updating quantity.
                   origP  = originalPosting p
