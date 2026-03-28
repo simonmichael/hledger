@@ -23,7 +23,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 09c2106b
+# e3d4909b
 
 
 # 1.52 2026-03-20
@@ -47,6 +47,8 @@ Improvements
 
 - The selection colour has been changed to cyan, for better visibility in typical terminals.
   (Rahul Shankar V, Simon Michael) [#2175], [#2551]
+
+- Allow brick 2.11
 
 [#1911]: https://github.com/simonmichael/hledger/issues/1911
 [#2168]: https://github.com/simonmichael/hledger/issues/2168
