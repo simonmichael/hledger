@@ -1,28 +1,52 @@
-I'm pleased to announce a double release!
+G'day all. I'm pleased to announce a hledger double release!
 
 
-hledger 1.52, with:
+hledger 1.52, with
 
 more robust paging,
 faster valuation,
 commodity tags,
 and cost basis annotations which are preserved and can be exported (examples provided).
 
+I'm delighted to say that 13 people contributed code to this release:
+
+Simon Michael,
+Caleb Maclennan,
+Dmitry Astapov,
+Marko Kocić,
+RahulShankarV52,
+Tuong Nguyen Manh,
+Ilja Kocken,
+Jens Petersen,
+Joshua Chapman,
+Juliano Solanho,
+Oleg Bulatov,
+g. nicholas d'andrea,
+n0vdd.
+
 - https://github.com/simonmichael/hledger/releases/1.52
 - https://hledger.org/relnotes.html#2026-03-20-hledger-152
+- https://hledger.org/install
 
 
-and hledger 2.0 preview 1 (version number: 1.99.1), which adds:
+And hledger 2.0 preview 1 (version number: 1.99.1), which adds
 
-an AI policy document,
 automated lot tracking and capital gains calculation,
-and improvements to `print`'s beancount output.
+improvements to `print`'s beancount output,
+and a new policy for AI-assisted development.
+
+(This is the first hledger release to explore AI-assisted development;
+please be sure to check out the evolving AI policy/FAQ: https://hledger.org/AI.md)
+
+Release contributors:
+
+Simon Michael,
+Juliano Solanho.
 
 - https://github.com/simonmichael/hledger/releases/1.99.1
 - https://hledger.org/relnotes.html#2026-03-28-hledger-1991
+- https://hledger.org/install
 
-Notably, this 2.0 preview is the first hledger release to explore AI-assisted development.
-Please be sure check out the evolving AI policy/FAQ: https://hledger.org/AI.md
 
 As always, #hledger (https://hledger.org) is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, #plaintextaccounting software.
 It is built around human-readable, version-controllable, future-proof plain text files.
@@ -33,8 +57,6 @@ It can help you learn bookkeeping, untangle accounting messes, track your financ
 run forecasts, set budgets and saving goals, produce detailed time reports, convert/transform financial data,
 check the correctness of other systems, and create more balance and calm in your life.
 Beginners, experts, contributors, sponsors welcome!
-
-- https://hledger.org/install
 
 
 (Latest source text for announcements & blurbs, truncate as needed.)
