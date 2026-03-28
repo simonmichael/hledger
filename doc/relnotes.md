@@ -66,6 +66,8 @@ Major releases and user-visible changes.
 
 ## 2026-03-28 hledger-1.99.1
 
+(2.0 preview 1)
+
 **Automated lot tracking and capital gains calculation, improvements to `print`'s beancount output, and a new policy for AI-assisted development.**
 
 ### hledger 1.99.1
@@ -74,7 +76,7 @@ Major releases and user-visible changes.
 Breaking changes
 
 - This 2.0 preview is the first hledger release to explore AI-assisted development.
-  Please be sure to check out the evolving AI policy/FAQ: <https://hledger.org/AI.md>
+  Please check out the evolving AI policy/FAQ: <https://hledger.org/AI.md>.
   There's also a new "AI usage" section below.
 
 - hledger now recognises certain transactions as lot disposals;

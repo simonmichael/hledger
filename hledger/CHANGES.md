@@ -30,10 +30,12 @@ User-visible changes in the hledger command line tool and library.
 
 # 1.99.1 2026-03-28
 
+(2.0 preview 1)
+
 Breaking changes
 
-- This 2.0 preview is the first hledger release to explore AI-assisted development.
-  Please be sure to check out the evolving AI policy/FAQ: <https://hledger.org/AI.md>
+- This 2.0 preview is the first hledger release to explore AI-assisted development,
+  so please do check out the evolving AI policy/FAQ: <https://hledger.org/AI.md>.
   There's also a new "AI usage" section below.
 
 - hledger now recognises certain transactions as lot disposals;

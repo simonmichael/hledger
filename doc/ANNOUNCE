@@ -35,8 +35,8 @@ automated lot tracking and capital gains calculation,
 improvements to `print`'s beancount output,
 and a new policy for AI-assisted development.
 
-(This is the first hledger release to explore AI-assisted development;
-please be sure to check out the evolving AI policy/FAQ: https://hledger.org/AI.md)
+This is the first hledger release to explore AI-assisted development,
+so please do check out the evolving AI policy/FAQ: https://hledger.org/AI.md
 
 Release contributors:
 
@@ -45,10 +45,13 @@ Juliano Solanho.
 
 - https://github.com/simonmichael/hledger/releases/1.99.1
 - https://hledger.org/relnotes.html#2026-03-28-hledger-1991
-- https://hledger.org/install
 
 
-As always, #hledger (https://hledger.org) is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, #plaintextaccounting software.
+Also hledger.org has moved to a new server, running the latest mdbook.
+Pages' tables of contents are now integrated in the sidebar, and are more detailed.
+
+
+As always, hledger (https://hledger.org) is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, plain text accounting software.
 It is built around human-readable, version-controllable, future-proof plain text files.
 The UIs may seem basic at first, but it is powerful, flexible, and fun to use.
 
@@ -57,6 +60,3 @@ It can help you learn bookkeeping, untangle accounting messes, track your financ
 run forecasts, set budgets and saving goals, produce detailed time reports, convert/transform financial data,
 check the correctness of other systems, and create more balance and calm in your life.
 Beginners, experts, contributors, sponsors welcome!
-
-
-(Latest source text for announcements & blurbs, truncate as needed.)

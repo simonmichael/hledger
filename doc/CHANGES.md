@@ -20,6 +20,8 @@ For package-specific changes, see the hledger package changelogs.
 
 # 1.99.1 2026-03-28
 
+(2.0 preview 1)
+
 Doc updates
 
 - site: upgrade to latest mdbook
