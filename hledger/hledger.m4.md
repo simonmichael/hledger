@@ -6956,7 +6956,7 @@ With the `--lots` flag, hledger can track investment lots automatically:
 assigning lot subaccounts on acquisition, selecting lots on disposal using
 configurable methods, calculating capital gains, and showing per-lot balances
 in all reports.
-(Since 1.99.1, experimental. For more technical details, see [SPEC-lots](SPEC-lots.html)).
+(Since 1.99.1, experimental. For more technical details, see [SPEC-lots](/SPEC-lots.html)).
 
 ## Lotful commodities and accounts
 
