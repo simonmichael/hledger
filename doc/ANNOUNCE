@@ -1,25 +1,40 @@
-I'm pleased to announce hledger-1.52. Highlights:
+I'm pleased to announce a double release!
+
+
+hledger 1.52, with:
 
 more robust paging,
 faster valuation,
-commodity tags;
-cost basis annotations are preserved and can be exported (examples provided).
+commodity tags,
+and cost basis annotations which are preserved and can be exported (examples provided).
 
 - https://github.com/simonmichael/hledger/releases/1.52
 - https://hledger.org/relnotes.html#2026-03-20-hledger-152
-- https://hledger.org/install
 
-#hledger is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, #plaintextaccounting software.
+
+and hledger 2.0 preview 1 (version number: 1.99.1), which adds:
+
+an AI policy document,
+automated lot tracking and capital gains calculation,
+and improvements to `print`'s beancount output.
+
+- https://github.com/simonmichael/hledger/releases/1.99.1
+- https://hledger.org/relnotes.html#2026-03-28-hledger-1991
+
+Notably, this 2.0 preview is the first hledger release to explore AI-assisted development.
+Please be sure check out the evolving AI policy/FAQ: https://hledger.org/AI.md
+
+As always, #hledger (https://hledger.org) is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, #plaintextaccounting software.
 It is built around human-readable, version-controllable, future-proof plain text files.
-The UIs will seem basic at first, but it is powerful, flexible, and fun to use.
+The UIs may seem basic at first, but it is powerful, flexible, and fun to use.
 
+It is a combination of accounting app, bookkeeper's multitool, bootcamp/refresher course, and supportive community.
 It can help you learn bookkeeping, untangle accounting messes, track your financial status and history, 
 run forecasts, set budgets and saving goals, produce detailed time reports, convert/transform financial data,
 check the correctness of other systems, and create more balance and calm in your life.
-It is a combination of accounting appliance, swiss army penknife, bootcamp/refresher course, and supportive community.
+Beginners, experts, contributors, sponsors welcome!
 
-For more info or help, see https://hledger.org. Beginners, experts, feedback, contributors, sponsors welcome!
-
+- https://hledger.org/install
 
 
 (Latest source text for announcements & blurbs, truncate as needed.)
