@@ -9243,7 +9243,8 @@ $ hledger print \-\-lots desc:sell
 .SS Reduction methods
 When a disposal or transfer doesn\(aqt specify a particular lot (eg the
 amount is like \f[CR]\-5 AAPL {}\f[R], or just \f[CR]\-5 AAPL\f[R]),
-hledger selects lot(s) automatically using a reduction method.
+hledger selects lot(s) automatically using a reduction method (AKA
+booking method).
 You can configure the method via the \f[CR]lots:\f[R] tag on a commodity
 or account declaration (account tags override commodity tags):
 .IP
