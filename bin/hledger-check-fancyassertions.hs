@@ -117,7 +117,7 @@ import Hledger.Data qualified as H
 import Hledger.Query qualified as H
 import Hledger.Read qualified as H
 import Hledger.Utils.Parse qualified as H
-import Lens.Micro (set)
+import Lens.Micro ((&), (.~))
 import Options.Applicative
 import System.Exit (exitFailure)
 import System.FilePath (FilePath)
@@ -168,7 +168,7 @@ main :: IO ()
 main = do
     opts <- execParser args
     journalFile <- maybe H.defaultJournalPath pure (file opts)
-    ejournal    <- runExceptT $ H.readJournalFile (set H.ignore_assertions (ignoreAssertions opts) H.definputopts) journalFile
+    ejournal    <- runExceptT $ H.readJournalFile (H.definputopts & H.ignore_assertions .~ (ignoreAssertions opts) & H.strict .~ (strict opts)) journalFile
     case ejournal of
       Right j -> do
         (journal, starting) <- fixupJournal opts j
@@ -386,6 +386,8 @@ data Opts = Opts
     -- ^ Include only unmarked postings/txns.
     , real :: Bool
     -- ^ Include only non-virtual postings.
+    , strict :: Bool
+    -- ^ Use strict requirements in journal parsing.
     , sunday :: Bool
     -- ^ Week starts on Sunday.
     , assertionsDaily :: [(Text, Predicate)]
@@ -429,6 +431,8 @@ args = info (helper <*> parser) $ mconcat
                         (arg 'U' "unmarked" "include only unmarked postings/txns")
                   <*> switch
                         (arg 'R' "real" "include only non-virtual postings")
+                  <*> switch
+                        (arg 's' "strict" "use strict mode checking")
                   <*> switch
                         (arg' "sunday" "weeks start on Sunday")
                   <*> (many . popt predicatep)
