@@ -28,12 +28,12 @@ AI usage
 User-visible changes in the hledger command line tool and library.
 
 
-# e3d4909b
+# 1.99.1 2026-03-28
 
 Breaking changes
 
 - This 2.0 preview is the first hledger release to explore AI-assisted development.
-  Please be sure check out the evolving AI policy/FAQ: https://hledger.org/AI.md
+  Please be sure to check out the evolving AI policy/FAQ: <https://hledger.org/AI.md>
   There's also a new "AI usage" section below.
 
 - hledger now recognises certain transactions as lot disposals;
@@ -102,7 +102,7 @@ Features
 
 - Disposals automatically calculate or check capital gain/loss,
   which can be left implicit or recorded explicitly.
-  Transaction balancing behaviour has been updated to allow this (see Breaking Changes above).
+  Transaction balancing behaviour has been updated to allow this (see "Breaking changes").
 
 - The `check` command has a new `lots` check,
   which is another way to validate lot movements.
@@ -143,7 +143,7 @@ Examples
 AI usage
 
 This 2.0 preview is the first hledger release to explore AI-assisted development.
-There is an AI policy document/FAQ: https://hledger.org/AI.md
+There is an AI policy document/FAQ: <https://hledger.org/AI.md>
 
 In this release, I used claude models to help me design, plan, implement, test, debug and document the lot tracking and capital gains features.
 Mostly opus 4.6, plus some experimentation with the cheaper models and the more expensive modes.

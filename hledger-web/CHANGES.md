@@ -23,14 +23,16 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# e3d4909b
+# 1.99.1 2026-03-28
 
 Breaking changes
 
 - Posting's `ptype` field has been renamed to `preal` (and `PostingType` to `PostingRealness`),
   to avoid confusion with the new `ptype` tag. This changes JSON output.
 
-Fixes
+Improvements
+
+- Uses hledger 1.99.1
 
 - Require yesod-static <1.6.1.1 to avoid a build breakage with cabal
   (https://github.com/psibi/crypton-conduit/issues/3).

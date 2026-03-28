@@ -23,7 +23,9 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# e3d4909b
+# 1.99.1 2026-03-28
+
+- Uses hledger 1.99.1
 
 
 # 1.52 2026-03-20
