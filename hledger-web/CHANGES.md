@@ -25,6 +25,8 @@ See also the hledger changelog.
 
 # 1.99.1 2026-03-28
 
+(2.0 preview 1)
+
 Breaking changes
 
 - Posting's `ptype` field has been renamed to `preal` (and `PostingType` to `PostingRealness`),

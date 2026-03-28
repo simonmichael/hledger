@@ -19,6 +19,8 @@ For user-visible changes, see the hledger package changelog.
 
 # 1.99.1 2026-03-28
 
+(2.0 preview 1)
+
 Breaking changes
 
 - `PostingType`/`RegularPosting`/`ptype` have been renamed to `PostingRealness`/`RealPosting`/`preal`,
