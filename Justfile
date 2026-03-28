@@ -1468,7 +1468,7 @@ _on-release-branch:
     #!/usr/bin/env bash
     set -euo pipefail
     BRANCH=$(git branch --show-current)
-    if [[ ! $BRANCH =~ ^[0-9.]*-branch ]]; then
+    if [[ ! $BRANCH =~ ^[0-9].*-branch ]]; then
         echo "You are currently on $BRANCH branch. Please switch to the latest release branch."
         exit 1
     fi
