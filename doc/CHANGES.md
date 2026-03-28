@@ -18,6 +18,29 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 09c2106b
+
+Doc updates
+
+- site: upgrade to latest mdbook
+- site: move pages' tables of contents to sidebar
+- AI: new project AI policy doc, with links and discussion notes
+- IMPACT: new project "external impacts" doc
+- README(hledger2 branch): describe the 2.x branch and plans
+- REGRESSIONS
+- SPEC-lots: specification for lot-related functionality, lot subaccount parsing technique, balance assertions
+- SPEC-finalising: retroactive specification for journal finalising
+- SPEC-print: document some print behaviours as a specification
+- SPEC-special-postings: document patterns of postings recognised by hledger
+- PLAN-lots: planning and design notes from implementing SPEC-lots
+
+Infrastructure/tools
+
+- Shake: fix build error with GHC 9.12.2 by using newer shake
+- `just devtag-push` renamed to `just devver`
+- stack configs: 9.14 made default, 9.12 made non-default, both cleaned up and bumped
+
+
 # 1.52 2026-03-20
 
 Doc updates

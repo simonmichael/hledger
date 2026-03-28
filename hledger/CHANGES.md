@@ -21,9 +21,142 @@ Scripts/addons
 
 API
 
+AI usage
+
 -->
 
 User-visible changes in the hledger command line tool and library.
+
+
+# 09c2106b
+
+Breaking changes
+
+- This 2.0 preview is the first hledger release to explore AI-assisted development.
+  Please be sure check out the evolving AI policy/FAQ: https://hledger.org/AI.md
+  There's also a new "AI usage" section below.
+
+- hledger now recognises certain transactions as lot disposals;
+  and in these, postings to accounts with the Gain type (declared or auto-detected)
+  are excluded from normal transaction balancing.
+  This means it's possible for existing journal entries to be rejected.
+  Eg, this entry (though nonsensical and unlikely) is ok in hledger 1.x but an error in 2.x:
+  ```
+  2026-02-01 sell stock
+      assets:stocks      -1 AAA {$50} @ $60
+      assets:cash       $50
+      revenue:gains     $10
+  ```
+  hledger 2.x recognises the `assets:stocks` posting as a lot disposal,
+  and `revenue:gains` as a Gain account,
+  so it excludes the $10 from transaction balancing,
+  and then fails to balance the $-60 and $50.
+  To fix it you could: rename the `revenue:gains` to something else,
+  or explicitly declare it as type `R` (Revenue) instead of `G` (Gain),
+  or omit the $10 amount (allowing hledger to infer it).
+
+  Here's a more realistic entry for 2.x, to explain the two balancing steps:
+  ```
+  2026-02-01 sell stock
+      assets:stocks      -1 AAA {$50} @ $60
+      assets:cash       $60
+      revenue:gains    $-10
+  ```
+  By default, 2.x will check just the $-60 and $60 (transaction balancing).
+  And in lots mode, it will also check the $-50, $60, and $-10 (disposal balancing).
+
+- Posting's `ptype` field has been renamed to `preal` (and `PostingType` to `PostingRealness`),
+  to avoid confusion with the new `ptype` tag. This changes JSON output.
+
+Features
+
+- hledger now understands, and prints, a Beancount-like cost basis syntax:
+  `{DATE, "LABEL", COST}`, with the parts in that order, all optional.
+  Ledger-compatible `{COST} [DATE] (NOTE)` syntax is also accepted,
+  and can be printed using `print`'s new `ledger` output format.
+
+- Lot-related postings are detected,
+  from a `{COSTBASIS}` annotation, or a `:{LOTNAME}` subaccount,
+  or a `lots` tag on their account or commodity, or in a few other ways.
+  Their type (acquire, dispose, transfer-from, transfer-to, gain) is saved
+  in a hidden `_ptype` posting tag; or with `--verbose-tags`, in a visible `ptype` tag.
+  (For examples, see `hledger print --verbose-tags -f examples/lots/lot-entries.journal`)
+
+- Transacted cost (`@`) is inferred from cost basis (`{}`) if needed,
+  and vice versa. So writing either one is often sufficient.
+
+- Internally, every lot has its own subaccount.
+  These can be left implicit, or recorded explicitly.
+
+  A new `--lots` flag enables "lots mode", which calculates and checks lot movements,
+  and makes lot subaccounts visible in reports.
+
+- Lot identities and balances are tracked across transactions and accounts
+  (and between year files, with `close --clopen --lots`).
+  Wrong or ambiguous lot movements are reported.
+
+- The reduction method (booking method) for transfers and disposals
+  can be configured per account or per commodity, using the `lots` tag.
+  Per-account FIFO, LIFO, HIFO, AVERAGE
+  and globally-scoped FIFOALL, LIFOALL, HIFOALL, AVERAGEALL methods are supported.
+
+- Disposals automatically calculate or check capital gain/loss,
+  which can be left implicit or recorded explicitly.
+  Transaction balancing behaviour has been updated to allow this (see Breaking Changes above).
+
+- The `check` command has a new `lots` check,
+  which is another way to validate lot movements.
+  Eg to run the usual strict checks and also the lot checks: `hledger check -s lots`.
+  Also `check accounts` now ignores lot subaccounts.
+
+Fixes
+
+- `print` now preserves empty `{}` cost basis annotations.
+
+Improvements
+
+- `commodities` now supports `tag:` queries, eg `hledger commodities tag:lots`.
+
+- `print`'s beancount output has been improved:
+  - it converts single-letter commodity symbols
+  - it converts the no-symbol commodity (to "CC")
+  - it converts a top-level "revenue" or "revenues" account to "Income"
+  - it converts balance assignments to explicit amounts
+  - it converts market prices
+  - it sets booking methods based on accounts' `lots` tag value
+  - it generates a (commented) tolerance option
+  - it handles account and commodity tags better
+  - it shows cost basis before transacted cost, as Beancount requires.
+
+Docs
+
+- Cost basis / Lot syntax: updated
+- Lot reporting: added
+- Lot postings with balance assertions: added
+- Reporting concepts > Detecting special postings: added
+
+Examples
+
+- lot-entries.journal: sample journal entries involving lots
+- hledger.conf: how to hide explicit lots
+
+AI usage
+
+This 2.0 preview is the first hledger release to explore AI-assisted development.
+There is an AI policy document/FAQ: https://hledger.org/AI.md
+
+In this release, I used claude models to help me design, plan, implement, test, debug and document the lot tracking and capital gains features.
+Mostly opus 4.6, plus some experimentation with the cheaper models and the more expensive modes.
+Each commit is relatively small and clear and was reviewed and tested by me.
+
+Approx. estimated claude token use (in+out), and cost, for the lots work in this release:
+
+- 2026-01: 133Mt,   $85
+- 2026-02: 598Mt,  $551
+- 2026-03: 299Mt,  $256
+- Total:    ~1Gt, ~$900
+
+Approx. human dev time: ~150h, market value ~$10k-30k
 
 
 # 1.52 2026-03-20
@@ -40,8 +173,9 @@ Features
 - Tags can now be declared on commodities, and you can query for postings by their commodity's tags.
 
 - A new `Gain` (`G`) account type has been added, as a subtype of Revenue.
-  Certain account names, like `income:gains`, `revenue:capital-gains`, `income:losses`,
+  Account names matched by `^(income|revenue)s?:(capital[- ]?)?(gains?|loss(es)?)(:|$)`
   are auto-detected as Gain type.
+  (Some examples: revenue:gains, income:capital-gains, income:losses.)
   This provides a language-independent way of matching capital gain/loss accounts specifically.
   (It is used more in hledger 2.)
   (g. nicholas d'andrea) [#2522]

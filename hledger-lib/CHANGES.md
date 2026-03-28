@@ -17,6 +17,53 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
+# 09c2106b
+
+Breaking changes
+
+- `PostingType`/`RegularPosting`/`ptype` have been renamed to `PostingRealness`/`RealPosting`/`preal`,
+  to avoid confusion with the new `ptype` tag.
+
+- `isAccountSubtypeOf` has been moved from `Hledger.Data.Types` to `Hledger.Data.AccountType`.
+
+- Standard transaction balancing ignores postings to accounts of Gain type, which typically occur in lot disposal transactions.
+  Those postings are now excluded from normal transaction balancing;
+  they are checked by a new disposal balancing check, which makes sure the transaction sums to zero at cost basis.
+
+Features
+
+- New `Hledger.Data.Lots` module with the full lot-tracking pipeline:
+  posting classification, lot calculation (FIFO/LIFO/HIFO/AVERAGE and *ALL variants),
+  disposal balancing, gain posting inference, and lot subaccount name parsing.
+  Key functions: `journalClassifyLotPostings`, `journalCalculateLots`,
+  `journalInferAndCheckDisposalBalancing`, `journalInferBasisFromAccountNames`.
+
+- New `Hledger.Write.Ledger` module provides `showTransactionLedger` for Ledger-style lot syntax output.
+
+- `Commodity` type gains a `csourcepos` field, captured during parsing.
+  This allows lots-tag validation errors to show file:line and a megaparsec-style excerpt.
+
+Improvements
+
+- `MixedAmount` and `MixedAmountKey` are better documented.
+
+- Amount arithmetic helpers now explicitly discard cost basis.
+
+- `sumSimilarAmountsUsingFirstCost` is renamed to `sumSimilarAmounts`.
+
+- `lotcostp` parser now accepts both Ledger-style `{COST} [DATE] (NOTE)` and
+  hledger consolidated `{DATE, "LABEL", COST}` lot annotations.
+
+- New `commentPrependTag` helper and a prepend parameter for `postingAddHiddenAndMaybeVisibleTag`.
+
+- New `amountSetQuantity` helper that resets precision to `NaturalPrecision`,
+  for lot-generated amounts with no user-written precision to preserve.
+
+- `postingsAsLines`/`postingAsLines` are parameterised with `AmountFormat`,
+  allowing the rendering chain to be reused with different amount formats.
+  `AmountFormat` gains a `displayLedgerLotSyntax` field.
+
+
 # 1.52 2026-03-20
 
 Breaking changes
