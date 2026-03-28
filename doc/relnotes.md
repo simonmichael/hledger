@@ -76,7 +76,7 @@ Major releases and user-visible changes.
 Breaking changes
 
 - This 2.0 preview is the first hledger release to explore AI-assisted development.
-  Please check out the evolving AI policy/FAQ: <https://hledger.org/AI.md>.
+  Please check out the evolving AI policy/FAQ: <https://hledger.org/AI.html>.
   There's also a new "AI usage" section below.
 
 - hledger now recognises certain transactions as lot disposals;
@@ -186,7 +186,7 @@ Examples
 AI usage
 
 This 2.0 preview is the first hledger release to explore AI-assisted development.
-There is an AI policy document/FAQ: <https://hledger.org/AI.md>
+There is an AI policy document/FAQ: <https://hledger.org/AI.html>
 
 In this release, I used claude models to help me design, plan, implement, test, debug and document the lot tracking and capital gains features.
 Mostly opus 4.6, plus some experimentation with the cheaper models and the more expensive modes.
