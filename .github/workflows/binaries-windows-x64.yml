@@ -21,7 +21,7 @@ jobs:
     env:
       # use preinstalled ghc. Keep these synced with whatever version that is:
       ghcid: 9.14.1
-      stack: stack --system-ghc --no-install-ghc --stack-yaml stack914.yaml
+      stack: stack --system-ghc --no-install-ghc --stack-yaml stack.yaml
 
     steps:
 
