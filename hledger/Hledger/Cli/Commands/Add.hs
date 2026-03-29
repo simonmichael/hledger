@@ -226,7 +226,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
   GetAccount txndata -> accountWizard previnput state >>= \case
     Just account
       | account `elem` [".", ""] ->
-          case (asPostings, postingsAreBalanced asPostings) of
+          case (asPostings, postingsAreBalanced asJournal asPostings) of
             ([],_)    -> liftIO (hPutStrLn stderr "Please enter some postings first.") >> transactionWizard previnput state stack
             (_,False) -> liftIO (hPutStrLn stderr "Please enter more postings to balance the transaction.") >> transactionWizard previnput state stack
             (_,True)  -> transactionWizard previnput state (GetPosting txndata Nothing : stack)
@@ -350,7 +350,7 @@ accountWizard PrevInput{..} AddState{..} = do
    defaultTo' def $ -- nonEmpty $
    linePrewritten (green' $ printf "Account %d%s%s: " pnum (endmsg::String) (showDefault def)) (fromMaybe "" $ prevAccount `atMay` length asPostings) ""
     where
-      canfinish = not (null asPostings) && postingsAreBalanced asPostings
+      canfinish = not (null asPostings) && postingsAreBalanced asJournal asPostings
       parseAccountOrDotOrNull :: String -> Bool -> String -> Maybe (Maybe String)
       parseAccountOrDotOrNull _  _ "<"       = dbg' $ Just Nothing
       parseAccountOrDotOrNull _  _ "."       = dbg' $ Just $ Just "." -- . always signals end of txn
@@ -490,16 +490,20 @@ balanceTransactionInJournal :: Transaction -> Journal -> BalancingOpts -> Either
 balanceTransactionInJournal t j bopts = do
   -- Add the transaction at the end of the journal, as the add command will.
   let j' = j{jtxns = jtxns j ++ [t]}
+      -- Use the journal's account types so the balancer can identify
+      -- Gain postings and exclude them from balancing (#2572).
+      bopts' = bopts{account_types_ = jaccounttypes j}
   -- Try to balance and check the whole journal, and specifically the new transaction.
-  Journal{jtxns=ts} <- journalBalanceTransactions bopts j'
+  Journal{jtxns=ts} <- journalBalanceTransactions bopts' j'
   -- Extract the balanced & checked transaction.
   maybe
     (Left "balanceTransactionInJournal: unexpected empty journal") -- should not happen
     Right
     (lastMay ts)
 
-postingsAreBalanced :: [Posting] -> Bool
-postingsAreBalanced ps = isRight $ balanceSingleTransaction defbalancingopts nulltransaction{tpostings = ps}
+postingsAreBalanced :: Journal -> [Posting] -> Bool
+postingsAreBalanced j ps = isRight $ balanceSingleTransaction bopts nulltransaction{tpostings = ps}
+  where bopts = defbalancingopts{account_types_ = jaccounttypes j}
 
 -- | Append this transaction to the journal's file and transaction list.
 journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
