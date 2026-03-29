@@ -545,7 +545,7 @@ parseAccountType allowlongform s =
     "expense"    | allowlongform -> Right Expense
     "cash"       | allowlongform -> Right Cash
     "conversion" | allowlongform -> Right Conversion
-    "gains"      | allowlongform -> Right Gain
+    "gain"       | allowlongform -> Right Gain
     _                            -> Left $ T.unpack s
 
 -- | Parse the value part of a "status:" query, or return an error.
