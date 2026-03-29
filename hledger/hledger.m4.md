@@ -7165,13 +7165,13 @@ commodity AAPL  ; lots:
     revenue:gains
 ```
 
-```cli
+```
 $ hledger bal assets:stocks --lots -N
               5 AAPL  assets:stocks:{2026-01-15, $50}
              10 AAPL  assets:stocks:{2026-02-01, $60}
 ```
 
-```cli
+```
 $ hledger print --lots -x desc:sell
 2026-03-01 sell some (FIFO, selects oldest lot first)
     assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $70
