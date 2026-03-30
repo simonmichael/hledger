@@ -429,3 +429,34 @@ account income:capital  ; type:G
 
 $ hledger -f- print --lots
 > /sell/
+
+# ** 21. Disposal balance check works with --infer-equity.
+# Equity conversion postings (from --infer-equity) should not disrupt the
+# disposal cost-basis balance check, and should not carry cost basis annotations.
+<
+account income:capital  ; type:G
+
+2026-01-15 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash
+
+2026-02-15 sell
+    assets:cash       $600
+    assets:broker    -10 AAPL {$50} @ $60
+    income:capital   -$100
+
+$ hledger -f- print --lots --infer-equity
+2026-01-15 buy
+    assets:broker:{2026-01-15, $50}    10 AAPL {$50}
+    equity:conversion:$-AAPL:AAPL           -10 AAPL
+    equity:conversion:$-AAPL:$                  $500
+    assets:cash
+
+2026-02-15 sell
+    assets:cash                                        $600
+    assets:broker:{2026-01-15, $50}    -10 AAPL {$50} @ $60
+    equity:conversion:$-AAPL:AAPL                   10 AAPL
+    equity:conversion:$-AAPL:$                        $-600
+    income:capital                                    $-100
+
+>=

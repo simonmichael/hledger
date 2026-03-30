@@ -127,7 +127,7 @@ import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
-import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
+import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
 import Hledger.Data.Transaction (transactionCommodityStylesWith, txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
@@ -679,7 +679,10 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       | not (any isDisposePosting (tpostings t)) = Right t
       | not (any disposeHasPrice (tpostings t))  = Right t
       | otherwise = do
-          let (gainPs, otherPs) = partition' isGain (tpostings t)
+          let -- Exclude equity conversion postings (from --infer-equity) which duplicate
+              -- the cost information already on the costful posting.
+              nonConversionPs = filter (not . isConversionPosting) (tpostings t)
+              (gainPs, otherPs) = partition' isGain nonConversionPs
               (amountfulGainPs, amountlessGainPs) = partition' hasAmount gainPs
               -- Use the transaction's local precision for zero checks,
               -- matching normal transaction balancing (Balancing.hs TBPExact).
@@ -689,7 +692,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
             []
               -- No gain postings at all: create one if residual is nonzero
               | null gainPs -> do
-                  let residual = foldMap postingCostBasisAmount (tpostings t)
+                  let residual = foldMap postingCostBasisAmount nonConversionPs
                   if looksZero residual
                     then Right t
                     else do
@@ -719,11 +722,16 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
                      ++ "At most one gain posting may have its amount inferred."
 
     checkBalance t =
-      let costBasisSum = foldMap postingCostBasisAmount (tpostings t)
+      let -- Exclude equity conversion postings (from --infer-equity) which duplicate
+          -- the cost information already on the costful posting.
+          ps = filter (not . isConversionPosting) (tpostings t)
+          costBasisSum = foldMap postingCostBasisAmount ps
           -- Use the transaction's local precision, matching normal balancing (Balancing.hs TBPExact).
           looksZero = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
       in unless (looksZero costBasisSum) $
            Left $ disposalBalanceError t costBasisSum
+
+    isConversionPosting p = conversionPostingTagName `elem` map fst (ptags p)
 
     -- Value a posting at cost basis: if it has a cost basis, use quantity * basis cost;
     -- otherwise use the raw amount. Amountless postings contribute nothing.

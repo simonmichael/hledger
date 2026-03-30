@@ -514,7 +514,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
     makeConversionPostings amt = case acost amt of
       Nothing -> []
       Just _  -> [ convp{ paccount = accountPrefix <> amtCommodity
-                        , pamount = mixedAmount . negate $ amountStripCost amt
+                        , pamount = mixedAmount . negate $ stripBasis $ amountStripCost amt
                         }
                  , convp{ paccount = accountPrefix <> costCommodity
                         , pamount = mixedAmount cost
@@ -522,6 +522,7 @@ postingAddInferredEquityPostings verbosetags equityAcct p
                  ]
       where
         cost = amountCost amt
+        stripBasis a = a{acostbasis = Nothing}
         amtCommodity  = commodity amt
         costCommodity = commodity cost
         convp = nullposting{pdate=pdate p, pdate2=pdate2 p, pstatus=pstatus p, ptransaction=ptransaction p}
