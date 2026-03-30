@@ -58,3 +58,6 @@ Some useful statistics to guestimate:
 - Predicted lifetime cost
 - Comparison with alternate solutions
   
+## Related
+
+- https://andymasley.com/visuals/carbon-footprint

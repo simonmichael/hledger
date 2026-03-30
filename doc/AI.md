@@ -165,5 +165,6 @@ Law:
 - <https://www.congress.gov/crs-product/LSB10922>
 
 Practitioners
+- Donald Knuth: <https://cs.stanford.edu/~knuth/papers/claude-cycles.pdf>
 - Kent Beck: <https://tidyfirst.substack.com/t/genies>,\
   <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
