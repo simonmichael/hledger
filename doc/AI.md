@@ -1,5 +1,7 @@
 # AI policy
 
+Last updated: 2026-03-30
+
 The productivity benefits from AI-assisted software development are becoming obvious.
 And the disruptions, costs and risks of AI will keep becoming clearer.
 
@@ -153,8 +155,15 @@ because the cost of designing and building it outweighed the need and the availa
 
 ## Related
 
-- <https://www.congress.gov/crs-product/LSB10922>
+Discussions
+- <https://fosstodon.org/@happyborg/116312844334306281> 
+
+Policies
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
-- Kent Beck
-  - <https://tidyfirst.substack.com/t/genies>
-  - <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
+
+Law:
+- <https://www.congress.gov/crs-product/LSB10922>
+
+Practitioners
+- Kent Beck: <https://tidyfirst.substack.com/t/genies>,\
+  <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
