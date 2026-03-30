@@ -411,3 +411,21 @@ $ hledger -f- bal --lots -N
             5.0 AAPL  assets:stocks:{2026-01-15, $80}
             0.1 AAPL  expenses:fees
                 $-49  revenue:gains
+
+# ** 20. Disposal balance check tolerates rounding from fractional per-unit cost.
+# 9.216 * 1801.215277778 = 16600.000000002, off by 0.000000002 from the 16600.00 paid.
+# The tiny residual should be tolerated (rounded to zero at display precision).
+<
+account income:capital  ; type:G
+
+2017-04-09 buy
+    assets:fund    9.216 FUND {Rs1801.215277778}
+    assets:savings                   Rs-16600.00
+
+2019-07-10 sell
+    assets:savings                                     Rs19403.24
+    assets:fund    -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
+    income:capital                                     Rs-2803.24
+
+$ hledger -f- print --lots
+> /sell/

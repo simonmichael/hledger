@@ -128,7 +128,7 @@ import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maN
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
-import Hledger.Data.Transaction (txnTieKnot)
+import Hledger.Data.Transaction (transactionCommodityStylesWith, txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
 
@@ -681,13 +681,16 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       | otherwise = do
           let (gainPs, otherPs) = partition' isGain (tpostings t)
               (amountfulGainPs, amountlessGainPs) = partition' hasAmount gainPs
+              -- Use the transaction's local precision for zero checks,
+              -- matching normal transaction balancing (Balancing.hs TBPExact).
+              looksZero = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
           case amountlessGainPs of
             -- No amountless gain postings
             []
               -- No gain postings at all: create one if residual is nonzero
               | null gainPs -> do
                   let residual = foldMap postingCostBasisAmount (tpostings t)
-                  if mixedAmountLooksZero residual
+                  if looksZero residual
                     then Right t
                     else do
                       let inferredAmt = maNegate residual
@@ -717,7 +720,9 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
 
     checkBalance t =
       let costBasisSum = foldMap postingCostBasisAmount (tpostings t)
-      in unless (mixedAmountLooksZero costBasisSum) $
+          -- Use the transaction's local precision, matching normal balancing (Balancing.hs TBPExact).
+          looksZero = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
+      in unless (looksZero costBasisSum) $
            Left $ disposalBalanceError t costBasisSum
 
     -- Value a posting at cost basis: if it has a cost basis, use quantity * basis cost;
