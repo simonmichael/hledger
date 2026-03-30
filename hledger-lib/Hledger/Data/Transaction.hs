@@ -80,7 +80,7 @@ import Hledger.Data.Dates
 import Hledger.Data.Posting
 import Hledger.Data.Amount
 import Hledger.Data.Valuation
-import Data.Decimal (normalizeDecimal, decimalPlaces)
+import Data.Decimal (normalizeDecimal, decimalPlaces, roundTo)
 import Data.Functor ((<&>))
 import Data.Function ((&))
 import Data.List (union)
@@ -260,10 +260,22 @@ transactionToCost :: ConversionOp -> Transaction -> Transaction
 transactionToCost cost t = t{tpostings = mapMaybe (postingToCost cost) $ tpostings t}
 
 -- | For any costs in this 'Transaction' which don't have associated equity conversion postings,
--- generate and add those.
+-- generate and add those. Generated amounts are rounded to the transaction's local display
+-- precision to avoid arithmetic artifacts (e.g. 9.216 * 1801.215277778 = 16600.000000002 -> 16600.00).
 transactionInferEquityPostings :: Bool -> AccountName -> Transaction -> Transaction
 transactionInferEquityPostings verbosetags equityAcct t =
-  t{tpostings=concatMap (postingAddInferredEquityPostings verbosetags equityAcct) $ tpostings t}
+  t{tpostings = map roundGenerated $ concatMap (postingAddInferredEquityPostings verbosetags equityAcct) $ tpostings t}
+  where
+    -- Round generated equity conversion posting amounts (quantities, not just display)
+    -- to the transaction's local display precision, avoiding arithmetic artifacts
+    -- (e.g. 9.216 * 1801.215277778 = 16600.000000002 -> 16600.00).
+    styles = transactionCommodityStyles t
+    roundGenerated p
+      | generatedPostingTagName `elem` map fst (ptags p) = p{pamount = mapMixedAmount roundAmount (pamount p)}
+      | otherwise = p
+    roundAmount a = case M.lookup (acommodity a) styles of
+      Just s@AmountStyle{asprecision=Precision p} -> a{aquantity = roundTo p (aquantity a), astyle = s}
+      _ -> a
 
 type IdxPosting = (Int, Posting)
 
