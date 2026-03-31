@@ -500,6 +500,6 @@ hledger: Error: -:8:
   |     income:capital                                                     Rs-400
 
 This disposal transaction is unbalanced.
-The real postings' sum (using cost basis, including gains) should be 0 but is: Rs100
+The real postings' sum (using cost basis, including gains, excluding conversion equity) should be 0 but is: Rs100
   Rs1500  +  Rs-1000  +  Rs-400  =  Rs100
 >=1

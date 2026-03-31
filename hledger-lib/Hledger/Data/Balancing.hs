@@ -163,14 +163,14 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
         rmsg
           | rsumok        = ""
           | not rsignsok  = "The real postings all have the same sign."
-          | otherwise     = "The real postings' sum (using transacted costs, excluding gains) should be 0 but is "
+          | otherwise     = "The real postings' sum (using non-redundant transacted costs, excluding gains) should be 0 but is "
               ++ showamt rsumcost
               ++ "\n  " ++ intercalate "  +  " (map showamt rsumamts) ++ "  =  " ++ showamt rsumcost
               ++ if rsumokold then oldbalancingmsg else ""
         bvmsg
           | bvsumok       = ""
           | not bvsignsok = "The balanced virtual postings all have the same sign."
-          | otherwise     = "The balanced virtual postings' sum (using transacted costs, excluding gains) should be 0 but is: "
+          | otherwise     = "The balanced virtual postings' sum (using non-redundant transacted costs, excluding gains) should be 0 but is: "
               ++ showamt bvsumcost
               ++ "\n  " ++ intercalate " + " (map showamt bvsumamts) ++ " = " ++ showamt bvsumcost
               ++ if bvsumokold then oldbalancingmsg else ""

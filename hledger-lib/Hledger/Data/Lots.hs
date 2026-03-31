@@ -750,7 +750,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
     disposalBalanceError t amts imbalance =
       txnErrPrefix t
       ++ "This disposal transaction is unbalanced.\n"
-      ++ "The real postings' sum (using cost basis, including gains) should be 0 but is: " ++ showamt imbalance ++ "\n"
+      ++ "The real postings' sum (using cost basis, including gains, excluding conversion equity) should be 0 but is: " ++ showamt imbalance ++ "\n"
       ++ "  " ++ intercalate "  +  " (map showamt amts) ++ "  =  " ++ showamt imbalance
       where
         showamt =
