@@ -124,7 +124,7 @@ import Text.Printf (printf)
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
-import Hledger.Data.Amount (amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, nullmixedamt, noCostFmt, showAmountWith, showMixedAmountOneLine)
+import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
@@ -725,11 +725,12 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       let -- Exclude equity conversion postings (from --infer-equity) which duplicate
           -- the cost information already on the costful posting.
           ps = filter (not . isConversionPosting) (tpostings t)
-          costBasisSum = foldMap postingCostBasisAmount ps
+          amts = map postingCostBasisAmount ps
+          costBasisSum = mconcat amts
           -- Use the transaction's local precision, matching normal balancing (Balancing.hs TBPExact).
           looksZero = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
       in unless (looksZero costBasisSum) $
-           Left $ disposalBalanceError t costBasisSum
+           Left $ disposalBalanceError t amts costBasisSum
 
     isConversionPosting p = conversionPostingTagName `elem` map fst (ptags p)
 
@@ -745,11 +746,17 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       Just basisCost -> mixedAmount basisCost{aquantity = aquantity a * aquantity basisCost}
       Nothing        -> mixedAmount a
 
-    disposalBalanceError :: Transaction -> MixedAmount -> String
-    disposalBalanceError t residual =
+    disposalBalanceError :: Transaction -> [MixedAmount] -> MixedAmount -> String
+    disposalBalanceError t amts imbalance =
       txnErrPrefix t
-      ++ "This disposal transaction is unbalanced at cost basis.\n"
-      ++ "Residual: " ++ showMixedAmountOneLine residual
+      ++ "This disposal transaction is unbalanced.\n"
+      ++ "The real postings' sum (using cost basis, including gains) should be 0 but is: " ++ showamt imbalance ++ "\n"
+      ++ "  " ++ intercalate "  +  " (map showamt amts) ++ "  =  " ++ showamt imbalance
+      where
+        showamt =
+          showMixedAmountWith oneLineNoCostFmt{displayZeroCommodity=True}
+          . mixedAmountSetFullPrecisionUpTo Nothing
+          . mixedAmountSetFullPrecision
 
     -- Like Data.List.partition but preserves the type for the predicate
     partition' :: (a -> Bool) -> [a] -> ([a], [a])

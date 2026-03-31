@@ -476,3 +476,30 @@ $ hledger -f- print --infer-equity
     assets:cash                                         Rs-16600.00
 
 >=
+
+# ** 28. Unbalanced disposal error shows per-posting cost-basis breakdown.
+<
+account income:capital  ; type:G
+commodity FUND  ; lots:
+
+2026-01-15 buy
+    assets:fund    10 FUND {Rs100}
+    assets:savings            Rs-1000
+
+2026-02-15 sell
+    assets:savings                             Rs1500
+    assets:fund    -10 FUND {Rs100} @@ Rs1500
+    income:capital                             Rs-400
+
+$ hledger -f- print --lots
+>2
+hledger: Error: -:8:
+8 | 2026-02-15 sell
+  |     assets:savings                                                     Rs1500
+  |     assets:fund:{2026-01-15, Rs100}    -10 FUND {2026-01-15, Rs100} @@ Rs1500
+  |     income:capital                                                     Rs-400
+
+This disposal transaction is unbalanced.
+The real postings' sum (using cost basis, including gains) should be 0 but is: Rs100
+  Rs1500  +  Rs-1000  +  Rs-400  =  Rs100
+>=1

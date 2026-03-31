@@ -4,6 +4,6 @@ $$$ hledger check -f autobalanced.j
   \|     a               1
 
 This transaction is unbalanced.
-The real postings' sum \(using transacted costs\) should be 0 but is 1
+The real postings' sum \(using transacted costs, excluding gains\) should be 0 but is 1
 /
 >>>= 1

@@ -60,6 +60,6 @@ $ hledger -f - check lots
     revenues:gains    $-999
 
 $ hledger -f - check lots
->2 /unbalanced at cost basis/
+>2 /disposal transaction is unbalanced/
 >=1
 

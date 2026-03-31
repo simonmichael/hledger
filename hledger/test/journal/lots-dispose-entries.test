@@ -207,7 +207,7 @@ commodity AAPL  ; lots:
     revenue:gains   -$30
 
 $ hledger -f- print desc:sell --lots --verbose-tags
->2 /disposal transaction is unbalanced at cost basis/
+>2 /disposal transaction is unbalanced/
 >=1
 
 # *** 11. dispose: missing gain posting is inferred from Gain account.
