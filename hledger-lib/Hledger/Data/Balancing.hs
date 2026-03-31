@@ -40,7 +40,7 @@ import Data.Function ((&))
 import Data.Functor ((<&>), void)
 import Data.HashTable.Class qualified as H (toList)
 import Data.HashTable.ST.Cuckoo qualified as H
-import Data.List (partition, sortOn)
+import Data.List (partition, sortOn, intercalate)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromJust, fromMaybe, isJust, isNothing, mapMaybe)
 import Data.Set qualified as S
@@ -140,6 +140,7 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
 
     -- check that the sum looks like zero
     (rsumcost,  bvsumcost)  = (foldMap postingBalancingAmount rps, foldMap postingBalancingAmount bvps)
+    (rsumamts,  bvsumamts)  = (map     postingBalancingAmount rps, map     postingBalancingAmount bvps)
     (rsumok,    bvsumok)    = (lookszero rsumcost, lookszero bvsumcost)
     (rsumokold, bvsumokold) = (lookszeroatglobaldisplayprecision rsumcost, lookszeroatglobaldisplayprecision bvsumcost)
 
@@ -154,21 +155,27 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
     -- Generate error messages if any. Show amounts with their original precisions.
     errs = filter (not.null) [rmsg, bvmsg]
       where
+        showamt =
+          showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} .
+          mixedAmountSetFullPrecisionUpTo Nothing .
+          mixedAmountSetFullPrecision
+        showamtnocost =
+          showMixedAmountWith oneLineNoCostFmt{displayCost=False, displayZeroCommodity=True} .
+          mixedAmountSetFullPrecisionUpTo Nothing .
+          mixedAmountSetFullPrecision
         rmsg
           | rsumok        = ""
-          | otherwise     = "The real postings' sum should be 0 but is: " ++
-              (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
-              mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
-              rsumcost)
           | not rsignsok  = "The real postings all have the same sign."
+          | otherwise     = "The real postings' sum (using transacted costs) should be 0 but is "
+              ++ showamt rsumcost
+              ++ "\n  " ++ intercalate "  +  " (map showamtnocost rsumamts) ++ " = " ++ showamt rsumcost
               ++ if rsumokold then oldbalancingmsg else ""
         bvmsg
           | bvsumok       = ""
-          | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++
-              (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
-              mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
-              bvsumcost)
           | not bvsignsok = "The balanced virtual postings all have the same sign."
+          | otherwise     = "The balanced virtual postings' sum (using transacted costs) should be 0 but is: "
+              ++ showamt bvsumcost
+              ++ "\n  " ++ intercalate " + " (map showamtnocost bvsumamts) ++ " = " ++ showamt bvsumcost
               ++ if bvsumokold then oldbalancingmsg else ""
         oldbalancingmsg = unlines [
           -- -------------------------------------------------------------------------------
