@@ -128,7 +128,7 @@ $ hledger -f- print
   \|     b              1B
 
 This multi-commodity transaction is unbalanced.
-The real postings all have the same sign. Consider negating some of them.
+The real postings all have the same sign.
 /
 >=1
 #'

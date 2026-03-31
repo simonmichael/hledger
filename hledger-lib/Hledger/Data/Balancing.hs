@@ -156,19 +156,19 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
       where
         rmsg
           | rsumok        = ""
-          | not rsignsok  = "The real postings all have the same sign. Consider negating some of them."
           | otherwise     = "The real postings' sum should be 0 but is: " ++
               (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
               mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
               rsumcost)
+          | not rsignsok  = "The real postings all have the same sign."
               ++ if rsumokold then oldbalancingmsg else ""
         bvmsg
           | bvsumok       = ""
-          | not bvsignsok = "The balanced virtual postings all have the same sign. Consider negating some of them."
           | otherwise     = "The balanced virtual postings' sum should be 0 but is: " ++
               (showMixedAmountWith oneLineNoCostFmt{displayCost=True, displayZeroCommodity=True} $
               mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision
               bvsumcost)
+          | not bvsignsok = "The balanced virtual postings all have the same sign."
               ++ if bvsumokold then oldbalancingmsg else ""
         oldbalancingmsg = unlines [
           -- -------------------------------------------------------------------------------
