@@ -224,13 +224,15 @@ balanceTransactionHelper bopts t = do
           [ "Automatic commodity conversion is not enabled."
           | ismulticommodity && not (infer_balancing_costs_ bopts)
           ] ++
-          errs ++
-          if ismulticommodity
-          then
-          [ "Consider adjusting this entry's amounts, adding missing postings,"
-          , "or recording conversion price(s) with @, @@ or equity postings." 
-          ]
-          else []
+          errs
+          -- silence hints for now
+          -- ++
+          -- if ismulticommodity
+          -- then
+          -- [ "Consider adjusting this entry's amounts, adding missing postings,"
+          -- , "or recording conversion price(s) with @, @@ or equity postings." 
+          -- ]
+          -- else []
 
 transactionCommodities :: Transaction -> S.Set CommoditySymbol
 transactionCommodities t = mconcat $ map (maCommodities . pamount) $ tpostings t
