@@ -24,7 +24,7 @@ Note: "cost" means @/@@ (AKA transacted cost); "cost basis" means {} (acquisitio
 | Lot posting types                                           | Cost basis + amount sign + account type + lotful status + counterpostings | journalClassifyLotPostings               |
 | Cost from cost basis                                        | Costless acquire postings with a cost basis               | journalInferPostingsTransactedCost       |
 | Transaction-balancing amounts                               | Counterpostings (or their costs)                          | journalBalanceTransactions               |
-| Transaction-balancing costs                                 | Costless two-commodity transactions                       | transactionInferBalancingCosts           |
+| Transaction-balancing costs (on lotful or first posting)    | Costless two-commodity transactions                       | transactionInferBalancingCosts           |
 | Balance assignment amounts                                  | Running account balances vs asserted balances             | journalBalanceTransactions               |
 | Canonical commodity styles                                  | All posting amounts now present after balancing           | journalInferCommodityStyles              |
 | Posting tags inherited from commodities                     | Commodity declarations                                    | journalPostingsAddCommodityTags          |
@@ -124,6 +124,13 @@ An arrow A → B means "A must run before B".
   Classification identifies positive lotful postings as acquire even without cost basis
   annotation, symmetrically with bare dispose detection. Cost basis is inferred from
   transacted cost (explicit or balancer-inferred) at lot calculation time.
+
+- **Balancer-inferred costs prefer the lotful posting.**
+  When `transactionInferBalancingCosts` infers a cost for a two-commodity transaction,
+  it attaches the cost to the posting whose commodity is in `lotful_commodities_`
+  (from `BalancingOpts`), if exactly one of the two is lotful. Otherwise it uses
+  the first commodity in posting order. This ensures bare lotful postings get
+  a transacted cost for lot calculation regardless of posting order.
 
 - **Classification before balancing resolves the poriginal conflict.**
   Since `_ptype` tags are added before the balancer sets `poriginal`, the tags are

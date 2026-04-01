@@ -1704,9 +1704,11 @@ or even:
 ```
 
 This last form works for transactions involving exactly two commodities, with neither cost notation nor equity postings.
-Note, the order of postings is significant: the cost will be attached to the first (top) posting.
-So we had to switch the order of postings, to get the same meaning as above.
-Also, this form is the easiest to make undetected errors with; so it is rejected by `hledger check balanced`, and by strict mode.
+If one of the postings is recognised as a [lot posting](#lot-reporting), the cost will be attached to that one.
+Otherwise the cost will be attached to the first (top) posting - so it can be important to but the right one first.
+Here we had to switch the order of postings, to get the same meaning as above.
+
+This form is the easiest to make undetected errors with; so it is rejected by `hledger check balanced`, and by strict mode.
 
 Advantages of cost notation:
 
@@ -6490,7 +6492,8 @@ Downsides:
 It will infer costs only in transactions with:
 
 - Two non-equity postings, in different commodities.
-  Their order is significant: the cost will be added to the first of them.
+  If one of them is [lotful](#lot-reporting), the cost will be added to that one;
+  otherwise it will be added to the first (top) one.
 
 - Two postings to equity conversion accounts, next to one another, which balance the two non-equity postings.
   This balancing is checked to the same precision (number of decimal places) used in the conversion posting's amount.

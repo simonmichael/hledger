@@ -298,3 +298,30 @@ $ hledger -f- print --lots
 >2 /conflicting cost basis cost/
 >=1
 
+# ** 22. Inferred transacted cost is attached to the lotful posting (commodity lots: tag).
+<
+commodity AAPL  ; lots:
+
+2026-01-15 buy
+    assets:cash    $-600
+    assets:broker    10 AAPL
+
+$ hledger -f- print -x
+2026-01-15 buy
+    assets:cash                $-600
+    assets:broker    10 AAPL @@ $600
+
+>=
+
+# ** 23. Inferred transacted cost is attached to the lot posting (cost basis annotation, no lots: tag).
+<
+2026-01-15 buy
+    assets:cash    $-500
+    assets:broker    10 AAPL {$50}
+
+$ hledger -f- print -x
+2026-01-15 buy
+    assets:cash                    $-500
+    assets:broker    10 AAPL {$50} @ $50
+
+>=

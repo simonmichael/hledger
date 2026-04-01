@@ -385,10 +385,20 @@ costInferrerFor atypes t pt = maybe id infercost inferFromAndTo
 
     -- We can infer prices if there are no prices given, exactly two commodities in the normalised
     -- sum of postings in this transaction, and these two have opposite signs. The amount we are
-    -- converting from is the first commodity to appear in the ordered list of postings, and the
-    -- commodity we are converting to is the other. If we cannot infer prices, return Nothing.
+    -- converting from is normally the first commodity to appear in the ordered list of postings;
+    -- but if exactly one of the two commodities has been classified as a lot posting (has a _ptype
+    -- tag from journalClassifyLotPostings), prefer that one, so the inferred cost is attached to
+    -- the posting that needs it for lot tracking. If we cannot infer prices, return Nothing.
+    hasLotPosting comm = any (\p ->
+        any ((== comm) . acommodity) (amountsRaw $ pamount p)
+        && any (\(k,v) -> k == "_ptype" && v /= "gain") (ptags p)
+      ) postings
     inferFromAndTo = case sumamounts of
-      [a,b] | noprices, oppositesigns -> asum $ map orderIfMatches pcommodities
+      [a,b] | noprices, oppositesigns ->
+        case (hasLotPosting (acommodity a), hasLotPosting (acommodity b)) of
+          (True, False) -> Just (a, b)
+          (False, True) -> Just (b, a)
+          _             -> asum $ map orderIfMatches pcommodities
         where
           noprices      = all (isNothing . acost) sumamounts
           oppositesigns = signum (aquantity a) /= signum (aquantity b)

@@ -175,6 +175,11 @@ which have a transacted cost but no explicit cost basis annotation,
 or an empty cost basis annotation (`{}`),
 we infer a cost basis from the transacted cost.
 
+The transacted cost may itself be inferred by the balancer for two-commodity
+transactions. When one of the two commodities is lotful, the balancer prefers
+to attach the inferred cost to that posting (regardless of posting order),
+so that cost basis inference can proceed.
+
 ## Inferring cost basis from lot subaccount names
 
 When a posting's account name contains a lot subaccount (a final component starting with `{`),
