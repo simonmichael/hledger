@@ -1,0 +1,12 @@
+# * Transaction balancing
+
+# ** 1. Gain-type postings are excluded from transaction balancing.
+<
+account revenue:gains  ; type:G
+
+2026-01-01 test
+    assets        $100
+    expenses     -$100
+    revenue:gains -$50
+
+$ hledger -f- check balanced
