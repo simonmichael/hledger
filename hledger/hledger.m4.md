@@ -1968,6 +1968,15 @@ If you hit this problem, it's easy to fix:
   2. or make non-cost amounts less precise (remove unnecessary decimal digits that are raising the precision)
   3. or add a posting to absorb the imbalance (eg "expenses:rounding". Remember that one posting may [omit the amount](#postings); that's convenient here.)
 
+### Gain postings
+
+The `Gain` [account type](#account-types) has a special behaviour:
+postings to Gain-type accounts are ignored by transaction balancing.
+
+This is useful in hledger 2, as part of its automated lots/gains tracking.
+Gain postings are usually not used in hledger 1; but they are supported for better compatibility with hledger 2.
+This makes it easier to keep a journal compatible with both hledger versions.
+
 ## Tags
 
 <!-- Note: same section name as Commands > tags; that one will have anchor #tags-1. If reordering these, update all #tags[-1] links. -->
@@ -2311,6 +2320,7 @@ hledger also uses a few subtypes:
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
 As a convenience, hledger will detect most of these types automatically from english account names.
+(All except Gain. For more about Gain, see [Gain postings](#gain-postings).)
 But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
 The tag's value can be any of the types or one-letter abbreviations above.
 
@@ -2329,7 +2339,7 @@ account assets:cash        ; type: C
 
 account equity:conversion  ; type: V
 
-account revenues:capital   ; type: G
+account revenues:gains     ; type: G
 ```
 
 This enables the easy [balancesheet], [balancesheetequity], [cashflow] and [incomestatement] reports, and querying by [type:](#queries).

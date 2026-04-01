@@ -404,7 +404,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
        -- >>= \j -> deepseq (concatMap (T.unpack.showTransaction).jtxns $ j) (return j)
       <&> dbg9With (lbl "amounts after styling, forecasting, auto-posting".showJournalPostingAmountsDebug)
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)  -- check ordereddates before assertions. The outer parentheses are needed.
-      >>= journalBalanceTransactions balancingopts_{ignore_assertions_=not checkassertions}  -- infer balance assignments and missing amounts, and maybe check balance assertions.
+      >>= (\j -> journalBalanceTransactions balancingopts_{ignore_assertions_=not checkassertions, account_types_ = jaccounttypes j} j)  -- infer balance assignments and missing amounts, and maybe check balance assertions.
       <&> dbg9With (lbl "amounts after transaction-balancing".showJournalPostingAmountsDebug)
       -- <&> dbg9With (("journalFinalise amounts after styling, forecasting, auto postings, transaction balancing"<>).showJournalPostingAmountsDebug)
       >>= journalInferCommodityStyles                    -- infer commodity styles once more now that all posting amounts are present

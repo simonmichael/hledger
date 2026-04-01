@@ -158,15 +158,3 @@ account gains    ; type:G
 $ hledger -f- accounts type:r
 revenue
 gains
-
-# ** 18. type:g matches auto-detected gain accounts
-<
-2022-02-02 Test
-  (income:gains)           1
-  (revenue:capital-gains)  1
-  (income:losses)          1
-
-$ hledger -f- accounts type:g
-income:gains
-income:losses
-revenue:capital-gains
