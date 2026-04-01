@@ -146,7 +146,7 @@ accountTransactionsReport rspec@ReportSpec{_rsReportOpts=ropts} j thisacctq = it
       | balanceaccum_ ropts == Historical = sumPostings priorps
       | otherwise                         = nullmixedamt
       where
-        priorps = dbg5 "priorps" . journalPostings $ filterJournalPostings priorq acctJournal
+        priorps = dbg5 "priorps" . filter hasAmount . journalPostings $ filterJournalPostings priorq acctJournal
         priorq = dbg5 "priorq" $ And [thisacctq, tostartdateq, datelessreportq]
         tostartdateq =
           case mstartdate of

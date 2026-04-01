@@ -183,6 +183,7 @@ makeReportQuery rspec reportspan
 getPostings :: ReportSpec -> Journal -> PriceOracle -> DateSpan -> [Posting]
 getPostings rspec@ReportSpec{_rsQuery=query, _rsReportOpts=ropts} j priceoracle reportspan =
     setPostingsCount
+    . filter hasAmount  -- omit postings with no definite amount
     . journalPostings
     $ journalValueAndFilterPostingsWith rspec' j priceoracle
   where

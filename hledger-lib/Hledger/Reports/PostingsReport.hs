@@ -156,9 +156,10 @@ matchedPostingsBeforeAndDuring rspec@ReportSpec{_rsReportOpts=ropts,_rsQuery=q} 
     dbg5 "beforeps, duringps" $ span (beforestartq `matchesPosting`) beforeandduringps
   where
     beforestartq = dbg3 "beforestartq" $ dateqtype $ DateSpan Nothing (Exact <$> spanStart reportspan)
-    beforeandduringps = 
+    beforeandduringps =
         sortOn (postingDateOrDate2 (whichDate ropts))            -- sort postings by date or date2
       . (if invert_ ropts then map postingNegateMainAmount else id)  -- with --invert, invert amounts
+      . filter hasAmount                                         -- omit postings with no definite amount
       . journalPostings
       -- With most calls we will not require transaction prices past this point, and can get a big
       -- speed improvement by stripping them early. In some cases, such as in hledger-ui, we still

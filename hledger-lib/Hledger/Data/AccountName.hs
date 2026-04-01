@@ -112,7 +112,6 @@ accountNameInferType a
   | regexMatchText liabilityAccountRegex  a = Just Liability
   | regexMatchText conversionAccountRegex a = Just Conversion
   | regexMatchText equityAccountRegex     a = Just Equity
-  | regexMatchText gainAccountRegex       a = Just Gain
   | regexMatchText revenueAccountRegex    a = Just Revenue
   | regexMatchText expenseAccountRegex    a = Just Expense
   | otherwise                               = Nothing
@@ -450,13 +449,14 @@ tests_AccountName = testGroup "AccountName" [
     accountNameInferType "revenues"          @?= Just Revenue
     accountNameInferType "revenue"           @?= Just Revenue
     accountNameInferType "income"            @?= Just Revenue
-    accountNameInferType "income:gains"          @?= Just Gain
-    accountNameInferType "revenue:gain"          @?= Just Gain
-    accountNameInferType "revenues:capital-gains" @?= Just Gain
-    accountNameInferType "income:capitalgain"    @?= Just Gain
-    accountNameInferType "income:losses"         @?= Just Gain
-    accountNameInferType "revenue:capital-loss"  @?= Just Gain
-    accountNameInferType "income:gains:realized" @?= Just Gain
+    -- Gain type is no longer inferred from names; these are now Revenue
+    accountNameInferType "income:gains"          @?= Just Revenue
+    accountNameInferType "revenue:gain"          @?= Just Revenue
+    accountNameInferType "revenues:capital-gains" @?= Just Revenue
+    accountNameInferType "income:capitalgain"    @?= Just Revenue
+    accountNameInferType "income:losses"         @?= Just Revenue
+    accountNameInferType "revenue:capital-loss"  @?= Just Revenue
+    accountNameInferType "income:gains:realized" @?= Just Revenue
   ,testCase "joinAccountNames" $ do
     joinAccountNames "assets" "cash"     @?= "assets:cash"
     joinAccountNames "assets:cash" "a"   @?= "assets:cash:a"
