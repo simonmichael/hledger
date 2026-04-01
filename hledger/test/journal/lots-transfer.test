@@ -98,6 +98,8 @@ $ hledger -f- print --verbose-tags
 
 # ** 6. Transfer then dispose from new account.
 <
+account revenue:gains  ; type:G
+
 2026-01-15 buy
     assets:broker1    10 AAPL {$50}
     assets:checking
@@ -401,6 +403,7 @@ $ hledger -f- bal assets:x2 --lots -N
 # ** 20. Transfer+fee: subsequent disposal from destination works.
 <
 commodity A  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-15 buy
     assets:x1    2 A {$100}
@@ -423,6 +426,7 @@ $ hledger -f- bal assets:x1 assets:x2 --lots -N
 # The lot quantities should be summed, not overwritten.
 <
 commodity A  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-15 buy
     assets:x1    3 A {$100}

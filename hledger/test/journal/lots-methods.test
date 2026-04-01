@@ -7,6 +7,7 @@
 # ** 1. LIFO disposal via commodity tag: newest lot consumed first.
 <
 commodity AAPL  ; lots: LIFO
+account revenue:gains  ; type:G
 
 2026-01-15 buy lot 1
     assets:stocks    10 AAPL {$50}
@@ -66,6 +67,7 @@ $ hledger -f- bal assets:stocks --lots -N
 # ** 4. Bare lots: tag (no value) defaults to FIFO: oldest lot consumed first.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-15 buy lot 1
     assets:stocks    10 AAPL {$50}
@@ -192,6 +194,7 @@ $ hledger -f- bal assets:broker --lots -N
 # ** 10. HIFO disposal: highest cost lot consumed first.
 <
 commodity AAPL  ; lots: HIFO
+account revenue:gains  ; type:G
 
 2026-01-15 buy lot 1 (cheap)
     assets:stocks    10 AAPL {$40}
@@ -218,6 +221,7 @@ $ hledger -f- bal assets:stocks --lots -N
 # broker2's expensive lot is untouched because HIFO is scoped to broker1.
 <
 commodity AAPL  ; lots: HIFO
+account revenue:gains  ; type:G
 
 2026-01-15 buy in broker1 (cheap)
     assets:broker1   10 AAPL {$40}
@@ -247,6 +251,7 @@ $ hledger -f- bal assets:broker --lots -N
 # With FIFO (non-average), the gain would be 5 * ($55 - $40) = $75.
 <
 commodity AAPL  ; lots: AVERAGE
+account revenue:gains  ; type:G
 
 2026-01-15 buy lot 1
     assets:stocks    10 AAPL {$40}
@@ -270,6 +275,7 @@ $ hledger -f- bal assets:stocks --lots -N
 # broker2's $80 lots are excluded from the average since AVERAGE scopes per-account.
 <
 commodity AAPL  ; lots: AVERAGE
+account revenue:gains  ; type:G
 
 2026-01-15 buy in broker1 (cheap)
     assets:broker1   10 AAPL {$40}
@@ -298,6 +304,7 @@ $ hledger -f- bal assets:broker --lots -N
 # Gain = 3 * ($55 - $50) = $15.
 <
 commodity AAPL  ; lots: AVERAGE
+account revenue:gains  ; type:G
 
 2026-01-15 buy lot 1
     assets:stocks    10 AAPL {$30}
@@ -321,6 +328,7 @@ $ hledger -f- bal assets:stocks --lots -N
 # ** 15. FIFOALL: dispose from account with globally-oldest lot passes.
 <
 commodity AAPL  ; lots: FIFOALL
+account revenue:gains  ; type:G
 
 2026-01-15 buy in broker1 (oldest globally)
     assets:broker1   10 AAPL {$50}
@@ -342,6 +350,7 @@ $ hledger -f- bal assets:broker --lots -N
 # ** 16. FIFOALL: dispose from account but another account has an older lot: error.
 <
 commodity AAPL  ; lots: FIFOALL
+account revenue:gains  ; type:G
 
 2026-01-15 buy in broker1 (oldest globally)
     assets:broker1   10 AAPL {$50}
@@ -363,6 +372,7 @@ $ hledger -f- bal assets:broker --lots -N
 # ** 17. LIFOALL: dispose from account but another account has a newer lot: error.
 <
 commodity AAPL  ; lots: LIFOALL
+account revenue:gains  ; type:G
 
 2026-01-15 buy in broker1
     assets:broker1   10 AAPL {$50}
@@ -384,6 +394,7 @@ $ hledger -f- bal assets:broker --lots -N
 # ** 18. HIFOALL: dispose from account but another account has a higher-cost lot: error.
 <
 commodity AAPL  ; lots: HIFOALL
+account revenue:gains  ; type:G
 
 2026-01-15 buy in broker1 (cheap)
     assets:broker1   10 AAPL {$40}
@@ -408,6 +419,7 @@ $ hledger -f- bal assets:broker --lots -N
 # Gain = 5 * ($65 - $60) = $25. (With per-account AVERAGE, gain would be 5 * ($65 - $40) = $125.)
 <
 commodity AAPL  ; lots: AVERAGEALL
+account revenue:gains  ; type:G
 
 2026-01-15 buy in broker1 (cheap)
     assets:broker1   10 AAPL {$40}

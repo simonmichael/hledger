@@ -2006,6 +2006,15 @@ If you hit this problem, it's easy to fix:
   2. or make non-cost amounts less precise (remove unnecessary decimal digits that are raising the precision)
   3. or add a posting to absorb the imbalance (eg "expenses:rounding". Remember that one posting may [omit the amount](#postings); that's convenient here.)
 
+### Transaction balancing and Gain postings
+
+The `Gain` [account type](#account-types) has a special behaviour:
+postings to Gain-type accounts are ignored by transaction balancing.
+
+This is useful in hledger 2, as part of automated lots/gains tracking.
+Gain postings are also supported in hledger 1, for compatibility;
+this makes it easier to keep a journal compatible with both hledger versions.
+
 ## Tags
 
 <!-- Note: same section name as Commands > tags; that one will have anchor #tags-1. If reordering these, update all #tags[-1] links. -->
@@ -2351,6 +2360,7 @@ hledger also uses a few subtypes:
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
 As a convenience, hledger will detect most of these types automatically from english account names.
+(All except Gain. For more about Gain, see [Gain postings](#gain-postings).)
 But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
 The tag's value can be any of the types or one-letter abbreviations above.
 
@@ -7127,27 +7137,29 @@ could potentially change the meaning of balance assertions, breaking them. To av
 the balance assertion to a new zero-amount posting to the parent account (and make sure it's subaccount-inclusive).
 (So eg `hledger -f- print --lots -x | hledger -f- check assertions` will still pass.)
 
-## Gain postings and disposal balancing
+## Gain postings
 
-A **gain posting** is a posting to a [Gain-type account](#account-types) (type `G`, a subtype of Revenue). 
-In disposal transactions, it records the capital gain or loss,
-which is the difference between cost basis and selling price of the lots being sold.
+A **Gain posting** is a posting to an account declared with the [Gain account type](#account-types).
+Gain postings are used in disposal transactions, to record the capital gain or loss, 
+caused by the difference between cost basis and selling price of the lots being sold.
+Gain postings are special: they are ignored by normal transaction balancing, and are checked/inferred only in lots mode.
 
-Accounts named like `revenue:gains` or `income:capital-gains` are detected as Gain accounts automatically,
-or you can declare one explicitly:
+When recording a disposal transaction, you can:
+
+- write the Gain posting with an explicit gain/loss amount - it will be checked
+- or write the Gain posting with no amount - it will be calculated
+- or omit the Gain posting entirely - it will be added (using the first account with Gain type).
+
+Gain accounts must be declared explicitly; they are not inferred from the account name.
+This helps keep hledger 2's lots mode self-contained, and transaction balancing stable,
+so that the same journals can be compatible with hledger 1, hledger 2, and hledger 2 in lots mode.
+
+So if you're using hledger 2's lots mode, you'll need to declare at least one account as `type: G`. Eg:
 
 ```journal
-account gain/loss  ; type: G
+account revenue:gains  ; type: G
 ```
 
-Gain postings have special treatment:
-
-- **Normal transaction balancing** ignores gain postings (they don't count toward the balance check), and balances the transaction using transacted price
-- **Disposal balancing** (with `--lots`) includes gain postings, and balances the transaction using cost basis
-
-An amountless gain posting in a disposal transaction will have its amount filled in.
-Or if a disposal transaction is unbalanced at cost basis and has no gain posting,
-one is inferred automatically (posting to the first Gain account, or `revenue:gains` if none is declared).
 
 ## Lot reporting example
 

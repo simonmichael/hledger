@@ -6,6 +6,8 @@
 
 # *** 1. dispose: {$50} @ $55, non-lotful commodity/account, non-asset. We'll let cost basis force a disposal, even from an unknown account type.
 <
+account revenue:gains  ; type:G
+
 2026-01-01 buy
     equity:opening    10 AAPL {$50}
     assets:cash      -$500
@@ -25,6 +27,8 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 
 # *** 2. dispose: {$50} @ $55, non-lotful commodity/account, asset. Disposal detected.
 <
+account revenue:gains  ; type:G
+
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
     assets:cash     -$500
@@ -47,6 +51,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 # *** 3. dispose: implicit selling price. FIFO lot selected, disposal detected.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -68,6 +73,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 # *** 4. dispose: @ $55. FIFO lot selected, disposal detected.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -89,6 +95,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 # *** 5. dispose: {$50}, implicit selling price, explicit lot selector. Disposal detected.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -110,6 +117,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 # *** 6. dispose: {} @ $55. Disposal detected.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -154,6 +162,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 # *** 8. dispose: {$50} @@ $275. Disposal detected.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -196,6 +205,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 # *** 10. dispose: wrong gain amount. Disposal balancing rejects this.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:broker    10 AAPL {$50}
@@ -234,6 +244,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 # *** 12. dispose: missing gain posting, no Gain account declared → defaults to revenue:gains.
 <
 commodity AAPL  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:broker    10 AAPL {$50}

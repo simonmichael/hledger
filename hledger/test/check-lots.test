@@ -10,6 +10,8 @@ $ hledger -f - check lots
 
 # ** 2. succeeds with valid buy and sell
 <
+account revenues:gains  ; type:G
+
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
     assets:checking
@@ -35,6 +37,8 @@ $ hledger -f - check lots
 
 # ** 4. check lots fails when selling more lots than available (strict mode)
 <
+account revenues:gains  ; type:G
+
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
     assets:checking
@@ -50,6 +54,8 @@ $ hledger -f - check lots
 
 # ** 5. check lots fails on disposal balance error
 <
+account revenues:gains  ; type:G
+
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
     assets:checking
