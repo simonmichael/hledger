@@ -128,20 +128,23 @@ import Control.Monad.State.Strict (StateT)
 import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.List ((\\), find, sortBy, union, intercalate)
+import Data.Function ((&))
+import Data.List (find, intercalate, sortBy, union, (\\))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
 import Data.List.Extra (nubSort)
 import Data.Map.Strict qualified as M
 import Data.Maybe (catMaybes, fromMaybe, mapMaybe, maybeToList)
+import Data.Ord (comparing)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
-import Safe (headMay, headDef, maximumMay, minimumMay, lastDef)
-import Data.Time.Calendar (Day, addDays, fromGregorian, diffDays)
+import Data.Time.Calendar (Day, addDays, diffDays, fromGregorian)
 import Data.Time.Clock.POSIX (POSIXTime)
-import Data.Tree (Tree(..), flatten)
+import Data.Tree (Tree (..), flatten)
+import Safe (headMay, headDef, maximumMay, minimumMay)
+import System.FilePath (takeFileName)
 import Text.Printf (printf)
 import Text.Megaparsec (ParsecT)
 
@@ -154,12 +157,6 @@ import Hledger.Data.Transaction
 import Hledger.Data.TransactionModifier
 import Hledger.Data.Valuation
 import Hledger.Query
-import System.FilePath (takeFileName)
-import Data.Ord (comparing)
-import Hledger.Data.Dates (nulldate)
-import Data.List (sort)
-import Data.Function ((&))
--- import Data.Function ((&))
 
 
 -- | A parser of text that runs in some monad, keeping a Journal as state.
@@ -530,36 +527,38 @@ journalInheritedAccountTags j a =
 
 type DateWeightedSimilarityScore = Double
 type SimilarityScore = Double
-type Age = Integer
+type TimeDistance = Integer
 
--- | Find up to N most similar and most recent transactions matching
+-- | Find up to N most similar and nearest-dated transactions matching
 -- the given transaction description and query and exceeding the given
 -- description similarity score (0 to 1, see compareDescriptions).
+-- The provided Day (today) is used as the reference date;
+-- transactions are penalised by their absolute distance from it in days
+-- (both past and future).
 -- Returns transactions along with
--- their age in days compared to the latest transaction date,
+-- their distance in days from today,
 -- their description similarity score,
--- and a heuristically date-weighted variant of this that favours more recent transactions.
-journalTransactionsSimilarTo :: Journal -> Text -> Query -> SimilarityScore -> Int
-  -> [(DateWeightedSimilarityScore, Age, SimilarityScore, Transaction)]
-journalTransactionsSimilarTo Journal{jtxns} desc q similaritythreshold n =
+-- and a heuristically date-weighted variant of this that favours nearby transactions.
+journalTransactionsSimilarTo :: Journal -> Day -> Text -> Query -> SimilarityScore -> Int
+  -> [(DateWeightedSimilarityScore, TimeDistance, SimilarityScore, Transaction)]
+journalTransactionsSimilarTo Journal{jtxns} today desc q similaritythreshold n =
   take n $
   dbg1With (
-    unlines . 
-    ("up to 30 transactions above description similarity threshold "<>show similaritythreshold<>" ordered by recency-weighted similarity:":) .
+    unlines .
+    ("up to 30 transactions above description similarity threshold "<>show similaritythreshold<>" ordered by proximity-weighted similarity:":) .
     take 30 .
-    map ( \(w,a,s,Transaction{..}) -> printf "weighted:%8.3f  age:%4d similarity:%5.3f  %s %s" w a s (show tdate) tdescription )) $
+    map ( \(w,d,s,Transaction{..}) -> printf "weighted:%8.3f  distance:%4d similarity:%5.3f  %s %s" w d s (show tdate) tdescription )) $
   sortBy (comparing (negate.first4)) $
-  map (\(s,t) -> (weightedScore (s,t), age t, s, t)) $
+  map (\(s,t) -> (weightedScore (s,t), timedistance t, s, t)) $
   filter ((> similaritythreshold).fst)
   [(compareDescriptions desc $ tdescription t, t) | t <- jtxns, q `matchesTransaction` t]
   where
-    latest = lastDef nulldate $ sort $ map tdate jtxns
-    age = diffDays latest . tdate
-    -- Combine similarity and recency heuristically. This gave decent results
+    timedistance t = abs $ diffDays today (tdate t)
+    -- Combine similarity and time distance heuristically. This gave decent results
     -- in my "find most recent invoice" use case in 2023-03,
     -- but will probably need more attention.
     weightedScore :: (Double, Transaction) -> Double
-    weightedScore (s, t) = 100 * s - fromIntegral (age t) / 4
+    weightedScore (s, t) = 100 * s - fromIntegral (timedistance t) / 4
 
 -- | Return a similarity score from 0 to 1.5 for two transaction descriptions. 
 -- This is based on compareStrings, with the following modifications:
