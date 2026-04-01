@@ -55,8 +55,11 @@ Here are our current policies for AI use in hledger.
 
 - The human committer is responsible for everything in their commits.
 
+- PRs require human review; if they are hard to review, they don't get merged, as always.
+
 - We want to use only the more principled/trustworthy/sustainable tools and providers.
-  So we try to use only Anthropic, Ecosia, local LLMs, and such.
+  Currently this means we try to use only Anthropic, Ecosia, local LLMs, and such.
+  We'll review/update the list periodically.
 
 - We try to keep track of, optimise, and limit our AI resource usage (measured by tokens in & out, eg).
 
