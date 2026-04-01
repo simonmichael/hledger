@@ -21,7 +21,7 @@ enter `.` or press control-d or control-c to exit.
 Features:
 
 - add tries to provide useful defaults, using the most similar (by description)
-  recent transaction (filtered by the query, if any) as a template.
+  and nearest-dated transaction (filtered by the query, if any) as a template.
 - You can also set the initial defaults with command line arguments.
 - [Readline-style edit keys](http://tiswww.case.edu/php/chet/readline/rluserman.html#SEC3)
   can be used during data entry.

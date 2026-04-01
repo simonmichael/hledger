@@ -270,12 +270,14 @@ backupNumber f g = case g =~ ("^" ++ f ++ "\\.([0-9]+)$") of
                         (_::FilePath, _::FilePath, _::FilePath, [ext::FilePath]) -> readMay ext
                         _ -> Nothing
 
--- Identify the closest recent match for this description in past transactions.
+-- Identify the closest match for this description in past/future transactions,
+-- considering both similarity and proximity to today's date.
 -- If the options specify a query, only matched transactions are considered.
 journalSimilarTransaction :: CliOpts -> Journal -> T.Text -> Maybe Transaction
 journalSimilarTransaction cliopts j desc =
-  fmap fourth4 $ headMay $ journalTransactionsSimilarTo j desc q 0 1
+  fmap fourth4 $ headMay $ journalTransactionsSimilarTo j today desc q 0 1
   where
+    today = cliopts ^. rsDay
     q = queryFromFlags $ _rsReportOpts $ reportspec_ cliopts
 
 -- | Render a 'PostingsReport' or 'AccountTransactionsReport' as Text,
