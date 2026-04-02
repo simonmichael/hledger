@@ -746,11 +746,14 @@ lessIsWorking mCustomEnv = do
 --
 lessVarValue :: Maybe String -> Maybe String -> Bool -> String
 lessVarValue mHLEDGER_LESS mLESS usecolor =
-  let extralessopts = unwords $ [lessOptions] <> [lessColourOptions | usecolor]
+  let extraopts = words lessOptions <> [lessColourOptions | usecolor]
   in case (mHLEDGER_LESS, mLESS) of
        (Just hledgerlessvar, _) -> hledgerlessvar
-       (_, Just lessvar) -> if extralessopts `isInfixOf` lessvar then lessvar else unwords [lessvar, extralessopts]
-       _ -> extralessopts
+       (_, Just lessvar) ->
+         let existing = words lessvar
+             new = filter (`notElem` existing) extraopts
+         in if null new then lessvar else unwords (lessvar : new)
+       _ -> unwords extraopts
 
 -- keep synced: hledger.m4.md > Paging
 -- | hledger's preferred less options, which it will append to the user's LESS environment variable.
