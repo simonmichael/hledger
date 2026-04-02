@@ -10,12 +10,12 @@ You can help by finding them, or fixing them!
 
 ## Regression finder bounty
 
-We offer a $50 bounty for newly reported regression bugs (arising any time in the past, still affecting latest master).
+We offer a $50 bounty for newly reported regression bugs (arising any time in the past, still affecting latest main).
 ([original announcement](https://github.com/simonmichael/hledger/issues/1570))
 
 ## Regression fixer bounty
 
-We offer a separate $50 bounty for regression bug fixes landed in master.
+We offer a separate $50 bounty for regression bug fixes landed in main.
 (If you caused the regression, there's no bounty, though we do appreciate you reporting or fixing it.)
 
 ## Is there a time limit ?

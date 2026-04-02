@@ -463,9 +463,9 @@ src/hledger/
 
 These help configure the website.
 
-- [book.toml](https://github.com/simonmichael/hledger_site/blob/master/book.toml) is the main config file for mdbook.
+- [book.toml](https://github.com/simonmichael/hledger_site/blob/main/book.toml) is the main config file for mdbook.
 
-- [src/SUMMARY.md](https://github.com/simonmichael/hledger_site/blob/master/src/SUMMARY.md)
+- [src/SUMMARY.md](https://github.com/simonmichael/hledger_site/blob/main/src/SUMMARY.md)
   defines the site's pages and which ones appear in the sidebar
   (except for old manual versions; those are rendered separately).
 

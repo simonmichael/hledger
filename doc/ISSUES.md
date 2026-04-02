@@ -338,7 +338,7 @@ ghc -ignore-dot-ghci -package-env - -e 'import Data.List; import Text.Printf' -e
 
 Some ideas in 2024-01:
 
-- Maintain ratio of user-visible bugfixes to new features, eg above 10:1 (a new master merge test, human checked)
+- Maintain ratio of user-visible bugfixes to new features, eg above 10:1 (a new main merge test, human checked)
 - A release cycle with no new features
 - Alternate bugfix and feature release cycles
 - Set bug count targets

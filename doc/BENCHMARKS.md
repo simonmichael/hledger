@@ -2,12 +2,12 @@
 
 Benchmarks are standard performance measurements,
 which we define using `bench` declarations in cabal files.
-There is [one in hledger.cabal](https://github.com/simonmichael/hledger/blob/master/hledger/hledger.cabal#L228),
-with related code and data files in [hledger/bench/](https://github.com/simonmichael/hledger/tree/master/hledger/bench).
+There is [one in hledger.cabal](https://github.com/simonmichael/hledger/blob/main/hledger/hledger.cabal#L228),
+with related code and data files in [hledger/bench/](https://github.com/simonmichael/hledger/tree/main/hledger/bench).
 
 To run the standard hledger benchmark, use `stack bench hledger`.
 This installs haskell dependencies (but not system dependencies) and rebuilds as needed,
-then runs [hledger/bench/bench.hs](https://github.com/simonmichael/hledger/blob/master/hledger/bench/bench.hs),
+then runs [hledger/bench/bench.hs](https://github.com/simonmichael/hledger/blob/main/hledger/bench/bench.hs),
 which by default shows quick elapsed-time measurements for several operations on a standard data file:
 
 ```cli
@@ -71,7 +71,7 @@ std dev              11.08 ms   (2.646 ms .. 14.82 ms)
 variance introduced by outliers: 16% (moderately inflated)
 ```
 
-`--simplebench` shows a table of elapsed-time measurements for the commands defined in [bench/default.bench](https://github.com/simonmichael/hledger/blob/master/hledger/bench/default.bench).
+`--simplebench` shows a table of elapsed-time measurements for the commands defined in [bench/default.bench](https://github.com/simonmichael/hledger/blob/main/hledger/bench/default.bench).
 It can also show the results for multiple h/ledger executables side by side, if you tweak the bench.hs code.
 Unlike the other modes, it does not link with the hledger code directly, but runs the "hledger" executable found in $PATH (so ensure that's the one you intend to test).
 
@@ -97,7 +97,7 @@ Summary (best iteration):
 +-----------------------------------------++---------+
 ```
 
-bench's --simplebench mode is based on a standalone tool, [tools/simplebench.hs](https://github.com/simonmichael/hledger/blob/master/tools/simplebench.hs).
+bench's --simplebench mode is based on a standalone tool, [tools/simplebench.hs](https://github.com/simonmichael/hledger/blob/main/tools/simplebench.hs).
 simplebench.hs is a generic benchmarker of one or more executables (specified on the command line) against one or more sets of command-line arguments (specified in a file).
 It has a better command-line interface than bench.hs, so you may find it more convenient
 for comparing multiple hledger versions, or hledger and ledger. Eg:
@@ -146,7 +146,7 @@ Summary (best iteration):
 ```
 
 Finally, for quick, fine-grained performance measurements when troubleshooting or optimising, I use
-[dev.hs](https://github.com/simonmichael/hledger/blob/master/dev.hs).
+[dev.hs](https://github.com/simonmichael/hledger/blob/main/dev.hs).
 
 
 

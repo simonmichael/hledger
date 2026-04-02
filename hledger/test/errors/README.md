@@ -32,7 +32,7 @@ then open the data files to see how flycheck handles them.
 `C-c ! l` opens a pane for easy viewing.
 
 <!-- Use absolute urls here, this page can be viewed on github or hledger.org. -->
-[hledger/test/errors/]:  https://github.com/simonmichael/hledger/tree/master/hledger/test/errors
+[hledger/test/errors/]:  https://github.com/simonmichael/hledger/tree/main/hledger/test/errors
 [ERRORS]:                https://hledger.org/ERRORS.html
 [hledger check]:         https://hledger.org/hledger.html#check
 [flycheck-hledger-home]: https://github.com/DamienCassou/flycheck-hledger
@@ -49,7 +49,7 @@ Work is ongoing to make our error messages more consistent and more useful
 This is a big project, and your help is welcome; every bit of progress
 counts, and this is a fast way to help users.
 
-- [x] ~~phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger master)~~
+- [x] ~~phase 1: update flycheck to detect journal errors of current hledger release (and keep a branch updated to detect errors of latest hledger main)~~
 - [x] ~~phase 2: survey/document current journal errors & status~~
 - [x] ~~phase 3: pick a new standard format~~
 - [x] ~~phase 4: implement standard format for all~~

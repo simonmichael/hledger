@@ -572,7 +572,7 @@ or `.hledger.conf` in your home directory (`~/.hledger.conf`),
 or `hledger.conf` in your XDG config directory (`~/.config/hledger/hledger.conf`).
 
 Here is another example config you could start with:
-<https://github.com/simonmichael/hledger/blob/master/hledger.conf.sample>
+<https://github.com/simonmichael/hledger/blob/main/hledger.conf.sample>
 
 You can put not only options, but also arguments in a config file.
 If the first word in a config file's top (general) section does not begin with a dash
@@ -835,7 +835,7 @@ for Beancount, the top level account names must be `Assets`, `Liabilities`, `Equ
 
 A top level hledger account named `revenue` or `revenues` (case insensitive) will be converted to `Income` for Beancount.
 To adjust other top level account names, you should use `--alias` (see [Account aliases](#alias-directive),
-or this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/master/examples/hledger2beancount.conf) file).
+or this [hledger2beancount.conf](https://github.com/simonmichael/hledger/blob/main/examples/hledger2beancount.conf) file).
 <!-- (see also "hledger and Beancount" <https://hledger.org/beancount.html>). -->
 
 #### Beancount account names
@@ -925,10 +925,10 @@ This is not yet much used; feedback is welcome.
 
 Our JSON is rather large and verbose, since it is a faithful representation of hledger's internal data types. 
 To understand its structure, read the Haskell type definitions, which are mostly in
-<https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Types.hs>.
+<https://github.com/simonmichael/hledger/blob/main/hledger-lib/Hledger/Data/Types.hs>.
 [hledger-web's OpenAPI specification][openapi.yaml] may also be relevant.
 
-[openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
+[openapi.yaml]: https://github.com/simonmichael/hledger/blob/main/hledger-web/config/openapi.yaml
 
 hledger stores numbers with sometimes up to 255 significant digits.
 This is too many digits for most JSON consumers,
@@ -3444,7 +3444,7 @@ $ hledger print -f basic.csv
 
 There's an introductory [Tutorial: Import CSV data](/import-csv.html) on hledger.org,
 and more [CSV rules examples](#csv-rules-examples) below,
-and a larger collection at <https://github.com/simonmichael/hledger/tree/master/examples/csv>.
+and a larger collection at <https://github.com/simonmichael/hledger/tree/main/examples/csv>.
 
 ## CSV rules cheatsheet
 
@@ -3555,7 +3555,7 @@ source | simplefinjson >data/simplefin.json && simplefincsv data/simplefin.json 
 source | simplefincsv data/simplefin.json 'unify.*checking'
 ```
 
-(`paypal*` and `simplefin*` scripts are in [bin/](https://github.com/simonmichael/hledger/tree/master/bin#readme))
+(`paypal*` and `simplefin*` scripts are in [bin/](https://github.com/simonmichael/hledger/tree/main/bin#readme))
 
 Whenever hledger runs one of these commands, it will echo the command on stderr.
 If the command produces error output, but exits successfully, hledger will show the error output as a warning.
@@ -5082,7 +5082,7 @@ $ hledger -f t.timeclock print
 ```
 
 Here is a
-[sample.timeclock](https://raw.github.com/simonmichael/hledger/master/examples/sample.timeclock) to
+[sample.timeclock](https://raw.github.com/simonmichael/hledger/main/examples/sample.timeclock) to
 download and some queries to try:
 
 ```cli

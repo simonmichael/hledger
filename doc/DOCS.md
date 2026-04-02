@@ -24,7 +24,7 @@ Project documentation lives in a number of places:
 - short blurbs: cabal files, module headers, HCAR, GSOC project, ..
 - `doc/notes.org` has some old developer notes
 - developer reports (profiles, benchmarks, coverage..) in doc/profs, sometimes published at hledger.org/profs
-- https://github.com/simonmichael/hledger/tree/master/doc
+- https://github.com/simonmichael/hledger/tree/main/doc
 
 
 site/ is now a symlink to the separate hledger_site repo.
@@ -126,7 +126,7 @@ $ ./Shake manuals -c
 
 ### Update dev manuals on the website
 
-When updates to manuals' generated files land in the master branch of the hledger repo on github,
+When updates to manuals' generated files land in the main branch of the hledger repo on github,
 the dev manuals on hledger.org will update automatically.
 
 (The manuals on the website are rendered from `site/src/VERSION/*.md` in the hledger_site repo,
@@ -142,8 +142,8 @@ These are generated as follows:
 In the hledger repo, with the hledger_site repo symlinked as `./site`;\
 for each major release REL that needs updating:
 
-1. Cherry pick the manuals' content updates for REL (not generated files updates) from `master` to `REL-branch`
-2. In master, run `just site-manuals-snapshot REL` to update the release manuals in the site repo.
+1. Cherry pick the manuals' content updates for REL (not generated files updates) from `main` to `REL-branch`
+2. In main, run `just site-manuals-snapshot REL` to update the release manuals in the site repo.
 
 When these commits land in the hledger_site repo on github,
 the release manuals on hledger.org will update automatically.
@@ -172,10 +172,10 @@ $ stack build
 ### Update change logs
 
 Changelogs are in `**/CHANGES.md` (one in each package, and one at top level for the project).
-They should ideally be updated continually (at least weekly), in master, taking advantage of fresh memory and context.
+They should ideally be updated continually (at least weekly), in main, taking advantage of fresh memory and context.
 At release time they get some extra polish, and are propagated to the release branch.
 
-To update changelogs, in master or in a release branch:
+To update changelogs, in main or in a release branch:
 
 1. Add new draft change notes to all changelogs (based on commit messages since the release or commit id mentioned in their first heading):
    ```
@@ -187,13 +187,13 @@ To update changelogs, in master or in a release branch:
 
 Note once the release branch is created, extra care is needed to keep changelogs synced between branches, considering:
 - edits to existing change notes
-- new change notes, corresponding to code changes cherry picked from master or created in the release branch.
+- new change notes, corresponding to code changes cherry picked from main or created in the release branch.
 
 At such times it may be useful to follow this sequence:
 1. Add/sync code changes to the release branch.
 2. Update change logs in release branch, based on latest commits there.
-3. Cherry pick change log updates from the release branch to (that release's section in) the changelogs in master.
-4. Update change logs in master, to add any more unreleased commits at the top (assisted by manual cleanup).
+3. Cherry pick change log updates from the release branch to (that release's section in) the changelogs in main.
+4. Update change logs in main, to add any more unreleased commits at the top (assisted by manual cleanup).
 
 ### Finalise change logs for a release
 
@@ -233,8 +233,8 @@ In the release branch, once the corresponding github release is created, after u
 
 ### Update release notes on the website
 
-1. Cherry pick the latest release notes (`doc/relnotes.md`) from the release branch to master.
-2. Push to the master branch on github. The website's "Release notes" page will update automatically.
+1. Cherry pick the latest release notes (`doc/relnotes.md`) from the release branch to main.
+2. Push to the main branch on github. The website's "Release notes" page will update automatically.
 
 ### Diagrams
 

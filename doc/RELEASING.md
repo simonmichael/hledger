@@ -57,9 +57,9 @@ Release readiness and the release process go from the bottom of this diagram to 
 Short version, based on the checklist below.
 Last updated: 2025-12
 
-1. **finish fixes/features/docs in master**
+1. **finish fixes/features/docs in main**
 2. **begin draft builds:** `j ghbin oldest`
-3. **in release branch, update code:** `j relbranch VER`; minor: cherry-pick new changes from master
+3. **in release branch, update code:** `j relbranch VER`; minor: cherry-pick new changes from main
 4. **update manuals and website manuals:** `j manuals-site`
 5. **major: update website scripts/redirects:** update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
 6. **update changelogs:** `j changelogs`; edit; `j changelogs-finalise`
@@ -68,9 +68,9 @@ Last updated: 2025-12
 9. **update install docs:** edit `doc/ghrelnotes`, `doc/ghnightlynotes.md`, `site/src/install.md`
 10. **tag:** `j reltags`
 11. **make release builds:** `j ghbin`
-12. **in master, merge updates from release branch**
+12. **in main, merge updates from release branch**
 13. **release to hackage:** `j hackageupload`
-14. **push to github:** `j reltags-push VER`, VER-branch, master, site repo
+14. **push to github:** `j reltags-push VER`, VER-branch, main, site repo
 15. **release to github:** make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
 16. **major: activate website scripts/redirects:** `j site-restart`
 17. **announce to matrix, irc, mail list, mastodon, forum, pta.o**
@@ -152,13 +152,13 @@ Last updated: 2025-11
   - Install page (site/src/install.md) --version examples match release binaries
 
 - **4. published**
-  - relevant release branch work cherry-picked to master branch  
+  - relevant release branch work cherry-picked to main branch  
       changelogs,
       relnotes,
       announcements
   - all packages uploaded correctly to hackage  
       `just hackageupload`
-  - master branch pushed to github
+  - main branch pushed to github
   - new manuals published and rendering/redirecting correctly  
     - site repo pushed to github
     - main and site repos  auto-pulled to hledger.org, site rebuilt  
@@ -182,7 +182,7 @@ Last updated: 2025-11
       review,
       publish
   - github nightly release updated *(XXX nightly release deleted, needs reviving)*  
-      in master, update changes link in doc/ghnightlynotes.md
+      in main, update changes link in doc/ghnightlynotes.md
       `just nightlyrel-notes`  
   - install instructions tested and working
     - stack
@@ -198,7 +198,7 @@ Last updated: 2025-11
 
 - **5. cleanup and support**
   - review/polish/sync changelogs & relnotes
-  - new version, man dates, dev tag in master (major version only)  
+  - new version, man dates, dev tag in main (major version only)  
     `j devtag-push`
   - RELEASING.md checklist/notes updated
   - monitor/support/handle issues:
@@ -236,7 +236,7 @@ More procedure notes.
 ### Run CI tests
 - push to a PR, wait for green
 - or push to `ci` branch, wait for green at <https://ci.hledger.org>
-- or `just push` (pushes to `ci`, then to `master`)
+- or `just push` (pushes to `ci`, then to `main`)
 
 ### Run release branch tests
 - `just test`
@@ -289,7 +289,7 @@ In site repo:
 
 - Do all releases from a release branch.
 
-- Update dev changelogs frequently in master. Finalise changelogs in the release branch. Merge back to master after release.
+- Update dev changelogs frequently in main. Finalise changelogs in the release branch. Merge back to main after release.
   (Related older doc: [CHANGELOGS](CHANGELOGS.md))
 
 - All release binaries should be built from the release-tagged commit.
@@ -351,11 +351,11 @@ A local copy of a repository's files. Typically each developer has one or more o
 **branch**\
 Some VCS's, including Git, can store multiple branching lines of development within one repository. A working copy can be quickly switched to a different branch to show its content.
 
-**master, main**\
-The main branch in a repo, usually named `master` or `main`. Pull requests are usually relative to this.
+**main**\
+The main branch in a repo, usually named `main` or `master`. Pull requests are usually relative to this.
 
 **pull request, PR**\
-A request to merge a development branch with master, and any related discussion. On Github, these are kept alongside issues in the issue tracker.
+A request to merge a development branch with main, and any related discussion. On Github, these are kept alongside issues in the issue tracker.
 
 **continuous integration, CI**\
 Automated actions that run when new code is pushed to a shared repo, such as running tests or producing binaries. On Github this is called Github Actions and action scripts are called **workflows**.
@@ -411,7 +411,7 @@ A preview of the upcoming major release for testers/early adopters, and a test o
 Temporary downloadable binaries produced by a run of the `linux`/`mac`/`windows` workflows in the hledger repo. This may happen periodically, eg weekly. Downloading requires a Github login.
 
 **Dev build**\
-A local developer build of unreleased code. This is typically in `master` or a development/PR branch. Example version number: `1.25.99` (**"unreleased 1.26-dev"**)
+A local developer build of unreleased code. This is typically in `main` or a development/PR branch. Example version number: `1.25.99` (**"unreleased 1.26-dev"**)
 
 ### Repos and branches
 
@@ -424,8 +424,8 @@ The `hledger_website` git repository, containing most of the hledger website whi
 **finance repo**\
 The `hledger_finance` git repository, containing the hledger project's financial ledger. Usually checked out under the hledger repo as `finance/`. <https://github.com/simonmichael/hledger_finance>
 
-**master**\
-The branch named `master` in the hledger repo; the main line of hledger development. Pull requests are usually relative to this.
+**main**\
+The branch named `main` in the hledger repo; the main line of hledger development. Pull requests are usually relative to this.
 
 **release&nbsp;branch**\
 Branches named `MA.JOR-branch` in the hledger repo, eg `1.25-branch`. Releases and release previews are always made from a release branch.

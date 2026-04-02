@@ -1,7 +1,7 @@
 # MOCKUPS
 
 Old mockups, draft docs and notes exploring possible future features.
-See also <https://github.com/simonmichael/hledger/tree/master/doc/mockups>
+See also <https://github.com/simonmichael/hledger/tree/main/doc/mockups>
 
 ## Ease of getting started
 

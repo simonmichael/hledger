@@ -391,7 +391,7 @@ Infrastructure/misc
 - A new `release` workflow creates github releases, uploads release binaries and generates release notes.
 - There is a new `oldest` workflow for testing the oldest GHC we support (currently 8.10.7).
 - The `binaries-mac-x64` workflow has been bumped from GHC 9.4 to 9.8.
-- The master branch's `ci` workflow has been updated to Ubuntu 24.04
+- The main branch's `ci` workflow has been updated to Ubuntu 24.04
   and uses the preinstalled GHC & stack, saving some work.
 - `md-issue-refs` helps generate markdown issue links.
 - `relnotes.hs` helps generate release notes from changelogs.
@@ -718,7 +718,7 @@ Process
 - Revive github projects, set up http://projects.hledger.org shortcut url
 
 - Many cleanups and improvements to the CI test and binary-generating
-  github actions.  The CI tests for master now also include
+  github actions.  The CI tests for main now also include
   hledger-lib's doctests.
 
 - All packages now disallow name shadowing in their code.
@@ -763,7 +763,7 @@ Process
   - Workflows and binaries have more consistent naming, mentioning platform and architecture.
   - The main test workflow is now `linux-x64-test`, replacing `push` and `pull`.
     It runs for both pushes and pull requests, and generates binaries on every run.
-  - Pushes/merges to master, including Simon's, are required to have passed
+  - Pushes/merges to main, including Simon's, are required to have passed
     `linux-x64-test` on another github branch first.
   - Mac and Windows binaries are now stripped also (if applicable).
 
@@ -786,11 +786,11 @@ Process/tools
 - The RELEASING doc and release process has been updated, 
   and a new helper script added: tools/releaseprep.
   `make hackageupload` now only works from a branch named
-  VERSION-branch or VERSION-release. Ie, making releases from master
+  VERSION-branch or VERSION-release. Ie, making releases from main
   is no longer allowed, a release branch is always required,
 
 - CI: The commitlint check is more robust, and now runs only in
-  the push to master and pull request workflows, and not eg when 
+  the push to main and pull request workflows, and not eg when 
   building release binaries. linux-x64 binaries are now built
   with ghc 9.0, not 8.10. Workflow, branch, and binary names
   have been improved.
@@ -919,7 +919,7 @@ Tools/process:
   (`ln -sf ../../bin/commitling .git/hooks/commit-msg`), 
   and is also run by our CI workflows to check pull requests.
   <https://hledger.org/CONTRIBUTING.html#commit-messages>,
-  <https://github.com/simonmichael/hledger/blob/master/bin/commitlint>
+  <https://github.com/simonmichael/hledger/blob/main/bin/commitlint>
   (#1602)
 
 # 1.22 2021-07-03
@@ -1144,7 +1144,7 @@ Chat:
   - more closely integrated with code repo
   - tests run on the three main platforms (linux, mac, windows)
   - harmless commits are ignored automatically ([ci skip] no longer needed for doc commits)
-  - scheduled and on-demand testing (push to master, push to ci-* branches, pull request, weekly)
+  - scheduled and on-demand testing (push to main, push to ci-* branches, pull request, weekly)
   - now tested: all GHC versions, doctests, haddock building
   - new shortcut url: http://ci.hledger.org
 

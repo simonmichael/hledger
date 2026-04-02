@@ -264,7 +264,7 @@ and click on the various data types, eg
 And for a higher level understanding, see the [journal docs](hledger.html#journal).
 There is also a basic [OpenAPI specification][openapi.yaml].
 
-[openapi.yaml]: https://github.com/simonmichael/hledger/blob/master/hledger-web/config/openapi.yaml
+[openapi.yaml]: https://github.com/simonmichael/hledger/blob/main/hledger-web/config/openapi.yaml
 
 In some cases there is outer JSON corresponding to a "Report" type.
 To understand that, go to the

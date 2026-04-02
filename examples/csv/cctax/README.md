@@ -6,7 +6,7 @@ The information here was last updated in 2025-12.
 )
 <!-- This page can be viewed on github or hledger.org, so use absolute urls -->
 [Cryptocurrency tax reporting]: https://hledger.org/cctax.html
-[cctax]:                        https://github.com/simonmichael/hledger/tree/master/examples/csv/cctax
+[cctax]:                        https://github.com/simonmichael/hledger/tree/main/examples/csv/cctax
 
 In this directory we are not concerned with importing to hledger,
 but with exporting from hledger to cryptocurrency tax calculators.

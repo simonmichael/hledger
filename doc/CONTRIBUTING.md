@@ -18,7 +18,7 @@ and/or say hello in the [chat](support.md) and we'll help find you a useful job.
 
 - Share what you've learned so far to help others. This is a quadruple win -
   it helps them, improves your own understanding, builds community, and frees up maintainer time!
-- Add translation to your language. Starting with the [tldr](https://github.com/simonmichael/hledger/tree/master/doc/tldr) has high value. Or if you want to spend minimal effort, then just translate the [top level account names](https://github.com/simonmichael/hledger/tree/master/examples/i18n)
+- Add translation to your language. Starting with the [tldr](https://github.com/simonmichael/hledger/tree/main/doc/tldr) has high value. Or if you want to spend minimal effort, then just translate the [top level account names](https://github.com/simonmichael/hledger/tree/main/examples/i18n)
 
 ## Funder ?
 

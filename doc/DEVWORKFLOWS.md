@@ -175,7 +175,7 @@ If you're new to this process, [help.github.com](https://help.github.com) may be
 
 ## Add yourself to the contributor list
 
-- after getting something into the master branch, read and sign the [contributor list & agreement](https://hledger.org/contributors.html). Or, [ask](support.md) to be added.
+- after getting something into the main branch, read and sign the [contributor list & agreement](https://hledger.org/contributors.html). Or, [ask](support.md) to be added.
 - give yourself a high five!
 
 ## Work on docs

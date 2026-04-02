@@ -100,7 +100,7 @@ These are not wanted by everyone, but can be run using the `check` command:
 
 You can build your own custom checks with [add-on command scripts].
 See also [Cookbook > Scripting](scripting.html).
-Here are some examples from [hledger/bin/](https://github.com/simonmichael/hledger/tree/master/bin):
+Here are some examples from [hledger/bin/](https://github.com/simonmichael/hledger/tree/main/bin):
 
 - **hledger-check-tagfiles** - all tag values containing `/` exist as file paths
 

@@ -155,7 +155,7 @@ at the end of the journal period; more on this below.
 Accounts are sorted by [declaration order](#account)
 if any, and then alphabetically by account name.
 For instance 
-(using [examples/sample.journal](https://github.com/simonmichael/hledger/blob/master/examples/sample.journal)):
+(using [examples/sample.journal](https://github.com/simonmichael/hledger/blob/main/examples/sample.journal)):
 
 ```cli
 $ hledger -f examples/sample.journal bal

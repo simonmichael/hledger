@@ -240,4 +240,4 @@ $ hledger bs -Y -f 2023.j                     # unclosed file, no query needed
 
 #### More detailed close examples
 
-See [examples/multi-year](https://github.com/simonmichael/hledger/tree/master/examples/multi-year/).
+See [examples/multi-year](https://github.com/simonmichael/hledger/tree/main/examples/multi-year/).

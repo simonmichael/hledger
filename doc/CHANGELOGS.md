@@ -2,9 +2,9 @@
 
 See also RELEASING.md.
 
-## Update master changelogs often
+## Update main changelogs often
 Before release, and preferably daily/weekly as well:
-- during normal development, do this only in master branch
+- during normal development, do this only in main branch
 - during release preparation.. unclear; keep the other branch's changelog in mind, they need to be synced at some point. Prioritise \[minor] release branch's changelog ?
 - `./Shake changelogs`
 - edit the new changelog items
@@ -21,19 +21,19 @@ Before release, and preferably daily/weekly as well:
     - proof read/clean up all changelogs (Obsidian works well)
   - `./Shake changelogs -c`
 
-## Update release & master changelogs at release time
-Before release, after cherry-picking changes from master to the release branch:
-- check out master in a separate working copy
+## Update release & main changelogs at release time
+Before release, after cherry-picking changes from main to the release branch:
+- check out main in a separate working copy
 - for each changelog
-  - open master & release changelog in side-by-side windows
-  - copy all appropriate new content from master to release
+  - open main & release changelog in side-by-side windows
+  - copy all appropriate new content from main to release
   - in release changelog, remove any previous prerelease heading, add a new release heading
   - in release ui/web changelogs, add/update "uses hledger X.Y" item if needed
-  - if this is a major release, or a minor release with notable project updates, copy to master changelogs:
+  - if this is a major release, or a minor release with notable project updates, copy to main changelogs:
     - the ui/web "uses hledger X.Y"
     - the new release heading
 - commit changelog updates in both working copies
-- pull the master changelog updates back to main working copy
+- pull the main changelog updates back to main working copy
 - destroy temporary working copy, emacs buffers
 
 ## Update release notes

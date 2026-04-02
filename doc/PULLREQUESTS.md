@@ -81,7 +81,7 @@ Unless we decide to squash the PR into one commit,
 your commits will become part of hledger's history "for all time", 
 so think about future developers trying to understand them, git bisect, etc.   
 
-Rebase your commits against latest master for easiest review. Especially if they start to conflict.
+Rebase your commits against latest main for easiest review. Especially if they start to conflict.
 
 We like to use some conventions in commit messages when it makes sense. These aren't mandatory, but appreciated:
 

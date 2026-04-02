@@ -229,7 +229,7 @@ hledger-api demo
 [api-demo.hledger.org/api/v1/accounts](https://api-demo.hledger.org/api/v1/accounts),
 [api-demo.hledger.org/swagger.json](https://api-demo.hledger.org/swagger.json),
 [in swagger editor](https://editor2.swagger.io/#/?import=api-demo.hledger.org/swagger.json&no-proxy)\
-[unfinished angular sample app](https://api-demo.hledger.org) ([code](https://github.com/simonmichael/hledger/tree/master/hledger-api/examples/angular))
+[unfinished angular sample app](https://api-demo.hledger.org) ([code](https://github.com/simonmichael/hledger/tree/main/hledger-api/examples/angular))
 -->
 
 <!-- The Debian packages:

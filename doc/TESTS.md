@@ -32,7 +32,7 @@ About testing in the hledger project, as of 201809.
     [tasty](https://hackage.haskell.org/package/tasty) test runner,
     [tasty-hunit](https://hackage.haskell.org/package/tasty-hunit) HUnit-style tests,
     and some helpers from
-    [Hledger.Utils.Test](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Utils/Test.hs),
+    [Hledger.Utils.Test](https://github.com/simonmichael/hledger/blob/main/hledger-lib/Hledger/Utils/Test.hs),
     such as:
     
     - `tests` and `test` aliases for `testGroup` and `testCase`
@@ -89,9 +89,9 @@ About testing in the hledger project, as of 201809.
     ```
 
     Here are
-    [some](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Data/Posting.hs#L296)
+    [some](https://github.com/simonmichael/hledger/blob/main/hledger-lib/Hledger/Data/Posting.hs#L296)
     real-world
-    [examples](https://github.com/simonmichael/hledger/blob/master/hledger-lib/Hledger/Read/JournalReader.hs#L579).
+    [examples](https://github.com/simonmichael/hledger/blob/main/hledger-lib/Hledger/Read/JournalReader.hs#L579).
 
     The unit tests are shipped as part of the hledger executable, and
     can always be run via the [test](https://hledger.org/hledger.html#test)
@@ -121,7 +121,7 @@ About testing in the hledger project, as of 201809.
     with
     [shelltestrunner](https://hackage.haskell.org/package/shelltestrunner).
     Tests are defined in files named `*.test` under
-    [hledger/test/](https://github.com/simonmichael/hledger/tree/master/hledger/test),
+    [hledger/test/](https://github.com/simonmichael/hledger/tree/main/hledger/test),
     grouped by *component* (command or topic name).
     For more about these, see the README there.
 
