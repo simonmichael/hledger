@@ -391,11 +391,13 @@ clipOrEllipsifyAccountName ds a = go (getAccountNameClippedDepth ds a)
 -- | Escape an AccountName for use within a regular expression.
 -- >>> putStr . T.unpack $ escapeName "First?!#$*?$(*) !@^#*? %)*!@#"
 -- First\?!#\$\*\?\$\(\*\) !@\^#\*\? %\)\*!@#
+-- >>> putStr . T.unpack $ escapeName "assets:broker:{2026-01-01, $50}"
+-- assets:broker:\{2026-01-01, \$50\}
 escapeName :: AccountName -> Text
 escapeName = T.concatMap escapeChar
   where
     escapeChar c = if c `elem` escapedChars then T.snoc "\\" c else T.singleton c
-    escapedChars = ['[', '?', '+', '|', '(', ')', '*', '$', '^', '\\']
+    escapedChars = ['[', ']', '?', '+', '|', '(', ')', '*', '$', '^', '\\', '{', '}', '.']
 
 -- | Convert an account name to a regular expression matching it and its subaccounts.
 accountNameToAccountRegex :: AccountName -> Regexp
