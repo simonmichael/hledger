@@ -90,7 +90,7 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
   let
     (label, sep)
       | oneline   = (lstrip $ versionStringWith $$tGitInfoCwdTry False "" packageversion <> "\t", "\t")
-      | otherwise = ("Runtime stats       : ", ", ")
+      | otherwise = (printf "%-*s: " labelwidth ("Runtime stats" :: String), ", ")
     dt = t - progstarttime_
     tnum = sum tnums
     ss =
@@ -118,6 +118,9 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
 toMegabytes n = realToFrac n / 1000000 ::Float  -- SI preferred definition, 10^6
 -- toMebibytes n = realToFrac n / 1048576 ::Float  -- traditional computing definition, 2^20
 
+labelwidth :: Int
+labelwidth = 20  -- adjust to suit labels
+
 -- | Generate multiline stats output, possibly verbose,
 -- for the given ledger and date period and current date.
 -- Also return the number of transactions in the period.
@@ -128,7 +131,7 @@ showLedgerStats verbose l today spn =
   where
     showRow (label, val) = Group NoLine $ map (Header . textCell TopLeft)
       [fitText (Just w) (Just w) False True label `T.append` ": ", T.pack val]
-    w = 20  -- keep synced with labels above
+    w = labelwidth
     -- w = maximum $ map (T.length . fst) stts
     (stts, tnum) = ([
        ("Main file", path' :: String) -- ++ " (from " ++ source ++ ")")
