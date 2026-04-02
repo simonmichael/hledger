@@ -61,6 +61,10 @@ Here are our current policies for AI use in hledger.
   Currently this means we try to use only Anthropic, Ecosia, local LLMs, and such.
   We'll review/update the list periodically.
 
+- Since writing this policy, I applied for and received Anthropic's 6-month $1200 FOSS credit,
+  and have activated it from 2026-04-01.
+  This is helping recover the costs I incurred during initial experimentation.
+
 - We try to keep track of, optimise, and limit our AI resource usage (measured by tokens in & out, eg).
 
 - We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
@@ -164,10 +168,14 @@ Discussions
 Policies
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
 
-Law:
+Law
 - <https://www.congress.gov/crs-product/LSB10922>
 
 Practitioners
 - Donald Knuth: <https://cs.stanford.edu/~knuth/papers/claude-cycles.pdf>
 - Kent Beck: <https://tidyfirst.substack.com/t/genies>,\
   <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
+- Martin Fowler: <https://martinfowler.com/fragments/2026-04-02.html>
+
+Research
+- [From Technical Debt to Cognitive and Intent Debt: Rethinking Software Health in the Age of AI](https://arxiv.org/pdf/2603.22106)
