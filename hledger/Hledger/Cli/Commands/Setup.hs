@@ -471,20 +471,20 @@ setupJournal meconf = do
       pdesc "accounts of all types exist ?"
       if null typesnotfound
       then p Y (concatMap show accttypes <> " accounts detected")
-      else p N (concatMap show typesnotfound <> " accounts not found; some reports may not work")
+      else p N ("no " <> concatMap show typesnotfound <> " accounts found; some reports may not work")
 
-      pdesc "commodities/accounts are being checked ?"
+      pdesc "strict checks are done by default ?"
       let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
       if strict
       then i Y "commodities and accounts must be declared"
-      else i N "you can use -s to check them"
+      else i N "you can use -s to do strict checks"
 
-      pdesc "balance assertions are being checked ?"
+      pdesc "balance assertions checked by default ?"
       let ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
       if 
         | ignoreassertions && not strict -> i N "you can use -s to check them"
         | not strict -> i Y "you can use -I to ignore them"
-        | otherwise -> i Y "can't ignore assertions (-s in config file)"
+        | otherwise -> i Y "and can't be ignored, because strict checks are enabled"
 
 ------------------------------------------------------------------------------
 
