@@ -6,7 +6,7 @@ also published as the [Scripts and add-ons] page on hledger.org.)
 
 [Scripts and add-ons]: https://hledger.org/scripts.html
 [Scripting hledger]:   https://hledger.org/scripting.html
-[bin]:                 https://github.com/simonmichael/hledger/tree/master/bin
+[bin]:                 https://github.com/simonmichael/hledger/tree/main/bin
 
 A *script* is a program you can run immediately without needing to compile it first.
 They are often small and defined in a single file or shell alias or shell function.
@@ -35,24 +35,24 @@ Here are some scripts which don't use hledger directly, but might be useful to h
 
 ### ledgereval
 
-[ledgereval](https://github.com/simonmichael/hledger/blob/master/bin/ledgereval)
+[ledgereval](https://github.com/simonmichael/hledger/blob/main/bin/ledgereval)
 is a helper for evaluating Ledger value expressions.
 It's useful eg when converting amount expressions like `(1 USD + 2 USD)` to simple amounts.
 
 ### pricehist
 
 [pricehist](https://pypi.org/project/pricehist) is useful for downloading market prices / conversion rates; recommended.
-And [`hledger-pricehist`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pricehist)
+And [`hledger-pricehist`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-pricehist)
 is a small script to make it show up in the hledger commands list.
 
 ### paypaljson
 
-[`paypaljson`](https://github.com/simonmichael/hledger/blob/master/bin/paypaljson)
+[`paypaljson`](https://github.com/simonmichael/hledger/blob/main/bin/paypaljson)
 downloads the last 30 days of Paypal transactions (requires a free developer account & API key).
 
 ### paypalcsv
 
-[`paypalcsv`](https://github.com/simonmichael/hledger/blob/master/bin/paypalcsv) (python)
+[`paypalcsv`](https://github.com/simonmichael/hledger/blob/main/bin/paypalcsv) (python)
 converts `paypaljson`'s output to CSV, with format similar to Paypal's manually-downloaded CSV.
 
 Example usage with hledger 1.50+:
@@ -62,17 +62,17 @@ then convert to CSV in the rules file: `source | paypalcsv paypal.json`.
 
 ### simplefinsetup
 
-[`simplefinsetup`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinsetup)
+[`simplefinsetup`](https://github.com/simonmichael/hledger/blob/main/bin/simplefinsetup)
 helps set up access to SimpleFIN ([simplefin.org](https://simplefin.org)), a developer-friendly aggregator of US bank data.
 
 ### simplefinjson
 
-[`simplefinjson`](https://github.com/simonmichael/hledger/blob/master/bin/simplefinjson)
+[`simplefinjson`](https://github.com/simonmichael/hledger/blob/main/bin/simplefinjson)
 downloads data for one or more bank accounts from SimpleFIN's API, as JSON.
 
 ### simplefincsv
 
-[`simplefincsv`](https://github.com/simonmichael/hledger/blob/master/bin/simplefincsv)
+[`simplefincsv`](https://github.com/simonmichael/hledger/blob/main/bin/simplefincsv)
 converts SimpleFIN's JSON data to CSV, for one or more bank accounts.
 
 Example usage with hledger 1.50+:
@@ -87,7 +87,7 @@ These scripts use hledger's command line interface, or process one of its output
 
 ### bashrc
 
-[`bashrc`](https://github.com/simonmichael/hledger/blob/master/bin/bashrc)
+[`bashrc`](https://github.com/simonmichael/hledger/blob/main/bin/bashrc)
 contains many example bash aliases and functions.
 After installing the bin scripts: as a bash user,
 ```cli
@@ -98,7 +98,7 @@ $ fin        # list the scripts available
 
 ### ft
 
-[`ft`](https://github.com/simonmichael/hledger/blob/master/bin/ft)
+[`ft`](https://github.com/simonmichael/hledger/blob/main/bin/ft)
 is a way to organise your finance-related reports and scripts using standard bash.
 (See also [Justfile](#justfile) below.)
 
@@ -136,7 +136,7 @@ Add hledger options to customise reports.
 
 ### tt
 
-[`tt`](https://github.com/simonmichael/hledger/blob/master/bin/tt)
+[`tt`](https://github.com/simonmichael/hledger/blob/main/bin/tt)
 is a similar bash multi-script for time reports.
 
 ```cli
@@ -174,7 +174,7 @@ Add hledger options to customise reports.
 similar to `make`, but more robust for this use case. I can recommend it.
 See also [hledger and just](just.md).
 
-Here is a [Justfile](https://github.com/simonmichael/hledger/blob/master/bin/Justfile)
+Here is a [Justfile](https://github.com/simonmichael/hledger/blob/main/bin/Justfile)
 reimplementing the `ft` and `tt` scripts more simply:
 
 ```cli
@@ -223,7 +223,7 @@ Justfile commands:
 
 ### watchaccounts
 
-[`watchaccounts`](https://github.com/simonmichael/hledger/blob/master/bin/watchaccounts)
+[`watchaccounts`](https://github.com/simonmichael/hledger/blob/main/bin/watchaccounts)
 shows hledger account names, updating on file change under the current directory.
 Arguments are passed to the `hledger accounts` command. Useful when cleaning up accounts.
 ```cli
@@ -233,7 +233,7 @@ $ watchaccounts -f time.journal client1 date:thismonth -l
 
 ### sortandmergepostings
 
-[`sortandmergepostings`](https://github.com/simonmichael/hledger/blob/master/bin/sortandmergepostings)
+[`sortandmergepostings`](https://github.com/simonmichael/hledger/blob/main/bin/sortandmergepostings)
 is an adventuresome AWK script intended to clean up and merge similar postings in a transaction
 (see [original discussion](https://unix.stackexchange.com/questions/526995/re-order-lines-and-merge-others-based-on-a-specific-criteria/527004)).
 It sorts postings so that positive ones are first, negative ones last.
@@ -249,7 +249,7 @@ $ sortandmergepostings input.journal | hledger -f - print -x
 
 ### hledger-simplebal
 
-[`hledger-simplebal`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-simplebal)
+[`hledger-simplebal`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-simplebal)
 shows how to reliably report a single machine-readable number with hledger.
 This and the other "hledger-" scripts are add-on commands.
 
@@ -259,7 +259,7 @@ $ hledger simplebal
 
 ### hledger-bar
 
-[`hledger-bar`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-bar)
+[`hledger-bar`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-bar)
 prints quick bar charts in the terminal.
 
 ```cli
@@ -283,12 +283,12 @@ $ hledger bar -v 1 -f $TIMELOG -D                 # daily hours, with numbers
 
 ### hledger-check-buynothing
 
-[`hledger-check-buynothing`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-buynothing)
+[`hledger-check-buynothing`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-check-buynothing)
 checks for no activity in Expense accounts on Buy Nothing Day (or other period).
 
 ### hledger-git
 
-[`hledger-git`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-git)
+[`hledger-git`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-git)
 provides easy version control for your journal files, using [git](https://git-scm.com).
 Run it with no arguments for help.
 ```cli
@@ -299,7 +299,7 @@ $ hledger git record [MSG]
 
 ### hledger-jj
 
-[`hledger-jj`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-jj)
+[`hledger-jj`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-jj)
 provides easy version control for your journal files, using [jj](https://jj-vcs.github.io)
 (and a git repo).
 This is newer and better than hledger-git and hledger-pijul.
@@ -313,7 +313,7 @@ $ hledger jj commit [MSG]
 
 ### hledger-pijul
 
-[`hledger-pijul`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-pijul)
+[`hledger-pijul`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-pijul)
 provides easy version control for your journal files, using the [pijul](https://pijul.org) version control system.
 ```cli
 $ hledger pijul log
@@ -323,7 +323,7 @@ $ hledger pijul record [MSG]
 
 ### hledger-dc
 
-[`hledger-dc`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-dc)
+[`hledger-dc`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-dc)
 reads journal files which use a Dr/Cr notation instead of/in addition to amount signs:
 ```journal
 2025-01-01 salary
@@ -391,12 +391,12 @@ $ hledger lots list
 
 ### hledger-report1.sh
 
-[hledger-report1.sh](https://github.com/simonmichael/hledger/blob/master/bin/hledger-report1.sh)
+[hledger-report1.sh](https://github.com/simonmichael/hledger/blob/main/bin/hledger-report1.sh)
 is a custom compound report done in shell. See also hledger-report1.hs.
 
 ### hledger-timedothm
 
-[`hledger-timedothm`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-timedothm)
+[`hledger-timedothm`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-timedothm)
 reads timedot files which support HOURS:MINUTES notation:
 ```timedot
 2025-09-27
@@ -416,7 +416,7 @@ $ hledger timedothm sample.timedothm reg -w80
 
 ### hledgerj1
 
-[`hledgerj1`](https://github.com/simonmichael/hledger/blob/master/bin/hledgerj1)
+[`hledgerj1`](https://github.com/simonmichael/hledger/blob/main/bin/hledgerj1)
 is a small example of a wrapper script that preprocesses the journal,
 converting it from a custom format, in this case a one-line journal format
 where slash represents newline. Eg:
@@ -441,7 +441,7 @@ Some builtin commands were first developed as standalone haskell scripts.
 
 ### hledger-script-example
 
-[`hledger-script-example.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-script-example.hs)
+[`hledger-script-example.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-script-example.hs)
 is a template for writing your own hledger-integrated add-on command.
 It has the same structure as most of the add-ons here:
 - a stack script for robustness
@@ -450,19 +450,19 @@ It has the same structure as most of the add-ons here:
 
 ### hledger-swap-dates
 
-[`hledger-swap-dates.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-swap-dates.hs)
+[`hledger-swap-dates.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-swap-dates.hs)
 prints transactions with their date and date2 fields swapped.
 
 ### hledger-check-tagfiles
 
-[`hledger-check-tagfiles.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-tagfiles.hs)
+[`hledger-check-tagfiles.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-check-tagfiles.hs)
 interprets all tag values containing a `/` (forward slash) as file paths, and checks that those files exist.
-[`hledger-check-tagfiles.cabal.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-tagfiles.cabal.hs)
+[`hledger-check-tagfiles.cabal.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-check-tagfiles.cabal.hs)
 is the same command implemented as a cabal script rather than a stack script.
 
 ### hledger-register-max
 
-[`hledger-register-max.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-register-max.hs)
+[`hledger-register-max.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-register-max.hs)
 runs a register report and prints the posting with largest historical balance.
 
 ```cli
@@ -474,7 +474,7 @@ $ hledger register-max -f examples/bcexample.hledger checking
 
 ### hledger-check-postable
 
-[`hledger-check-postable.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-postable.hs)
+[`hledger-check-postable.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-check-postable.hs)
 check that no postings are made to accounts declared with a `postable:n` or `postable:no` tag.
 This can be used as a workaround when you must declare a parent account to control display order,
 but you don't want to allow postings to it. Eg, to allow postings to assets:cash but not assets
@@ -486,17 +486,17 @@ account assets:cash    ; postable:
 
 ### hledger-check-fancyassertions
 
-[`hledger-check-fancyassertions.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-check-fancyassertions.hs)
+[`hledger-check-fancyassertions.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-check-fancyassertions.hs)
 checks account balances over time in more complex ways than hledger's built-in balance assertions.
 
 ### hledger-combine-balances
 
-[`hledger-combine-balances.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-combine-balances.hs)
+[`hledger-combine-balances.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-combine-balances.hs)
 shows balance reports for two different periods side by side.
 
 ### hledger-balance-as-budget
 
-[`hledger-balance-as-budget.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-balance-as-budget.hs)
+[`hledger-balance-as-budget.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-balance-as-budget.hs)
 uses one balance report to set budget goals for another balance report.
 
 This is useful for compare-and-contrast reports. You can, for example, use a previous year as a budget for this year, and see
@@ -504,7 +504,7 @@ how this year spending compares to your past spending.
 
 ### hledger-balance-as-budget-multi
 
-[`hledger-balance-as-budget.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-balance-as-budget-multi.hs)
+[`hledger-balance-as-budget.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-balance-as-budget-multi.hs)
 uses one balance report to set budget goals for another balance report, and allows you to run multiple balance commands on them.
 
 Like `hledger run`, this will load journals only once, and will be significantly faster than calling `hledger-balance-as-budget`
@@ -512,17 +512,17 @@ multiple times.
 
 ### hledger-smooth
 
-[`hledger-smooth.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-smooth.hs)
+[`hledger-smooth.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-smooth.hs)
 is an incomplete attempt at automatically splitting infrequent/irregular transactions.
 
 ### hledger-move
 
-[`hledger-move.hs`](https://github.com/simonmichael/hledger/blob/master/bin/hledger-move.hs)
+[`hledger-move.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-move.hs)
 helps make subaccount/cost-preserving transfers.
 
 ### hledger-report1.hs
 
-[hledger-report1.hs](https://github.com/simonmichael/hledger/blob/master/bin/hledger-report1.hs)
+[hledger-report1.hs](https://github.com/simonmichael/hledger/blob/main/bin/hledger-report1.hs)
 is a custom compound report done in haskell. See also hledger-report1.sh.
 
 ### hledger-txnsbycat.hs
@@ -587,7 +587,7 @@ $ cd ~/finance
 
 # Get the hledger repo
 # the fast way, without version control:
-$ curl -LOJ https://github.com/simonmichael/hledger/archive/refs/heads/master.zip && unzip hledger-master.zip && mv hledger-master hledger
+$ curl -LOJ https://github.com/simonmichael/hledger/archive/refs/heads/main.zip && unzip hledger-main.zip && mv hledger-main hledger
 # or the slow way, with version control for easy diffing/updating/contributing
 # git clone https://github.com/simonmichael/hledger
 

@@ -1062,13 +1062,13 @@ ghrel-upload:
     gh release upload --clobber "$VER" tmp/hledger-mac-x64.tar.gz
     gh release upload --clobber "$VER" tmp/hledger-windows-x64.zip
 
-# After major release: in master, bump versions for a new dev cycle ("OLDVER.99")
+# After major release: in main, bump versions for a new dev cycle ("OLDVER.99")
 @devver:
     #!/usr/bin/env bash
     set -euo pipefail
     RELVER=$(just relver)
     DEVVER=$RELVER.99
-    just _on-master-branch
+    just _on-main-branch
     echo "Setting versions to $DEVVER.."
     ./Shake setversion "$DEVVER" -c
 
@@ -1473,13 +1473,13 @@ _on-release-branch:
         exit 1
     fi
 
-# Check that we're on the master branch.
-_on-master-branch:
+# Check that we're on the main branch.
+_on-main-branch:
     #!/usr/bin/env bash
     set -euo pipefail
     BRANCH=$(git branch --show-current)
-    if [[ ! $BRANCH =~ master ]]; then
-        echo "You are currently on $BRANCH branch. Please switch to the master branch."
+    if [[ ! $BRANCH =~ main ]]; then
+        echo "You are currently on $BRANCH branch. Please switch to the main branch."
         exit 1
     fi
 
@@ -1704,7 +1704,7 @@ symlink-web-dirs:
 installcommithook:
     ln -s ../../tools/commitlint .git/hooks/commit-msg
 
-# run tests locally, push master to github ci, wait for tests to pass there, refreshing every INTERVAL (default:10s), then push to github master.
+# run tests locally, push main to github ci, wait for tests to pass there, refreshing every INTERVAL (default:10s), then push to github main.
 @push *INTERVAL:
     just functest --hide && tools/push {{ INTERVAL }}
 

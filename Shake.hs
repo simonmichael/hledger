@@ -91,7 +91,7 @@ usage =
   ,"(not a true dry run; some cmd calls may still run, code may do IO, etc)."
   ]
 -- TODO
---  ,"./Shake releasebranch      create a new release branch, bump master to next dev version (.99)" 
+--  ,"./Shake releasebranch      create a new release branch, bump main to next dev version (.99)" 
 --  ,"./Shake majorversion       bump to the next major version project-wide, update affected files"
 --  ,"./Shake minorversion PKGS  bump one or more packages to their next minor version project-wide, update affected files"
 --  ,"./Shake relnotes           create draft release notes"
@@ -329,7 +329,7 @@ main = do
         gencabalfiles
 
       -- Update some of the version strings in hledger-install/hledger-install.sh. Manual fixup will be needed.
-      -- Not done by setversion since that is used on master, where the production hledger-install is.
+      -- Not done by setversion since that is used on main, where the production hledger-install is.
       phony "hledger-install-version" $ do
         let versionfile = ".version"
         let out = "hledger-install/hledger-install.sh"
@@ -553,7 +553,7 @@ main = do
           aboutmsg =
             ["<!-------------------------------------------------------------------------"
             ,"Don't edit this file directly."
-            ,"Instead, in the hledger repo's master branch edit the source file, one of:"
+            ,"Instead, in the hledger repo's main branch edit the source file, one of:"
             ] <>
             [" hledger/Hledger/Cli/Commands/commands.m4" | manual=="hledger"] <>
             [" hledger/Hledger/Cli/Commands/*.md"        | manual=="hledger"] <>
