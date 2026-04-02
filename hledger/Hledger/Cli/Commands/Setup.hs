@@ -328,7 +328,7 @@ setupTerminal meconf = do
               usecolor <- useColorOnStdout
               i Y $ lessVarValue mHLEDGER_LESS mLESS usecolor
 
-            pdesc "less is working with these options ?"
+            pdesc "less is working, with these options ?"
             usecolor <- useColorOnStdout
             let newlessvar = lessVarValue mHLEDGER_LESS mLESS usecolor
             env <- getEnvironment
