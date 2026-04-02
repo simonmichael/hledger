@@ -4,6 +4,9 @@ Notes for hledger release managers and maintainers.
 
 ## Goals
 
+**2026**
+- [ ] ?
+
 **2025**
 - [x] Make releasing easier
 - [x] Improve automation
@@ -65,13 +68,13 @@ Last updated: 2025-12
 6. **update changelogs:** `j changelogs`; edit; `j changelogs-finalise`
 7. **update relnotes:** `j relnotes`; edit; commit
 8. **update announcements:** edit `doc/ANNOUNCE`
-9. **update install docs:** edit `doc/ghrelnotes`, `doc/ghnightlynotes.md`, `site/src/install.md`
+9. **update install docs:** edit `doc/ghrelnotes`, `doc/ghtestbinnotes.md`, `site/src/install.md`
 10. **tag:** `j reltags`
 11. **make release builds:** `j ghbin`
 12. **in main, merge updates from release branch**
-13. **release to hackage:** `j hackageupload`
-14. **push to github:** `j reltags-push VER`, VER-branch, main, site repo
-15. **release to github:** make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
+13. **in release branch, release to hackage:** `j hackageupload`
+14. **push to github:** push site repo, push main, push VER-branch, `j reltags-push VER`
+15. **release to github:** manually make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
 16. **major: activate website scripts/redirects:** `j site-restart`
 17. **announce to matrix, irc, mail list, mastodon, forum, pta.o**
 18. **major: update dev version, dev tag:** `j devtag-push`
@@ -263,7 +266,7 @@ In site repo:
 ### Update hledger in stackage
 
 - monitor packaging status in lts and nightly: <https://www.stackage.org/package/hledger>
-- update <https://github.com/fpco/stackage/blob/master/build-constraints.yaml> as needed
+- update <https://github.com/fpco/stackage/blob/main/build-constraints.yaml> as needed
 
 ### Update RELEASING.png
 - edit RELEASING.canvas in obsidian
