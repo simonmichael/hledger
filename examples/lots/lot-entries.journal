@@ -7,9 +7,14 @@
 ; To try it:  hledger -f lots-entries.journal print --lots [--verbose-tags]
 ;             hledger -f lots-entries.journal bal --lots [-M]
 ;
-; Prerequisites: declare lot-tracked commodities with a lots: tag.
+; This journal is written so that both hledger1 and hledger2 accept it.
+; (Only hledger2 will calculate lot movements and capital gains correctly.)
 
+; Declare ETSY as lotful, so that we don't have to always write cost basis annotations.
 commodity ETSY  ; lots:
+
+; Declare this account as Gain type, so that lots mode will check/infer it,
+; and so that it doesn't disturb non-lots-mode transaction balancing.
 account revenue:gains  ; type: G
 
 ; ============================================================================
@@ -35,14 +40,14 @@ account revenue:gains  ; type: G
 2026-03-01 buy shares, stock fee
     assets:cash     -$700
     expenses:fees     0.1 ETSY @ $70
-    assets:broker     9.9 ETSY {$70}
+    assets:broker     9.9 ETSY @ $70
 
 ; 1d. Buy with fees in both commodities.
 2026-04-01 buy shares, both fees
     assets:cash    -$810
     expenses:fees    $10
     expenses:fees      0.1 ETSY @ $80
-    assets:broker      9.9 ETSY {$80}
+    assets:broker      9.9 ETSY @ $80
 
 ; ============================================================================
 ; ** 2. TRANSFER - moving lots between accounts, preserving cost basis
