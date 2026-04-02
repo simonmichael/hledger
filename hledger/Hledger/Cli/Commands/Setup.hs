@@ -418,7 +418,7 @@ setupJournal meconf = do
       else p N (show (length undeclaredcommodities) <> " undeclared commodities")
 
       let
-        accttypes = [Asset, Liability, Equity, Revenue, Expense, Cash, Conversion]
+        accttypes = [minBound .. maxBound]
         typesdeclaredorinferred = nub $ M.elems jaccounttypes
         typesnotfound = filter (not.(`elem` typesdeclaredorinferred)) accttypes
         acctswithdeclaredorinferredtype = nub (M.keys jaccounttypes)

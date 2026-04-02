@@ -188,7 +188,7 @@ data AccountType =
   | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
   | Conversion -- ^ a subtype of Equity - account with which to balance commodity conversions
   | Gain      -- ^ a subtype of Revenue - capital gains/losses
-  deriving (Eq,Ord,Generic)
+  deriving (Eq,Ord,Generic,Enum,Bounded)
 
 instance Show AccountType where
   show Asset      = "A"
