@@ -1724,7 +1724,7 @@ as long as the journal entry is well formed such that the equity postings / cost
 So in principle you could enable both `--infer-equity` and `--infer-costs` in your config file,
 and your reports would have the advantages of both.
 
-## Cost basis / lot syntax
+## Cost basis
 
 If you are buying some commodity to hold as an investment, it may be important to keep track of 
 
@@ -1733,22 +1733,26 @@ If you are buying some commodity to hold as an investment, it may be important t
 3. and a sequence number or label, if needed, to disambiguate multiple acquisitions on the same day, or to serve as a mnemonic for easy reference.
 
 In hledger we call these three the "cost basis"; and if an amount being acquired has a cost basis, we call it a "lot".
-Tax authorities often require that lots are tracked carefully and disposed of (sold) in a certain order.
+Tax authorities sometimes require that lots are tracked in detail and disposed of (sold) in a certain order.
 
 Note, though "cost basis" sounds similar to the "cost" (transacted price) discussed above, they are distinct concepts.
 In some transactions the transacted price and basis cost are the same, but in others they are not.
+So cost basis is recorded with its own syntax, called "cost basis annotations".
 
-So cost basis has its own syntax, also called "lot syntax".
-hledger's lot syntax is like Ledger's: one or more of the following annotations, following the main amount:
+hledger 1.x supports Ledger-style cost basis syntax: one or more of the following annotations, following the main amount:
 
 - `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}` (see [lot price][ledger: buying and selling stock])
 - `[LOTDATE]` (see [lot date][ledger: lot dates])
 - `(LOTLABEL)` (see [lot note][ledger: lot notes])
 
-hledger does not yet do anything with this lot syntax, except to preserve it and show it in `print`'s `txt`, `beancount`, and `json` output.
-This means you can use this syntax in your hledger journals (plus an amountless extra posting to help transactions balance, if needed),
-then use the `print` command to export to Ledger or Beancount or rustledger, to use their lots/gains reports
-(see [Export Lots workflow](workflows.md#more-advanced-workflows)).
+hledger 1 does not provide automated lot/gains tracking, and ignores these cost basis annotations.
+But it will preserve and show them in `print`'s `txt`, `beancount`, and `json` output.
+This means you can use this syntax in your journal (perhaps with an amountless extra posting to help transactions balance, if needed),
+then export to Ledger or Beancount or rustledger to do lots/gains reporting.
+See [Export Lots workflow](workflows.md#more-advanced-workflows).
+
+(hledger 2.x has lots/gains reporting built in.
+It also supports a more convenient Beancount-like `{DATE, "LABEL", COST}` syntax.)
 
 ## Balance assertions
 
