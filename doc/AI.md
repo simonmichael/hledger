@@ -161,7 +161,7 @@ because the cost of designing and building it outweighed the need and the availa
     - Given the times, this was a good project to motivate exploring the new tech and surrounding issues,
     and how to use it or to respond to others using it.
 
-## Usage
+## Measuring usage
 
 Some notes on tracking AI usage.
 
@@ -188,7 +188,7 @@ I'm not sure how durable the data is.
 Probably when old chat logs get cleaned up or deleted, ccusage no longer shows data for those.
 
 `just h ccusage` shows some related report scripts in the Justfile.
-At the start of april, on my machine they show the following.
+At the start of april, on my machine they showed the following.
 I don't know why the numbers are so much lower than the ones from platform.claude.com.
 
 ```
