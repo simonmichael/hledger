@@ -3,7 +3,7 @@
 Here is the current specification for lots functionality, most of which has been implemented in the lots branch.
 
 See also 
-- hledger manual: Basis / lots
+- hledger manual: Cost basis
 - hledger manual: Lot reporting
 - <https://joyful.com/hledger+lot+tracking>
 - <https://github.com/simonmichael/hledger/issues/1015>
