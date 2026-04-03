@@ -1747,39 +1747,41 @@ and your reports would have the advantages of both.
 ## Cost basis
 
 This is an advanced topic, only relevant if you are doing [Lot reporting](#lot-reporting).
-Note "cost basis" and "cost" (AKA transacted price or transacted cost, described above) sound similar - but they are distinct concepts.
+Note, "cost basis" and "cost" (AKA transacted price or transacted cost, described above) sound similar, but they are distinct concepts.
 
 If you are buying an amount of some commodity to hold as an investment,
 it may be important for tax reporting to keep track of its *cost basis* and *lots*, so you can calculate *capital gains*.
+An amount with a cost basis is called a lot.
+The basis is a property of the lot, remaining with it throughout its lifetime.
+It allows us to calculate capital gains/losses when the lot is sold or otherwise disposed of.
 
-In hledger, an investment amount's "basis" includes
+In hledger, a cost basis includes
 
 1. The nominal acquisition cost. Usually this is the same as the transacted cost, ie what you paid for it, but not always.
 2. The nominal acquisition date. Usually this is the date you acquired it, but not always.
-3. And optionally a short text label, to disambiguate lots with the same date, or to attach a mnemonic name.
+3. An optional short text label, when needed to disambiguate lots with the same date, or to attach a mnemonic name.
 
-An amount with a basis is called a lot.
-The basis is a property of the lot, remaining with it throughout its lifetime.
-It is used to calculate capital gains/losses, eg for tax reporting.
+To record a cost basis, we write a "cost basis annotation" after an amount that is being acquired.
+The same kind of annotation can also be used to identify a particular lot that is being moved or disposed of.
+We call these generically "lot syntax".
 
-### Lot syntax
+hledger's lot syntax keeps all the parts inside braces, comma-separated (like Beancount).
+All parts are optional, but when present they must be in date, label, cost order:
 
-To record the basis, or to identify a particular lot, we use "cost basis annotations", AKA "lot syntax".
-hledger's lot syntax keeps all the parts inside braces, comma-separated (like Beancount):
+    {2026-01-15, "lot1", $50}
+    {2026-01-15, $50}
+    {$50}
+    {}
 
-    10 AAPL {2026-01-15, $50}
-    10 AAPL {2026-01-15, "lot1", $50}
-    10 AAPL {$50}
-    10 AAPL {}
-
-All parts are optional, but when present they must be in date-label-cost order.
-The date must be in YYYY-MM-DD format, and the label must be double-quoted.
+The date must be in YYYY-MM-DD format, and the label must in double quotes.
 The cost is a single-commodity hledger [amount](#amounts).
 
-When an amount has both a basis and a transacted price,
-like `-10 AAPL {$50} @ $60`, the preferred order is to write {} before @.
+When an amount has both a basis and a transacted price, the preferred order is to write {} before @:
 
-hledger also can read Ledger-style lot syntax, in which the parts are written separately, in any order:
+    -10 AAPL {$50} @ $60
+
+hledger can also read Ledger-style lot syntax, where the parts are written separately, in any order,
+and identified by their different enclosing characters:
 
     10 AAPL {$50} [2026-01-15] (lot1)
 
