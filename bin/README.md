@@ -556,10 +556,18 @@ Notes (as of 1.6.7):
 - Use the <https://github.com/peti/hledger-interest#readme>, it's better than the command line help or hackage description.
 - hledger-interest silently ignores $LEDGER_FILE, so be sure to provide a file name explicitly with -f.
 
+### hledger-macos
+
+[hledger-macos](https://github.com/thesmokinator/hledger-macos) (2026) is a native macos GUI for hledger.
+
 ### hledger-sankeymatic
 
 [hledger-sankeymatic](https://github.com/victormihalache/hledger-sankeymatic) helps export hledger data to make flow diagrams at <https://sankeymatic.com>.
 See also [Charts](charts.md).
+
+### hledger-textual
+
+[hledger-textual](https://github.com/thesmokinator/hledger-textual) (2026) is a TUI for hledger, built with python's Textual framework.
 
 ### Other
 
