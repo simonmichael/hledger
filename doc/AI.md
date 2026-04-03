@@ -61,8 +61,8 @@ Here are our current policies for AI use in hledger.
   Currently this means we try to use only Anthropic, Ecosia, local LLMs, and such.
   We'll review/update the list periodically.
 
-- Since writing this policy, I applied for and received Anthropic's 6-month $1200 FOSS credit,
-  and have activated it from 2026-04-01.
+- Since writing this policy, I applied for and received Anthropic's FOSS 6-month Claude Max credit (currently worth $1200),
+  and activated it from 2026-04-01.
   This is helping recover the costs I incurred during initial experimentation.
 
 - We try to keep track of, optimise, and limit our AI resource usage (measured by tokens in & out, eg).
@@ -146,7 +146,8 @@ No, at least not in the ways we're used to. But AI is going to remain "cheap" an
 We should strive for more complete accounting, transparency, and truthful discourse
 that includes all impacts on society and the planet.
 
-### 18 years of development, what was the sudden shortcoming? Was it a shortage of time/labor or a technical problem that humans couldn't solve alone?
+### After 18 years of development, what was the sudden shortcoming?
+Was it a shortage of time/labor or a technical problem that humans couldn't solve alone?
 
 - Lots tracking in hledger was unimplemented for many years,
 because the cost of designing and building it outweighed the need and the available resources
@@ -159,6 +160,52 @@ because the cost of designing and building it outweighed the need and the availa
     It feels like a waste of human spirit and energy.
     - Given the times, this was a good project to motivate exploring the new tech and surrounding issues,
     and how to use it or to respond to others using it.
+
+## Usage
+
+Some notes on tracking AI usage.
+
+### platform.claude.com/usage
+
+For the lots work in the 2.0pre1 release,
+here's an estimate of my (SM's) claude token use (in+out) and cost,
+from <https://platform.claude.com/usage>.
+
+- 2026-01: 133 Mt,   $85
+- 2026-02: 598 Mt,  $551
+- 2026-03: 299 Mt,  $256
+- Total:    ~1 Gt, ~$900
+
+Estimated human dev time: ~150h, market value ~$10k-30k
+
+This report works only for API usage; it shows nothing after switching to subscription billing.
+
+### ccusage
+
+[ccusage](https://ccusage.com) shows data from the claude code chat logs on your machine,
+I believe regardless of how they were billed (API or subscription).
+I'm not sure how durable the data is.
+Probably when old chat logs get cleaned up or deleted, ccusage no longer shows data for those.
+
+`just h ccusage` shows some related report scripts in the Justfile.
+At the start of april, on my machine they show the following.
+I don't know why the numbers are so much lower than the ones from platform.claude.com.
+
+```
+$ j ccusage-journal
+$ j ccusage-bal
+Balance changes in 2026-01-01..2026-04-30, valued at period ends:
+
+           || claude 
+===========++========
+ Commodity ||     Mt 
+ Jan       ||   10.7 
+ Feb       ||   67.1 
+ Mar       ||  432.8 
+ Apr       ||   11.4 
+   Total   ||  521.9 
+ Average   ||  130.5 
+```
 
 ## Related
 

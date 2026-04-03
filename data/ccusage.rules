@@ -1,0 +1,4 @@
+skip     1
+fields   date,inputTokens,outputTokens,cacheCreationTokens,cacheReadTokens,totalTokens,totalCost
+account1 (claude)
+amount1  %totalTokens t @@ $%totalCost

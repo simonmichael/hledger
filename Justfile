@@ -1733,3 +1733,39 @@ installcommithook:
 #     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
+# Show claude code usage as CSV, monthly by default (daily, weekly, monthly, session, blocks..). Not yet clear how accurate this is, see AI.md > Usage.
+@ccusage CMD='monthly' *CCUSAGEOPTS:
+    ccusage {{ CMD }} -O {{ CCUSAGEOPTS }} -j | jq -r ' \
+      first(.. | arrays | select(length > 0 and (.[0] | type == "object"))) \
+      | [.[] | with_entries(select(.value | type != "array" and type != "object"))] \
+      | (.[0] | keys_unsorted) as $k \
+      | ($k | @csv), (.[] | [.[$k[]]] | @csv) \
+    '
+
+# Save daily claude code usage as data/ccusage.journal.
+ccusage-journal:
+    #!/usr/bin/env bash
+    {
+    cat <<'EOS'
+
+    commodity $1.
+    commodity 1,000. t
+    commodity 1,000.0 kt
+    commodity 1,000.0 Mt
+    commodity 1,000.0 Gt
+
+    P 0000-01-01 kt 1000 t
+    P 0000-01-01 Mt 1000 kt
+    P 0000-01-01 Gt 1000 Mt
+
+    EOS
+    just ccusage daily | hledger -f csv:- --rules data/ccusage.rules print -c '1,000,000 t'
+    } > data/ccusage.journal
+
+# Run a hledger command on ccusage.journal.
+@ccusage-run *HLEDGERARGS:
+    hledger -f data/ccusage.journal {{ HLEDGERARGS }}
+
+# Run a vertical-time balance report on ccusage.journal, showing monthly megatokens by default.
+@ccusage-bal *BALARGS:
+    just ccusage-run bal -NATM --transpose --layout=bare -X Mt {{ BALARGS }}
