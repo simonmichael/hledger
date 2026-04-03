@@ -3886,6 +3886,8 @@ This text value may interpolate CSV fields,
 referenced either by their 1-based position in the CSV record (`%N`)
 or by the name they were given in the fields list (`%CSVFIELD`),
 and regular expression [match groups](#match-groups) (`\N`).
+You can also write `%(CSVFIELD)` to delimit the field name from adjacent text
+(eg `%(field)suffix`).
 
 Some examples:
 
@@ -3895,6 +3897,9 @@ amount %4 USD
 
 # combine three fields to make a comment, containing note: and date: tags
 comment note: %somefield - %anotherfield, date: %1
+
+# use parenthesised form when the field name would run into adjacent text
+account1 assets:%(type)checking
 ```
 
 Tips:
@@ -3902,7 +3907,7 @@ Tips:
 - Interpolation strips outer whitespace (so a CSV value like `" 1 "`
 becomes `1` when interpolated)
 ([#1051](https://github.com/simonmichael/hledger/issues/1051)).
-- Interpolations always refer to a CSV field - 
+- Interpolations always refer to a CSV field -
   you can't interpolate a hledger field.
   (See [Referencing other fields](#referencing-other-fields) below).
 

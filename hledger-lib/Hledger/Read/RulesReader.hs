@@ -1127,9 +1127,15 @@ renderTemplate rules record t =
       where
         nonBackslashOrPercent = noneOf ['\\', '%'] <?> "character other than backslash or percent"
         nonRefBackslash = try (char '\\' <* notFollowedBy digitChar) <?> "backslash that does not begin a match group reference"
-        nonRefPercent   = try (char '%'  <* notFollowedBy (satisfy isFieldNameChar)) <?> "percent that does not begin a field reference"
+        nonRefPercent   = try (char '%'  <* notFollowedBy (satisfy (\c -> isFieldNameChar c || c == '('))) <?> "percent that does not begin a field reference"
     matchrefp    = liftA2 T.cons (char '\\') (takeWhile1P (Just "matchref")  isDigit)
-    fieldrefp    = liftA2 T.cons (char '%')  (takeWhile1P (Just "reference") isFieldNameChar)
+    fieldrefp    = try parenFieldrefp <|> bareFieldrefp
+    bareFieldrefp  = liftA2 T.cons (char '%')  (takeWhile1P (Just "reference") isFieldNameChar)
+    parenFieldrefp = do
+      _ <- string "%("
+      name <- takeWhile1P (Just "reference") isFieldNameChar
+      _ <- char ')'
+      return $ "%(" <> name <> ")"
     isFieldNameChar c = isAlphaNum c || c == '_' || c == '-'
 
 -- | Replace something that looks like a Regex match group reference with the
@@ -1155,13 +1161,18 @@ getMatchGroups _ record (RecordMatcher _ regex) =
 getMatchGroups rules record (FieldMatcher _ fieldref regex) =
   regexMatchTextGroups regex $ fromMaybe "" $ replaceCsvFieldReference rules record fieldref
 
--- | Replace something that looks like a reference to a csv field ("%date" or "%1)
--- with that field's value. If it doesn't look like a field reference, or if we
--- can't find a csv field with that name, return nothing.
+-- | Replace something that looks like a reference to a csv field ("%date", "%1",
+-- or "%(date)") with that field's value. If it doesn't look like a field reference,
+-- or if we can't find a csv field with that name, return nothing.
 replaceCsvFieldReference :: CsvRules -> CsvRecord -> CsvFieldReference -> Maybe Text
 replaceCsvFieldReference rules record s = case T.uncons s of
-    Just ('%', fieldname) -> csvFieldValue rules record fieldname
-    _                     -> Nothing
+    Just ('%', rest)
+      | Just ('(', rest') <- T.uncons rest
+      , Just (fieldname, _) <- T.unsnoc rest'  -- strip trailing ')'
+      -> csvFieldValue rules record fieldname
+      | otherwise
+      -> csvFieldValue rules record rest
+    _ -> Nothing
 
 -- | Get the (whitespace-stripped) value of a CSV field, identified by its name or
 -- column number, ("date" or "1"), from the given CSV record, if such a field exists.
