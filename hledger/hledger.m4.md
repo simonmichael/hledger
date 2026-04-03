@@ -1767,14 +1767,14 @@ We call these generically "lot syntax".
 
 hledger's lot syntax keeps all the parts inside braces, comma-separated (like Beancount).
 All parts are optional, but when present they must be in date, label, cost order:
+The date must be in YYYY-MM-DD format, and the label must be in double quotes.
+The cost is a single-commodity hledger [amount](#amounts).
 
     {2026-01-15, "lot1", $50}
     {2026-01-15, $50}
     {$50}
+    {1,23 EUR}
     {}
-
-The date must be in YYYY-MM-DD format, and the label must in double quotes.
-The cost is a single-commodity hledger [amount](#amounts).
 
 When an amount has both a basis and a transacted price, the preferred order is to write {} before @:
 
