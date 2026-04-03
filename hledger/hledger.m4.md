@@ -1755,35 +1755,35 @@ An amount with a cost basis is called a lot.
 The basis is a property of the lot, remaining with it throughout its lifetime.
 It allows us to calculate capital gains/losses when the lot is sold or otherwise disposed of.
 
-In hledger, a cost basis includes
+In hledger, a cost basis has 2-3 parts:
 
-1. The nominal acquisition cost. Usually this is the same as the transacted cost, ie what you paid for it, but not always.
-2. The nominal acquisition date. Usually this is the date you acquired it, but not always.
-3. An optional short text label, when needed to disambiguate lots with the same date, or to attach a mnemonic name.
+1. The nominal acquisition cost. Usually this is the same as the transacted cost, ie what you paid for it.
+2. The nominal acquisition date. Usually this is the date you acquired it.
+3. An optional short text label. This is used to disambiguate lots with the same date, or to attach a mnemonic name.
 
-To record a cost basis, we write a "cost basis annotation" after an amount that is being acquired.
+To record a cost basis, we write an annotation after an amount that is being acquired.
 The same kind of annotation can also be used to identify a particular lot that is being moved or disposed of.
 We call these generically "lot syntax".
 
-hledger's lot syntax keeps all the parts inside braces, comma-separated (like Beancount).
-All parts are optional, but when present they must be in date, label, cost order:
+hledger's lot syntax looks like Beancount's: comma-separated cost basis parts, enclosed in curly braces.
+All parts are optional, but when present they must be in date, label, cost order.
 The date must be in YYYY-MM-DD format, and the label must be in double quotes.
 The cost is a single-commodity hledger [amount](#amounts).
 
     {2026-01-15, "lot1", $50}
     {2026-01-15, $50}
     {$50}
-    {1,23 EUR}
+    {1.000.000,33 EUR}
     {}
 
-When an amount has both a basis and a transacted price, the preferred order is to write {} before @:
+When an amount has both a cost basis and a transacted price, the preferred order is to write {} before @:
 
     -10 AAPL {$50} @ $60
 
-hledger can also read Ledger-style lot syntax, where the parts are written separately, in any order,
+hledger can also read Ledger's lot syntax, where the parts are written separately, in any order,
 and identified by their different enclosing characters:
 
-    10 AAPL {$50} [2026-01-15] (lot1)
+    10 AAPL {$50} [2026-01-15] (lot one)
 
 ## Balance assertions
 
