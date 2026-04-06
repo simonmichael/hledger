@@ -471,13 +471,13 @@ setupJournal meconf = do
       pdesc "accounts of all types exist ?"
       if null typesnotfound
       then p Y (concatMap show accttypes <> " accounts detected")
-      else p N ("no " <> concatMap show typesnotfound <> " accounts found; some reports may not work")
+      else p N ("no " <> concatMap show typesnotfound <> " accounts found; some features may not work")
 
-      pdesc "strict checks are done by default ?"
+      pdesc "strict checks are run by default ?"
       let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
       if strict
       then i Y "commodities and accounts must be declared"
-      else i N "you can use -s to do strict checks"
+      else i N "you can use -s to run them"
 
       pdesc "balance assertions checked by default ?"
       let ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
@@ -508,7 +508,7 @@ setupJournal meconf = do
       then i N ""
       else i Y ("on " <> show (length costbasispostings) <> " postings")
 
-      pdesc "it contains explicit lot accounts ?"
+      pdesc "it contains lot-named accounts ?"
       if null lotaccts
       then i N ""
       else i Y (show (length lotaccts) <> " explicit lots")
