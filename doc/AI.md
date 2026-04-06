@@ -210,7 +210,8 @@ Balance changes in 2026-01-01..2026-04-30, valued at period ends:
 ## Related
 
 Discussions
-- <https://fosstodon.org/@happyborg/116312844334306281> 
+- <https://fosstodon.org/@happyborg/116312844334306281>
+- <https://www.reddit.com/r/plaintextaccounting/comments/1sd1iar/nonai_tools>
 
 Policies
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
@@ -223,6 +224,7 @@ Practitioners
 - Kent Beck: <https://tidyfirst.substack.com/t/genies>,\
   <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
 - Martin Fowler: <https://martinfowler.com/fragments/2026-04-02.html>
+- <https://news.ycombinator.com/item?id=47648828> Eight years of wanting, three months of building with AI
 
 Research
 - [From Technical Debt to Cognitive and Intent Debt: Rethinking Software Health in the Age of AI](https://arxiv.org/pdf/2603.22106)
