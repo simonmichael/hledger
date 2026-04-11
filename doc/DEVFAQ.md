@@ -108,3 +108,9 @@ If you're doing this, it's important to define your scope -
 - Just surface parsing, to get what's explicit in the journal; or also apply hledger semantics to fill in the implicit parts ?
 - Parse a simpler subset of journal format, enough for my own journals; or full journal format, required to parse other people's journals ?
 - A pure new implementation; or am I allowed to run hledger (or link with it) ?
+
+If you can run the hledger command line tool, you could let it do the hard parsing and inferring,
+and get the data out with something like `hledger print -O json`.
+
+Or if you're using haskell (or some language that can link with a haskell library),
+you could link with the hledger or hledger-lib packages and call hledger's routines directly.
