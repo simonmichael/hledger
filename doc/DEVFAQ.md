@@ -92,14 +92,14 @@ Or, instead of ghc-debug-brick you can write a [ghc-debug-client](https://hackag
 
 A few things that might help:
 
-- [CODE](CODE.md)
-- [SPEC-journal](SPEC-journal.md)
 - [hledger manual: Amounts](dev/hledger.md#amounts) (the manual is a kind of spec)
+- [SPEC-journal](SPEC-journal.md)
+- [CODE](CODE.md)
 - the parsers in Hledger.Read.JournalReader and Hledger.Read.Common
 
-> it is not easy to get all the edge cases right
+But: "it is not easy to get all the edge cases right"
 
-Agreed and that is a massive understatement :-)
+Agreed, and that is a massive understatement :-)
 It's not impossible to provide a near-equivalent reimplementation, but a ton of work, even with AI assistance.
 See rustledger for a project that's doing this with Beancount (and hledger-macos for a project that's doing a bit of this with hledger).
 
