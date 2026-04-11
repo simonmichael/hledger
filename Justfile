@@ -1769,3 +1769,8 @@ ccusage-journal:
 # Run a vertical-time balance report on ccusage.journal, showing monthly megatokens by default.
 @ccusage-bal *BALARGS:
     just ccusage-run bal -NATM --transpose --layout=bare -X Mt {{ BALARGS }}
+
+# Show exact daily token use, this month by default.
+@ccusage-daily *BALARGS:
+    just ccusage-bal -D -Xt -p1..tomorrow
+
