@@ -87,3 +87,24 @@ Now in another window, you can run [ghc-debug-brick](https://hackage.haskell.org
 At this point, you can explore memory/profile information, save snapshots, resume execution, etc.
 
 Or, instead of ghc-debug-brick you can write a [ghc-debug-client](https://hackage.haskell.org/package/ghc-debug-client) script to extract specific information.
+
+## How do I write a parser for hledger journals ? Should I ?
+
+A few things that might help:
+
+- [CODE](CODE.md)
+- [SPEC-journal](SPEC-journal.md)
+- [hledger manual: Amounts](dev/hledger.md#amounts) (the manual is a kind of spec)
+- the parsers in Hledger.Read.JournalReader and Hledger.Read.Common
+
+> it is not easy to get all the edge cases right
+
+Agreed and that is a massive understatement :-)
+It's not impossible to provide a near-equivalent reimplementation, but a ton of work, even with AI assistance.
+See rustledger for a project that's doing this with Beancount (and hledger-macos for a project that's doing a bit of this with hledger).
+
+If you're doing this, it's important to define your scope -
+
+- Just surface parsing, to get what's explicit in the journal; or also apply hledger semantics to fill in the implicit parts ?
+- Parse a simpler subset of journal format, enough for my own journals; or full journal format, required to parse other people's journals ?
+- A pure new implementation; or am I allowed to run hledger (or link with it) ?
