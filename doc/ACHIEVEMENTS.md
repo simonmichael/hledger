@@ -20,17 +20,18 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~2k github stars~~
 - ~~in top 30 github starred haskell projects~~
 - ~~in top 20 github starred haskell projects~~
-- **consistently mentioned in "good Haskell apps" discussions**
+- ~~1 low regression major release (no new regressions found within 3 months of release)~~
 - **200 committers**
-- **2 low regression releases in a row** (no new regressions found in 2 consecutive major releases plus 3 months)
-- **[best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)**
+- **consistently mentioned in "good Haskell apps" discussions**
 - **2.0 release**
-- **match ledger speed**
-- **3 low regression releases in a row**
+- **[best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)**
+- **2 low regression releases in a row** (no new regressions found in 2 consecutive major releases plus 3 months)
 - **match ledger committers**
 - **match beancount stars**
 - **match ledger stars**
-- **in top 10 github starred haskell projects**
+- **match ledger speed**
+- **3 low regression releases in a row**
+- ~~in top 10 github starred haskell projects~~
 - **4 low regression releases in a row**
 <!--
 mail lists are a choice these days, we don't use ours much
@@ -40,13 +41,13 @@ mail lists are a choice these days, we don't use ours much
 
 ### Stars
 
-- [Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&Date), with Ledger and Beancount
+- [Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&rustledger/rustledger&Date), with Ledger and Beancount
 
 - [All Github-starred Haskell projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories) rank:
 
 |      | all projects | non programming tools
 |------|--------------|-------------------------------------------------
-| 2026 | #11          | #4 (after pandoc, simplex chat, kmonad)
+| 2026 | #9           | #4 (after pandoc, simplex chat, kmonad)
 | 2025 | #19          | #5 (after pandoc, simplex chat, kmonad, cardano)
 | 2023 | #32          |
 | 2022 | #34          |
