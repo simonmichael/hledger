@@ -18,15 +18,15 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~pretty good cookbook docs~~
 - ~~100 IRC chatters~~
 - ~~2k github stars~~
-- ~~1 low regression major release (no new regressions found within 3 months of release)~~
+- ~~1 low regression release (no new regressions found within 3 months of major release)~~
 - ~~in top 30 github starred haskell projects~~
 - ~~in top 20 github starred haskell projects~~
 - ~~in top 10 github starred haskell projects~~
 - **200 committers**
-- **consistently mentioned in "good Haskell apps" discussions**
 - **2.0 release**
 - **best in class for investment tracking**
-- **2 low regression releases in a row** (no new regressions found in 2 consecutive major releases plus 3 months)
+- **consistently mentioned in "good Haskell apps" discussions**
+- **2 low regression releases in a row**
 - **match ledger committers**
 - **match beancount stars**
 - **match ledger stars**
