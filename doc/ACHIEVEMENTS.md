@@ -18,20 +18,20 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~pretty good cookbook docs~~
 - ~~100 IRC chatters~~
 - ~~2k github stars~~
+- ~~1 low regression major release (no new regressions found within 3 months of release)~~
 - ~~in top 30 github starred haskell projects~~
 - ~~in top 20 github starred haskell projects~~
-- ~~1 low regression major release (no new regressions found within 3 months of release)~~
+- ~~in top 10 github starred haskell projects~~
 - **200 committers**
 - **consistently mentioned in "good Haskell apps" discussions**
 - **2.0 release**
-- **[best in class for investment tracking](https://github.com/simonmichael/hledger/issues/1015)**
+- **best in class for investment tracking**
 - **2 low regression releases in a row** (no new regressions found in 2 consecutive major releases plus 3 months)
 - **match ledger committers**
 - **match beancount stars**
 - **match ledger stars**
 - **match ledger speed**
 - **3 low regression releases in a row**
-- ~~in top 10 github starred haskell projects~~
 - **4 low regression releases in a row**
 <!--
 mail lists are a choice these days, we don't use ours much
