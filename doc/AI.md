@@ -212,6 +212,9 @@ Balance changes in 2026-01-01..2026-04-30, valued at period ends:
 Discussions
 - <https://fosstodon.org/@happyborg/116312844334306281>
 - <https://www.reddit.com/r/plaintextaccounting/comments/1sd1iar/nonai_tools>
+- <https://discourse.haskell.org/t/a-compact-for-responsible-use-of-ai-tools/13923>
+- <https://discourse.haskell.org/t/how-to-filter-out-vibe-coded-dependencies/13918>
+- [The Closing of the Frontier](https://tanyaverma.sh/2026/04/10/closing-of-the-frontier.html) ([discussion](https://news.ycombinator.com/item?id=47742790))
 
 Policies
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
