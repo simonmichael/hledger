@@ -21,7 +21,6 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - ~~1 low regression release (no new regressions found within 3 months of major release)~~
 - ~~in top 30 github starred haskell projects~~
 - ~~in top 20 github starred haskell projects~~
-- ~~in top 10 github starred haskell projects~~
 - **200 committers**
 - **2.0 release**
 - **best in class for investment tracking**
@@ -30,6 +29,7 @@ Being a software maintainer means unending toil in mostly-obscurity, so you've g
 - **match ledger committers**
 - **match beancount stars**
 - **match ledger stars**
+- **in top 10 github starred haskell projects**
 - **match ledger speed**
 - **3 low regression releases in a row**
 - **4 low regression releases in a row**
