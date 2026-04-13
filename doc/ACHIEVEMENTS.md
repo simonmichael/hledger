@@ -43,11 +43,11 @@ mail lists are a choice these days, we don't use ours much
 
 - [Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&rustledger/rustledger&Date), with Ledger and Beancount
 
-- [All Github-starred Haskell projects](https://github.com/search?o=desc&q=language%3AHaskell&ref=searchresults&s=stars&type=repositories) rank:
+- [All Github-starred Haskell projects](https://github.com/search?o=desc&q=language%3AHaskell++stars:>4000&ref=searchresults&s=stars&type=repositories) rank:
 
 |      | all projects | non programming tools
 |------|--------------|-------------------------------------------------
-| 2026 | #9           | #4 (after pandoc, simplex chat, kmonad)
+| 2026 | #13          | #4 (after pandoc, simplex chat, kmonad)
 | 2025 | #19          | #5 (after pandoc, simplex chat, kmonad, cardano)
 | 2023 | #32          |
 | 2022 | #34          |
