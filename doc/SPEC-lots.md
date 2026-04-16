@@ -207,8 +207,7 @@ equity transfers, partial transfers with fees, and cost source inference.
 
 ### Classification rules
 
-Classification proceeds in several steps. Virtual (parenthesised) postings
-are never classified.
+Classification proceeds in several steps. 
 
 **1. Same-account transfer pairs.**
 Within each account, negative and positive postings with the same commodity
@@ -258,6 +257,8 @@ These require an asset account type and a lotful commodity or account
   exists. Without any of these, no lot can be created and classification is
   skipped.
 
+Virtual (parenthesised) postings are never classified as lot postings.
+
 **4. Gain accounts.**
 Postings in accounts with type `Gain` (and not otherwise classified) get
 ptype `gain`.
@@ -268,7 +269,7 @@ With `--lots`, a real posting with a nonzero lotful commodity in an asset accoun
 that was not classified (no `_ptype` tag) is an error.
 This catches lotful postings that need lot tracking but weren't recognised.
 
-Zero-amount lotful postings (e.g. `0 AAPL = 100 AAPL` balance assertions)
+Zero-amount lotful postings (e.g. for balance assertions like `0 AAPL = 100 AAPL`)
 are exempt: no lot movement occurs, so no classification is needed.
 This applies regardless of whether the amount was written explicitly or left implicit.
 
@@ -353,62 +354,65 @@ we infer a transacted cost from the cost basis.
 
 ## Reduction methods
 
-The reduction methods are:
+The reduction method, also known as booking method, is the order in which lots are disposed (or transferred from).
+It is configurable per account and per commodity via the `lots:` tag.
+(And also per posting via the `lots:` tag on a posting comment ?)
 
-FIFO (oldest first), LIFO (newest first), HIFO (highest cost first),
-AVERAGE (weighted average cost basis), and SPECID (explicit selection via lot selector).
-All methods are per-account: they only consider lots within the posting's account.
+The supported reduction methods are:
+SPECID (explicit selection via lot selector),
+FIFO (oldest first),
+LIFO (newest first),
+HIFO (highest cost first),
+and
+AVERAGE (weighted average cost basis).
+If not specified, FIFO is the default.
+These are per-account: they select lots and enforce/validate their order only within the posting's account.
 
-Global validation variants: FIFOALL, LIFOALL, HIFOALL, AVERAGEALL.
-These select per-account like the base methods, but validate that the selected lots
-would also be chosen first if all accounts' lots were considered together.
+There are also variants which consider lots across all accounts: FIFOALL, LIFOALL, HIFOALL, AVERAGEALL.
+These select lots within the posting's account, but they also validate that the selected lots
+would be the ones chosen if all accounts' lots were merged into a single pool.
 If not, an error is raised showing which lots on other accounts have higher priority.
-AVERAGEALL additionally computes the weighted average cost across the global pool
-(all accounts), not just the posting's account.
 
-AVERAGE uses FIFO consumption order for bookkeeping, but applies
-the pool's weighted average per-unit cost as the disposal cost basis.
-The method is configurable per account and per commodity via the `lots:` tag,
-and per posting via the `lots:` tag on a posting comment.
-
-In future, the method might be specified with an annotation like {!METHOD, ...} inside the lot syntax.
+AVERAGE/AVERAGEALL reduce lots in FIFO order, but use the pool's weighted average per-unit cost as the cost basis for disposal.
 
 ## Lot transactions
 
 Lot transactions are transactions with lot postings.
-We require that a transaction's lot postings are all of similar type: all acquire, or all transfer, or all dispose.
-So lot transactions can be classified as "acquire", "transfer", or "dispose" (we don't record this explicitly).
+If a transaction has multiple lot postings, we (mostly ?) require that they are all of similar type: all acquire, or all transfer, or all dispose.
+So a lot transaction can be broadly classified as "acquire", "transfer", or "dispose".
 
 ## Gain postings
 
-A gain posting is a posting to an account of Gain type (a subtype of Revenue),
-declared explicitly with `type:G` (e.g. `account revenue:gains  ; type:G`).
-Gain type is not inferred from account names.
-We use this gain account to record capital gain and/or capital loss (depending on the amount sign).
-The special account type helps hledger identify these postings.
+A gain posting is a posting to an account of Gain type (a subtype of Revenue).
+Gain postings appear in disposal transactions, to record the capital gain or loss.
+The special account type helps hledger identify these postings during transaction balancing.
+
+Unlike other account types, Gain can not be inferred from account names;
+it must be declared explicitly with a `type:` tag.
+Eg `account revenues:gain    ; type:G`.
+This, and the balancing rules described next, help avoid breakage when moving between hledger 1 and 2, and between hledger 2's non-lots and lots modes.
 
 ## Transaction balancing
 
 All journal entries, including lot-related ones, must pass normal transaction balancing.
-When summing postings it uses their transacted costs (not cost basis), if any.
-And it excludes (ignores) capital gain/loss postings, identified by their Gain account type.
-When the postings' sum is nonzero, and amountless postings exist, it can infer one balancing amount in each unbalanced commodity.
+When summing postings it uses their transacted costs if any.
+It ignores cost basis, and it ignores capital gain/loss postings, identified by their Gain account type.
+
+If the postings' sum is nonzero, and amountless postings exist, it can infer one balancing amount in each unbalanced commodity.
+Note gain postings are ignored here too (so an amountless gain posting will remain amountless at this stage).
 
 ## Disposal balancing
 
-Journal entries involving lot disposals get this additional balancing pass.
-When summing postings it uses their cost basis (not transacted cost), if any.
-And it includes gain postings, or will infer one if needed.
+Disposal transactions must also pass this additional balancing step (when running in lots mode).
+When summing postings it uses their cost basis if any (not their transacted cost); and it includes gain postings.
 
-A disposal transaction's total realised capital gain/loss is calculated by 
+A disposal transaction's total capital gain/loss is calculated by 
 comparing the lot acquisition cost(s) for each dispose posting, and the total transacted disposal price.
 
-If the transaction contains a gain posting (or more than one), the recorded gain is expected to match the calculated gain.
-Otherwise, a gain posting is inferred, posting the calculated gain to the alphabetically first Gain account.
-Or if there is an amountless gain posting (at most one per commodity), we fill in its amount.
-This helps the transaction to pass disposal balancing.
-
-The inclusion/exclusion gain postings allows both kinds of transaction balancing to succeed with the same journal entries.
+If an explicit gain posting (or more than one) exists in the transaction, it/they are expected to match the calculated gain.
+Or if there is an amountless gain posting (at most one per commodity), its amount will be filled in.
+If there is no explicit gain posting at all, one will be generated; it will use the alphabetically first Gain account.
+Or if no Gain account is declared, it will use `revenue:gains`. <!-- `revenues:gain -->
 
 ## Balance assertions
 
