@@ -228,6 +228,7 @@ Practitioners
   <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
 - Martin Fowler: <https://martinfowler.com/fragments/2026-04-02.html>
 - <https://news.ycombinator.com/item?id=47648828> Eight years of wanting, three months of building with AI
+- Raffael Schneider: <https://raskell.io/articles/looking-back-on-2025>
 
 Research
 - [From Technical Debt to Cognitive and Intent Debt: Rethinking Software Health in the Age of AI](https://arxiv.org/pdf/2603.22106)
