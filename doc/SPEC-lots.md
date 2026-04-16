@@ -354,7 +354,7 @@ we infer a transacted cost from the cost basis.
 
 ## Reduction methods
 
-The reduction method, also known as booking method, is the order in which lots are disposed (or transferred from).
+The reduction method, also known as booking method, is the order in which lots are "reduced" (disposed or transferred from).
 It is configurable per account and per commodity via the `lots:` tag.
 (And also per posting via the `lots:` tag on a posting comment ?)
 
