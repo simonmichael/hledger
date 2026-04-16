@@ -38,7 +38,7 @@ In the journal, lot operations can be recorded
 3. or fully explicitly, requiring no inference.
 
 A typical workflow is to use 1 primarily, or when processing/converting old journals;
-and use `print` to convert to 3 for troubleshooting or reporting.
+and use `print` to convert to 3 when troubleshooting or reporting.
 
 ## Transacted cost and cost basis
 
@@ -63,7 +63,7 @@ When displaying a posting with both, we show cost basis before transacted cost (
 
 A lot's cost basis also serves as the lot name. 
 
-In hledger, a full lot name is rendered as either {YYYY-MM-DD, "LABEL", COST} or {YYYY-MM-DD, COST}.
+In hledger, a full lot name looks like {YYYY-MM-DD, "LABEL", COST} or {YYYY-MM-DD, COST}.
 That is, two or three parts inside curly braces: 
 - a date in strict ISO format
 - an optional label in double quotes
@@ -72,22 +72,22 @@ with a comma and space between them.
 When parsing, spaces inside the braces and around the commas are optional and ignored.
 This is similar to Beancount's lot syntax, except it requires DLC order (date, label, cost) and it supports hledger's flexible amount syntax.
 
-Full lot names may be used as subaccount names, identifying lots within a parent account.
-Eg assets:stocks:aaaa:{2026-02-10, "lot1", $50}.
-So the label and the cost's commodity symbol may not contain double-quotes, colons, or semicolons.
-When a lot subaccount is written explicitly by the user, the cost basis is parsed from the subaccount name
-and applied to the posting's amounts (see "Inferring cost basis from lot subaccount names").
-When checking account names, lot subaccounts are ignored; only the base account needs to be declared.
-
 Partial lot names are also used; these have some or all of the parts missing.
-The minimal partial lot name is rendered as {}.
+{} is a lot name/cost basis annotation with all parts missing.
+
+Full lot names can be used, internally or explicitly in the journal, as subaccount names, to identify specific lots within a parent account.
+Eg `assets:stocks:aaaa:{2026-02-10, "label", $50}`.
+This means the label and the cost's commodity symbol may not contain double-quotes, colons, or semicolons.
+
+When a lot subaccount is written explicitly in this way, it is equivalent to writing cost basis annotations after the posting amount.
+(See also "Inferring cost basis from lot subaccount names" below.)
+If it is written in both places, they should agree.
+
+Lot subaccounts are ignored when checking account names, eg with `check accounts` (only the parent account needs to be declared).
 
 ## Parsing lot names
 
-Full lot names can appear as the final part of account names, like `:{...}`.
-In such journal entries, the lot attributes are parsed from the lot subaccount name,
-as if they were written as amount annotations.
-(And if lot information is written in both places, they should agree.)
+Full lot names can appear as the final part of account names, like `assets:stocks:{2026-01-01, $10}`.
 
 When parsing, naive splitting on commas would fail because commas can appear inside:
 - cost amounts as decimal separators (e.g. `€1,50`)
