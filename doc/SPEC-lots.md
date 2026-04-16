@@ -359,7 +359,7 @@ It is configurable per account and per commodity via the `lots:` tag.
 (And also per posting via the `lots:` tag on a posting comment ?)
 
 The supported reduction methods are:
-SPECID (explicit selection via lot selector),
+SPECID (specific identification via lot selector),
 FIFO (oldest first),
 LIFO (newest first),
 HIFO (highest cost first),
@@ -395,24 +395,28 @@ This, and the balancing rules described next, help avoid breakage when moving be
 ## Transaction balancing
 
 All journal entries, including lot-related ones, must pass normal transaction balancing.
-When summing postings it uses their transacted costs if any.
-It ignores cost basis, and it ignores capital gain/loss postings, identified by their Gain account type.
+Transaction balancing is not aware of lots or capital gain. It
 
-If the postings' sum is nonzero, and amountless postings exist, it can infer one balancing amount in each unbalanced commodity.
-Note gain postings are ignored here too (so an amountless gain posting will remain amountless at this stage).
+- sums postings using their transacted costs if any (ignoring cost basis)
+- ignores capital gain/loss postings, identified by their Gain account type.
+- checks that the postings' sum is zero;
+  or if it is nonzero and there are postings with no amount, it infers the balancing amount (at most one per commodity).
+
+Since gain postings are ignored here, an amountless gain posting will remain amountless at this stage.
 
 ## Disposal balancing
 
-Disposal transactions must also pass this additional balancing step (when running in lots mode).
-When summing postings it uses their cost basis if any (not their transacted cost); and it includes gain postings.
+When running in lots mode, disposal transactions must pass another kind of balancing:
+disposal balancing, which checks or infers capital gain. It
 
-A disposal transaction's total capital gain/loss is calculated by 
-comparing the lot acquisition cost(s) for each dispose posting, and the total transacted disposal price.
-
-If an explicit gain posting (or more than one) exists in the transaction, it/they are expected to match the calculated gain.
-Or if there is an amountless gain posting (at most one per commodity), its amount will be filled in.
-If there is no explicit gain posting at all, one will be generated; it will use the alphabetically first Gain account.
-Or if no Gain account is declared, it will use `revenue:gains`. <!-- `revenues:gain -->
+- sums postings using their cost basis if any (not transacted cost)
+- checks that the postings' sum is zero;
+  or if it is nonzero, assumes the imbalance is the (implicitly) recorded capital gain
+- calculates the capital gain (by comparing the lot acquisition cost(s) and the transacted disposal price)
+- checks that the recorded gain matches the calculated gain;
+  or if the gain amount is missing, adds it (at most one per commodity);
+  or if there's no gain posting at all, adds one
+  (using the alphabetically first Gain account, or if none is declared, `revenue:gains`). <!-- `revenues:gain -->
 
 ## Balance assertions
 
