@@ -7156,10 +7156,12 @@ Gain accounts must be declared explicitly; they are not inferred from the accoun
 This helps keep hledger 2's lots mode self-contained, and transaction balancing stable,
 so that the same journals can be compatible with hledger 1, hledger 2, and hledger 2 in lots mode.
 
-So if you're using hledger 2's lots mode, you'll need to declare at least one account as `type: G`. Eg:
+So if you're using hledger 2's lots mode, and you have recorded gain postings in your entries,
+you'll need to declare that gain account as `type: G`, to help transaction balancing and disposal balancing.
+Eg:
 
 ```journal
-account revenue:gains  ; type: G
+account revenues:gain  ; type: G
 ```
 
 
