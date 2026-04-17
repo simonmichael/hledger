@@ -394,8 +394,10 @@ This, and the balancing rules described next, help avoid breakage when moving be
 
 ## Transaction balancing
 
-All journal entries, including lot-related ones, must pass normal transaction balancing.
-Transaction balancing is not aware of lots or capital gain. It
+All transactions recorded in the journal, including lot-related ones, must pass normal transaction balancing.
+Transaction balancing is not aware of lots or capital gain; it just checks and ensures that the transaction is balanced,
+in the sense that the debits (positives) and credits (negatives) are equal.
+It
 
 1. sums postings using their transacted costs if any (ignoring cost basis)
 2. ignores capital gain/loss postings, identified by their Gain account type.
@@ -406,8 +408,9 @@ Since gain postings are ignored here, an amountless gain posting will remain amo
 
 ## Disposal balancing
 
-When running in lots mode, disposal transactions must pass another kind of balancing:
-disposal balancing, which checks or infers capital gain. It
+When running in lots mode, disposal transactions must pass another kind of balancing.
+Disposal balancing checks and ensures that the transaction is balanced when capital gain/loss is included.
+It
 
 1. sums postings using their cost basis if any (not transacted cost)
 2. checks that the postings' sum is zero;
