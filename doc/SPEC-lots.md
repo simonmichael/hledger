@@ -397,9 +397,9 @@ This, and the balancing rules described next, help avoid breakage when moving be
 All journal entries, including lot-related ones, must pass normal transaction balancing.
 Transaction balancing is not aware of lots or capital gain. It
 
-- sums postings using their transacted costs if any (ignoring cost basis)
-- ignores capital gain/loss postings, identified by their Gain account type.
-- checks that the postings' sum is zero;
+1. sums postings using their transacted costs if any (ignoring cost basis)
+2. ignores capital gain/loss postings, identified by their Gain account type.
+3. checks that the postings' sum is zero;
   or if it is nonzero and there are postings with no amount, it infers the balancing amount (at most one per commodity).
 
 Since gain postings are ignored here, an amountless gain posting will remain amountless at this stage.
@@ -409,11 +409,11 @@ Since gain postings are ignored here, an amountless gain posting will remain amo
 When running in lots mode, disposal transactions must pass another kind of balancing:
 disposal balancing, which checks or infers capital gain. It
 
-- sums postings using their cost basis if any (not transacted cost)
-- checks that the postings' sum is zero;
+1. sums postings using their cost basis if any (not transacted cost)
+2. checks that the postings' sum is zero;
   or if it is nonzero, assumes the imbalance is the (implicitly) recorded capital gain
-- calculates the capital gain (by comparing the lot acquisition cost(s) and the transacted disposal price)
-- checks that the recorded gain matches the calculated gain;
+3. calculates the capital gain (by comparing the lot acquisition cost(s) and the transacted disposal price)
+4. checks that the recorded gain matches the calculated gain;
   or if the gain amount is missing, adds it (at most one per commodity);
   or if there's no gain posting at all, adds one
   (using the alphabetically first Gain account, or if none is declared, `revenue:gains`). <!-- `revenues:gain -->
