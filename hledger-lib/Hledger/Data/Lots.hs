@@ -107,7 +107,7 @@ module Hledger.Data.Lots (
 import Control.Applicative ((<|>))
 import Data.Bifunctor (first)
 import Control.Monad (foldM, guard, unless, when)
-import Data.List (intercalate, sort, sortOn)
+import Data.List (find, intercalate, sort, sortOn)
 import Data.Ord (Down(..))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -848,7 +848,7 @@ unclassifiedLotWarning j t idx p =
         (c:_, _)   -> T.unpack c ++ " is declared lotful (commodity lots: tag)"
         ([], True)  -> T.unpack (paccount p) ++ " is declared lotful (account lots: tag)"
         _           -> "posting involves a lotful commodity or account"
-      (f, line, _, ex) = makePostingErrorExcerptByIndex t idx
+      (f, line, _, ex) = makePostingErrorExcerptByIndex t idx Nothing
   in printf "%s:%d:\n%s\n" f line ex
      ++ source ++ " but this posting was not classified as\n"
      ++ "acquire, dispose, or transfer. Lot state will not be updated.\n"
@@ -988,7 +988,7 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
 
     -- Process a transfer pair; record expanded postings keyed by original index.
     processOnePair (st, m) (fromIdx, fromP, toIdx, toP) = do
-      (st', fromPs, toPs) <- processTransferPair verbosetags j t st fromP toP
+      (st', fromPs, toPs) <- processTransferPair verbosetags j t st fromIdx fromP toP
       let m' = M.insert fromIdx fromPs $ M.insert toIdx toPs m
       return (st', m')
 
@@ -1318,9 +1318,9 @@ processDisposePosting verbosetags j t lotState p = do
 -- | Process a transfer pair: select lots from the source account (transfer-from)
 -- and recreate them under the destination account (transfer-to).
 -- Returns updated LotState and two lists of expanded postings (from, to).
-processTransferPair :: Bool -> Journal -> Transaction -> LotState -> Posting -> Posting
+processTransferPair :: Bool -> Journal -> Transaction -> LotState -> Int -> Posting -> Posting
                     -> Either String (LotState, [Posting], [Posting])
-processTransferPair verbosetags j t lotState fromP toP = do
+processTransferPair verbosetags j t lotState fromIdx fromP toP = do
     -- Extract lotful amount and lot selector from transfer-from.
     -- When cost basis is present, use it directly as the lot selector.
     -- When absent (bare transfer on a lotful commodity), use a wildcard selector.
@@ -1358,6 +1358,40 @@ processTransferPair verbosetags j t lotState fromP toP = do
         -- Transfers are always per-account (scoped to source), but ordering follows the method.
         (method, methodSource) = resolveReductionMethodWithSource j fromP commodity
         fromBaseAcct = lotBaseAccount (paccount fromP)
+
+    -- Check for priced fee counterpart: if the fee portion matches a non-asset
+    -- posting with a transacted price, it represents a taxable disposal, not a
+    -- silent transfer fee. Error and suggest explicit split postings.
+    let isPricedFeeCounterpart q =
+          let qAcct = lotBaseAccount (paccount q)
+              isNonAsset = maybe True (not . isAssetType) (journalAccountType j qAcct)
+          in isNonAsset
+             && any (\a -> acommodity a == commodity
+                        && aquantity a == feeQty
+                        && isJust (acost a)) (amountsRaw (pamount q))
+        showAmt q = showAmountWith noCostFmt (amountSetQuantity q fromAmt)
+        fromAcct  = T.unpack fromBaseAcct
+    when (feeQty > 0) $
+      case find isPricedFeeCounterpart (tpostings t) of
+        Nothing -> Right ()
+        Just feeP ->
+          let col  = 5
+              col2 = col + T.length (paccount fromP) - 1
+              (f, line, _, ex) = makePostingErrorExcerptByIndex t fromIdx (Just (col, Just col2))
+              priceStr = case [acost a | a <- amountsRaw (pamount feeP), acommodity a == commodity, isJust (acost a)] of
+                Just (UnitCost  c) : _ -> "@ "  ++ showAmountWith noCostFmt c
+                Just (TotalCost c) : _ -> "@@ " ++ showAmountWith noCostFmt c
+                _                      -> "@ $X"
+          in Left $ printf "%s:%d:\n%s\n" f line ex ++ unlines
+            ["This lot transfer seems to have a fee of " ++ showAmt feeQty ++ ", with a transacted price,"
+            ,"indicating a disposal. Please use separate postings for the transfer and fee,"
+            ,"to help entry analysis. Eg:"
+            ,"    " ++ fromAcct ++ "  " ++ showAmt (negate toQty)
+            ,"    " ++ fromAcct ++ "  " ++ showAmt (negate feeQty) ++ " " ++ priceStr
+
+            ]
+
+
 
     -- Select lots from source account for the full fromQty
     selected <- first (enrichLotError method methodSource fromBaseAcct commodity (tdate t) (journalFilePaths j))
