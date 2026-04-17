@@ -457,6 +457,43 @@ However, cost basis inference from lot subaccount names and lot classification r
 (since they affect transaction balancing and other pipeline stages).
 See SPEC-finalising for more details of the implementation.
 
+### Auto-splitting lot transfer fees
+
+Before classification, hledger detects a common "transfer with priced fee"
+pattern and rewrites it into explicit transfer + disposal postings.
+
+If a transaction has a bare negative lotful asset posting whose absolute
+quantity exceeds the matching positive quantity by some amount, and a priced
+non-asset posting (typically an expense with `@` price) in the same commodity
+matches that excess, the negative posting is split into two:
+
+- a transfer portion with the matching positive quantity, and
+- a dispose portion with the excess quantity and the counterpart's transacted price.
+
+This lets natural journal entries like:
+
+```
+2026-03-09 transfer
+    assets:custodial        -1 ETH
+    assets:cold wallet   0.999601 ETH
+    expenses:fees       0.000399 ETH @ $1,992.36
+    income:gains
+```
+
+classify and balance as if the user had written:
+
+```
+2026-03-09 transfer
+    assets:custodial                 -0.999601 ETH
+    assets:custodial  -0.000399 ETH @ $1,992.36
+    assets:cold wallet                0.999601 ETH
+    expenses:fees     0.000399 ETH @ $1,992.36
+    income:gains
+```
+
+The two split postings are tagged as generated postings; the original is
+preserved via `poriginal` for debugging.
+
 ## When might cost basis differ from the transacted cost ?
 
 In many real-world scenarios, a lot's cost basis (the value recorded for tax purposes)

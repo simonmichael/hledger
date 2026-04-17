@@ -107,7 +107,7 @@ module Hledger.Data.Lots (
 import Control.Applicative ((<|>))
 import Data.Bifunctor (first)
 import Control.Monad (foldM, guard, unless, when)
-import Data.List (find, intercalate, sort, sortOn)
+import Data.List (intercalate, sort, sortOn)
 import Data.Ord (Down(..))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -334,11 +334,89 @@ mergeCostBasis a b = do
 -- | Classify lot-related postings by adding ptype tags.
 -- Must be called after journalAddAccountTypes so account types are available.
 -- The verbosetags parameter controls whether the ptype tags will be made visible in comments.
+-- Before classification, try to auto-split lot transfers with priced fees
+-- into a transfer portion and a dispose portion, so both get classified correctly.
 journalClassifyLotPostings :: Bool -> Journal -> Journal
-journalClassifyLotPostings verbosetags j = journalMapTransactions (transactionClassifyLotPostings verbosetags lookupType commodityIsLotful) j
+journalClassifyLotPostings verbosetags j =
+  journalMapTransactions
+    ( transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
+    . transactionAutoSplitPricedFeeOutflows verbosetags lookupType commodityIsLotful
+    ) j
   where
     lookupType = journalAccountType j
     commodityIsLotful = journalCommodityUsesLots j
+
+-- | Detect a lot transfer with a priced fee: a bare negative lotful asset posting whose
+-- absolute quantity exceeds its positive counterparts, where the excess matches
+-- a priced non-asset posting (typically a fee paid in the base commodity).
+-- And if detected split the negative posting into a transfer portion (matching the positive sum)
+-- and a dispose portion (carrying the counterpart's transacted price), so that
+-- classification can correctly tag the two roles.
+--
+-- If no such pattern is found, the transaction is returned unchanged.
+-- The original posting is preserved via 'poriginal'; the split postings are
+-- tagged 'generated-posting' to mark their provenance.
+transactionAutoSplitPricedFeeOutflows
+  :: Bool
+  -> (AccountName -> Maybe AccountType)
+  -> (CommoditySymbol -> Bool)
+  -> Transaction -> Transaction
+transactionAutoSplitPricedFeeOutflows verbosetags lookupAccountType commodityIsLotful t =
+    t{tpostings = concatMap maybeSplit (tpostings t)}
+  where
+    ps = tpostings t
+    isAsset    acct = maybe False isAssetType (lookupAccountType (lotBaseAccount acct))
+    isNonAsset acct = not (isAsset acct)
+
+    maybeSplit p = case findSplit p of
+      Just (p1, p2) -> [p1, p2]
+      Nothing       -> [p]
+
+    findSplit p = do
+      guard $ isAsset (paccount p)
+      -- P must have exactly one bare negative lotful amount
+      let amts = amountsRaw (pamount p)
+      case amts of
+        [a] | aquantity a < 0
+            , commodityIsLotful (acommodity a)
+            , isNothing (acost a)
+            , isNothing (acostbasis a)
+          -> do
+            let fromQty = negate (aquantity a)
+                comm    = acommodity a
+                -- Sum positive bare postings in the same commodity (any account)
+                toQty   = sum [ aquantity pa
+                              | q  <- ps, paccount q /= paccount p || pamount q /= pamount p
+                              , pa <- amountsRaw (pamount q)
+                              , acommodity pa == comm
+                              , aquantity pa > 0
+                              , isNothing (acost pa)
+                              , isNothing (acostbasis pa)
+                              ]
+                feeQty  = fromQty - toQty
+            guard $ feeQty > 0 && toQty > 0
+            feeAcost <- findPricedCounterpart comm feeQty
+            let a1 = amountSetQuantity (negate toQty) a
+                a2 = (amountSetQuantity (negate feeQty) a){ acost = Just feeAcost }
+                tag = postingAddHiddenAndMaybeVisibleTag False verbosetags
+                        (generatedPostingTagName, "")
+                p1 = tag p{ pamount = mixedAmount a1, poriginal = Just (originalPosting p) }
+                p2 = tag p{ pamount = mixedAmount a2, poriginal = Just (originalPosting p) }
+            Just (p1, p2)
+        _ -> Nothing
+
+    findPricedCounterpart comm qty =
+      let candidates = do
+            q  <- ps
+            guard $ isNonAsset (paccount q)
+            pa <- amountsRaw (pamount q)
+            guard $ acommodity pa == comm
+            guard $ aquantity pa == qty
+            c  <- maybe [] pure (acost pa)
+            pure c
+      in case candidates of
+           (c:_) -> Just c
+           []    -> Nothing
 
 -- | Classify lot-related postings by adding a ptype tag.
 -- For each posting with a cost basis (any account type):
@@ -1330,7 +1408,7 @@ processDisposePosting verbosetags j t lotState p = do
 -- Returns updated LotState and two lists of expanded postings (from, to).
 processTransferPair :: Bool -> Journal -> Transaction -> LotState -> Int -> Posting -> Posting
                     -> Either String (LotState, [Posting], [Posting])
-processTransferPair verbosetags j t lotState fromIdx fromP toP = do
+processTransferPair verbosetags j t lotState _fromIdx fromP toP = do
     -- Extract lotful amount and lot selector from transfer-from.
     -- When cost basis is present, use it directly as the lot selector.
     -- When absent (bare transfer on a lotful commodity), use a wildcard selector.
@@ -1368,40 +1446,6 @@ processTransferPair verbosetags j t lotState fromIdx fromP toP = do
         -- Transfers are always per-account (scoped to source), but ordering follows the method.
         (method, methodSource) = resolveReductionMethodWithSource j fromP commodity
         fromBaseAcct = lotBaseAccount (paccount fromP)
-
-    -- Check for priced fee counterpart: if the fee portion matches a non-asset
-    -- posting with a transacted price, it represents a taxable disposal, not a
-    -- silent transfer fee. Error and suggest explicit split postings.
-    let isPricedFeeCounterpart q =
-          let qAcct = lotBaseAccount (paccount q)
-              isNonAsset = maybe True (not . isAssetType) (journalAccountType j qAcct)
-          in isNonAsset
-             && any (\a -> acommodity a == commodity
-                        && aquantity a == feeQty
-                        && isJust (acost a)) (amountsRaw (pamount q))
-        showAmt q = showAmountWith noCostFmt (amountSetQuantity q fromAmt)
-        fromAcct  = T.unpack fromBaseAcct
-    when (feeQty > 0) $
-      case find isPricedFeeCounterpart (tpostings t) of
-        Nothing -> Right ()
-        Just feeP ->
-          let col  = 5
-              col2 = col + T.length (paccount fromP) - 1
-              (f, line, _, ex) = makePostingErrorExcerptByIndex t fromIdx (Just (col, Just col2))
-              priceStr = case [acost a | a <- amountsRaw (pamount feeP), acommodity a == commodity, isJust (acost a)] of
-                Just (UnitCost  c) : _ -> "@ "  ++ showAmountWith noCostFmt c
-                Just (TotalCost c) : _ -> "@@ " ++ showAmountWith noCostFmt c
-                _                      -> "@ $X"
-          in Left $ printf "%s:%d:\n%s\n" f line ex ++ unlines
-            ["This lot transfer seems to have a fee of " ++ showAmt feeQty ++ ", with a transacted price,"
-            ,"indicating a disposal. Please use separate postings for the transfer and fee,"
-            ,"to help entry analysis. Eg:"
-            ,"    " ++ fromAcct ++ "  " ++ showAmt (negate toQty)
-            ,"    " ++ fromAcct ++ "  " ++ showAmt (negate feeQty) ++ " " ++ priceStr
-
-            ]
-
-
 
     -- Select lots from source account for the full fromQty
     selected <- first (enrichLotError method methodSource fromBaseAcct commodity (tdate t) (journalFilePaths j))

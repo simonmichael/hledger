@@ -7058,6 +7058,9 @@ you only need to declare the base account (eg `account assets:stocks`), not each
   Transfer postings should not have a transacted price.
   If the destination receives less than the source sends (eg due to a fee deducted by an exchange),
   the fee portion of lots is consumed from the source without being recreated at the destination.
+  If that fee also appears as a priced non-asset posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`),
+  hledger automatically splits the source posting into a transfer portion and a priced disposal portion,
+  so that the disposal is detected correctly.
 - **Dispose**: a negative lot posting sells from one or more existing lots.
   It must have a transacted price (the selling price), either explicit or inferred.
 

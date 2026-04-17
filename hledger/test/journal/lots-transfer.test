@@ -450,11 +450,12 @@ account revenue:gains  ; type:G
 $ hledger -f- bal assets --lots -N
               0.98 A  assets:x1:{2026-01-15, $100}
 
-# ** 22. Transfer+fee with priced expense: error suggests explicit split postings.
-# When the fee portion matches a priced non-asset posting, hledger detects
-# this as a taxable disposal and asks the user to write explicit postings.
+# ** 22. Transfer+fee with priced expense: hledger auto-splits the
+# outflow into a transfer portion and a priced dispose portion,
+# so that the disposal is properly detected and gain is calculated.
 <
 commodity A  ; lots:
+account revenue:gains  ; type:G
 
 2026-01-15 buy
     assets:x1    1 A {$100}
@@ -467,22 +468,14 @@ commodity A  ; lots:
     revenue:gains
 
 $ hledger -f- print --lots -x desc:transfer
->2
-hledger: Error: -:8:
-  | 2026-02-17 transfer with priced fee
-8 |     assets:x1                 -1 A
-  |     ^^^^^^^^^
-  |     expenses:fees    0.05 A @ $150
-  |     assets:x2               0.95 A
-  |     revenue:gains              $-8
-  |     revenue:gains           0.05 A
+2026-02-17 transfer with priced fee
+    assets:x1:{2026-01-15, $100}           -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100} @ $150
+    expenses:fees                                       0.05 A @ $150
+    assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
+    revenue:gains                                               $-2.5
 
-This lot transfer seems to have a fee of 0.05 A, with a transacted price,
-indicating a disposal. Please use separate postings for the transfer and fee,
-to help entry analysis. Eg:
-    assets:x1  -0.95 A
-    assets:x1  -0.05 A @ $150
->=1
+>=
 
 # ** 23. This transfer+fee calculates a clean single-commodity gain amount.
 # Disposal balancing values the priced expense at its transacted cost (acost),
