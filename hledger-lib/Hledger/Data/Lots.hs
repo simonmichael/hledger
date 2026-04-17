@@ -126,7 +126,7 @@ import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
-import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts)
 import Hledger.Data.Transaction (transactionCommodityStylesWith, txnTieKnot)
 import Hledger.Data.Types
@@ -687,6 +687,9 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
               -- Use the transaction's local precision for zero checks,
               -- matching normal transaction balancing (Balancing.hs TBPExact).
               looksZero = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
+              -- Style inferred gain amounts with the canonical commodity styles,
+              -- padding trailing zeros to the canonical precision (eg $2.5 -> $2.50).
+              styleInferred = styleAmounts (journalCommodityStylesWith SoftRounding j)
           case amountlessGainPs of
             -- No amountless gain postings
             []
@@ -696,7 +699,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
                   if looksZero residual
                     then Right t
                     else do
-                      let inferredAmt = maNegate residual
+                      let inferredAmt = styleInferred $ maNegate residual
                           gp = postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
                                  $ tagGain nullposting{paccount = gainAccount, pamount = inferredAmt}
                           t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
@@ -709,7 +712,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
             -- One amountless gain posting: infer its amount, then check
             [gp] -> do
               let otherSum = foldMap postingCostBasisAmount (otherPs ++ amountfulGainPs)
-                  inferredAmt = maNegate otherSum
+                  inferredAmt = styleInferred $ maNegate otherSum
                   gp' = gp{ pamount   = inferredAmt
                           , poriginal = Just $ originalPosting gp
                           }

@@ -488,6 +488,7 @@ to help entry analysis. Eg:
 # Disposal balancing values the priced expense at its transacted cost (acost),
 # so the residual stays in $ only.
 <
+commodity $1.00
 commodity A  ; lots:
 account revenue:gains  ; type:G
 
@@ -508,6 +509,6 @@ $ hledger -f- print -x --lots desc:transfer
     assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100} @ $150
     expenses:fees                                       0.05 A @ $150
     assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
-    revenue:gains                                               $-2.5
+    revenue:gains                                              $-2.50
 
 >=
