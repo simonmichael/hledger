@@ -7061,6 +7061,8 @@ you only need to declare the base account (eg `account assets:stocks`), not each
   If that fee also appears as a priced non-asset posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`),
   hledger automatically splits the source posting into a transfer portion and a priced disposal portion,
   so that the disposal is detected correctly.
+  Plain `print` shows the user's original entry; `print -x` (and `print --lots`) show the split form
+  explicitly, so the output round-trips correctly.
 - **Dispose**: a negative lot posting sells from one or more existing lots.
   It must have a transacted price (the selling price), either explicit or inferred.
 

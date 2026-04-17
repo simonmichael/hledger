@@ -491,8 +491,18 @@ classify and balance as if the user had written:
     income:gains
 ```
 
-The two split postings are tagged as generated postings; the original is
-preserved via `poriginal` for debugging.
+The original user posting is preserved via `poriginal` on the transfer portion
+(p1), and the dispose portion (p2) is tagged `_split-posting`. As a result:
+
+- Plain `print` shows the user's original entry (the `_split-posting`-tagged
+  portion is hidden, and the remaining portion displays at the original
+  quantity via `poriginal`).
+- `print -x` shows the split form explicitly (both portions visible at their
+  post-split quantities).
+- `print --lots` also shows the split form for auto-split transactions, so
+  that the output round-trips correctly (preserving the capital gain that
+  would otherwise be lost if the dispose portion were hidden). Other
+  transactions still display in their mostly-original form.
 
 ## When might cost basis differ from the transacted cost ?
 

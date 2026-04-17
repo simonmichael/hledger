@@ -167,8 +167,15 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           | opts ^. infer_costs = id
           -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
           | has (value . _Just) opts = id
+          -- with --lots, keep the explicit form for transactions containing auto-split postings
+          -- (needed for round-tripping); other transactions fall through to the default.
+          | boolopt "lots" (rawopts_ opts) = \t ->
+              if any (hasTag splitPostingTagName) (tpostings t)
+              then t
+              else transactionWithMostlyOriginalPostings t
           -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
           | otherwise = transactionWithMostlyOriginalPostings
+          where hasTag name p = name `elem` map fst (ptags p)
 
         -- Like maybeoriginalamounts, but also keeps the inferred amount for
         -- balance assignment postings (which had no explicit amount).
@@ -183,16 +190,19 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
 
 -- | Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names, and the inferred values of any auto postings.
+-- Drops postings tagged 'splitPostingTagName' (synthetic fragments carved off other
+-- postings, eg by lot transfer auto-split), so the user sees their original entry.
 -- This is mainly for showing transactions with the amounts in their original journal format.
 transactionWithMostlyOriginalPostings :: Transaction -> Transaction
-transactionWithMostlyOriginalPostings = transactionMapPostings postingMostlyOriginal
+transactionWithMostlyOriginalPostings t =
+  transactionMapPostings postingMostlyOriginal
+    t{tpostings = filter (not . hasTag splitPostingTagName) (tpostings t)}
   where
     postingMostlyOriginal p = orig
         { paccount = paccount p
-        , pamount = pamount $ if isGenerated then p else orig }
-      where
-        orig = originalPosting p
-        isGenerated = "_generated-posting" `elem` map fst (ptags p)
+        , pamount = pamount $ if hasTag generatedPostingTagName p then p else orig }
+      where orig = originalPosting p
+    hasTag name p = name `elem` map fst (ptags p)
 
 entriesReportAsText :: EntriesReport -> TL.Text
 entriesReportAsText = entriesReportAsTextHelper showTransaction

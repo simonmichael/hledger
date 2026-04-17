@@ -477,7 +477,59 @@ $ hledger -f- print --lots -x desc:transfer
 
 >=
 
-# ** 23. This transfer+fee calculates a clean single-commodity gain amount.
+# ** 23. Same transfer+fee entry as above, but plain print (no -x) shows
+# the user's original unsplit entry, courtesy of poriginal on the transfer
+# portion and the _split-posting tag hiding the dispose portion.
+<
+commodity A  ; lots:
+account revenue:gains  ; type:G
+
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with priced fee
+    assets:x1     -1 A
+    expenses:fees  0.05 A @ $150
+    assets:x2      0.95 A
+    revenue:gains
+
+$ hledger -f- print desc:transfer
+2026-02-17 transfer with priced fee
+    assets:x1                 -1 A
+    expenses:fees    0.05 A @ $150
+    assets:x2               0.95 A
+    revenue:gains
+
+>=
+
+# ** 24. plain print with --lots shows the full split form for transactions
+# containing auto-split postings, so output round-trips correctly.
+<
+commodity A  ; lots:
+account revenue:gains  ; type:G
+
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with priced fee
+    assets:x1     -1 A
+    expenses:fees  0.05 A @ $150
+    assets:x2      0.95 A
+    revenue:gains
+
+$ hledger -f- print --lots desc:transfer
+2026-02-17 transfer with priced fee
+    assets:x1:{2026-01-15, $100}           -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100} @ $150
+    expenses:fees                                       0.05 A @ $150
+    assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
+    revenue:gains                                               $-2.5
+
+>=
+
+# ** 25. This transfer+fee calculates a clean single-commodity gain amount.
 # Disposal balancing values the priced expense at its transacted cost (acost),
 # so the residual stays in $ only.
 <
