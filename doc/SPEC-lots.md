@@ -5,6 +5,7 @@ Here is the current specification for lots functionality, most of which has been
 See also 
 - hledger manual: Cost basis
 - hledger manual: Lot reporting
+- <https://github.com/simonmichael/hledger/blob/main/examples/lots/lot-entries.journal>
 - <https://joyful.com/hledger+lot+tracking>
 - <https://github.com/simonmichael/hledger/issues/1015>
 
@@ -466,6 +467,11 @@ can differ from the price actually paid to acquire it. These may include:
 
 ## Examples
 
+<https://github.com/simonmichael/hledger/blob/main/examples/lots/lot-entries.journal>
+
+<!--
+NEEDS UPDATE
+
 ### Disposal
 
 A very implicit disposal:
@@ -491,6 +497,8 @@ Explanation:
 1. revenue:gains is recognised as a Gain account so ignored by normal transaction balancing
 2. $60 sale price or $900 sale amount is inferred to balance the transaction
 
-if in --lots mode:
+and when running in lots mode:
+
 3. 15 AAPL are reduced from one or more existing lots selected with assets:stock's or AAPL's or default (FIFO) reduction method
 4. disposal balancing infers the gain amount based on the reduction order, selected lot(s)' cost bases, and sale amount
+-->
