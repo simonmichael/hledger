@@ -483,3 +483,31 @@ to help entry analysis. Eg:
     assets:x1  -0.95 A
     assets:x1  -0.05 A @ $150
 >=1
+
+# ** 23. This transfer+fee calculates a clean single-commodity gain amount.
+# Disposal balancing values the priced expense at its transacted cost (acost),
+# so the residual stays in $ only.
+<
+commodity A  ; lots:
+account revenue:gains  ; type:G
+
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with priced fee
+    assets:x1  -0.95 A
+    assets:x1  -0.05 A @ $150
+    expenses:fees  0.05 A @ $150
+    assets:x2      0.95 A
+    revenue:gains
+
+$ hledger -f- print -x --lots desc:transfer
+2026-02-17 transfer with priced fee
+    assets:x1:{2026-01-15, $100}           -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100} @ $150
+    expenses:fees                                       0.05 A @ $150
+    assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
+    revenue:gains                                               $-2.5
+
+>=

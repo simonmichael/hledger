@@ -413,7 +413,10 @@ When running in lots mode, disposal transactions must pass another kind of balan
 Disposal balancing checks and ensures that the transaction is balanced when capital gain/loss is included.
 It
 
-1. sums postings using their cost basis if any (not transacted cost)
+1. sums postings using a per-amount valuation hierarchy:
+   cost basis if present (`quantity × basis_price`),
+   else transacted cost (`@`/`@@`) if present,
+   else the raw amount
 2. checks that the postings' sum is zero;
   or if it is nonzero, assumes the imbalance is the (implicitly) recorded capital gain
 3. calculates the capital gain (by comparing the lot acquisition cost(s) and the transacted disposal price)
@@ -421,6 +424,9 @@ It
   or if the gain amount is missing, adds it (at most one per commodity);
   or if there's no gain posting at all, adds one
   (using the alphabetically first Gain account, or if none is declared, `revenue:gains`). <!-- `revenues:gain -->
+
+This valuation extends transaction balancing's rule (acost or raw) by adding cost basis on top —
+disposal balancing is "transaction balancing using cost basis when available."
 
 ## Balance assertions
 

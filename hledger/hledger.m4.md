@@ -7008,7 +7008,8 @@ Add `--lots` to any command to enable lot tracking. This activates:
 - **Lot calculation** — acquired lots become subaccounts; disposals and
   transfers select from existing lots.
 - **Disposal balancing** — disposal transactions are checked for balance
-  at cost basis; gain amounts/postings are inferred if missing.
+  using cost basis where available, otherwise transacted cost; gain
+  amounts/postings are inferred if missing.
 
 ## Lot subaccounts
 

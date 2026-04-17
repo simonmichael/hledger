@@ -741,10 +741,17 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       | not (hasAmount p) = nullmixedamt
       | otherwise         = foldMap amountCostBasisValue (amountsRaw (pamount p))
 
+    -- Value an amount for disposal balancing, using a 3-step hierarchy:
+    -- cost basis -> transacted cost -> raw amount.
+    -- This extends transaction balancing's "acost or raw" rule by preferring
+    -- cost basis when available.
     amountCostBasisValue :: Amount -> MixedAmount
     amountCostBasisValue a = case acostbasis a >>= cbCost of
       Just basisCost -> mixedAmount basisCost{aquantity = aquantity a * aquantity basisCost}
-      Nothing        -> mixedAmount a
+      Nothing -> case acost a of
+        Just (UnitCost  c) -> mixedAmount c{aquantity = aquantity a * aquantity c}
+        Just (TotalCost c) -> mixedAmount c
+        Nothing            -> mixedAmount a
 
     disposalBalanceError :: Transaction -> [MixedAmount] -> MixedAmount -> String
     disposalBalanceError t amts imbalance =
