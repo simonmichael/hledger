@@ -463,7 +463,7 @@ STACKTEST := STACK + ' test --fast'
 @unittest:
     ($STACK exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
 
-SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=32'
+SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=40'
 
 #  --hide-successes
 
