@@ -1,8 +1,9 @@
-# stack build plan using GHC 9.12.2
+# stack build plan using GHC 9.12.4
 # https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.12
 # https://downloads.haskell.org/ghc/9.12.1/docs/users_guide/9.12.1-notes.html
 # https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/9.12.2-notes.html
 # https://downloads.haskell.org/ghc/9.12.2/docs/users_guide/9.12.3-notes.html
+# https://downloads.haskell.org/ghc/9.12.4/docs/users_guide/9.12.4-notes.html
 
 packages:
 - hledger-lib
@@ -10,16 +11,7 @@ packages:
 - hledger-ui
 - hledger-web
 
-resolver: nightly-2025-12-30
-
-extra-deps:
-# for #2410, #2512:
-- haskeline-0.8.4.1
-# currently out of stackage:
-- yesod-static-1.6.1.0  # <1.6.1.1 to avoid https://github.com/psibi/crypton-conduit/issues/3
-- yesod-test-1.6.19
-- cryptonite-0.30
-- cryptonite-conduit-0.2.2
+resolver: nightly-2026-04-17
 
 nix:
   pure: false
