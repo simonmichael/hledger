@@ -76,10 +76,12 @@ journalFinalise
   18. journalInferMarketPricesFromTransactions  -- infer market prices from costs
   19. journalRenumberAccountDeclarations  -- renumber account declarations for consistent ordering
 
-  -- Lot calculation
-  20. journalCalculateLots              -- with --lots: evaluate lot selectors, apply reduction methods,
+  -- Lot calculation (always runs; --lots is a display-time flag)
+  20. journalCheckLotsTagValues         -- validate lots: tag values on commodity/account declarations
+  21. journalCalculateLots              -- evaluate lot selectors, apply reduction methods,
                                         -- calculate lot balances, add explicit lot subaccounts,
                                         -- infer cost basis for bare disposals, normalize transacted cost
+  22. journalInferAndCheckDisposalBalancing  -- infer gain amounts and check disposal transactions balance at cost basis
 ```
 
 ## Sequencing constraints
@@ -178,4 +180,9 @@ Several steps only run with specific flags:
 | journalAddAutoPostings            | --auto            |
 | journalTagCostsAndEquity (2nd)    | --infer-costs     |
 | journalInferEquityFromCosts       | --infer-equity    |
-| journalCalculateLots              | --lots            |
+
+Lot inference (`journalCheckLotsTagValues`, `journalCalculateLots`,
+`journalInferAndCheckDisposalBalancing`) runs unconditionally as part of finalising.
+The `--lots` flag is a display-time toggle that controls whether reports show the
+full lot detail or a collapsed view (via `journalCollapseLotDetail` in the
+report-loading layer); it does not gate any pipeline step.

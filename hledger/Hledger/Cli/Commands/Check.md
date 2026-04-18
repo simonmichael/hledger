@@ -41,12 +41,16 @@ These important checks are performed by default, by almost all hledger commands:
 - **assertions** - all balance assertions in the journal are passing.
   [Balance assertions] are a strong defense against errors, catching many problems.
   This check is on by default, but if it gets in your way, you can disable it temporarily
-  with `-I`/`--ignore-assertions`, or as a default by adding that flag to your config file.
-  (Then use `-s`/`--strict` or `hledger check assertions` when you want to enable it).
+  with `-I` or `--ignore-assertions`, or as a default by adding that flag to your config file.
+  If you put it in your config file, you can override that with `-s`/`--strict` or `hledger check lots`.
+
+- **lots** - all [lot-related](#lot-reporting) journal entries are valid.
+  Checks lot posting classifications, lot movements, capital gain amounts, and correct balancing of disposal transactions.
 
 ### Strict checks
 
-When the `-s`/`--strict` flag is used (AKA [strict mode]), all commands will perform the following additional checks (and `assertions`, above).
+When the `-s`/`--strict` flag is used (AKA [strict mode]), all commands will perform the following additional checks
+(plus the `assertions` and `lots` checks, overriding the ignore flags above).
 These provide extra error-catching power to help you keep your data clean and correct:
 
 - **balanced** - like `autobalanced`, but implicit conversions between commodities are not allowed;
@@ -64,12 +68,6 @@ These provide extra error-catching power to help you keep your data clean and co
 ### Other checks
 
 These are not wanted by everyone, but can be run using the `check` command:
-
-- **lots** - all lot tracking calculations succeed.
-  Checks lots tag values on declarations, lot posting classification,
-  calculation of lot movements, capital gains,
-  and correct balancing of disposal transactions.
-  Stops at the first error.
 
 - **tags** - all tags used must be [declared](#tag-directive).
   This prevents mis-spelled tag names.

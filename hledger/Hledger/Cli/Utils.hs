@@ -95,7 +95,7 @@ withPossibleJournal opts cmd = do
 -- | Apply some journal transformations, if enabled by options, that should happen late.
 -- These happen after parsing, finalising the journal, strict checks, and .latest filtering/updating,
 -- but before report calculation. They are, in processing order:
--- --pivot, --anonymise error message, --obfuscate.
+-- --pivot, --anonymise error message, --obfuscate, and (when --lots is off) collapsing lot detail.
 --
 -- Why not do these in journalFinalise ?
 -- That step is supposed to check the data's intrinsic correctness, regardless of view options;
@@ -106,6 +106,16 @@ journalTransform opts =
       maybePivot opts
   <&> maybeWarnAboutAnon opts
   <&> maybeObfuscate opts
+  <&> maybeCollapseLotDetail opts
+
+-- | When --lots is absent, collapse lot-tracking detail (strip lot subaccounts,
+-- drop split-posting fragments, strip cost basis annotations, use poriginal
+-- amounts) so reports show the user's original form. When --lots is set, the
+-- journal keeps its fully-processed lot detail.
+maybeCollapseLotDetail :: CliOpts -> Journal -> Journal
+maybeCollapseLotDetail opts
+  | boolopt "lots" (rawopts_ opts) = id
+  | otherwise                     = journalCollapseLotDetail
 
 -- | If the --pivot option is present, replace the journal's account names by specified other values.
 maybePivot :: CliOpts -> Journal -> Journal

@@ -4,11 +4,15 @@
 
 # ** 1. Simple transfer - gets ptype:transfer-from and ptype:transfer-to tags
 <
+2026-01-01 Buy
+    assets:broker1    10 AAPL {$100} @ $100
+    assets:cash
+
 2026-01-03 Transfer
     assets:broker1   -10 AAPL {$100}
     assets:broker2    10 AAPL {$100}
 
-$ hledger -f- print --verbose-tags
+$ hledger -f- print --verbose-tags desc:Transfer
 2026-01-03 Transfer
     assets:broker1    -10 AAPL {$100}  ; ptype: transfer-from
     assets:broker2     10 AAPL {$100}  ; ptype: transfer-to
@@ -175,21 +179,23 @@ $ hledger -f- bal assets:broker --lots
 commodity A  ; lots:
 
 2026-01-15 buy
-    assets:a    1 A {$100}
+    assets:a    1.02 A {$100} @ $100
     assets:cash
 
 2026-02-17 transfer with fee
     assets:a       -1 A {$100}
     assets:b        1 A {$100}
-    assets:a    -0.02 A {$100}
-    expenses:fees  $2
+    assets:a    -0.02 A {$100} @ $100
+    expenses:fees   $2
+    revenues:gains
 
 $ hledger -f- print --verbose-tags date:2026-02-17
 2026-02-17 transfer with fee
-    assets:a            -1 A {$100}  ; ptype: transfer-from
-    assets:b             1 A {$100}  ; ptype: transfer-to
-    assets:a         -0.02 A {$100}  ; ptype: dispose
-    expenses:fees                $2
+    assets:a                    -1 A {$100}  ; ptype: transfer-from
+    assets:b                     1 A {$100}  ; ptype: transfer-to
+    assets:a          -0.02 A {$100} @ $100  ; ptype: dispose
+    expenses:fees                        $2
+    revenues:gains
 
 >=
 

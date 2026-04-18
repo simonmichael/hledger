@@ -182,7 +182,7 @@ inputflags = [
     ])
   ,flagNone ["infer-costs"] (setboolopt "infer-costs") "infer conversion equity postings from costs"
   ,flagNone ["infer-equity"] (setboolopt "infer-equity") "infer costs from conversion equity postings"
-  ,flagNone ["lots"] (setboolopt "lots") "calculate and show lots"
+  ,flagNone ["lots"] (setboolopt "lots") "show lot subaccounts and other lot details"
   -- history of this flag so far, lest we be confused:
   --  originally --infer-value
   --  2021-02 --infer-market-price added, --infer-value deprecated

@@ -32,7 +32,7 @@ $ hledger -f - print
 
 >=
 
-# ** 3. Cost basis is not inferred for negative amounts (dispose postings).
+# ** 3. A dispose in a lotful commodity without a prior acquire errors at load time.
 <
 commodity AAPL   ; lots:
 
@@ -41,11 +41,8 @@ commodity AAPL   ; lots:
     assets:cash
 
 $ hledger -f - print
-2024-01-01 sell stock
-    assets:brokerage    -10 AAPL @ $150
-    assets:cash
-
->=
+>2 /no lots available for commodity AAPL/
+>= 1
 
 # ** 4. Cost basis is not inferred when it has been explicitly recorded.
 <

@@ -299,6 +299,7 @@ $ hledger -f- print --lots
 >=1
 
 # ** 22. Inferred transacted cost is attached to the lotful posting (commodity lots: tag).
+# Lot calculation also infers a cost basis from the cost, visible with -x.
 <
 commodity AAPL  ; lots:
 
@@ -308,8 +309,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print -x
 2026-01-15 buy
-    assets:cash                $-600
-    assets:broker    10 AAPL @@ $600
+    assets:cash                      $-600
+    assets:broker    10 AAPL {$60} @@ $600
 
 >=
 

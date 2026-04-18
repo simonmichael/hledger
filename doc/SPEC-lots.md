@@ -27,10 +27,21 @@ Historically, hledger has not provided much lot-tracking assistance:
 
 ## Lots mode
 
-There is a new `--lots` general flag, which enables
+Lot inference, tracking, and error checking are always performed when loading a journal,
+as part of journal finalising (see SPEC-finalising.md). Any journal with lot-related
+content (lotful commodities/accounts, cost basis annotations, or disposals) is validated
+up front. Journals with no lot activity pay near-zero cost via an internal fast path.
 
-- automatic lot inference, tracking and error checking
-- display of per-lot subaccounts and balances in all reports.
+The `--lots` general flag is a display-time toggle. It controls whether reports show
+
+- per-lot subaccounts in the account tree, and
+- the full detailed form of lot-related transactions (split postings, inferred cost
+  basis annotations, synthetic balance-assertion placeholders, etc.)
+
+When `--lots` is absent, reports show a collapsed view: lot subaccounts are hidden,
+synthetic placeholder postings are dropped, and inferred gain amounts appear on the
+base (parent) gain account rather than on per-lot detail accounts. Inferred gains are
+visible in reports like `incomestatement` even without `--lots`.
 
 In the journal, lot operations can be recorded
 
@@ -452,9 +463,30 @@ postings (e.g. `assets:cash`) and opening transaction postings retain their asse
 
 ## Processing pipeline
 
-Most lot-related processing is optional, enabled by the --lots flag.
-However, cost basis inference from lot subaccount names and lot classification run unconditionally
-(since they affect transaction balancing and other pipeline stages).
+All lot-related processing runs unconditionally during journal finalising:
+
+1. **journalInferBasisFromAccountNames** — parse cost basis from any lot subaccount
+   names (`{...}` components) in posting account names.
+2. **journalClassifyLotPostings** — tag postings as acquire/dispose/transfer-from/transfer-to/gain.
+3. **journalInferPostingsTransactedCost** — infer `@` from `{}` on acquires (before balancing).
+4. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
+5. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
+   apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
+   disposals, normalise transacted cost.
+6. **journalInferAndCheckDisposalBalancing** — infer gain amounts and check disposal
+   transactions balance at cost basis.
+
+These all raise errors when the journal contains lot-related content that can't be
+resolved (missing lot cost, ambiguous selectors, dispose before acquire, malformed
+`lots:` tag values, etc.).
+
+The `--lots` flag is a display toggle consumed in the report-loading layer
+(`journalTransform` in `Hledger.Cli.Utils`). When absent, `journalCollapseLotDetail`
+strips lot subaccount suffixes from account names and drops synthetic `_split-posting`
+and `_lot-parent-assertion` postings from each transaction. Posting amounts are left
+alone; `print` relies on its existing `transactionWithMostlyOriginalPostings` logic to
+revert to `poriginal` when displaying non-explicit output.
+
 See SPEC-finalising for more details of the implementation.
 
 ### Auto-splitting lot transfer fees

@@ -1,0 +1,77 @@
+# * Lot display mode (--lots as a display toggle)
+#
+# Lot inference and validation always run during journal finalising.
+# --lots is a display-time flag that controls whether reports show the full
+# lot detail or a collapsed view.
+
+# ** 1. balance without --lots collapses lot subaccounts to the parent account.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:stocks    10 AAPL {$50} @ $50
+    assets:cash     $-500
+
+$ hledger -f- bal assets
+               $-500  assets:cash
+             10 AAPL  assets:stocks
+--------------------
+               $-500
+             10 AAPL  
+>=
+
+# ** 2. balance --lots shows per-lot subaccounts.
+$ hledger -f- bal assets --lots
+               $-500  assets:cash
+             10 AAPL  assets:stocks:{2026-01-01, $50}
+--------------------
+               $-500
+             10 AAPL  
+>=
+
+# ** 3. incomestatement shows inferred capital gain on the base gain account
+# even without --lots (gains are always quantified).
+<
+commodity AAPL  ; lots:
+account revenue:gains  ; type:G
+
+2026-01-01 buy
+    assets:stocks    10 AAPL {$50} @ $50
+    assets:cash     $-500
+
+2026-02-01 sell
+    assets:stocks   -10 AAPL {$50} @ $70
+    assets:cash      $700
+    revenue:gains
+
+$ hledger -f- is
+Income Statement 2026-01-01..2026-02-01
+
+               || 2026-01-01..2026-02-01 
+===============++========================
+ Revenues      ||                        
+---------------++------------------------
+ revenue:gains ||                   $200 
+---------------++------------------------
+               ||                   $200 
+===============++========================
+ Expenses      ||                        
+---------------++------------------------
+---------------++------------------------
+               ||                      0 
+===============++========================
+ Net:          ||                   $200 
+>=
+
+# ** 4. A malformed lots: tag value on a commodity declaration is a hard error
+# at load time, regardless of --lots.
+<
+commodity AAPL  ; lots: BADMETHOD
+
+2026-01-01 buy
+    assets:stocks    10 AAPL {$50} @ $50
+    assets:cash
+
+$ hledger -f- balance
+>2 /invalid|unknown|BADMETHOD/
+>= 1

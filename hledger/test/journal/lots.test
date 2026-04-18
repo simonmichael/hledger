@@ -44,41 +44,37 @@ $ hledger -f- print
 
 >=
 
-# ** 4. Partial: date only.
+# ** 4. Partial: date only. Lot calculation now requires a cost at load time,
+# so a date-only annotation with no cost or price errors.
 <
 2026-01-01
     assets:investment    10 AAPL {2026-01-01}
     assets:cash
 
 $ hledger -f- print
-2026-01-01
-    assets:investment    10 AAPL {2026-01-01}
-    assets:cash
+>2 /has no lot cost|has no cost basis or price/
+>= 1
 
->=
-
-# ** 5. Partial: label only.
+# ** 5. Partial: label only.  Like 4, no cost, so lot calculation errors.
 <
 2026-01-01
     assets:investment    10 AAPL {"lot1"}
     assets:cash
 
 $ hledger -f- print
-2026-01-01
-    assets:investment    10 AAPL {"lot1"}
-    assets:cash
-
->=
+>2 /has no lot cost|has no cost basis or price/
+>= 1
 
 # ** 6. Parsing: a lot subaccount name with date and cost,
 # with commas in the commodity symbol and a comma decimal mark.
-# The commas should not disrupt parsing of the parts.
+# The commas should not disrupt parsing of the parts.  Shown with --lots
+# so the lot subaccount stays visible.
 <
 2000-01-01 buy
     assets:{2026-01-01, "an, odd, commodity" 1,5}     2 AAA
     assets
 
-$ hledger -f- print
+$ hledger -f- print --lots
 2000-01-01 buy
     assets:{2026-01-01, "an, odd, commodity" 1,5}    2 AAA {2026-01-01, "an, odd, commodity" 1,5}
     assets
@@ -91,7 +87,7 @@ $ hledger -f- print
     assets:{2026-01-01, "a, b, b", "an, odd, commodity" 1,5}     2 AAA
     assets
 
-$ hledger -f- print
+$ hledger -f- print --lots
 2000-01-01 buy
     assets:{2026-01-01, "a, b, b", "an, odd, commodity" 1,5}    2 AAA {2026-01-01, "a, b, b", "an, odd, commodity" 1,5}
     assets
@@ -104,7 +100,7 @@ $ hledger -f- print
     assets:{2026-01-01, "a, b, b", 1,5 "an, odd, commodity"}     2 AAA
     assets
 
-$ hledger -f- print
+$ hledger -f- print --lots
 2000-01-01 buy
     assets:{2026-01-01, "a, b, b", 1,5 "an, odd, commodity"}    2 AAA {2026-01-01, "a, b, b", 1,5 "an, odd, commodity"}
     assets
@@ -143,125 +139,27 @@ $ hledger -f- print
 >2 /cannot be combined/
 >=1
 
-# ** 12. Empty cost basis annotations like {} are also preserved in print output.
+# ** 12. Empty cost basis annotations like {} are a cost-basis-present marker
+# but with no cost; lot calculation now errors at load time.
 <
 2026-01-01
     assets:broker    10 AAPL {}
     assets:cash
 
 $ hledger -f- print
+>2 /has no lot cost|has no cost basis or price/
+>= 1
+
+# ** 13. print's json output exposes lot info in the acostbasis field.
+<
 2026-01-01
-    assets:broker      10 AAPL {}
+    assets:broker    10 AAPL {$50}
     assets:cash
 
->=
-
-# ** 13. print's json output shows lot info in the acostbasis field.
-$ hledger -f- print -O json
-[
-  {
-    "tcode": "",
-    "tcomment": "",
-    "tdate": "2026-01-01",
-    "tdate2": null,
-    "tdescription": "",
-    "tindex": 1,
-    "tpostings": [
-      {
-        "paccount": "assets:broker",
-        "pamount": [
-          {
-            "acommodity": "AAPL",
-            "acost": null,
-            "acostbasis": {
-              "cbCost": null,
-              "cbDate": null,
-              "cbLabel": null
-            },
-            "aquantity": {
-              "decimalMantissa": 10,
-              "decimalPlaces": 0,
-              "floatingPoint": 10
-            },
-            "astyle": {
-              "ascommodityside": "R",
-              "ascommodityspaced": true,
-              "asdecimalmark": ".",
-              "asdigitgroups": null,
-              "asprecision": 0,
-              "asrounding": "NoRounding"
-            }
-          }
-        ],
-        "pbalanceassertion": null,
-        "pcomment": "",
-        "pdate": null,
-        "pdate2": null,
-        "poriginal": null,
-        "preal": "RealPosting",
-        "pstatus": "Unmarked",
-        "ptags": [
-          [
+$ hledger -f- print -O json | grep -E '"cbCost"|"_ptype"|"acquire"' | head -3
+              "cbCost": {
             "_ptype",
             "acquire"
-          ]
-        ],
-        "ptransaction_": "1"
-      },
-      {
-        "paccount": "assets:cash",
-        "pamount": [
-          {
-            "acommodity": "AAPL",
-            "acost": null,
-            "acostbasis": {
-              "cbCost": null,
-              "cbDate": null,
-              "cbLabel": null
-            },
-            "aquantity": {
-              "decimalMantissa": -10,
-              "decimalPlaces": 0,
-              "floatingPoint": -10
-            },
-            "astyle": {
-              "ascommodityside": "R",
-              "ascommodityspaced": true,
-              "asdecimalmark": ".",
-              "asdigitgroups": null,
-              "asprecision": 0,
-              "asrounding": "NoRounding"
-            }
-          }
-        ],
-        "pbalanceassertion": null,
-        "pcomment": "",
-        "pdate": null,
-        "pdate2": null,
-        "poriginal": null,
-        "preal": "RealPosting",
-        "pstatus": "Unmarked",
-        "ptags": [],
-        "ptransaction_": "1"
-      }
-    ],
-    "tprecedingcomment": "",
-    "tsourcepos": [
-      {
-        "sourceColumn": 1,
-        "sourceLine": 1,
-        "sourceName": "-"
-      },
-      {
-        "sourceColumn": 1,
-        "sourceLine": 4,
-        "sourceName": "-"
-      }
-    ],
-    "tstatus": "Unmarked",
-    "ttags": []
-  }
-]
 
 # ** 14. print -O beancount produces Beancount lot syntax.
 <
@@ -273,12 +171,12 @@ $ hledger -f- print -O json
     assets:investment    5 TSLA {$200} [2026-01-02]
     assets:cash
 
-2026-01-03 Buy stocks with date only
-    assets:investment    3 MSFT [2026-01-03]
+2026-01-03 Buy stocks with cost and date
+    assets:investment    3 MSFT {$300} [2026-01-03]
     assets:cash
 
-2026-01-04 Buy stocks with label only
-    assets:investment    2 GOOG (lot4)
+2026-01-04 Buy stocks with cost and label
+    assets:investment    2 GOOG {$400} (lot4)
     assets:cash
 
 $ hledger -f- print -O beancount
@@ -294,12 +192,12 @@ $ hledger -f- print -O beancount
     Assets:Investment    5 TSLA {200 USD, 2026-01-02}
     Assets:Cash
 
-2026-01-03 * "Buy stocks with date only"
-    Assets:Investment    3 MSFT {2026-01-03}
+2026-01-03 * "Buy stocks with cost and date"
+    Assets:Investment    3 MSFT {300 USD, 2026-01-03}
     Assets:Cash
 
-2026-01-04 * "Buy stocks with label only"
-    Assets:Investment    2 GOOG {"lot4"}
+2026-01-04 * "Buy stocks with cost and label"
+    Assets:Investment    2 GOOG {400 USD, "lot4"}
     Assets:Cash
 
 >=

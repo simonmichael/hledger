@@ -6995,9 +6995,10 @@ account assets:stocks  ; lots: LIFO
 
 If no value is specified, the default is FIFO.
 
-## --lots
+## Lots and gains calculation
 
-Add `--lots` to any command to enable lot tracking. This activates:
+When reading a journal that contains lot-related entries, hledger does extra processing
+to infer missing information and calculate/check lot movements and capital gains:
 
 - **Lot posting classification** — lot-related postings are tagged as `acquire`, `dispose`,
   `transfer-from`, `transfer-to`, or `gain` (via a hidden `ptype` tag,
@@ -7010,6 +7011,19 @@ Add `--lots` to any command to enable lot tracking. This activates:
 - **Disposal balancing** — disposal transactions are checked for balance
   using cost basis where available, otherwise transacted cost; gain
   amounts/postings are inferred if missing.
+
+Any errors in lot-related entries (missing lot cost, ambiguous selectors, dispose
+before acquire, malformed `lots:` tag values, etc.) will be reported at load time.
+
+## --lots
+
+The `--lots` flag is a display toggle. Add it to any command to show the full
+detailed form: per-lot subaccounts in account trees, inferred cost basis annotations
+and synthetic postings in `print`, and so on.
+
+Without `--lots`, reports show a collapsed view, without the added lot details.
+
+Inferred capital gain amounts are shown in both modes.
 
 ## Lot subaccounts
 

@@ -43,7 +43,7 @@ import Hledger.Utils
 import Data.Ord
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Balancing (journalBalanceTransactions, defbalancingopts)
-import Hledger.Data.Lots (lotBaseAccount, journalCalculateLots, journalInferAndCheckDisposalBalancing)
+import Hledger.Data.Lots (lotBaseAccount)
 
 -- | Run the extra -s/--strict checks on a journal, in order of priority,
 -- returning the first error message if any of them fail.
@@ -334,12 +334,8 @@ findRecentAssertionError ps = do
 --       (show baiLatestClearedAssertionDate)
 --       (diffDays today baiLatestClearedAssertionDate)
 
--- | Check all lot tracking calculations: validate lot tag values on declarations,
--- calculate per-lot subaccounts, and verify disposal transactions balance correctly.
--- Equivalent to loading the journal with --lots --verbose-tags.
+-- | Check all lot tracking calculations. Validation runs during journalFinalise,
+-- so any valid Journal reaching this point has already passed the checks.
+-- This stub exists so @hledger check lots@ remains a valid command.
 journalCheckLots :: Journal -> Either String ()
-journalCheckLots j =
-  journalCheckLotsTagValues j
-  >>= journalCalculateLots True
-  >>= journalInferAndCheckDisposalBalancing True
-  >> Right ()
+journalCheckLots _ = Right ()

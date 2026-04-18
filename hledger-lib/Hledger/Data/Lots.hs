@@ -95,6 +95,7 @@ journalCalculateLots:
 module Hledger.Data.Lots (
   journalClassifyLotPostings,
   journalCalculateLots,
+  journalCollapseLotDetail,
   journalInferAndCheckDisposalBalancing,
   isGainPosting,
   lotBaseAccount,
@@ -113,7 +114,7 @@ import Data.Ord (Down(..))
 import Data.List (foldl')
 #endif
 import Data.Map.Strict qualified as M
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe, mapMaybe)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -127,7 +128,7 @@ import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
-import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingStripCosts, splitPostingTagName)
+import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
 import Hledger.Data.Transaction (transactionCommodityStylesWith, txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
@@ -851,6 +852,38 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       | otherwise  = (yes, x:no)
       where (yes, no) = partition' f xs
 
+-- | Collapse lot-tracking detail from a journal for display when --lots is off.
+-- Makes two targeted changes to each transaction:
+--
+-- * drops postings tagged @_split-posting@ (synthetic fee fragments from auto-split)
+--   or @_lot-parent-assertion@ (synthetic balance-assertion carriers added when
+--   splitting a posting into lot subaccounts);
+-- * strips any lot subaccount (the trailing @{...}@ component) from each remaining
+--   posting's account name.
+--
+-- Posting amounts are left alone; any inferred cost basis on 'acostbasis' is
+-- ignored by most reports. 'print' relies on its existing
+-- 'transactionWithMostlyOriginalPostings' logic to revert pamount to 'poriginal'
+-- when displaying non-explicit output.
+--
+-- Journals with no lot content are returned unchanged.
+journalCollapseLotDetail :: Journal -> Journal
+journalCollapseLotDetail j
+  | any (any needsCollapse . tpostings) (jtxns j) = journalMapTransactions collapseTransaction j
+  | otherwise                                      = j
+  where
+    needsCollapse p = postingHasTag splitPostingTagName p
+                   || postingHasTag lotParentAssertionTagName p
+                   || isJust (lotSubaccountName (paccount p))
+
+    collapseTransaction t = txnTieKnot t{tpostings = mapMaybe collapsePosting (tpostings t)}
+
+    collapsePosting p
+      | postingHasTag splitPostingTagName p       = Nothing
+      | postingHasTag lotParentAssertionTagName p = Nothing
+      | isJust (lotSubaccountName (paccount p))   = Just p{paccount = lotBaseAccount (paccount p)}
+      | otherwise                                 = Just p
+
 -- Posting type predicates
 
 -- | When an implicit-lot-subaccount posting (one whose account was a plain account,
@@ -868,7 +901,8 @@ preserveParentAssertion _           origAcct (Just _) ps
     | lotBaseAccount origAcct /= origAcct = ps  -- already an explicit lot subaccount; leave as-is
 preserveParentAssertion verbosetags origAcct (Just ba) ps =
     map (\p -> p{pbalanceassertion = Nothing}) ps
-    ++ [ postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
+    ++ [ postingAddHiddenAndMaybeVisibleTag False verbosetags (lotParentAssertionTagName, "")
+       $ postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
            nullposting
              { paccount          = origAcct
              , pamount           = mixedAmount (baamount ba){aquantity = 0}
@@ -1458,8 +1492,10 @@ processTransferPair verbosetags j t lotState fromP toP = do
                  [(_, cb)] -> Just cb
                  _         -> Nothing
 
+    let isSingleLot = length transferLots == 1
+
     -- For each transfer lot, generate from and to postings
-    (transferFromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings fromAmt toCb commodity) transferLots
+    (transferFromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings isSingleLot fromAmt toCb commodity) transferLots
 
     -- For fee lots, generate from-only postings (lots consumed from source, no destination)
     feeFromPs <- mapM (mkFeeFromPosting fromAmt commodity) feeLots
@@ -1481,7 +1517,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
   where
     showPos = txnErrPrefix t
 
-    mkTransferPostings fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
+    mkTransferPostings isSingleLot fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
         lotBasis <- case acostbasis storedAmt >>= cbCost of
           Just c  -> Right c
           Nothing -> Left $ showPos ++ "lot " ++ show lotId
@@ -1502,11 +1538,17 @@ processTransferPair verbosetags j t lotState fromP toP = do
 
         let fromAmt' = (amountSetQuantity (negate consumedQty) fromAmt){acostbasis = Just lotCb}
             toAmt'   = amountSetQuantity consumedQty fromAmt'
-            -- poriginal preserves the user's original annotations, only updating quantity.
+            -- poriginal preserves the user's original annotations. For multi-lot
+            -- transfers we scale its quantity per-lot; for single-lot we leave it
+            -- alone, so any earlier poriginal (eg from auto-split) survives intact.
             origFromP = originalPosting fromP
-            origFromP' = origFromP{pamount = mapMixedAmount (amountSetQuantityOf commodity (negate consumedQty)) (pamount origFromP)}
+            origFromP'
+              | isSingleLot = origFromP
+              | otherwise   = origFromP{pamount = mapMixedAmount (amountSetQuantityOf commodity (negate consumedQty)) (pamount origFromP)}
             origToP = originalPosting toP
-            origToP' = origToP{pamount = mapMixedAmount (amountSetQuantityOf commodity consumedQty) (pamount origToP)}
+            origToP'
+              | isSingleLot = origToP
+              | otherwise   = origToP{pamount = mapMixedAmount (amountSetQuantityOf commodity consumedQty) (pamount origToP)}
             fromP' = fromP{ paccount = fromAcct
                           , pamount  = mixedAmount fromAmt'
                           , poriginal = Just origFromP'

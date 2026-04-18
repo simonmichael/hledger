@@ -27,18 +27,17 @@ $ hledger -f - print -x
 
 >=
 
-# ** 3. Transacted cost is not inferred for negative amounts (dispose postings).
+# ** 3. Transacted cost is not inferred for negative amounts (dispose postings):
+# a dispose posting with only `{$100}` and no explicit `@` now errors at load
+# time, because cost basis alone does not give the disposal a selling price.
 <
 2024-01-01 sell stock
     assets:brokerage    -10 AAPL {$100}
     assets:cash
 
 $ hledger -f - print
-2024-01-01 sell stock
-    assets:brokerage    -10 AAPL {$100}
-    assets:cash
-
->=
+>2 /dispose posting has no transacted price/
+>= 1
 
 # ** 4. Transacted cost is not inferred when already present.
 <

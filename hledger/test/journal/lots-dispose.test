@@ -4,14 +4,22 @@
 
 # ** 1. Simple dispose - negative amount to Asset account with cost basis - gets ptype:dispose tag
 <
+2026-01-01 Buy stock
+    assets:broker    5 AAPL {$100} @ $100
+    assets:cash
+
 2026-01-02 Sell stock
-    assets:broker    -5 AAPL {$100}
+    assets:broker    -5 AAPL {$100} @ $100
     assets:cash       $500
 
 $ hledger -f- print --verbose-tags
+2026-01-01 Buy stock
+    assets:broker    5 AAPL {$100} @ $100  ; ptype: acquire
+    assets:cash
+
 2026-01-02 Sell stock
-    assets:broker    -5 AAPL {$100}  ; ptype: dispose
-    assets:cash                $500
+    assets:broker    -5 AAPL {$100} @ $100  ; ptype: dispose
+    assets:cash                       $500
 
 >=
 
