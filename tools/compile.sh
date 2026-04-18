@@ -4,5 +4,5 @@
 cd "$(dirname "$0")" || exit
 for f in [a-z]*.hs; do
     printf "compiling $f.. "
-    stack script --resolver nightly-2025-09-30 --optimize --no-run -- "$f"
+    stack script --resolver nightly-2026-04-17 --optimize --no-run -- "$f"
 done

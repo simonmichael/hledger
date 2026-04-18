@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack script --resolver nightly-2025-09-30
+-- stack script --resolver nightly-2026-04-17
 -- simplifyprof.hs somefile.prof
 -- filter uninteresting fields from GHC profile output
 -- tested with GHC 6.8
