@@ -83,7 +83,7 @@ account revenue:gains  ; type: G
 ; 3a. Sell with no fee, at a gain.
 ; {$50} selects the lot; @ $90 is the selling price.
 ; The gain posting balances the difference between cost and sale price.
-2026-08-01 sell with at a gain, using specific identification
+2026-08-01 sell at a gain, using specific identification
     assets:broker2     -10 ETSY {$50} @ $90
     assets:cash       $900
     revenue:gains    -$400
