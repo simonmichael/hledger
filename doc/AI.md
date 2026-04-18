@@ -233,3 +233,7 @@ Practitioners
 - Martin Fowler: <https://martinfowler.com/fragments/2026-04-02.html>
 - <https://news.ycombinator.com/item?id=47648828> Eight years of wanting, three months of building with AI
 - Raffael Schneider: <https://raskell.io/articles/looking-back-on-2025>
+
+Tools
+- https://ccusage.com
+- https://github.com/ratherlegit/environmental-impact-tracker
