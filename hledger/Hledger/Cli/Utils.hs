@@ -108,14 +108,15 @@ journalTransform opts =
   <&> maybeObfuscate opts
   <&> maybeCollapseLotDetail opts
 
--- | When --lots is absent, collapse lot-tracking detail (strip lot subaccounts,
--- drop split-posting fragments, strip cost basis annotations, use poriginal
--- amounts) so reports show the user's original form. When --lots is set, the
--- journal keeps its fully-processed lot detail.
+-- | Collapse lot-tracking detail (strip lot subaccounts, drop synthetic lot-processing
+-- postings) so reports show the user's original form. Skipped when --lots is set, or
+-- when --explicit is set (for commands like print and close, -x implies full detail).
 maybeCollapseLotDetail :: CliOpts -> Journal -> Journal
 maybeCollapseLotDetail opts
-  | boolopt "lots" (rawopts_ opts) = id
-  | otherwise                     = journalCollapseLotDetail
+  | boolopt "lots" rawopts     = id
+  | boolopt "explicit" rawopts = id
+  | otherwise                  = journalCollapseLotDetail
+  where rawopts = rawopts_ opts
 
 -- | If the --pivot option is present, replace the journal's account names by specified other values.
 maybePivot :: CliOpts -> Journal -> Journal

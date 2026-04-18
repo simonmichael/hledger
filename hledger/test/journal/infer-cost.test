@@ -14,7 +14,8 @@ $ hledger -f - print
 
 >=
 
-# ** 2. With -x, the inferred transacted cost is shown.
+# ** 2. With -x, the inferred transacted cost is shown. -x also implies --lots,
+# so lot subaccounts are visible.
 <
 2024-01-01 buy stock
     assets:brokerage    10 AAPL {$100}
@@ -22,8 +23,8 @@ $ hledger -f - print
 
 $ hledger -f - print -x
 2024-01-01 buy stock
-    assets:brokerage    10 AAPL {$100} @ $100
-    assets:cash                        $-1000
+    assets:brokerage:{2024-01-01, $100}    10 AAPL {$100} @ $100
+    assets:cash                                           $-1000
 
 >=
 

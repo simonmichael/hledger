@@ -50,7 +50,7 @@ import Hledger.Write.Beancount (commodityToBeancount, tagsToBeancountMetadata)
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
   ([
-   flagNone ["explicit","x"] (setboolopt "explicit") "show all amounts explicitly"
+   flagNone ["explicit","x"] (setboolopt "explicit") "show all inferred info explicitly"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagNone ["locations"] (setboolopt "locations") "add tags showing file paths and line numbers"
   ,let arg = "DESC" in

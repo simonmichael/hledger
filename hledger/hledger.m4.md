@@ -7021,6 +7021,9 @@ The `--lots` flag is a display toggle. Add it to any command to show the full
 detailed form: per-lot subaccounts in account trees, inferred cost basis annotations
 and synthetic postings in `print`, and so on.
 
+`-x`/`--explicit` implies `--lots` (for commands that accept it, like `print` and
+`close`), since explicit output by definition shows all inferred detail.
+
 Without `--lots`, reports show a collapsed view, without the added lot details.
 
 Inferred capital gain amounts are shown in both modes.
