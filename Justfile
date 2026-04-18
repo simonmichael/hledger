@@ -1734,7 +1734,7 @@ installcommithook:
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
 # Show claude code usage as CSV, monthly by default (daily, weekly, monthly, session, blocks..). Not yet clear how accurate this is, see AI.md > Usage.
-@ccusage CMD='monthly' *CCUSAGEOPTS:
+@ccusage-csv CMD='monthly' *CCUSAGEOPTS:
     ccusage {{ CMD }} -O {{ CCUSAGEOPTS }} -j | jq -r ' \
       first(.. | arrays | select(length > 0 and (.[0] | type == "object"))) \
       | [.[] | with_entries(select(.value | type != "array" and type != "object"))] \
@@ -1750,16 +1750,16 @@ ccusage-journal:
 
     commodity $1.
     commodity 1,000. t
-    commodity 1,000.0 kt
-    commodity 1,000.0 Mt
-    commodity 1,000.0 Gt
+    commodity 1,000. kt
+    commodity 1,000. Mt
+    commodity 1,000. Gt
 
     P 0000-01-01 kt 1000 t
     P 0000-01-01 Mt 1000 kt
     P 0000-01-01 Gt 1000 Mt
 
     EOS
-    just ccusage daily | hledger -f csv:- --rules data/ccusage.rules print -c '1,000,000 t'
+    just ccusage-csv daily | hledger -f csv:- --rules data/ccusage.rules print -c '1,000,000 t'
     } > data/ccusage.journal
 
 # Run a hledger command on ccusage.journal.
@@ -1769,9 +1769,9 @@ ccusage-journal:
 
 # Run a vertical-time balance report on ccusage.journal, showing monthly megatokens by default.
 @ccusage-bal *BALARGS:
-    just ccusage-run bal -NATM --transpose --layout=bare -X Mt {{ BALARGS }}
+    just ccusage-run bal -NM --transpose --layout=bare -X Mt {{ BALARGS }}
 
-# Show exact daily token use, this month by default.
+# Show daily token use, in rounded megatokens during this month by default.
 @ccusage-daily *BALARGS:
-    just ccusage-bal -D -Xt -p1..tomorrow {{ BALARGS }}
+    just ccusage-bal -D -XMt -p1..tomorrow {{ BALARGS }}
 
