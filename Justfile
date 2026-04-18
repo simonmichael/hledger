@@ -1764,6 +1764,7 @@ ccusage-journal:
 
 # Run a hledger command on ccusage.journal.
 @ccusage-run *HLEDGERARGS:
+    just ccusage-journal
     hledger -f data/ccusage.journal {{ HLEDGERARGS }}
 
 # Run a vertical-time balance report on ccusage.journal, showing monthly megatokens by default.
