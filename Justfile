@@ -1772,5 +1772,5 @@ ccusage-journal:
 
 # Show exact daily token use, this month by default.
 @ccusage-daily *BALARGS:
-    just ccusage-bal -D -Xt -p1..tomorrow
+    just ccusage-bal -D -Xt -p1..tomorrow {{ BALARGS }}
 
