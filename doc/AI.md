@@ -223,7 +223,7 @@ Law
 - <https://www.congress.gov/crs-product/LSB10922>
 
 Research
-- [AI 2027](https://ai-2027.com) mandatory reading
+- **[AI 2027](https://ai-2027.com)** Mandatory reading.
 - [From Technical Debt to Cognitive and Intent Debt: Rethinking Software Health in the Age of AI](https://arxiv.org/pdf/2603.22106)
 
 Practitioners
