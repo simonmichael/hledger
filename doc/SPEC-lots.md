@@ -27,10 +27,24 @@ Historically, hledger has not provided much lot-tracking assistance:
 
 ## Lots mode
 
-Lot inference, tracking, and error checking are always performed when loading a journal,
-as part of journal finalising (see SPEC-finalising.md). Any journal with lot-related
-content (lotful commodities/accounts, cost basis annotations, or disposals) is validated
-up front. Journals with no lot activity pay near-zero cost via an internal fast path.
+By default, lot inference, tracking, and error checking are performed when loading a
+journal, as part of journal finalising (see SPEC-finalising.md). Any journal with
+lot-related content (lotful commodities/accounts, cost basis annotations, or
+disposals) is validated up front. Journals with no lot activity pay near-zero cost
+via an internal fast path.
+
+This processing can be disabled with `--ignore-lots` (or its shortcut alias `-I`,
+which also sets `--ignore-assertions`). When either is active, the three lot pipeline
+stages (`journalCheckLotsTagValues`, `journalCalculateLots`,
+`journalInferAndCheckDisposalBalancing`) are skipped entirely. Capital gains are not
+inferred, lot subaccounts are not added, and lot-related errors (malformed `lots:`
+tags, missing lot cost, ambiguous selectors, dispose-before-acquire, etc.) are not
+raised. Classification tags and cost inference from user-written `{}` annotations
+still happen, since those stages run before the `--ignore-lots` gate. Use this when
+working with incomplete journal fragments (eg piping between hledger commands).
+
+`--strict`/`-s` and `hledger check lots` both override `--ignore-lots`, restoring
+full lot processing for that invocation.
 
 The `--lots` general flag is a display-time toggle. It controls whether reports show
 
@@ -41,7 +55,8 @@ The `--lots` general flag is a display-time toggle. It controls whether reports 
 When `--lots` is absent, reports show a collapsed view: lot subaccounts are hidden,
 synthetic placeholder postings are dropped, and inferred gain amounts appear on the
 base (parent) gain account rather than on per-lot detail accounts. Inferred gains are
-visible in reports like `incomestatement` even without `--lots`.
+visible in reports like `incomestatement` even without `--lots` — unless
+`--ignore-lots` is in effect, in which case no gains were inferred in the first place.
 
 In the journal, lot operations can be recorded
 
@@ -463,12 +478,18 @@ postings (e.g. `assets:cash`) and opening transaction postings retain their asse
 
 ## Processing pipeline
 
-All lot-related processing runs unconditionally during journal finalising:
+Lot-related processing runs during journal finalising in two groups:
+
+**Always-on** (independent of `--ignore-lots`):
 
 1. **journalInferBasisFromAccountNames** — parse cost basis from any lot subaccount
    names (`{...}` components) in posting account names.
 2. **journalClassifyLotPostings** — tag postings as acquire/dispose/transfer-from/transfer-to/gain.
 3. **journalInferPostingsTransactedCost** — infer `@` from `{}` on acquires (before balancing).
+
+**Gated by `checklots`** — runs when none of `--ignore-lots` or `-I` is set, or when
+`--strict`/`-s` or `hledger check lots` overrides them:
+
 4. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
 5. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
@@ -476,9 +497,10 @@ All lot-related processing runs unconditionally during journal finalising:
 6. **journalInferAndCheckDisposalBalancing** — infer gain amounts and check disposal
    transactions balance at cost basis.
 
-These all raise errors when the journal contains lot-related content that can't be
-resolved (missing lot cost, ambiguous selectors, dispose before acquire, malformed
-`lots:` tag values, etc.).
+The gated stages raise errors when the journal contains lot-related content that
+can't be resolved (missing lot cost, ambiguous selectors, dispose before acquire,
+malformed `lots:` tag values, etc.); `--ignore-lots` suppresses these by skipping
+the stages entirely.
 
 The `--lots` flag is a display toggle consumed in the report-loading layer
 (`journalTransform` in `Hledger.Cli.Utils`). When absent, `journalCollapseLotDetail`

@@ -248,6 +248,7 @@ rawOptsToInputOpts day usecoloronstdout rawopts =
       ,auto_              = boolopt "auto" rawopts
       ,infer_equity_      = boolopt "infer-equity" rawopts && conversionop_ ropts /= Just ToCost
       ,infer_costs_       = boolopt "infer-costs" rawopts
+      ,ignore_lots_       = boolopt "ignore-lots" rawopts
       ,balancingopts_     = defbalancingopts{
                                  ignore_assertions_     = boolopt "ignore-assertions" rawopts
                                , infer_balancing_costs_ = not noinferbalancingcosts
@@ -332,13 +333,14 @@ initialiseAndParseJournal parser iopts f txt = do
 -- and enrich postings with computed metadata.
 -- See doc\/SPEC-finalising.md for the full pipeline specification.
 journalFinalise :: InputOpts -> FilePath -> Text -> ParsedJournal -> ExceptT String IO Journal
-journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,strict_,verbose_tags_,_ioDay} f txt pj = do
+journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,infer_equity_,strict_,verbose_tags_,_ioDay} f txt pj = do
   let
     BalancingOpts{commodity_styles_, ignore_assertions_} = balancingopts_
     -- Hack: peek at the command line to know if certain checks were requested.
     checking checkname = "check" `elem` args && checkname `elem` args where args = progArgs
     checkordereddates = checking "ordereddates"
     checkassertions = not ignore_assertions_ || strict_ || checking "assertions"
+    checklots       = not ignore_lots_       || strict_ || checking "lots"
 
   t <- liftIO getPOSIXTime
   liftEither $
@@ -389,9 +391,10 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,infer_costs_,infer_equity_,
       <&> journalRenumberAccountDeclarations                                      -- renumber account declarations for consistent ordering
 
       -- Lot and capital gains calculation/checking
-      >>= journalCheckLotsTagValues                          -- validate lots: tag values on commodity/account declarations
-      >>= journalCalculateLots verbose_tags_                 -- evaluate lot selectors, calculate lot balances, add lot subaccounts
-      >>= journalInferAndCheckDisposalBalancing verbose_tags_  -- infer gain amounts and check disposal transactions balance at cost basis
+      -- (skipped by --ignore-lots or -I; forced back on by --strict or `hledger check lots`)
+      >>= (if checklots then journalCheckLotsTagValues                            else pure)  -- validate lots: tag values on commodity/account declarations
+      >>= (if checklots then journalCalculateLots verbose_tags_                   else pure)  -- evaluate lot selectors, calculate lot balances, add lot subaccounts
+      >>= (if checklots then journalInferAndCheckDisposalBalancing verbose_tags_  else pure)  -- infer gain amounts and check disposal transactions balance at cost basis
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.

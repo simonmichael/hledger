@@ -76,7 +76,7 @@ journalFinalise
   18. journalInferMarketPricesFromTransactions  -- infer market prices from costs
   19. journalRenumberAccountDeclarations  -- renumber account declarations for consistent ordering
 
-  -- Lot calculation (always runs; --lots is a display-time flag)
+  -- Lot calculation (default; skipped by --ignore-lots/-I; restored by --strict or `check lots`)
   20. journalCheckLotsTagValues         -- validate lots: tag values on commodity/account declarations
   21. journalCalculateLots              -- evaluate lot selectors, apply reduction methods,
                                         -- calculate lot balances, add explicit lot subaccounts,
@@ -174,15 +174,25 @@ that the presence of `acost` means the user wrote `@ $X`.
 
 Several steps only run with specific flags:
 
-| Step                              | Flag              |
-|-----------------------------------|-------------------|
-| journalAddForecast                | --forecast        |
-| journalAddAutoPostings            | --auto            |
-| journalTagCostsAndEquity (2nd)    | --infer-costs     |
-| journalInferEquityFromCosts       | --infer-equity    |
+| Step                                   | Enabled when                                                    |
+|----------------------------------------|-----------------------------------------------------------------|
+| journalAddForecast                     | `--forecast`                                                    |
+| journalAddAutoPostings                 | `--auto`                                                        |
+| journalTagCostsAndEquity (2nd)         | `--infer-costs`                                                 |
+| journalInferEquityFromCosts            | `--infer-equity`                                                |
+| journalCheckLotsTagValues              | default; skipped by `--ignore-lots`/`-I`; restored by `--strict` or `hledger check lots` |
+| journalCalculateLots                   | same                                                            |
+| journalInferAndCheckDisposalBalancing  | same                                                            |
 
-Lot inference (`journalCheckLotsTagValues`, `journalCalculateLots`,
-`journalInferAndCheckDisposalBalancing`) runs unconditionally as part of finalising.
-The `--lots` flag is a display-time toggle that controls whether reports show the
-full lot detail or a collapsed view (via `journalCollapseLotDetail` in the
+The three lot stages are gated together by a single `checklots` condition, mirroring
+the `checkassertions` mechanism:
+
+```haskell
+checklots = not ignore_lots_ || strict_ || checking "lots"
+```
+
+where `checking "lots"` peeks at `progArgs` for a literal `check lots` invocation.
+
+The `--lots` flag is a separate display-time toggle that controls whether reports
+show the full lot detail or a collapsed view (via `journalCollapseLotDetail` in the
 report-loading layer); it does not gate any pipeline step.

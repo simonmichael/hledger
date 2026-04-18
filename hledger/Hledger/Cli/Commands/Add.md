@@ -67,7 +67,7 @@ Since hledger 1.43, you can add a [balance assertion](#balance-assertions) by wr
 
 Also, each time you enter a new amount, hledger re-checks all balance assertions in the journal
 and rejects the new amount if it would make any of them fail.
-You can run `add` with `-I`/`--ignore-assertions` to disable balance assertion checking.
+You can run `add` with `-I` or `--ignore-assertions` to disable balance assertion checking.
 
 ## add and balance assignments
 

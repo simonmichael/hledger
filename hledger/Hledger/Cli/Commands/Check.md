@@ -46,11 +46,12 @@ These important checks are performed by default, by almost all hledger commands:
 
 - **lots** - all [lot-related](#lot-reporting) journal entries are valid.
   Checks lot posting classifications, lot movements, capital gain amounts, and correct balancing of disposal transactions.
+  This check can be disabled by `-I` or `--ignore-lots`.
+  If you put it in your config file, you can override that with `-s`/`--strict` or `hledger check lots`.
 
 ### Strict checks
 
-When the `-s`/`--strict` flag is used (AKA [strict mode]), all commands will perform the following additional checks
-(plus the `assertions` and `lots` checks, overriding the ignore flags above).
+When the `-s`/`--strict` flag is used (AKA [strict mode]), all commands will perform the following additional checks.
 These provide extra error-catching power to help you keep your data clean and correct:
 
 - **balanced** - like `autobalanced`, but implicit conversions between commodities are not allowed;
@@ -64,6 +65,8 @@ These provide extra error-catching power to help you keep your data clean and co
   This prevents the use of mis-spelled or outdated account names.
   (Except lot subaccounts, like `:{2026-01-15, $50}`, which are automatically exempt;
   only their base account needs to be declared.)
+
+Also, strict mode ensures that the `assertions` and `lots` checks run (overriding their ignore flags).
 
 ### Other checks
 

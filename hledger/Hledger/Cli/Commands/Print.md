@@ -105,15 +105,20 @@ Note rounding can produce unbalanced journal entries, perhaps requiring manual f
 
 ### print parseability
 
-Normally, print's output is a valid [hledger journal](#journal), 
-which you can "pipe" to a second hledger command for further processing.
-This is sometimes convenient for achieving certain kinds of query
-(though less needed now that queries have become more powerful):
+Usually, print's output is a valid [hledger journal](#journal), 
+which you can pipe into a second hledger command for further processing.
+This is sometimes convenient for rewriting journal entries:
+
+```cli
+# Make today's shopping entry explicit. (-f - means read from standard input.)
+$ hledger print date:today desc:shop | hledger -f- print -x
+```
+
+or for achieving certain kinds of query:
 
 ```cli
 # Show running total of food expenses paid from cash.
-# -f- reads from stdin. -I/--ignore-assertions is sometimes needed.
-$ hledger print assets:cash | hledger -f- -I reg expenses:food
+$ hledger print assets:cash | hledger -f- reg expenses:food
 ```
 
 But here are some things which can cause print's output to become unparseable:
@@ -125,6 +130,11 @@ But here are some things which can cause print's output to become unparseable:
 - [`--infer-costs or --infer-equity`](#equity-conversion-postings) can generate too-complex redundant costs.
 - Because print always shows transactions in date order, balance assertions involving non-date-ordered transactions
   (and same-day postings) could be disrupted.
+
+Also, printing a subset of journal entries can disrupt validation of balance assertions or lot entries.
+And print does not reproduce directives; this too can break lot entries.
+To suppress errors from these, we often use the `-I` flag (short for `--ignore-assertions --ignore-lots`.
+So any time you are reading from standard input with `-f-`, consider adding `-I` also.
 
 ### print, other features
 

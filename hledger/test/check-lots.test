@@ -69,3 +69,36 @@ $ hledger -f - check lots
 >2 /disposal transaction is unbalanced/
 >=1
 
+# ** 6. --ignore-lots suppresses lot errors, journal loads
+<
+commodity AAPL ; lots: BADMETHOD
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50} @ $50
+    assets:checking
+
+$ hledger -f - --ignore-lots print
+2026-01-15 buy
+    assets:stocks      10 AAPL {$50} @ $50
+    assets:checking
+
+>=
+
+# ** 7. -I also suppresses lot errors (implies --ignore-lots)
+$ hledger -f - -I print
+2026-01-15 buy
+    assets:stocks      10 AAPL {$50} @ $50
+    assets:checking
+
+>=
+
+# ** 8. -s/--strict overrides -I, restoring lot checks
+$ hledger -f - -I -s print
+>2 /unrecognised lots: tag value/
+>=1
+
+# ** 9. hledger check lots overrides --ignore-lots in config (simulated via -I here)
+$ hledger -f - -I check lots
+>2 /unrecognised lots: tag value/
+>=1
+

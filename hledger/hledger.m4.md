@@ -1808,7 +1808,7 @@ After reading a journal file, hledger will check all balance
 assertions and report an error if any of them fail. Balance assertions
 can protect you from, eg, inadvertently disrupting reconciled balances
 while cleaning up old entries. You can disable them temporarily with
-the `-I/--ignore-assertions` flag, which can be useful for
+the `-I` or `--ignore-assertions` flag, which can be useful for
 troubleshooting or for reading Ledger files.
 (Note: this flag currently does not disable balance assignments, described below).
 
@@ -6009,13 +6009,13 @@ $ hledger balance Income:Dues --pivot kind:member
 hledger can enrich the data provided to it, or generate new data, in a number of ways.
 Mostly, this is done only if you request it:
 
-- Missing amounts or missing costs in transactions are inferred automatically when possible.
+- Missing amounts, costs, cost basis, and capital gain amounts are inferred automatically when possible.
+- Lot subaccounts are also inferred (invisibly by default; `--lots` makes them visible in reports).
 - The `--infer-equity` flag infers missing conversion equity postings from @/@@ costs.
 - The `--infer-costs` flag infers missing costs from conversion equity postings.
 - The `--infer-market-prices` flag infers `P` price directives from costs.
 - The `--auto` flag adds extra postings to transactions matched by [auto posting rules](#auto-postings).
 - The `--forecast` option generates transactions from [periodic transaction rules](#periodic-transactions).
-- The `--lots` flag adds extra lot subaccounts to postings for detailed [lot reporting](#lot-reporting).
 - The `balance --budget` report infers budget goals from periodic transaction rules.
 - Commands like `close`, `rewrite`, and `hledger-interest` generate transactions or postings.
 - CSV data is converted to transactions by applying CSV conversion rules.. etc.
@@ -6967,11 +6967,24 @@ First, a quick glossary:
 
 # Lot reporting
 
-With the `--lots` flag, hledger can track investment lots automatically:
-assigning lot subaccounts on acquisition, selecting lots on disposal using
-configurable methods, calculating capital gains, and showing per-lot balances
-in all reports.
-(Since 1.99.1, experimental. For more technical details, see [SPEC-lots](/SPEC-lots.html)).
+hledger understands several kinds of notation describing investment lots, and can track and validate lot movements and capital gains automatically.
+When reading a journal containing lot-related entries,
+it automatically infers [cost basis](#cost-basis), lot accounts, lot reductions, and capital gain/loss, when possible.
+
+Each lot is represented by a subaccount. 
+These are not shown in reports by default, as there can be many of them.
+The `--lots` flag makes them visible. Eg `hledger bs --lots`, or `hledger print --lots` (`hledger print -x` also shows them.)
+
+All of the lot entries are validated for correctness.
+For example, an entry disposing of a lot that was not previously acquired, 
+or disposing a quantity greater than what was available, will not be accepted.
+
+If you don't want lots and capital gains information inferred and/or validated,
+you can use the `-I` or `--ignore-lots` flag to disable this.
+(This can be useful if you are working with incomplete journals, which would otherwise be rejected.
+Eg if you are piping hledger print output into another hledger command.)
+
+(Since 1.99.1, experimental. For more technical details, see also [SPEC-lots](/SPEC-lots.html)).
 
 ## Lotful commodities and accounts
 

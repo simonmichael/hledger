@@ -174,7 +174,10 @@ inputflags = [
     , "Auto posting rules will also be applied to these transactions."
     , "In hledger-ui, also make future-dated transactions visible at startup."
     ])
-  ,flagNone ["ignore-assertions","I"] (setboolopt "ignore-assertions") "don't check balance assertions by default"
+  ,flagNone ["ignore-assertions"] (setboolopt "ignore-assertions") "don't check balance assertions by default"
+  ,flagNone ["ignore-lots"]       (setboolopt "ignore-lots")       "don't check lot entries by default"
+  ,flagNone ["I"]                 (setboolopt "ignore-assertions" . setboolopt "ignore-lots")
+                                  "shortcut for --ignore-assertions --ignore-lots"
   ,flagReq  ["txn-balancing"] (\s opts -> Right $ setopt "txn-balancing" s opts) "..." (unlines [
      "how to check that transactions are balanced:"
     ,"'old':   - use global display precision"
