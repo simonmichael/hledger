@@ -7228,7 +7228,6 @@ Eg:
 account revenues:gain  ; type: G
 ```
 
-
 ## Lot reporting example
 
 ```journal
