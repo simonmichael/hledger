@@ -7025,6 +7025,8 @@ What activates this lot processing ? Any of three things:
 - Postings involving a "lotful" commodity or account
 - Account names ending with a lot subaccount.
 
+A posting with any of these is called a lot posting.
+
 [Cost basis](#cost-basis) is described in the Journal section, above.
 
 ## Lotful commodities and accounts
@@ -7041,9 +7043,6 @@ The account tag has higher precedence.
 commodity AAPL          ; lots:
 account assets:stocks   ; lots:LIFO
 ```
-
-(A posting is called lotful if it involves a lotful commodity or account,
-or if it has an explicit lot name or cost basis annotation.)
 
 ## Lot subaccounts
 
@@ -7094,7 +7093,7 @@ Three kinds of lot operation are detected. Other real-world lot events can be mo
 
 ### Acquire
 
-A positive lotful asset posting creates a new lot.
+A positive lot posting in an asset account creates a new lot.
 
 ```journal
 2026-01-01 buy shares
@@ -7131,12 +7130,13 @@ explicitly, so the output round-trips correctly.
 
 A negative lot posting sells from one or more existing lots.
 
-```
+```journal
 2026-08-01 sell at a gain
     assets:broker2     -10 ETSY {$50} @ $90   ; selecting the lot by specific identification
     assets:cash       $900
     revenue:gains    $-400                    ; gain can be recorded explicitly or left implicit
 ```
+
 The disposal posting must have a transacted price (the selling price), either explicit or inferred: $90 here.
 
 
@@ -7190,7 +7190,7 @@ This is useful if you need to enforce a global disposal order across all account
 
 **AVERAGEALL** computes the weighted average cost across the global pool.
 
-## Lot postings with balance assertions 
+## Lot postings and balance assertions 
 
 On a dispose or transfer posting without an explicit lot subaccount, a [balance assertion](#balance-assertions)
 always refers to the parent account's balance. So if lot subaccounts are added witih `--lots`, the assertion is not affected.
