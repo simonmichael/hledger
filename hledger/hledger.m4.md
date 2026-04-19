@@ -7012,8 +7012,7 @@ Here are the extra steps performed to calculate and check lot movements and capi
   is inferred from transacted cost and vice versa. Or when the account name
   ends with a lot subaccount, cost basis can also be inferred from that.
 3. **Lot movement inference** - acquired lots become subaccounts; transfers and disposals select from existing lots using some reduction method.
-4. **Disposal balancing** - disposal transactions are checked for balance
-  using their lots' cost basis where available, 
+4. **Disposal balancing** - disposal transactions are checked for balance using their lots' cost basis, 
   and gain amounts/postings are inferred if missing.
 5. **Lot detail hiding** - lot subaccounts and some lot-related generated postings are hidden, for simpler reports, unless `--lots` is used.
 
@@ -7024,28 +7023,27 @@ What activates this lot processing ? Any of three things:
 
 - Cost basis annotations on amounts, like `1 AAAA {2026-04-01, $50}`
 - Postings involving a "lotful" commodity or account
-- Postings involving a lot subaccount.
+- Account names ending with a lot subaccount.
 
 [Cost basis](#cost-basis) is described in the Journal section, above.
 
 ## Lotful commodities and accounts
 
-Commodities and accounts can be declared as lotful by adding a `lots` tag
-in their declaration:
-
-```journal
-commodity AAPL  ; lots:
-account assets:stocks  ; lots:
-```
-
-This tells hledger that postings involving these always involve lots,
+Commodities and accounts can be declared as lotful by adding a `lots` tag in their declaration.
+This tells hledger that postings involving these commodities or accounts always involve lots,
 so it should try to infer cost basis and lot information even if those aren't recorded explicitly.
-The tag value can also specify a [reduction method](#reduction-methods) (no value means FIFO).
+This allows simpler entries with less boilerplate.
+
+The tag's value can specify a [reduction method](#reduction-methods); no value means FIFO.
+The account tag has higher precedence.
 
 ```journal
-commodity AAPL         ; lots:
-account assets:stocks  ; lots: LIFO
+commodity AAPL          ; lots:
+account assets:stocks   ; lots:LIFO
 ```
+
+(A posting is called lotful if it involves a lotful commodity or account,
+or if it has an explicit lot name or cost basis annotation.)
 
 ## Lot subaccounts
 
@@ -7092,11 +7090,11 @@ you only need to declare the base account (eg `assets:stocks`), not the lot suba
 
 ## Lot operations
 
-Three kinds of lot operation are detected. (And hopefully other real-world lot events can be modelled with these.)
+Three kinds of lot operation are detected. Other real-world lot events can be modelled with these, hopefully.
 
 ### Acquire
 
-A positive lot asset posting creates a new lot.
+A positive lotful asset posting creates a new lot.
 
 ```journal
 2026-01-01 buy shares
@@ -7112,7 +7110,7 @@ with cost inferred from the transaction's other postings.
 
 ### Transfer
 
-A matching pair of negative/positive lot postings moves a lot between accounts, preserving its cost basis.
+A matching pair of negative/positive lotful postings moves one or more existing lots between accounts, preserving its cost basis.
 
 ```journal
 2026-05-01 transfer to another broker
@@ -7153,12 +7151,12 @@ commodity AAPL             ; lots: FIFOALL
 account assets:mutualfund  ; lots: AVERAGE
 ```
 
-The default method is `FIFO` (first in first out within one account). These methods are supported:
+These methods are supported:
 
 | Method             | Lots selected      | Disposal cost basis       | Error checking
 |--------------------|--------------------|---------------------------|---------------------------------------------------------------------------------------
 | **SPECID**         | one specific lot   | specified lot's cost      | A matching lot, with sufficient balance, exists in the account.
-| **FIFO** (default) | oldest first       | each lot's cost           | Sufficient lot(s) exist in the account.
+| **FIFO**           | oldest first       | each lot's cost           | Sufficient lot(s) exist in the account.
 | **LIFO**           | newest first       | each lot's cost           | "
 | **HIFO**           | highest cost first | each lot's cost           | "
 | **AVERAGE**        | oldest first       | weighted average cost     | "
@@ -7170,6 +7168,10 @@ The default method is `FIFO` (first in first out within one account). These meth
 **SPECID** (specific identification) is what you're using when the journal entry contains 
 explicit lot selectors like `{2026-01-15, $50}` or `{$50}`,
 or an explicit lot subaccount like `assets:broker:{2026-01-15, $50}`.
+
+**FIFO** (first in first out). Dispose of the oldest lot first. This is the default method when not using SPECID.
+
+**LIFO** (last in first out). Dispose of the youngest lot first.
 
 **HIFO** (highest-in-first-out) selects the lot with the highest per-unit cost first,
 which can be useful for tax optimization.
