@@ -1733,9 +1733,13 @@ installcommithook:
 #     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
-# Show claude code usage as CSV, monthly by default (daily, weekly, monthly, session, blocks..). Not yet clear how accurate this is, see AI.md > Usage.
+# Show claude code usage detail today.
+@ccusage-today *CCUSAGEOPTS:
+    ccusage -O daily -s `date +%Y%m%d` -b {{ CCUSAGEOPTS }}
+
+# Show claude code usage (from existing chat logs) as CSV, monthly by default (daily, weekly, monthly, session, blocks..).
 @ccusage-csv CMD='monthly' *CCUSAGEOPTS:
-    ccusage {{ CMD }} -O {{ CCUSAGEOPTS }} -j | jq -r ' \
+    ccusage -O {{ CMD }} {{ CCUSAGEOPTS }} -j | jq -r ' \
       first(.. | arrays | select(length > 0 and (.[0] | type == "object"))) \
       | [.[] | with_entries(select(.value | type != "array" and type != "object"))] \
       | (.[0] | keys_unsorted) as $k \
@@ -1747,16 +1751,61 @@ ccusage-journal:
     #!/usr/bin/env bash
     {
     cat <<'EOS'
+    # Local user's claude code usage based on available chat logs.
 
+    # commodities
     commodity $1.
-    commodity 1,000. t
-    commodity 1,000. kt
-    commodity 1,000. Mt
-    commodity 1,000. Gt
+    commodity 1,000.t            ; generic total tokens
+    commodity 1,000.0kt          ; kilotokens
+    commodity 1,000.0Mt          ; megatokens
+    commodity 1,000.0Gt          ; gigatokens
+    commodity 1,000. opus_output_tokens
+    commodity 1,000.j            ; joules
+    commodity 1,000.0kj          ; kilojoules
+    commodity 1,000.0Mj          ; megajoules
+    commodity 1,000.0Gj          ; gigajoules
+    commodity 1,000.0Wh          ; watt hours
+    commodity 1,000.0kWh         ; kilowatt hours
+    commodity 1,000.mL           ; millilitres of water
+    commodity 1,000.0L           ; litres of water
+    commodity 1,000.c            ; characters
+    commodity 1,000.kb           ; kilobytes
+    commodity 1,000.Mb           ; megabytes
+    commodity 1,000. heartbeats  ; human heartbeats
+    commodity 1,000.0 raisins    ; the energy in one raisin
+    commodity 1,000.0 prius_miles
+    commodity 1,000. led_secs    ; a 10W LED running for 1 second
+    commodity 1,000. kg_lifts    ; 1kg lifted 1m
+    commodity 1,000. g           ; grams of CO2 emission
+    commodity 1,000.0 kg         ; kilograms of CO2 emission
 
+    # units
+    P 0000-01-01 kj 1000 j
+    P 0000-01-01 Mj 1000 kj
+    P 0000-01-01 Gj 1000 Mj
+    P 0000-01-01 kWh 1000 Wh
+    P 0000-01-01 L 1000 mL
+    P 0000-01-01 kb 1024 c
+    P 0000-01-01 Mb 1024 Mb
     P 0000-01-01 kt 1000 t
     P 0000-01-01 Mt 1000 kt
     P 0000-01-01 Gt 1000 Mt
+    P 0000-01-01 kg 1000 g
+
+    # equivalences
+    P 0000-01-01 t 3 c           ; 1 token =~ 3 characters
+    P 0000-01-01 opus_output_tokens $0.000075
+    P 0000-01-01 opus_output_tokens 10j
+    P 0000-01-01 opus_output_tokens 0.0028Wh
+    P 0000-01-01 opus_output_tokens 0.05mL
+    P 0000-01-01 opus_output_tokens 10 heartbeats
+    P 0000-01-01 opus_output_tokens 0.000588 raisins
+    P 0000-01-01 opus_output_tokens 1 led_secs
+    P 0000-01-01 opus_output_tokens 1 kg_lifts
+    P 0000-01-01 opus_output_tokens 0.0000066667 prius_miles
+    P 0000-01-01 opus_output_tokens 0.001 g
+
+    account ai
 
     EOS
     just ccusage-csv daily | hledger -f csv:- --rules data/ccusage.rules print -c '1,000,000 t'
@@ -1769,9 +1818,9 @@ ccusage-journal:
 
 # Run a vertical-time balance report on ccusage.journal, showing monthly megatokens by default.
 @ccusage-bal *BALARGS:
-    just ccusage-run bal -NM --transpose --layout=bare -X Mt {{ BALARGS }}
+    just ccusage-run bal -NM --transpose {{ BALARGS }}
 
 # Show daily token use, in rounded megatokens during this month by default.
 @ccusage-daily *BALARGS:
-    just ccusage-bal -D -XMt -p1..tomorrow {{ BALARGS }}
+    just ccusage-bal -D -p1..tomorrow --layout bare {{ BALARGS }}
 
