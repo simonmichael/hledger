@@ -118,7 +118,7 @@ Lot subaccounts are ignored when checking account names, eg with `check accounts
 Full lot names can appear as the final part of account names, like `assets:stocks:{2026-01-01, $10}`.
 
 When parsing, naive splitting on commas would fail because commas can appear inside:
-- cost amounts as decimal separators (e.g. `€1,50`)
+- cost amounts as decimal separators (e.g. `€1,50`) or digit group separators (`$1,000,000.00`)
 - quoted commodity symbols (e.g. `"an, odd, commodity" 1,5`)
 - quoted labels (e.g. `"a, b, b"`)
 

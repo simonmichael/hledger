@@ -169,6 +169,9 @@ lotBaseAccount a =
 
 -- | Render a lot name in the consolidated hledger format for use as a subaccount name.
 -- Format: @{YYYY-MM-DD, COST}@ or @{YYYY-MM-DD, \"LABEL\", COST}@.
+-- The cost amount is rendered using its own intrinsic style. Callers that want
+-- the journal's canonical commodity styles applied (eg when building a lot
+-- subaccount name) should pre-style the 'CostBasis' with 'styleLotCbCost'.
 showLotName :: CostBasis -> T.Text
 showLotName CostBasis{cbDate, cbLabel, cbCost} =
   "{" <> T.intercalate ", " parts <> "}"
@@ -178,6 +181,14 @@ showLotName CostBasis{cbDate, cbLabel, cbCost} =
       , fmap (\l -> "\"" <> l <> "\"") cbLabel
       , fmap (T.pack . showAmountWith noCostFmt) cbCost
       ]
+
+-- | Apply the journal's canonical commodity styles to a 'CostBasis's cost
+-- amount, for consistent rendering of the amount inside a lot subaccount name.
+-- Styles should have been computed with 'NoRounding' (preserving the original
+-- decimal digits); all other style fields — decimal mark, digit group separators,
+-- commodity position and spacing — come from the canonical style.
+styleLotCbCost :: M.Map CommoditySymbol AmountStyle -> CostBasis -> CostBasis
+styleLotCbCost styles cb = cb{cbCost = styleAmounts styles <$> cbCost cb}
 
 -- | Extract the lot subaccount name (the @{...}@ component) from an account name,
 -- or @Nothing@ if there is none.
@@ -714,10 +725,15 @@ journalCalculateLots verbosetags j
   | otherwise = do
       validateUserLabels txns
       let needsLabels = findDatesNeedingLabels txns
-      (_, txns') <- foldM (processTransaction verbosetags j needsLabels) (M.empty, []) (sortOn tdate txns)
+      (_, txns') <- foldM (processTransaction styles verbosetags j needsLabels) (M.empty, []) (sortOn tdate txns)
       Right (journalTieTransactions $ j{jtxns = reverse txns'})
   where
     txns = jtxns j
+    -- Journal's canonical commodity styles, used for rendering the cost amount
+    -- in lot subaccount names. NoRounding preserves the original decimal digits
+    -- while still applying the canonical decimal mark, digit group separators,
+    -- and commodity position/spacing.
+    styles = journalCommodityStylesWith NoRounding j
     checkUnclassified (t, i, p)
       | isUnclassifiedLotfulPosting j p = Left (unclassifiedLotWarning j t i p)
       | otherwise                       = Right ()
@@ -1101,9 +1117,9 @@ generateLabel commodity date lotState =
 -- Transfer pairs are processed first (so that transferred lots are available for
 -- subsequent disposals in the same transaction), then acquire and dispose postings.
 -- Accumulates (LotState, [Transaction]) — transactions in reverse order.
-processTransaction :: Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
+processTransaction :: M.Map CommoditySymbol AmountStyle -> Bool -> Journal -> S.Set (CommoditySymbol, Day) -> (LotState, [Transaction]) -> Transaction
                        -> Either String (LotState, [Transaction])
-processTransaction verbosetags j needsLabels (ls, acc) t = do
+processTransaction styles verbosetags j needsLabels (ls, acc) t = do
     -- Partition postings into transfer pairs and others
     let (transferFroms, transferTos, otherPs) = partitionTransferPostings (tpostings t)
         hasEquityOther = any (isEquityPosting j) otherPs
@@ -1122,7 +1138,7 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
         -- Build map of processed transfer-to postings, then reconstruct in original order.
         let indexedTos = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferToPosting p]
         (ls', toMap) <- foldM (\(st, m) (i, p) -> do
-            (st', p') <- processAcquirePosting needsLabels txnDate t st p
+            (st', p') <- processAcquirePosting styles needsLabels txnDate t st p
             return (st', M.insert i p' m)
           ) (ls, M.empty) indexedTos
         let allPs = [maybe p id (M.lookup i toMap) | (i, p) <- zip [0..] (tpostings t)]
@@ -1141,7 +1157,7 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
 
     -- Process a transfer pair; record expanded postings keyed by original index.
     processOnePair (st, m) (fromIdx, fromP, toIdx, toP) = do
-      (st', fromPs, toPs) <- processTransferPair verbosetags j t st fromP toP
+      (st', fromPs, toPs) <- processTransferPair styles verbosetags j t st fromP toP
       let m' = M.insert fromIdx fromPs $ M.insert toIdx toPs m
       return (st', m')
 
@@ -1153,10 +1169,10 @@ processTransaction verbosetags j needsLabels (ls, acc) t = do
       | Just expanded <- M.lookup i tmap =
           foldMPostings st (reverse expanded ++ acc') ps tmap
       | isAcquirePosting p = do
-          (st', p') <- processAcquirePosting needsLabels txnDate t st p
+          (st', p') <- processAcquirePosting styles needsLabels txnDate t st p
           foldMPostings st' (p':acc') ps tmap
       | isDisposePosting p = do
-          (st', newPs) <- processDisposePosting verbosetags j t st p
+          (st', newPs) <- processDisposePosting styles verbosetags j t st p
           foldMPostings st' (reverse newPs ++ acc') ps tmap
       | isUnclassifiedLotfulPosting j p =
           Left (unclassifiedLotWarning j t i p)
@@ -1275,9 +1291,9 @@ amountSetQuantityOf c q a
 -- Per-type posting processing
 
 -- | Process a single acquire posting: generate a lot name and append it as a subaccount.
-processAcquirePosting :: S.Set (CommoditySymbol, Day) -> Day -> Transaction -> LotState -> Posting
+processAcquirePosting :: M.Map CommoditySymbol AmountStyle -> S.Set (CommoditySymbol, Day) -> Day -> Transaction -> LotState -> Posting
                       -> Either String (LotState, Posting)
-processAcquirePosting needsLabels txnDate t lotState p = do
+processAcquirePosting styles needsLabels txnDate t lotState p = do
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
     (lotAmt, cb, isBare) <- case lotAmts of
       [x] -> Right (fst x, snd x, False)
@@ -1326,7 +1342,7 @@ processAcquirePosting needsLabels txnDate t lotState p = do
                   in (LotId date (Just l), Just l)
               | otherwise = (lotId0, lotLabel')
             fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel'', cbCost = Just lotBasis}
-            lotName    = showLotName fullCb
+            lotName    = showLotName (styleLotCbCost styles fullCb)
             -- When cost basis was inferred, fill it in on the user's original cb
             -- so that print shows {$50} not {}.
             filledCb   = cb{cbCost = Just lotBasis}
@@ -1364,9 +1380,9 @@ processAcquirePosting needsLabels txnDate t lotState p = do
 -- | Process a dispose posting: match to existing lots using the resolved reduction method,
 -- split into multiple postings if the disposal spans multiple lots.
 -- Returns the list of resulting postings (one per matched lot).
-processDisposePosting :: Bool -> Journal -> Transaction -> LotState -> Posting
+processDisposePosting :: M.Map CommoditySymbol AmountStyle -> Bool -> Journal -> Transaction -> LotState -> Posting
                       -> Either String (LotState, [Posting])
-processDisposePosting verbosetags j t lotState p = do
+processDisposePosting styles verbosetags j t lotState p = do
     -- Extract lotful amount and lot selector. When cost basis is present, use it directly.
     -- When absent (bare dispose on a lotful commodity), use a wildcard selector.
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
@@ -1433,7 +1449,7 @@ processDisposePosting verbosetags j t lotState p = do
                     }
                   -- Disposal cost basis uses average cost when applicable.
                   dispCb = lotCb{cbCost = Just disposalBasis}
-                  lotName = showLotName lotCb
+                  lotName = showLotName (styleLotCbCost styles lotCb)
                   expectedAcct = baseAcct <> ":" <> lotName
               -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
               when (hasExplicitLotAcct && paccount p /= expectedAcct) $
@@ -1471,9 +1487,9 @@ processDisposePosting verbosetags j t lotState p = do
 -- | Process a transfer pair: select lots from the source account (transfer-from)
 -- and recreate them under the destination account (transfer-to).
 -- Returns updated LotState and two lists of expanded postings (from, to).
-processTransferPair :: Bool -> Journal -> Transaction -> LotState -> Posting -> Posting
+processTransferPair :: M.Map CommoditySymbol AmountStyle -> Bool -> Journal -> Transaction -> LotState -> Posting -> Posting
                     -> Either String (LotState, [Posting], [Posting])
-processTransferPair verbosetags j t lotState fromP toP = do
+processTransferPair styles verbosetags j t lotState fromP toP = do
     -- Extract lotful amount and lot selector from transfer-from.
     -- When cost basis is present, use it directly as the lot selector.
     -- When absent (bare transfer on a lotful commodity), use a wildcard selector.
@@ -1562,7 +1578,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
               , cbLabel = lotLabel lotId
               , cbCost  = Just lotBasis
               }
-            lotName = showLotName lotCb
+            lotName = showLotName (styleLotCbCost styles lotCb)
             -- Use base accounts to avoid double-appending lot subaccounts.
             fromAcct = lotBaseAccount (paccount fromP) <> ":" <> lotName
             toAcct   = lotBaseAccount (paccount toP)   <> ":" <> lotName
@@ -1605,7 +1621,7 @@ processTransferPair verbosetags j t lotState fromP toP = do
               , cbLabel = lotLabel lotId
               , cbCost  = Just lotBasis
               }
-            lotName = showLotName lotCb
+            lotName = showLotName (styleLotCbCost styles lotCb)
             fromAcct = lotBaseAccount (paccount fromP) <> ":" <> lotName
             fromAmt' = (amountSetQuantity (negate consumedQty) fromAmt){acostbasis = Just lotCb, acost = Nothing}
             origFromP = originalPosting fromP

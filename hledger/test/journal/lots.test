@@ -265,3 +265,25 @@ $ hledger -f- print -O ledger
     assets:cash
 
 >=
+
+# ** 19. The cost amount inside a lot subaccount name uses the journal's
+# canonical commodity style (decimal mark, digit-group separators, commodity
+# position), so lot subaccount names look consistent regardless of how each
+# cost was written. The original decimal precision is preserved — only the
+# style fields, not the displayed precision, come from the commodity directive.
+# Here the $1,000.00 directive adds digit-group commas, so $1500 is shown as
+# $1,500 in the subaccount name (no decimals added since the user wrote none).
+<
+commodity $1,000.00
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:investment    10 AAPL {2026-01-01, $1500}
+    assets:cash
+
+$ hledger -f- print -x --lots
+2026-01-01 buy
+    assets:investment:{2026-01-01, $1,500}    10 AAPL {2026-01-01, $1500} @ $1,500.
+    assets:cash                                                           $-15,000.
+
+>=
