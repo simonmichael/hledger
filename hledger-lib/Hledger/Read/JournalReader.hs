@@ -549,26 +549,28 @@ accountTypeTagName = "type"
 parseAccountTypeCode :: Text -> Either String AccountType
 parseAccountTypeCode s =
   case T.toLower s of
-    "asset"      -> Right Asset
-    "a"          -> Right Asset
-    "liability"  -> Right Liability
-    "l"          -> Right Liability
-    "equity"     -> Right Equity
-    "e"          -> Right Equity
-    "revenue"    -> Right Revenue
-    "r"          -> Right Revenue
-    "expense"    -> Right Expense
-    "x"          -> Right Expense
-    "cash"       -> Right Cash
-    "c"          -> Right Cash
-    "conversion" -> Right Conversion
-    "v"          -> Right Conversion
-    "gains"      -> Right Gain
-    "g"          -> Right Gain
-    _            -> Left err
+    "asset"            -> Right Asset
+    "a"                -> Right Asset
+    "liability"        -> Right Liability
+    "l"                -> Right Liability
+    "equity"           -> Right Equity
+    "e"                -> Right Equity
+    "revenue"          -> Right Revenue
+    "r"                -> Right Revenue
+    "expense"          -> Right Expense
+    "x"                -> Right Expense
+    "cash"             -> Right Cash
+    "c"                -> Right Cash
+    "conversion"       -> Right Conversion
+    "v"                -> Right Conversion
+    "gain"             -> Right Gain
+    "g"                -> Right Gain
+    "unrealisedgain"   -> Right UnrealisedGain
+    "u"                -> Right UnrealisedGain
+    _                  -> Left err
   where
     err = T.unpack $ "invalid account type code "<>s<>", should be one of " <>
-            T.intercalate ", " ["A","L","E","R","X","C","V","G","Asset","Liability","Equity","Revenue","Expense","Cash","Conversion","Gain"]
+            T.intercalate ", " ["A","L","E","R","X","C","V","G","U","Asset","Liability","Equity","Revenue","Expense","Cash","Conversion","Gain","UnrealisedGain"]
 
 -- Add an account declaration to the journal, auto-numbering it.
 addAccountDeclaration :: (AccountName,Text,[Tag],SourcePos) -> JournalParser m ()

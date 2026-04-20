@@ -187,20 +187,22 @@ data AccountType =
   | Equity
   | Revenue
   | Expense
-  | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
-  | Conversion -- ^ a subtype of Equity - account with which to balance commodity conversions
-  | Gain      -- ^ a subtype of Revenue - capital gains/losses
+  | Cash            -- ^ a subtype of Asset - liquid assets to show in cashflow report
+  | Conversion      -- ^ a subtype of Equity - account with which to balance commodity conversions
+  | Gain            -- ^ a subtype of Revenue - realised capital gains/losses
+  | UnrealisedGain  -- ^ a subtype of Equity - accumulated unrealised capital gains/losses (used by hledger 2)
   deriving (Eq,Ord,Generic)
 
 instance Show AccountType where
-  show Asset      = "A"
-  show Liability  = "L"
-  show Equity     = "E"
-  show Revenue    = "R"
-  show Expense    = "X"
-  show Cash       = "C"
-  show Conversion = "V"
-  show Gain       = "G"
+  show Asset          = "A"
+  show Liability      = "L"
+  show Equity         = "E"
+  show Revenue        = "R"
+  show Expense        = "X"
+  show Cash           = "C"
+  show Conversion     = "V"
+  show Gain           = "G"
+  show UnrealisedGain = "U"
 
 isBalanceSheetAccountType :: AccountType -> Bool
 isBalanceSheetAccountType t = t `elem` [
@@ -208,7 +210,8 @@ isBalanceSheetAccountType t = t `elem` [
   Liability,
   Equity,
   Cash,
-  Conversion
+  Conversion,
+  UnrealisedGain
   ]
 
 isIncomeStatementAccountType :: AccountType -> Bool
@@ -221,18 +224,20 @@ isIncomeStatementAccountType t = t `elem` [
 -- | Check whether the first argument is a subtype of the second: either equal
 -- or one of the defined subtypes.
 isAccountSubtypeOf :: AccountType -> AccountType -> Bool
-isAccountSubtypeOf Asset      Asset      = True
-isAccountSubtypeOf Liability  Liability  = True
-isAccountSubtypeOf Equity     Equity     = True
-isAccountSubtypeOf Revenue    Revenue    = True
-isAccountSubtypeOf Expense    Expense    = True
-isAccountSubtypeOf Cash       Cash       = True
-isAccountSubtypeOf Cash       Asset      = True
-isAccountSubtypeOf Conversion Conversion = True
-isAccountSubtypeOf Conversion Equity     = True
-isAccountSubtypeOf Gain       Gain       = True
-isAccountSubtypeOf Gain       Revenue    = True
-isAccountSubtypeOf _          _          = False
+isAccountSubtypeOf Asset          Asset          = True
+isAccountSubtypeOf Liability      Liability      = True
+isAccountSubtypeOf Equity         Equity         = True
+isAccountSubtypeOf Revenue        Revenue        = True
+isAccountSubtypeOf Expense        Expense        = True
+isAccountSubtypeOf Cash           Cash           = True
+isAccountSubtypeOf Cash           Asset          = True
+isAccountSubtypeOf Conversion     Conversion     = True
+isAccountSubtypeOf Conversion     Equity         = True
+isAccountSubtypeOf Gain           Gain           = True
+isAccountSubtypeOf Gain           Revenue        = True
+isAccountSubtypeOf UnrealisedGain UnrealisedGain = True
+isAccountSubtypeOf UnrealisedGain Equity         = True
+isAccountSubtypeOf _              _              = False
 
 -- not worth the trouble, letters defined in accountdirectivep for now
 --instance Read AccountType
