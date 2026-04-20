@@ -1824,3 +1824,6 @@ ccusage-journal:
 @ccusage-daily *BALARGS:
     just ccusage-bal -D -p1..tomorrow --layout bare {{ BALARGS }}
 
+# Watch today's claude code usage. ccusage options can be added, like -b for breakdown.
+@ccusage-watch *CCUSAGEOPTS:
+    watch -n10 -c -d 'ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}| tail +8'
