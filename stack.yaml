@@ -11,5 +11,5 @@ resolver: nightly-2026-04-17
 compiler: ghc-9.14
 # notify-if-ghc-untested:   false
 # notify-if-cabal-untested: false
-# notify-if-no-run-tests:   false
+notify-if-no-run-tests:   false
 #extra-deps:
