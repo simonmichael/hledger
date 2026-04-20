@@ -51,7 +51,7 @@ import Safe (headErr)
 import Text.Printf (printf)
 
 import Hledger.Data.Types
-import Hledger.Data.AccountName (accountNameType, isAccountNamePrefixOf)
+import Hledger.Data.AccountName (isAccountNamePrefixOf)
 import Hledger.Data.Amount
 import Hledger.Data.Journal
 import Hledger.Data.Posting
@@ -66,7 +66,7 @@ data BalancingOpts = BalancingOpts
                                     --   Distinct from InputOpts{infer_costs_}.
   , commodity_styles_      :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   , txn_balancing_         :: TransactionBalancingPrecision
-  , account_types_         :: M.Map AccountName AccountType  -- ^ account type map, used to exclude Gain postings from balancing
+  , account_types_         :: M.Map AccountName AccountType  -- ^ account type map, passed through for any balancing helpers that need it
   } deriving (Eq, Ord, Show)
 
 defbalancingopts :: BalancingOpts
@@ -77,12 +77,6 @@ defbalancingopts = BalancingOpts
   , txn_balancing_         = TBPExact
   , account_types_         = M.empty
   }
-
--- | Is this posting to a Gain-type account ?
--- Used to exclude gain/loss postings from normal transaction balancing,
--- since gain postings balance at cost basis, not at selling price.
-isGainPosting :: M.Map AccountName AccountType -> Posting -> Bool
-isGainPosting atypes p = accountNameType atypes (paccount p) == Just Gain
 
 -- | Check that this transaction would appear balanced to a human when displayed.
 -- On success, returns the empty list, otherwise one or more error messages.
@@ -102,13 +96,10 @@ isGainPosting atypes p = accountNameType atypes (paccount p) == Just Gain
 --    (using the given display styles if provided)
 --
 transactionCheckBalanced :: BalancingOpts -> Transaction -> [String]
-transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_balancing_, account_types_} t = errs
+transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_balancing_} t = errs
   where
-    -- In disposal transactions, gain postings are excluded from normal balancing
-    isGain = isGainPosting account_types_
-
     -- get real and balanced virtual postings, to be checked separately
-    (rps, bvps) = foldr partitionPosting ([], []) $ filter (not . isGain) $ tpostings t
+    (rps, bvps) = foldr partitionPosting ([], []) $ tpostings t
       where
         partitionPosting p ~(l, r) = case ptype p of
             RegularPosting         -> (p:l, r)
@@ -253,10 +244,10 @@ transactionBalanceError t errs = printf "%s:\n%s\n\nThis %stransaction is unbala
 -- have the same price(s), and will be converted to the price commodity.
 transactionInferBalancingAmount ::
      M.Map CommoditySymbol AmountStyle -- ^ commodity display styles
-  -> M.Map AccountName AccountType     -- ^ account type map (for excluding Gain postings)
+  -> M.Map AccountName AccountType     -- ^ account type map (passed through; reserved for future use)
   -> Transaction
   -> Either String (Transaction, [(AccountName, MixedAmount)])
-transactionInferBalancingAmount styles atypes t@Transaction{tpostings=ps}
+transactionInferBalancingAmount styles _atypes t@Transaction{tpostings=ps}
   | length amountlessrealps > 1
       = Left $ transactionBalanceError t
         ["There can't be more than one real posting with no amount."
@@ -275,8 +266,7 @@ transactionInferBalancingAmount styles atypes t@Transaction{tpostings=ps}
           )
   where
     lbl = lbl_ "transactionInferBalancingAmount"
-    isGain = isGainPosting atypes
-    (amountfulrealps, amountlessrealps) = partition hasAmount (filter (not . isGain) $ realPostings t)
+    (amountfulrealps, amountlessrealps) = partition hasAmount (realPostings t)
     realsum = sumPostings amountfulrealps
       -- & dbg9With (lbl "real balancing amount".showMixedAmountOneLine)
     (amountfulbvps, amountlessbvps) = partition hasAmount (balancedVirtualPostings t)
