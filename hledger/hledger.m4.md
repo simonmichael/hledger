@@ -2003,15 +2003,6 @@ If you hit this problem, it's easy to fix:
   2. or make non-cost amounts less precise (remove unnecessary decimal digits that are raising the precision)
   3. or add a posting to absorb the imbalance (eg "expenses:rounding". Remember that one posting may [omit the amount](#postings); that's convenient here.)
 
-### Transaction balancing and Gain postings
-
-The `Gain` [account type](#account-types) has a special behaviour:
-postings to Gain-type accounts are ignored by transaction balancing.
-
-This is useful in hledger 2, as part of automated lots/gains tracking.
-Gain postings are also supported in hledger 1, for compatibility;
-this makes it easier to keep a journal compatible with both hledger versions.
-
 ## Tags
 
 <!-- Note: same section name as Commands > tags; that one will have anchor #tags-1. If reordering these, update all #tags[-1] links. -->
@@ -2352,12 +2343,13 @@ hledger also uses a few subtypes:
 |-|-|-|
 | `Cash` | `C` | liquid assets (subtype of Asset) |
 | `Conversion` | `V` | commodity conversions equity (subtype of Equity) |
-| `Gain` | `G` | capital gains/losses (subtype of Revenue) |
+| `Gain` | `G` | realised capital gains/losses (subtype of Revenue) |
+| `UnrealisedGain` | `U` | accumulated unrealised capital gains (subtype of Equity) |
 
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
 As a convenience, hledger will detect most of these types automatically from english account names.
-(All except Gain. For more about Gain, see [Gain postings](#gain-postings).)
+(All except Gain and UnrealisedGain. For more about them, see [Gain postings](#gain-postings).)
 But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
 The tag's value can be any of the types or one-letter abbreviations above.
 
@@ -2374,9 +2366,10 @@ account expenses           ; type: X
 account assets:bank        ; type: C
 account assets:cash        ; type: C
 
-account equity:conversion  ; type: V
+account equity:conversion       ; type: V
+account equity:unrealised-gain  ; type: U
 
-account revenues:capital   ; type: G
+account revenues:capital        ; type: G
 ```
 
 This enables the easy [balancesheet], [balancesheetequity], [cashflow] and [incomestatement] reports, and querying by [type:](#queries).
@@ -6047,7 +6040,9 @@ To also add visible tags, use `--verbose-tags` (useful for troubleshooting).
 | `ptype:dispose`       | Negative postings with lot annotations, or in a lotful commodity/account, with no matching counterposting                                                                | Selects and reduces existing lots                                                                     |
 | `ptype:transfer-from` | The negative posting of a pair of counterpostings, at least one with lot annotation or a lotful commodity/account; or a negative lot posting with an equity counterpart (equity transfer) | Moves lots between accounts, preserving cost basis                                                    |
 | `ptype:transfer-to`   | The positive posting of a transfer pair; or a positive lot posting with an equity counterpart (equity transfer, e.g. opening balances)                                   | As above                                                                                              |
-| `ptype:gain`          | A posting to a `Gain`-type account                                                                                                                                       | Helps transaction balancer avoid redundancy, helps disposal balancer check realised capital gain/loss |
+| `ptype:gain`          | A user-written posting to a `Gain`-type account                                                                                                                          | Marks the user's explicit realised gain posting in a disposal                                         |
+| `ptype:rgain`         | A generated realised-gain posting on a `Gain`-type account                                                                                                               | Marks hledger-inferred realised capital gain/loss in a disposal                                       |
+| `ptype:ugain`         | A generated unrealised-gain counter posting on an `UnrealisedGain`-type account                                                                                          | Marks the balancing counter so the disposal sums to zero at transacted cost                           |
 
 # Forecasting
 
@@ -7012,8 +7007,9 @@ Here are the extra steps performed to calculate and check lot movements and capi
   is inferred from transacted cost and vice versa. Or when the account name
   ends with a lot subaccount, cost basis can also be inferred from that.
 3. **Lot movement inference** - acquired lots become subaccounts; transfers and disposals select from existing lots using some reduction method.
-4. **Disposal balancing** - disposal transactions are checked for balance using their lots' cost basis, 
-  and gain amounts/postings are inferred if missing.
+4. **Gain posting inference and checking** - in disposal transactions, hledger
+  infers a realised-gain / unrealised-gain posting pair from the lots' cost
+  basis, or checks the user's explicit gain amount against it.
 5. **Lot detail hiding** - lot subaccounts and some lot-related generated postings are hidden, for simpler reports, unless `--lots` is used.
 
 Error checking is performed throughout, so problems like missing lot cost, ambiguous selectors,
@@ -7205,28 +7201,72 @@ the balance assertion to a new zero-amount posting to the parent account (and ma
 
 ## Gain postings
 
-A **Gain posting** is a posting to an account declared with the [Gain account type](#account-types).
-Gain postings are used in disposal transactions, to record the capital gain or loss, 
-caused by the difference between cost basis and selling price of the lots being sold.
-Gain postings are special: they are ignored by normal transaction balancing, and are checked/inferred only in lots mode.
+In hledger 2, each disposal transaction ends up with a pair of postings
+recording the capital gain:
 
-When recording a disposal transaction, you can:
+- a **realised-gain** posting on a [Gain-type account](#account-types)
+  (default `revenues:gain`), with the gain or loss as a negated amount
+  (a credit on income), and
+- a matching **unrealised-gain** posting on an
+  [UnrealisedGain-type account](#account-types) (default
+  `equity:unrealised-gain`), with the same amount and the opposite sign.
 
-- write the Gain posting with an explicit gain/loss amount - it will be checked
-- or write the Gain posting with no amount - it will be calculated
-- or omit the Gain posting entirely - it will be added (using the first account with Gain type).
+The pair sums to zero, so the disposal balances normally at transacted cost.
+Conceptually, the unrealised-gain posting represents reclassifying what
+would otherwise be tracked as accumulated unrealised gain into a realised
+one.
 
-Gain accounts must be declared explicitly; they are not inferred from the account name.
-This helps keep hledger 2's lots mode self-contained, and transaction balancing stable,
-so that the same journals can be compatible with hledger 1, hledger 2, and hledger 2 in lots mode.
+When recording a disposal you have two options:
 
-So if you're using hledger 2's lots mode, and you have recorded gain postings in your entries,
-you'll need to declare that gain account as `type: G`, to help transaction balancing and disposal balancing.
-Eg:
+1. **Let hledger infer the pair**. Write just the dispose
+   posting and the proceeds; hledger will add both postings using the
+   first declared Gain and UnrealisedGain accounts, or default accounts if none
+   are declared ("revenues:gain", "equity:unrealised-gain").
+2. **Write an explicit realised gain** (and/or unrealised gain) posting with
+   its amount. hledger will add the matching counter posting
+   automatically. If your amount disagrees with the calculated gain,
+   hledger will report an error.
+
+Note, if you write explicit gain postings, you must write their amount, which may be surprising.
+Amountless gain postings are currently not supported (to simplify implementation).
+
+## Gain/UnrealisedGain account types
+
+The `Gain` (`type:G`) and `UnrealisedGain` (`type:U`) account types serve three purposes:
+
+1. **Default destinations for generated gain postings.** 
+   They help hledger choose the account to use in generated gain postings -
+   the first declared `type:G` and `type:U` account.
+   (Otherwise it will use `revenues:gain` and `equity:unrealised-gain`.)
+
+2. **Recognising your explicit gain postings.** 
+   They help hledger detect realised or unrealised gain posting that you wrote yourself —
+   avoiding a duplicate auto-generated pair,
+   enabling a check of your amount against the calculated gain.
+
+3. **Report classification.**
+   Gain is a subtype of Revenue, so it will appear on the income statement;
+   UnrealisedGain is a subtype of Equity, so it will appear on the balance sheet.
+
+Note, unlike other account types, G and U are not inferred from account names, currently — 
+you must declare them explicitly:
 
 ```journal
-account revenues:gain  ; type: G
+account revenues:gain           ; type: G
+account equity:unrealised-gain  ; type: U
 ```
+
+This is to avoid unintended breakage when upgrading from hledger 1 to hledger 2.
+hledger 2 supports
+
+1. hledger 1-style lot entries, where cost basis and lots are tracked manually and gains are calculated/checked by normal transaction balancing.
+
+2. hledger 2 style lot entries, where cost basis, lots and gains are tracked automatically.
+
+So these can coexist in the same journal if needed - but they should not use the same gain accounts.
+The hledger 1 entries should use an ordinary revenue account (type R),
+and the hledger 2 entries will use G and U accounts.
+
 
 ## Lot reporting example
 
@@ -7244,7 +7284,6 @@ commodity AAPL  ; lots:
 2026-03-01 sell some (FIFO, selects oldest lot first)
     assets:stocks      -5 AAPL @ $70
     assets:cash      $350
-    revenue:gains
 ```
 
 ```
@@ -7258,16 +7297,20 @@ $ hledger print --lots -x desc:sell
 2026-03-01 sell some (FIFO, selects oldest lot first)
     assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $70
     assets:cash                                                   $350
-    revenue:gains                                                -$100
+    revenues:gain                                                -$100
+    equity:unrealised-gain                                        $100
 ```
 ```
 $ hledger print --lots -x desc:sell --verbose-tags
 2026-03-01 sell some (FIFO, selects oldest lot first)
     assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $70  ; ptype: dispose
     assets:cash                                                   $350
-    revenue:gains                                                $-100  ; ptype: gain
+    revenues:gain                                                $-100  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                                        $100  ; ptype: ugain, generated-posting:
 ```
 The gain of $100 was inferred: 5 shares acquired at $50, sold at $70 = 5 × ($70 - $50) = $100.
+The realised-gain posting records it as income; the unrealised-gain posting
+provides the balancing counter (so the transaction balances at transacted cost).
 
 
 # PART 4: COMMANDS

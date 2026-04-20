@@ -24,6 +24,8 @@ module Hledger.Data.AccountName (
   ,accountNameInferTypeExcept
   ,accountNameType
   ,defaultBaseConversionAccount
+  ,defaultGainAccount
+  ,defaultUnrealisedGainAccount
   ,assetAccountRegex
   ,cashAccountRegex
   ,liabilityAccountRegex
@@ -91,6 +93,14 @@ acctsep = T.pack [acctsepchar]
 -- The base conversion account name used by --infer-equity,
 -- when no other account of type V/Conversion has been declared.
 defaultBaseConversionAccount = "equity:conversion"
+
+-- The default account name for inferred realised gain (rgain) postings,
+-- when no other account of type G/Gain has been declared.
+defaultGainAccount = "revenues:gain"
+
+-- The default account name for inferred unrealised gain (ugain) postings,
+-- when no other account of type U/UnrealisedGain has been declared.
+defaultUnrealisedGainAccount = "equity:unrealised-gain"
 
 -- | Regular expressions matching common English top-level account names,
 -- used as a fallback when account types are not declared.

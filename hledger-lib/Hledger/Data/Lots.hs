@@ -82,10 +82,6 @@ journalCalculateLots:
   "X is declared lotful ... but this posting was not classified"
   (exempt: zero-amount lotful postings)
 
-* journalInferAndCheckDisposalBalancing:
-  "This disposal transaction has multiple amountless gain postings",
-  "This disposal transaction is unbalanced at cost basis"
-
 -}
 
 {-# LANGUAGE CPP #-}
@@ -96,8 +92,8 @@ module Hledger.Data.Lots (
   journalClassifyLotPostings,
   journalCalculateLots,
   journalCollapseLotDetail,
-  journalInferAndCheckDisposalBalancing,
-  isGainPosting,
+  journalAddGainOrUGainPosting,
+  journalAddOrCheckGainPostings,
   lotBaseAccount,
   lotSubaccountName,
   mergeCostBasis,
@@ -108,7 +104,7 @@ module Hledger.Data.Lots (
 import Control.Applicative ((<|>))
 import Data.Bifunctor (first)
 import Control.Monad (foldM, guard, unless, when)
-import Data.List (intercalate, sort, sortOn)
+import Data.List (intercalate, sortOn)
 import Data.Ord (Down(..))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -125,11 +121,11 @@ import Text.Printf (printf)
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
+import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
-import Hledger.Data.Journal (journalAccountType, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
-import Hledger.Data.Transaction (transactionCommodityStylesWith, txnTieKnot)
+import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
 
@@ -726,92 +722,139 @@ journalCalculateLots verbosetags j
       | isUnclassifiedLotfulPosting j p = Left (unclassifiedLotWarning j t i p)
       | otherwise                       = Right ()
 
--- Disposal balancing
+-- Disposal gain postings
 
--- | For each disposal transaction, infer any amountless gain posting's amount from cost basis,
--- then check that the transaction is balanced at cost basis.
--- This runs after journalCalculateLots, which has filled in cost basis info on dispose postings.
--- The verbosetags parameter controls whether the ptype tag will be made visible in comments.
-journalInferAndCheckDisposalBalancing :: Bool -> Journal -> Either String Journal
-journalInferAndCheckDisposalBalancing verbosetags j = do
-    txns' <- mapM inferGainInTransaction (jtxns j)
+-- | Make a generated gain posting with the given account, amount, and _ptype
+-- tag value (\"rgain\" or \"ugain\"). Also tags with @_generated-posting@ so
+-- print can reveal it under @--verbose-tags@.
+mkGeneratedGainPosting :: Bool -> AccountName -> MixedAmount -> Text -> Posting
+mkGeneratedGainPosting verbosetags acc amt ptypeTag =
+    postingAddHiddenAndMaybeVisibleTag True  verbosetags (toHiddenTag ("ptype", ptypeTag))
+  $ postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
+  $ nullposting{paccount = acc, pamount = amt}
+
+-- | For each disposal transaction, if the user wrote an explicit posting on a
+-- Gain-type or UnrealisedGain-type account without its matching counterpart,
+-- add the missing side with the negated total. This lets the ordinary balancer
+-- accept the paired transaction at transacted cost. Amountless gain/ugain
+-- postings are rejected with a helpful error — users should either write the
+-- amount or omit the posting entirely (hledger will infer the pair).
+--
+-- Intended to run BEFORE transaction balancing. Disposals with neither or
+-- both sides present are left alone; the "neither" case is handled later by
+-- 'journalAddOrCheckGainPostings' after lot matching.
+journalAddGainOrUGainPosting :: Bool -> Journal -> Either String Journal
+journalAddGainOrUGainPosting verbosetags j = do
+    txns' <- mapM infer (jtxns j)
     Right j{jtxns = txns'}
   where
     atypes = jaccounttypes j
+    rgainAccount = journalBaseGainAccount j
+    ugainAccount = journalBaseUnrealisedGainAccount j
+    isRgain p = accountNameType atypes (paccount p) == Just Gain
+    isUgain p = accountNameType atypes (paccount p) == Just UnrealisedGain
 
-    isGain :: Posting -> Bool
-    isGain p = accountNameType atypes (paccount p) == Just Gain
-
-    gainAccount = case sort [a | (a, Gain) <- M.toList atypes] of
-      []    -> "revenue:gains"
-      (a:_) -> a
-
-    tagGain :: Posting -> Posting
-    tagGain = postingAddHiddenAndMaybeVisibleTag True verbosetags (toHiddenTag ("ptype", "gain"))
-
-    disposeHasPrice p = isDisposePosting p && any (isJust . acost) (amountsRaw (pamount p))
-
-    inferGainInTransaction t
+    infer t
       | not (any isDisposePosting (tpostings t)) = Right t
-      | not (any disposeHasPrice (tpostings t))  = Right t
-      | otherwise = do
-          let -- Exclude equity conversion postings (from --infer-equity) which duplicate
-              -- the cost information already on the costful posting.
-              nonConversionPs = filter (not . isConversionPosting) (tpostings t)
-              (gainPs, otherPs) = partition' isGain nonConversionPs
-              (amountfulGainPs, amountlessGainPs) = partition' hasAmount gainPs
-              -- Use the transaction's local precision for zero checks,
-              -- matching normal transaction balancing (Balancing.hs TBPExact).
-              looksZero = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
-              -- Style inferred gain amounts with the canonical commodity styles,
-              -- padding trailing zeros to the canonical precision (eg $2.5 -> $2.50).
-              styleInferred = styleAmounts (journalCommodityStylesWith SoftRounding j)
-          case amountlessGainPs of
-            -- No amountless gain postings
-            []
-              -- No gain postings at all: create one if residual is nonzero
-              | null gainPs -> do
-                  let residual = foldMap postingCostBasisAmount nonConversionPs
-                  if looksZero residual
-                    then Right t
-                    else do
-                      let inferredAmt = styleInferred $ maNegate residual
-                          gp = postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
-                                 $ tagGain nullposting{paccount = gainAccount, pamount = inferredAmt}
-                          t' = txnTieKnot $ t{tpostings = tpostings t ++ [gp]}
-                      checkBalance t'
-                      Right t'
-              -- Has amountful gain postings, just check balance
-              | otherwise -> do
-                  checkBalance t
-                  Right t
-            -- One amountless gain posting: infer its amount, then check
-            [gp] -> do
-              let otherSum = foldMap postingCostBasisAmount (otherPs ++ amountfulGainPs)
-                  inferredAmt = styleInferred $ maNegate otherSum
-                  gp' = gp{ pamount   = inferredAmt
-                          , poriginal = Just $ originalPosting gp
-                          }
-                  t' = t{tpostings = map (\p -> if p == gp then gp' else p) (tpostings t)}
-              checkBalance t'
-              Right t'
-            -- Multiple amountless gain postings: error
-            _ -> Left $ txnErrPrefix t
-                     ++ "This disposal transaction has multiple amountless gain postings.\n"
-                     ++ "At most one gain posting may have its amount inferred."
+      | otherwise = case (filter isRgain ps, filter isUgain ps) of
+          ([], [])   -> Right t                        -- inferred later
+          (_:_, _:_) -> Right t                        -- balancer validates
+          (xs, [])   -> addCounter t xs ugainAccount "ugain"
+          ([], xs)   -> addCounter t xs rgainAccount "rgain"
+      where ps = tpostings t
 
-    checkBalance t =
-      let -- Exclude equity conversion postings (from --infer-equity) which duplicate
-          -- the cost information already on the costful posting.
-          ps = filter (not . isConversionPosting) (tpostings t)
-          amts = map postingCostBasisAmount ps
-          costBasisSum = mconcat amts
-          -- Use the transaction's local precision, matching normal balancing (Balancing.hs TBPExact).
-          looksZero = mixedAmountLooksZero . styleAmounts (transactionCommodityStylesWith HardRounding t)
-      in unless (looksZero costBasisSum) $
-           Left $ disposalBalanceError t amts costBasisSum
+    addCounter t existing missingAcc ptypeTag
+      | any (not . hasAmount) existing = Left (amountlessErr t)
+      | otherwise =
+          let counterP = mkGeneratedGainPosting verbosetags missingAcc (maNegate $ foldMap pamount existing) ptypeTag
+          in  Right $ txnTieKnot t{tpostings = tpostings t ++ [counterP]}
 
+    amountlessErr t =
+      txnErrPrefix t
+      ++ "This disposal has an amountless gain or unrealised-gain posting.\n"
+      ++ "Write the amount explicitly, or omit the posting entirely\n"
+      ++ "(hledger will then infer both rgain and ugain from the cost basis)."
+
+-- | For each disposal transaction with a transacted price, add a pair of balanced
+-- postings recognising the realised capital gain:
+--
+-- * a realised-gain posting ('rgain') to a 'Gain'-type account (default
+--   @revenues:gain@) with the negated gain amount;
+-- * an unrealised-gain posting ('ugain') to an 'UnrealisedGain'-type account
+--   (default @equity:unrealised-gain@) with the gain amount, reclassifying the
+--   accumulated (conceptual) unrealised gain as realised.
+--
+-- The two postings sum to zero, so the ordinary transaction balancing rule at
+-- transacted cost is satisfied without any special exception.
+--
+-- The gain amount is the disposal's residual at cost basis: e.g. for
+-- @-5 AAPL {$50} \@ $70 + $350 cash@, the cost-basis residual is
+-- @-$250 + $350 = $100@.
+--
+-- Runs after 'journalCalculateLots' so that cost basis is populated on dispose
+-- postings. Both generated postings carry the @_generated-posting@ hidden tag,
+-- visible as @generated-posting:@ in @print --verbose-tags@.
+journalAddOrCheckGainPostings :: Bool -> Journal -> Either String Journal
+journalAddOrCheckGainPostings verbosetags j = do
+    txns' <- mapM addPair (jtxns j)
+    Right j{jtxns = txns'}
+  where
+    atypes = jaccounttypes j
+    rgainAccount = journalBaseGainAccount j
+    ugainAccount = journalBaseUnrealisedGainAccount j
+
+    -- rgain/ugain postings are identified either by user-declared account type,
+    -- or by the _ptype:rgain / _ptype:ugain hidden tag that journalAddGainOrUGainPosting
+    -- (and this function, for its own output) attaches to generated postings.
+    -- We do not infer Gain/UnrealisedGain from account names.
+    isRgain p = accountNameType atypes (paccount p) == Just Gain
+             || ("_ptype", "rgain") `elem` ptags p
+    isUgain p = accountNameType atypes (paccount p) == Just UnrealisedGain
+             || ("_ptype", "ugain") `elem` ptags p
+    disposeHasPrice p = isDisposePosting p && any (isJust . acost) (amountsRaw (pamount p))
     isConversionPosting p = conversionPostingTagName `elem` map fst (ptags p)
+
+    addPair t
+      | not (any isDisposePosting (tpostings t))  = Right t
+      | not (any disposeHasPrice  (tpostings t))  = Right t
+      | any isRgain ps || any isUgain ps          = validatePair t  -- already paired
+      | otherwise                                  = Right (addNewPair t)
+      where ps = tpostings t
+
+    addNewPair t
+      | mixedAmountIsZero residual = t
+      | otherwise = txnTieKnot t{tpostings = tpostings t ++ [rgainP, ugainP]}
+      where
+        residual      = foldMap postingCostBasisAmount
+                      $ filter (not . isConversionPosting) (tpostings t)
+        styleInferred = styleAmounts (journalCommodityStylesWith SoftRounding j)
+        rgainP        = mkGeneratedGainPosting verbosetags rgainAccount (styleInferred $ maNegate residual) "rgain"
+        ugainP        = mkGeneratedGainPosting verbosetags ugainAccount (styleInferred residual)            "ugain"
+
+    -- When a disposal already has rgain/ugain postings (user-written, possibly
+    -- completed by journalAddGainOrUGainPosting), check that the claimed gain equals
+    -- the cost-basis residual of the other postings, exactly.
+    validatePair t =
+      let ps       = tpostings t
+          nonGainPs = filter (\p -> not (isRgain p) && not (isUgain p) && not (isConversionPosting p)) ps
+          residual = foldMap postingCostBasisAmount nonGainPs
+          rgainSum = foldMap pamount (filter isRgain ps)
+          -- rgain_sum should equal -residual (at cost basis). Check rgain_sum + residual == 0.
+          diff = rgainSum <> residual
+      in if mixedAmountIsZero diff
+           then Right t
+           else Left (mismatchErr t residual rgainSum)
+
+    mismatchErr t residual rgainSum =
+      txnErrPrefix t
+      ++ "This disposal's realised gain amount is wrong.\n"
+      ++ "  written:    " ++ showamt rgainSum ++ "\n"
+      ++ "  calculated: " ++ showamt (maNegate residual)
+      where
+        showamt =
+          showMixedAmountWith oneLineNoCostFmt{displayZeroCommodity=True}
+          . mixedAmountSetFullPrecisionUpTo Nothing
+          . mixedAmountSetFullPrecision
 
     -- Value a posting at cost basis: if it has a cost basis, use quantity * basis cost;
     -- otherwise use the raw amount. Amountless postings contribute nothing.
@@ -820,10 +863,7 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
       | not (hasAmount p) = nullmixedamt
       | otherwise         = foldMap amountCostBasisValue (amountsRaw (pamount p))
 
-    -- Value an amount for disposal balancing, using a 3-step hierarchy:
-    -- cost basis -> transacted cost -> raw amount.
-    -- This extends transaction balancing's "acost or raw" rule by preferring
-    -- cost basis when available.
+    -- Value an amount using a 3-step hierarchy: cost basis -> transacted cost -> raw amount.
     amountCostBasisValue :: Amount -> MixedAmount
     amountCostBasisValue a = case acostbasis a >>= cbCost of
       Just basisCost -> mixedAmount basisCost{aquantity = aquantity a * aquantity basisCost}
@@ -832,39 +872,23 @@ journalInferAndCheckDisposalBalancing verbosetags j = do
         Just (TotalCost c) -> mixedAmount c
         Nothing            -> mixedAmount a
 
-    disposalBalanceError :: Transaction -> [MixedAmount] -> MixedAmount -> String
-    disposalBalanceError t amts imbalance =
-      txnErrPrefix t
-      ++ "This disposal transaction is unbalanced.\n"
-      ++ "The real postings' sum (using cost basis, including gains, excluding conversion equity) should be 0 but is: " ++ showamt imbalance ++ "\n"
-      ++ "  " ++ intercalate "  +  " (map showamt amts) ++ "  =  " ++ showamt imbalance
-      where
-        showamt =
-          showMixedAmountWith oneLineNoCostFmt{displayZeroCommodity=True}
-          . mixedAmountSetFullPrecisionUpTo Nothing
-          . mixedAmountSetFullPrecision
-
-    -- Like Data.List.partition but preserves the type for the predicate
-    partition' :: (a -> Bool) -> [a] -> ([a], [a])
-    partition' _ [] = ([], [])
-    partition' f (x:xs)
-      | f x       = (x:yes, no)
-      | otherwise  = (yes, x:no)
-      where (yes, no) = partition' f xs
-
 -- | Collapse lot-tracking detail from a journal for display when --lots is off.
--- Makes two targeted changes to each transaction:
+-- Makes these targeted changes to each transaction:
 --
--- * drops postings tagged @_split-posting@ (synthetic fee fragments from auto-split)
---   or @_lot-parent-assertion@ (synthetic balance-assertion carriers added when
---   splitting a posting into lot subaccounts);
+-- * drops postings tagged @_lot-parent-assertion@ (synthetic balance-assertion
+--   carriers added when splitting a posting into lot subaccounts);
 -- * strips any lot subaccount (the trailing @{...}@ component) from each remaining
---   posting's account name.
+--   posting's account name;
+-- * strips any lot-inferred cost basis (@acostbasis@) from each remaining posting's
+--   @pamount@. Cost basis the user wrote explicitly is preserved — only acostbasis
+--   that was absent on the posting's @poriginal@ (ie added by lot processing) is
+--   stripped.
 --
--- Posting amounts are left alone; any inferred cost basis on 'acostbasis' is
--- ignored by most reports. 'print' relies on its existing
--- 'transactionWithMostlyOriginalPostings' logic to revert pamount to 'poriginal'
--- when displaying non-explicit output.
+-- Postings tagged @_split-posting@ (synthetic fee fragments from auto-split) are
+-- retained so transactions stay balanced in reports like 'print'.
+--
+-- 'print' relies on its existing 'transactionWithMostlyOriginalPostings' logic to
+-- revert pamount to 'poriginal' when displaying non-explicit output.
 --
 -- Journals with no lot content are returned unchanged.
 journalCollapseLotDetail :: Journal -> Journal
@@ -879,10 +903,20 @@ journalCollapseLotDetail j
     collapseTransaction t = txnTieKnot t{tpostings = mapMaybe collapsePosting (tpostings t)}
 
     collapsePosting p
-      | postingHasTag splitPostingTagName p       = Nothing
       | postingHasTag lotParentAssertionTagName p = Nothing
-      | isJust (lotSubaccountName (paccount p))   = Just p{paccount = lotBaseAccount (paccount p)}
-      | otherwise                                 = Just p
+      | otherwise = Just p
+          { paccount = lotBaseAccount (paccount p)
+          , pamount  = mapMixedAmount stripInferredBasis (pamount p)
+          }
+      where
+        -- Preserve acostbasis the user wrote explicitly on poriginal; strip any
+        -- acostbasis added later by lot processing.
+        origHasBasis = case poriginal p of
+          Just op -> any (isJust . acostbasis) (amountsRaw (pamount op))
+          Nothing -> True
+        stripInferredBasis a
+          | origHasBasis = a
+          | otherwise    = a{acostbasis = Nothing}
 
 -- Posting type predicates
 

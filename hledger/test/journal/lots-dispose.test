@@ -149,6 +149,7 @@ $ hledger -f- print --lots
     assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
     assets:cash                                                   $300
     revenue:gains                                                 $-50
+    equity:unrealised-gain                                         $50
 
 >=
 
@@ -186,7 +187,6 @@ account revenue:gains  ; type:G
 2026-03-01 sell some
     assets:stocks   -15 AAPL
     assets:cash      $900
-    revenue:gains
 
 $ hledger -f- print --lots -x desc:sell
 2026-03-01 sell some
@@ -194,6 +194,7 @@ $ hledger -f- print --lots -x desc:sell
     assets:stocks:{2026-02-01, $55}     -5 AAPL {2026-02-01, $55} @ $60
     assets:cash                                                    $900
     revenue:gains                                                 $-125
+    equity:unrealised-gain                                         $125
 
 >=
 
@@ -213,7 +214,6 @@ account revenue:gains  ; type:G
 2026-03-01 sell
     assets:stocks   -15 AAPL @ $60
     assets:cash
-    revenue:gains
 
 $ hledger -f- print --lots -x desc:sell
 2026-03-01 sell
@@ -221,6 +221,7 @@ $ hledger -f- print --lots -x desc:sell
     assets:stocks:{2026-02-01, $55}     -5 AAPL {2026-02-01, $55} @ $60
     assets:cash                                                    $900
     revenue:gains                                                 $-125
+    equity:unrealised-gain                                         $125
 
 >=
 
@@ -265,6 +266,7 @@ $ hledger -f- print --lots -x desc:sell
     assets:stocks                                                0 AAPL =* 0 AAPL
     assets:cash                                                   $1400
     revenue:gains                                                 $-300
+    equity:unrealised-gain                                         $300
 
 >=
 
@@ -333,13 +335,13 @@ account revenue:gains  ; type:G
 2026-02-01 sell with explicit lot subaccount
     assets:stocks:{2026-01-15, $50}    -5 AAPL @ $60
     assets:cash
-    revenue:gains
 
 $ hledger -f- print --lots -x desc:sell
 2026-02-01 sell with explicit lot subaccount
     assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
     assets:cash                                                   $300
     revenue:gains                                                 $-50
+    equity:unrealised-gain                                         $50
 
 >=
 
@@ -427,26 +429,39 @@ account revenue:gains  ; type: G
 $ hledger -f- bal --lots -N
                $-359  assets:cash
             5.0 AAPL  assets:stocks:{2026-01-15, $80}
+                 $49  equity:unrealised-gain
             0.1 AAPL  expenses:fees
                 $-49  revenue:gains
 
-# ** 25. Disposal balance check tolerates rounding from fractional per-unit cost.
-# 9.216 * 1801.215277778 = 16600.000000002, off by 0.000000002 from the 16600.00 paid.
-# The tiny residual should be tolerated (rounded to zero at display precision).
+# ** 25. Sub-cent gain (issue #2575): a fractional-commodity disposal
+# produces a gain below 2-decimal display precision. The exact gain is
+# recorded in the generated rgain/ugain pair regardless of the journal's
+# display precision; reports at 2-decimal precision show it rounded to $0.00
+# but the data is there (use `-c '$1,000.00000000'` to see the full amount).
 <
-account income:capital  ; type:G
+commodity 1.000000 ETH  ; lots:
+account income:gains              ; type:G
+account equity:unrealised-gain    ; type:U
 
-2017-04-09 buy
-    assets:fund    9.216 FUND {Rs1801.215277778}
-    assets:savings                   Rs-16600.00
+2026-03-06 buy
+    assets:custodial      1.000000 ETH
+    assets:custodial    $-1,980.78
 
-2019-07-10 sell
-    assets:savings                                     Rs19403.24
-    assets:fund    -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
-    income:capital                                     Rs-2803.24
+2026-03-09 transfer
+    assets:custodial        -1.000000 ETH
+    assets:cold wallet       0.999601 ETH
+    expenses:fees:trading    0.000399 ETH @ $1,992.36
 
-$ hledger -f- print --lots
-> /sell/
+$ hledger -f- print -x desc:transfer
+2026-03-09 transfer
+    assets:custodial:{2026-03-06, $1,980.78}                  -0.999601 ETH {2026-03-06, $1,980.78}
+    assets:custodial:{2026-03-06, $1,980.78}      -0.000399 ETH {2026-03-06, $1,980.78} @ $1,992.36
+    assets:cold wallet:{2026-03-06, $1,980.78}                 0.999601 ETH {2026-03-06, $1,980.78}
+    expenses:fees:trading                                                  0.000399 ETH @ $1,992.36
+    income:gains                                                                       $-0.00462042
+    equity:unrealised-gain                                                              $0.00462042
+
+>=
 
 # ** 26. Disposal balance check works with --infer-equity.
 # Equity conversion postings (from --infer-equity) should not disrupt the
@@ -476,6 +491,7 @@ $ hledger -f- print --lots --infer-equity
     equity:conversion:$-AAPL:AAPL                   10 AAPL
     equity:conversion:$-AAPL:$                        $-600
     income:capital                                    $-100
+    equity:unrealised-gain                             $100
 
 >=
 
@@ -510,14 +526,57 @@ commodity FUND  ; lots:
     income:capital                             Rs-400
 
 $ hledger -f- print --lots
->2
-hledger: Error: -:8:
-8 | 2026-02-15 sell
-  |     assets:savings                                                     Rs1500
-  |     assets:fund:{2026-01-15, Rs100}    -10 FUND {2026-01-15, Rs100} @@ Rs1500
-  |     income:capital                                                     Rs-400
-
-This disposal transaction is unbalanced.
-The real postings' sum (using cost basis, including gains, excluding conversion equity) should be 0 but is: Rs100
-  Rs1500  +  Rs-1000  +  Rs-400  =  Rs100
+>2 /realised gain amount is wrong/
 >=1
+
+# ** 29. An imprecise per-unit cost basis causes an imbalance that we don't tolerate.
+# 9.216 × 1801.215277778 = 16600.000000002, off by 0.000000002 from the Rs16600.00 paid.
+# We treat this as an unbalanced disposal rather than silently rounding it away.
+<
+account income:capital  ; type:G
+
+2017-04-09 buy
+    assets:fund    9.216 FUND {Rs1801.215277778}
+    assets:savings                   Rs-16600.00
+
+2019-07-10 sell
+    assets:savings                                     Rs19403.24
+    assets:fund    -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
+    income:capital                                     Rs-2803.24
+
+$ hledger -f- print --lots
+>2 /realised gain amount is wrong/
+>=1
+
+# ** 30. TODO: {{ }} total cost basis syntax should let us work around test
+# 25's imprecision issue. But currently hledger normalises {{ total }} to
+# { per-unit } internally, and this normalisation is flawed:
+#
+#   - It divides the total by the posting's *signed* quantity. So the acquire's
+#     9.216 FUND {{Rs16600.00}} stores per-unit Rs1801.22 but the dispose's
+#     -9.216 FUND {{Rs16600.00}} is normalised to per-unit Rs-1801.22 (wrong sign),
+#     and the dispose fails to match the acquired lot.
+#
+#   - It rounds the per-unit to the commodity's declared precision (2 decimals
+#     for Rs), so even with the sign fixed, Rs1801.22 would not equal the
+#     acquire's exact Rs16600/9.216 ≈ Rs1801.215277778..., and the Decimal
+#     artifact from test 25 would reappear.
+#
+# Until this is fixed, users have to avoid test 25's case by choosing
+# quantities and per-unit costs that multiply exactly.
+<
+account income:capital  ; type:G
+
+2017-04-09 buy
+    assets:fund    9.216 FUND {{Rs16600.00}}
+    assets:savings                   Rs-16600.00
+
+2019-07-10 sell
+    assets:savings                                     Rs19403.24
+    assets:fund    -9.216 FUND {{Rs16600.00}} @@ Rs19403.24
+    income:capital                                     Rs-2803.24
+
+$ hledger -f- print --lots
+>2 /no lots available for commodity FUND in account assets:fund/
+>=1
+

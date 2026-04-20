@@ -167,14 +167,14 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           | opts ^. infer_costs = id
           -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
           | has (value . _Just) opts = id
-          -- with --lots, keep the explicit form for transactions containing auto-split postings
-          -- (needed for round-tripping); other transactions fall through to the default.
-          | boolopt "lots" (rawopts_ opts) = \t ->
+          -- For transactions containing auto-split postings (eg from lot transfer auto-split),
+          -- keep the explicit form. Reverting to the original would drop the split fragments
+          -- and leave an unbalanced entry.
+          -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
+          | otherwise = \t ->
               if any (hasTag splitPostingTagName) (tpostings t)
               then t
               else transactionWithMostlyOriginalPostings t
-          -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
-          | otherwise = transactionWithMostlyOriginalPostings
           where hasTag name p = name `elem` map fst (ptags p)
 
         -- Like maybeoriginalamounts, but also keeps the inferred amount for

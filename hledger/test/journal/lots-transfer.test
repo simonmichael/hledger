@@ -423,7 +423,6 @@ account revenue:gains  ; type:G
 2026-03-01 sell
     assets:x2    -1.00 A @ $150
     assets:cash
-    revenue:gains
 
 $ hledger -f- bal assets:x1 assets:x2 --lots -N
               0.95 A  assets:x1:{2026-01-15, $100}
@@ -451,7 +450,6 @@ account revenue:gains  ; type:G
 2026-03-01 sell all from x2
     assets:x2    -2 A @ $150
     assets:cash
-    revenue:gains
 
 $ hledger -f- bal assets --lots -N
               0.98 A  assets:x1:{2026-01-15, $100}
@@ -471,7 +469,6 @@ account revenue:gains  ; type:G
     assets:x1     -1 A
     expenses:fees  0.05 A @ $150
     assets:x2      0.95 A
-    revenue:gains
 
 $ hledger -f- print --lots -x desc:transfer
 2026-02-17 transfer with priced fee
@@ -480,12 +477,15 @@ $ hledger -f- print --lots -x desc:transfer
     expenses:fees                                       0.05 A @ $150
     assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
     revenue:gains                                               $-2.5
+    equity:unrealised-gain                                       $2.5
 
 >=
 
-# ** 23. Same transfer+fee entry as above, but plain print (no -x) shows
-# the user's original unsplit entry, courtesy of poriginal on the transfer
-# portion and the _split-posting tag hiding the dispose portion.
+# ** 23. Same transfer+fee entry as above, but plain print (no -x) also
+# shows the split form so the printed entry stays balanced. Reverting the
+# outflow back to the user's original unsplit posting would drop the priced
+# dispose portion and leave an unbalanced entry. Lot-inferred cost basis
+# ({...}) is stripped on each amount since --lots is off.
 <
 commodity A  ; lots:
 account revenue:gains  ; type:G
@@ -498,14 +498,15 @@ account revenue:gains  ; type:G
     assets:x1     -1 A
     expenses:fees  0.05 A @ $150
     assets:x2      0.95 A
-    revenue:gains
 
 $ hledger -f- print desc:transfer
 2026-02-17 transfer with priced fee
-    assets:x1                 -1 A
-    expenses:fees    0.05 A @ $150
-    assets:x2               0.95 A
-    revenue:gains
+    assets:x1                        -0.95 A
+    assets:x1                 -0.05 A @ $150
+    expenses:fees              0.05 A @ $150
+    assets:x2                         0.95 A
+    revenue:gains                      $-2.5
+    equity:unrealised-gain              $2.5
 
 >=
 
@@ -523,7 +524,6 @@ account revenue:gains  ; type:G
     assets:x1     -1 A
     expenses:fees  0.05 A @ $150
     assets:x2      0.95 A
-    revenue:gains
 
 $ hledger -f- print --lots desc:transfer
 2026-02-17 transfer with priced fee
@@ -532,6 +532,7 @@ $ hledger -f- print --lots desc:transfer
     expenses:fees                                       0.05 A @ $150
     assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
     revenue:gains                                               $-2.5
+    equity:unrealised-gain                                       $2.5
 
 >=
 
@@ -552,7 +553,6 @@ account revenue:gains  ; type:G
     assets:x1  -0.05 A @ $150
     expenses:fees  0.05 A @ $150
     assets:x2      0.95 A
-    revenue:gains
 
 $ hledger -f- print -x --lots desc:transfer
 2026-02-17 transfer with priced fee
@@ -561,5 +561,6 @@ $ hledger -f- print -x --lots desc:transfer
     expenses:fees                                       0.05 A @ $150
     assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
     revenue:gains                                              $-2.50
+    equity:unrealised-gain                                      $2.50
 
 >=

@@ -19,7 +19,6 @@ account revenues:gains  ; type:G
 2026-02-01 sell
     assets:stocks    -10 AAPL {$50} @ $55
     assets:cash       $550
-    revenues:gains
 
 $ hledger -f - check lots
 
@@ -46,13 +45,12 @@ account revenues:gains  ; type:G
 2026-02-01 sell
     assets:stocks    -15 AAPL {$50} @ $55
     assets:cash       $825
-    revenues:gains
 
 $ hledger -f - check lots
 >2 /insufficient lots/
 >=1
 
-# ** 5. check lots fails on disposal balance error
+# ** 5. check lots fails when the written realised gain doesn't match the cost-basis residual
 <
 account revenues:gains  ; type:G
 
@@ -66,7 +64,7 @@ account revenues:gains  ; type:G
     revenues:gains    $-999
 
 $ hledger -f - check lots
->2 /disposal transaction is unbalanced/
+>2 /realised gain amount is wrong/
 >=1
 
 # ** 6. --ignore-lots suppresses lot errors, journal loads

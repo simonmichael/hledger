@@ -56,7 +56,9 @@ For each cost amount, two conversion postings are generated under \<equityAcct\>
 | _ptype:dispose       | journalClassifyLotPostings                                            | Lot disposal                                           |
 | _ptype:transfer-from | journalClassifyLotPostings                                            | Lot transfer source                                    |
 | _ptype:transfer-to   | journalClassifyLotPostings                                            | Lot transfer destination                               |
-| _ptype:gain          | journalClassifyLotPostings / journalInferAndCheckDisposalBalancing     | Capital gain/loss posting                              |
+| _ptype:gain          | journalClassifyLotPostings                                            | User-written posting to a Gain-type account            |
+| _ptype:rgain         | journalAddGainOrUGainPosting / journalAddOrCheckGainPostings           | Inferred realised-gain posting                         |
+| _ptype:ugain         | journalAddGainOrUGainPosting / journalAddOrCheckGainPostings           | Inferred unrealised-gain counter posting               |
 | _cost-posting        | journalTagCostsAndEquityAndMaybeInferCosts / journalInferEquityFromCosts | Has (or could have) cost matching conversion postings |
 | _conversion-posting  | journalTagCostsAndEquityAndMaybeInferCosts / journalInferEquityFromCosts | Equity conversion posting                             |
-| _generated-posting   | journalInferEquityFromCosts                                           | Machine-generated posting                              |
+| _generated-posting   | journalInferEquityFromCosts / journalAddGainOrUGainPosting / journalAddOrCheckGainPostings | Machine-generated posting          |

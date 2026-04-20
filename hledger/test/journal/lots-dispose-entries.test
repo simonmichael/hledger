@@ -22,6 +22,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     equity:opening:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
     assets:cash                                        $275
     revenue:gains                                      $-25  ; ptype: gain
+    equity:unrealised-gain                              $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -43,6 +44,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
     assets:cash                                       $275
     revenue:gains                                     $-25  ; ptype: gain
+    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -67,6 +69,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}         -5 AAPL  ; ptype: dispose
     assets:cash                                $275
     revenue:gains                              $-25  ; ptype: gain
+    equity:unrealised-gain                      $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -89,6 +92,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}    -5 AAPL @ $55  ; ptype: dispose
     assets:cash                                 $275
     revenue:gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -111,6 +115,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50}  ; ptype: dispose
     assets:cash                                 $275
     revenue:gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -133,6 +138,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}    -5 AAPL {} @ $55  ; ptype: dispose
     assets:cash                                    $275
     revenue:gains                                  $-25  ; ptype: gain
+    equity:unrealised-gain                          $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -156,6 +162,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
     assets:cash                                       $275
     capital gains                                     $-25  ; ptype: gain
+    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -178,6 +185,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @@ $275  ; ptype: dispose
     assets:cash                                         $275
     revenue:gains                                       $-25  ; ptype: gain
+    equity:unrealised-gain                               $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -217,7 +225,7 @@ account revenue:gains  ; type:G
     revenue:gains   -$30
 
 $ hledger -f- print desc:sell --lots --verbose-tags
->2 /disposal transaction is unbalanced/
+>2 /realised gain amount is wrong/
 >=1
 
 # *** 11. dispose: missing gain posting is inferred from Gain account.
@@ -237,7 +245,8 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
     assets:cash                                       $275
-    revenue:gains                                     $-25  ; ptype: gain, generated-posting:
+    revenue:gains                                     $-25  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -258,6 +267,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
     assets:cash                                       $275
-    revenue:gains                                     $-25  ; ptype: gain, generated-posting:
+    revenue:gains                                     $-25  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
 
 >=

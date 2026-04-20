@@ -42,7 +42,6 @@ account revenue:gains  ; type:G
 2026-02-01 sell
     assets:stocks   -10 AAPL {$50} @ $70
     assets:cash      $700
-    revenue:gains
 
 $ hledger -f- is
 Income Statement 2026-01-01..2026-02-01

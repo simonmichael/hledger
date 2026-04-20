@@ -34,9 +34,10 @@ disposals) is validated up front. Journals with no lot activity pay near-zero co
 via an internal fast path.
 
 This processing can be disabled with `--ignore-lots` (or its shortcut alias `-I`,
-which also sets `--ignore-assertions`). When either is active, the three lot pipeline
-stages (`journalCheckLotsTagValues`, `journalCalculateLots`,
-`journalInferAndCheckDisposalBalancing`) are skipped entirely. Capital gains are not
+which also sets `--ignore-assertions`). When either is active, the gated lot pipeline
+stages (`journalAddGainOrUGainPosting`, `journalCheckLotsTagValues`,
+`journalCalculateLots`, `journalAddOrCheckGainPostings`) are skipped entirely.
+Capital gains are not
 inferred, lot subaccounts are not added, and lot-related errors (malformed `lots:`
 tags, missing lot cost, ambiguous selectors, dispose-before-acquire, etc.) are not
 raised. Classification tags and cost inference from user-written `{}` annotations
@@ -410,49 +411,64 @@ So a lot transaction can be broadly classified as "acquire", "transfer", or "dis
 
 ## Gain postings
 
-A gain posting is a posting to an account of Gain type (a subtype of Revenue).
-Gain postings appear in disposal transactions, to record the capital gain or loss.
-The special account type helps hledger identify these postings during transaction balancing.
+In lots mode, each disposal transaction has a pair of generated postings
+recording the capital gain or loss:
 
-Unlike other account types, Gain can not be inferred from account names;
-it must be declared explicitly with a `type:` tag.
-Eg `account revenues:gain    ; type:G`.
-This, and the balancing rules described next, help avoid breakage when moving between hledger 1 and 2, and between hledger 2's non-lots and lots modes.
+- a **realised gain** posting (rgain) to a Gain-type account (default
+  `revenues:gain`), with the negated gain amount;
+- an **unrealised gain** counter (ugain) to an UnrealisedGain-type account
+  (default `equity:unrealised-gain`), with the gain amount.
+
+The two postings sum to zero, so the ordinary transacted-cost balancing rule
+accepts the disposal — no special exception is needed. Conceptually, the
+ugain posting represents reclassifying what would otherwise accumulate as
+unrealised gain into a realised gain at disposal.
+
+Gain-type and UnrealisedGain-type account declarations cannot be inferred
+from account names; they must be declared explicitly with `type:` tags, eg:
+
+```
+account revenues:gain           ; type: G
+account equity:unrealised-gain  ; type: U
+```
+
+This keeps lots-mode behaviour self-contained and avoids changing the
+meaning of similarly-named accounts in hledger 1 journals.
 
 ## Transaction balancing
 
-All transactions recorded in the journal, including lot-related ones, must pass normal transaction balancing.
-Transaction balancing is not aware of lots or capital gain; it just checks and ensures that the transaction is balanced,
-in the sense that the debits (positives) and credits (negatives) are equal.
-It
+All transactions, including disposals, are balanced by the ordinary
+transaction-balancing rule — sum postings at transacted cost (ignoring cost
+basis), sum must be zero, infer at most one missing amount per commodity.
+No special exception applies to Gain/UnrealisedGain postings.
 
-1. sums postings using their transacted costs if any (ignoring cost basis)
-2. ignores capital gain/loss postings, identified by their Gain account type.
-3. checks that the postings' sum is zero;
-  or if it is nonzero and there are postings with no amount, it infers the balancing amount (at most one per commodity).
+## Gain-posting inference
 
-Since gain postings are ignored here, an amountless gain posting will remain amountless at this stage.
+Disposal transactions can be written in any of three equivalent styles:
 
-## Disposal balancing
+1. **No gain postings written.** After lot matching, hledger computes the
+   cost-basis residual of the non-gain postings and adds both rgain and
+   ugain postings (`journalAddOrCheckGainPostings`).
 
-When running in lots mode, disposal transactions must pass another kind of balancing.
-Disposal balancing checks and ensures that the transaction is balanced when capital gain/loss is included.
-It
+2. **Only rgain written** (with an explicit amount). Before transaction
+   balancing, hledger adds a matching ugain counter with the negated amount
+   (`journalAddGainOrUGainPosting`). The ordinary balancer then accepts the
+   paired transaction. After lot matching, the user-written rgain amount is
+   checked against the cost-basis residual; mismatches are reported as
+   errors.
 
-1. sums postings using a per-amount valuation hierarchy:
-   cost basis if present (`quantity × basis_price`),
-   else transacted cost (`@`/`@@`) if present,
-   else the raw amount
-2. checks that the postings' sum is zero;
-  or if it is nonzero, assumes the imbalance is the (implicitly) recorded capital gain
-3. calculates the capital gain (by comparing the lot acquisition cost(s) and the transacted disposal price)
-4. checks that the recorded gain matches the calculated gain;
-  or if the gain amount is missing, adds it (at most one per commodity);
-  or if there's no gain posting at all, adds one
-  (using the alphabetically first Gain account, or if none is declared, `revenue:gains`). <!-- `revenues:gain -->
+3. **Only ugain written** (uncommon, symmetric with (2)).
 
-This valuation extends transaction balancing's rule (acost or raw) by adding cost basis on top —
-disposal balancing is "transaction balancing using cost basis when available."
+Both rgain and ugain must be written as amountful postings when explicit;
+amountless stubs like `revenues:gain` with no amount are no longer
+supported. Either write the amount explicitly, or omit the posting and let
+hledger infer the pair.
+
+If a user writes rgain or ugain in a disposal where hledger can't compute
+the matching cost-basis residual (eg a bare `-5 AAPL` dispose posting with
+no `{...}` cost basis annotation, where the residual comes out
+multi-commodity), `journalAddGainOrUGainPosting` emits an error pointing to the
+offending posting and suggesting how to resolve it.
 
 ## Balance assertions
 
@@ -490,12 +506,16 @@ Lot-related processing runs during journal finalising in two groups:
 **Gated by `checklots`** — runs when none of `--ignore-lots` or `-I` is set, or when
 `--strict`/`-s` or `hledger check lots` overrides them:
 
-4. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
-5. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
+4. **journalAddGainOrUGainPosting** — if the user has written an explicit rgain or ugain
+   posting without its counterpart, add the matching counter-posting (pre-balancer,
+   so the ordinary balancer accepts the paired transaction).
+5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
+6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
    disposals, normalise transacted cost.
-6. **journalInferAndCheckDisposalBalancing** — infer gain amounts and check disposal
-   transactions balance at cost basis.
+7. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
+   the rgain + ugain pair based on the cost-basis residual. Also validates that any
+   user-written gain amount matches the cost-basis residual.
 
 The gated stages raise errors when the journal contains lot-related content that
 can't be resolved (missing lot cost, ambiguous selectors, dispose before acquire,
@@ -576,18 +596,14 @@ can differ from the price actually paid to acquire it. These may include:
 
 <https://github.com/simonmichael/hledger/blob/main/examples/lots/lot-entries.journal>
 
-<!--
-NEEDS UPDATE
-
 ### Disposal
 
-A very implicit disposal:
+A minimal implicit disposal (user writes only dispose + proceeds):
 
 ```
 2026-03-01 sell
     assets:stocks   -15 AAPL
     assets:cash      $900
-    revenue:gains
 ```
 
 or:
@@ -595,17 +611,17 @@ or:
 ```
 2026-03-01 sell
     assets:stocks   -15 AAPL @ $60
-    assets:cash      
-    revenue:gains
+    assets:cash
 ```
 
 Explanation:
 
-1. revenue:gains is recognised as a Gain account so ignored by normal transaction balancing
-2. $60 sale price or $900 sale amount is inferred to balance the transaction
-
-and when running in lots mode:
-
-3. 15 AAPL are reduced from one or more existing lots selected with assets:stock's or AAPL's or default (FIFO) reduction method
-4. disposal balancing infers the gain amount based on the reduction order, selected lot(s)' cost bases, and sale amount
--->
+1. The missing @ price (or missing cash amount) is inferred by the ordinary
+   transaction balancer so the postings balance at transacted cost.
+2. 15 AAPL are reduced from one or more existing lots, selected by
+   `assets:stock`'s / `AAPL`'s / default (FIFO) reduction method.
+3. `journalAddOrCheckGainPostings` computes the cost-basis residual of the
+   non-gain postings and adds a realised-gain posting (rgain) and a matching
+   unrealised-gain counter (ugain) with the opposite sign. The pair sums to
+   zero, so the disposal stays balanced under the ordinary transacted-cost
+   rule.

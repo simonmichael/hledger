@@ -372,6 +372,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       >>= journalInferBasisFromAccountNames                                       -- infer cost basis from lot subaccount names
       <&> journalClassifyLotPostings verbose_tags_                                -- detect and classify lot postings (acquire/dispose/transfer..), maybe with visible tags
       <&> journalInferPostingsTransactedCost                                      -- in acquire postings, infer a transacted cost from cost basis
+      >>= (if checklots then journalAddGainOrUGainPosting verbose_tags_                else pure)  -- if user wrote an explicit rgain or ugain posting alone, add its counter
 
       -- Transaction balancing
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)     -- maybe check that journal entries are in date order
@@ -394,7 +395,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       -- (skipped by --ignore-lots or -I; forced back on by --strict or `hledger check lots`)
       >>= (if checklots then journalCheckLotsTagValues                            else pure)  -- validate lots: tag values on commodity/account declarations
       >>= (if checklots then journalCalculateLots verbose_tags_                   else pure)  -- evaluate lot selectors, calculate lot balances, add lot subaccounts
-      >>= (if checklots then journalInferAndCheckDisposalBalancing verbose_tags_  else pure)  -- infer gain amounts and check disposal transactions balance at cost basis
+      >>= (if checklots then journalAddOrCheckGainPostings verbose_tags_         else pure)  -- in disposal transactions, add the realised-gain + unrealised-gain posting pair
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.

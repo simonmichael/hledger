@@ -185,20 +185,22 @@ data AccountType =
   | Equity
   | Revenue
   | Expense
-  | Cash  -- ^ a subtype of Asset - liquid assets to show in cashflow report
-  | Conversion -- ^ a subtype of Equity - account with which to balance commodity conversions
-  | Gain      -- ^ a subtype of Revenue - capital gains/losses
+  | Cash            -- ^ a subtype of Asset - liquid assets to show in cashflow report
+  | Conversion      -- ^ a subtype of Equity - account with which to balance commodity conversions
+  | Gain            -- ^ a subtype of Revenue - realised capital gains/losses
+  | UnrealisedGain  -- ^ a subtype of Equity - accumulated unrealised capital gains/losses
   deriving (Eq,Ord,Generic,Enum,Bounded)
 
 instance Show AccountType where
-  show Asset      = "A"
-  show Liability  = "L"
-  show Equity     = "E"
-  show Revenue    = "R"
-  show Expense    = "X"
-  show Cash       = "C"
-  show Conversion = "V"
-  show Gain       = "G"
+  show Asset          = "A"
+  show Liability      = "L"
+  show Equity         = "E"
+  show Revenue        = "R"
+  show Expense        = "X"
+  show Cash           = "C"
+  show Conversion     = "V"
+  show Gain           = "G"
+  show UnrealisedGain = "U"
 
 isBalanceSheetAccountType :: AccountType -> Bool
 isBalanceSheetAccountType t = t `elem` [
@@ -206,7 +208,8 @@ isBalanceSheetAccountType t = t `elem` [
   Liability,
   Equity,
   Cash,
-  Conversion
+  Conversion,
+  UnrealisedGain
   ]
 
 isIncomeStatementAccountType :: AccountType -> Bool

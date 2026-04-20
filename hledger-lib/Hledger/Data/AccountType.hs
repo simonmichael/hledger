@@ -1,7 +1,7 @@
 {-|
 
 Helpers for working with 'AccountType's.
-Subtypes (Cash, Conversion, Gain) are recognised as their parent type
+Subtypes (Cash, Conversion, Gain, UnrealisedGain) are recognised as their parent type
 where appropriate.
 
 -}
@@ -20,18 +20,20 @@ import Hledger.Data.Types (AccountType(..))
 -- | Check whether the first argument is a subtype of the second: either equal
 -- or one of the defined subtypes.
 isAccountSubtypeOf :: AccountType -> AccountType -> Bool
-isAccountSubtypeOf Asset      Asset      = True
-isAccountSubtypeOf Liability  Liability  = True
-isAccountSubtypeOf Equity     Equity     = True
-isAccountSubtypeOf Revenue    Revenue    = True
-isAccountSubtypeOf Expense    Expense    = True
-isAccountSubtypeOf Cash       Cash       = True
-isAccountSubtypeOf Cash       Asset      = True
-isAccountSubtypeOf Conversion Conversion = True
-isAccountSubtypeOf Conversion Equity     = True
-isAccountSubtypeOf Gain       Gain       = True
-isAccountSubtypeOf Gain       Revenue    = True
-isAccountSubtypeOf _          _          = False
+isAccountSubtypeOf Asset          Asset          = True
+isAccountSubtypeOf Liability      Liability      = True
+isAccountSubtypeOf Equity         Equity         = True
+isAccountSubtypeOf Revenue        Revenue        = True
+isAccountSubtypeOf Expense        Expense        = True
+isAccountSubtypeOf Cash           Cash           = True
+isAccountSubtypeOf Cash           Asset          = True
+isAccountSubtypeOf Conversion     Conversion     = True
+isAccountSubtypeOf Conversion     Equity         = True
+isAccountSubtypeOf Gain           Gain           = True
+isAccountSubtypeOf Gain           Revenue        = True
+isAccountSubtypeOf UnrealisedGain UnrealisedGain = True
+isAccountSubtypeOf UnrealisedGain Equity         = True
+isAccountSubtypeOf _              _              = False
 
 -- | Is this an Asset or Cash (subtype of Asset) account type ?
 isAssetType :: AccountType -> Bool

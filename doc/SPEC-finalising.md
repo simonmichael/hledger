@@ -77,11 +77,14 @@ journalFinalise
   19. journalRenumberAccountDeclarations  -- renumber account declarations for consistent ordering
 
   -- Lot calculation (default; skipped by --ignore-lots/-I; restored by --strict or `check lots`)
-  20. journalCheckLotsTagValues         -- validate lots: tag values on commodity/account declarations
-  21. journalCalculateLots              -- evaluate lot selectors, apply reduction methods,
+  20. journalAddGainOrUGainPosting     -- if only one of rgain/ugain is written, add the other
+                                       -- (pre-balancer, so the ordinary balancer accepts the paired disposal)
+  21. journalCheckLotsTagValues         -- validate lots: tag values on commodity/account declarations
+  22. journalCalculateLots              -- evaluate lot selectors, apply reduction methods,
                                         -- calculate lot balances, add explicit lot subaccounts,
                                         -- infer cost basis for bare disposals, normalize transacted cost
-  22. journalInferAndCheckDisposalBalancing  -- infer gain amounts and check disposal transactions balance at cost basis
+  23. journalAddOrCheckGainPostings    -- for disposals with no gain postings, add the rgain+ugain pair;
+                                       -- otherwise check any user-written gain amount against the cost-basis residual
 ```
 
 ## Sequencing constraints
@@ -180,11 +183,12 @@ Several steps only run with specific flags:
 | journalAddAutoPostings                 | `--auto`                                                        |
 | journalTagCostsAndEquity (2nd)         | `--infer-costs`                                                 |
 | journalInferEquityFromCosts            | `--infer-equity`                                                |
-| journalCheckLotsTagValues              | default; skipped by `--ignore-lots`/`-I`; restored by `--strict` or `hledger check lots` |
+| journalAddGainOrUGainPosting           | default; skipped by `--ignore-lots`/`-I`; restored by `--strict` or `hledger check lots` |
+| journalCheckLotsTagValues              | same                                                            |
 | journalCalculateLots                   | same                                                            |
-| journalInferAndCheckDisposalBalancing  | same                                                            |
+| journalAddOrCheckGainPostings          | same                                                            |
 
-The three lot stages are gated together by a single `checklots` condition, mirroring
+The four lot stages are gated together by a single `checklots` condition, mirroring
 the `checkassertions` mechanism:
 
 ```haskell
