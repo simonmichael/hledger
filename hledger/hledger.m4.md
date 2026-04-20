@@ -2311,13 +2311,16 @@ hledger also uses a few subtypes:
 | `Cash` | `C` | liquid assets (subtype of Asset) |
 | `Conversion` | `V` | commodity conversions equity (subtype of Equity) |
 | `Gain` | `G` | capital gains/losses (subtype of Revenue) |
+| `UnrealisedGain` | `U` | accumulated unrealised capital gains/losses (subtype of Equity) |
 
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
 As a convenience, hledger will detect most of these types automatically from english account names.
-(All except Gain, which must be declared explicitly.)
+(All except Gain and UnrealisedGain, which must be declared explicitly.)
 But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
 The tag's value can be any of the types or one-letter abbreviations above.
+
+hledger 1 does nothing special with `Gain` and `UnrealisedGain` accounts; they are supported mainly so that journals written for hledger 2 (which uses them for lot/gain tracking) can be read without errors.
 
 Here is a typical set of account type declarations.
 Subaccounts will inherit their parent's type, or can override it:

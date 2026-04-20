@@ -519,8 +519,8 @@ accountTypeChoices :: Bool -> String
 accountTypeChoices allowlongform =
   intercalate ", "
     -- keep synced with parseAccountType
-    $ ["A","L","E","R","X","C","V","G"]
-    ++ if allowlongform then ["Asset","Liability","Equity","Revenue","Expense","Cash","Conversion","Gain"] else []
+    $ ["A","L","E","R","X","C","V","G","U"]
+    ++ if allowlongform then ["Asset","Liability","Equity","Revenue","Expense","Cash","Conversion","Gain","UnrealisedGain"] else []
 
 -- | Case-insensitively parse one single-letter code, or one long-form word if permitted, to an account type.
 -- On failure, returns the unparseable text.
@@ -528,23 +528,26 @@ parseAccountType :: Bool -> Text -> Either String AccountType
 parseAccountType allowlongform s =
   case T.toLower s of
     -- keep synced with accountTypeChoices
-    "a"                          -> Right Asset
-    "l"                          -> Right Liability
-    "e"                          -> Right Equity
-    "r"                          -> Right Revenue
-    "x"                          -> Right Expense
-    "c"                          -> Right Cash
-    "v"                          -> Right Conversion
-    "g"                          -> Right Gain
-    "asset"      | allowlongform -> Right Asset
-    "liability"  | allowlongform -> Right Liability
-    "equity"     | allowlongform -> Right Equity
-    "revenue"    | allowlongform -> Right Revenue
-    "expense"    | allowlongform -> Right Expense
-    "cash"       | allowlongform -> Right Cash
-    "conversion" | allowlongform -> Right Conversion
-    "gains"      | allowlongform -> Right Gain
-    _                            -> Left $ T.unpack s
+    "a"                               -> Right Asset
+    "l"                               -> Right Liability
+    "e"                               -> Right Equity
+    "r"                               -> Right Revenue
+    "x"                               -> Right Expense
+    "c"                               -> Right Cash
+    "v"                               -> Right Conversion
+    "g"                               -> Right Gain
+    "u"                               -> Right UnrealisedGain
+    "asset"          | allowlongform  -> Right Asset
+    "liability"      | allowlongform  -> Right Liability
+    "equity"         | allowlongform  -> Right Equity
+    "revenue"        | allowlongform  -> Right Revenue
+    "expense"        | allowlongform  -> Right Expense
+    "cash"           | allowlongform  -> Right Cash
+    "conversion"     | allowlongform  -> Right Conversion
+    "gain"           | allowlongform  -> Right Gain
+    "unrealisedgain" | allowlongform  -> Right UnrealisedGain
+    "unrealizedgain" | allowlongform  -> Right UnrealisedGain
+    _                                 -> Left $ T.unpack s
 
 -- | Parse the value part of a "status:" query, or return an error.
 parseStatus :: T.Text -> Either String Status
