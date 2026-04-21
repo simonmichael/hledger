@@ -1779,7 +1779,7 @@ ccusage-journal:
     commodity 1,000.0 raisins    ; the energy in one raisin
     commodity 1,000.0 prius_miles
     commodity 1,000. led_secs    ; a 10W LED running for 1 second
-    commodity 1,000. kg_lifts    ; 1kg lifted 1m
+    commodity 1,000. kgm         ; 1kg lifted 1m
     commodity 1,000. g           ; grams of CO2 emission
     commodity 1,000.0 kg         ; kilograms of CO2 emission
 
@@ -1805,7 +1805,7 @@ ccusage-journal:
     P 0000-01-01 opus_output_tokens 10 heartbeats
     P 0000-01-01 opus_output_tokens 0.000588 raisins
     P 0000-01-01 opus_output_tokens 1 led_secs
-    P 0000-01-01 opus_output_tokens 1 kg_lifts
+    P 0000-01-01 opus_output_tokens 1 kgm
     P 0000-01-01 opus_output_tokens 0.0000066667 prius_miles
     P 0000-01-01 opus_output_tokens 0.001 g
 
@@ -1822,7 +1822,7 @@ ccusage-journal:
 
 # Run a vertical-time balance report on ccusage.journal, showing monthly megatokens by default.
 @ccusage-bal *BALARGS:
-    just ccusage-run bal -NM --transpose {{ BALARGS }}
+    just ccusage bal -NM --transpose {{ BALARGS }}
 
 # Show daily token use, in rounded megatokens during this month by default.
 @ccusage-daily *BALARGS:

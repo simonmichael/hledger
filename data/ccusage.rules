@@ -1,6 +1,8 @@
 skip     1
 fields   date,inputTokens,outputTokens,cacheCreationTokens,cacheReadTokens,totalTokens,totalCost
 account1 (ai)
+amount1  %outputTokens opus_output_tokens @@ $%totalCost
+#amount1  %totalTokens t @@ $%totalCost
 
 # 1 token corresponds very roughly to 3 characters. There are four types:
 #
@@ -35,9 +37,3 @@ account1 (ai)
 # Tokens are easily wasted: check/minimise context (MCPs, memory, long chat histories), and reduce effort.
 # Switch to a dumber model for cheaper tokens.
 # The dominant environmental lever is the grid mix powering the datacenter, not the raw token count — same model on hydro-powered infrastructure vs. coal differs by ~10× on carbon.
-
-#amount1  %totalTokens t @@ $%totalCost
-
-amount1  %outputTokens opus_output_tokens @@ $%totalCost
-
-
