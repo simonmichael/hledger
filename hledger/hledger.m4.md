@@ -3342,7 +3342,7 @@ In hledger, these are equivalent to `@` and `@@`.
 
 In Ledger, these annotations after an amount help specify or select a lot's [cost basis](#cost-basis):
 `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}`, `[LOTDATE]`, and/or `(LOTNOTE)`.
-hledger will read these, as an alternative to its own [lot syntax](#lot-syntax)).
+hledger will read these, as an alternative to its own [cost basis syntax](#cost-basis)).
 
 We also read Ledger's [fixed price][ledger: fixing lot prices]) syntax,
 `{=LOTUNITCOST}` or `{{{{=LOTTOTALCOST}}}}`,
@@ -3353,6 +3353,8 @@ treating it as equivalent to `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}`,
 [ledger: buying and selling stock]: https://www.ledger-cli.org/3.0/doc/ledger3.html#Buying-and-Selling-Stock
 [ledger: lot dates]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-dates
 [ledger: lot notes]:                https://www.ledger-cli.org/3.0/doc/ledger3.html#Lot-notes
+
+Also, for the record:
 
 **Beancount** has simpler [notation][beancount: costs and prices] and different [behaviour][beancount: how inventories work]:
 
@@ -3370,12 +3372,6 @@ treating it as equivalent to `{LOTUNITCOST}` or `{{{{LOTTOTALCOST}}}}`,
 
 - `{}`, `{YYYY-MM-DD}`, `{"LABEL"}`, `{UNITCOST, "LABEL"}`, `{UNITCOST, YYYY-MM-DD, "LABEL"}`
   - when selling, other combinations of date/cost/label, like the above, are accepted for selecting the lot.
-
-Currently, hledger
-
-- supports `@` and `@@`
-- accepts the `{UNITCOST}`/`{{{{TOTALCOST}}}}` notation, but ignores it
-- and rejects the rest.
 
 [beancount: costs and prices]:      https://beancount.github.io/docs/beancount_language_syntax.html#costs-and-prices
 [beancount: how inventories work]:  https://beancount.github.io/docs/how_inventories_work.html
@@ -7103,18 +7099,16 @@ you only need to declare the base account (eg `assets:stocks`), not the lot suba
 
 ## Lotful commodities and accounts
 
-Commodities and accounts can be declared as *lotful* by adding a `lots` tag in their declaration.
-This tells hledger that postings involving these commodities or accounts always involve lots,
-so you can often omit the cost basis annotations and it will figure it out.
-This is the most convenient way to record lot transactions.
-
-The tag's value can specify a [cost basis method](#cost-basis-methods); no value means FIFO.
-The account tag has higher precedence.
+Commodities and accounts can be declared as *lotful* by adding a `lots` tag in their declaration:
 
 ```journal
 commodity AAPL          ; lots:
-account assets:stocks   ; lots:LIFO
+account assets:funds    ; lots:
 ```
+
+This tells hledger that postings involving these commodities or accounts always involve lots,
+so you usually won't need to write cost basis annotations.
+This is the most convenient way to record lot transactions.
 
 ## Lot operations
 
@@ -7171,17 +7165,22 @@ The disposal posting must have a transacted price (the selling price), either ex
 
 ## Cost basis methods
 
-When a disposal or transfer doesn't specify a particular lot (eg the amount is like `-5 AAPL {}`, or just `-5 AAPL`),
+When a disposal or transfer doesn't specifically identify a lot
+(eg: the amount is like `-5 AAPL {}`, or just `-5 AAPL`),
 hledger selects lot(s) automatically using a *cost basis method* (AKA disposal method, reduction method, booking method).
 
-You can set the method in a commodity or account's `lots:` tag.
-(Account tags override commodity tags.) Eg:
+The default method is FIFO; you can override this with a commodity or account's `lots:` tag.
+(Account tags override commodity tags.)
+Eg:
 
 ```journal
 commodity FUND                  ; lots: AVERAGE
+account assets:stocks           ; lots: LIFO
+```
+<!--
 account assets:stocks:till2024  ; lots: FIFOALL
 account assets:stocks:from2025  ; lots: FIFO
-```
+-->
 
 These methods are supported:
 
@@ -7201,7 +7200,7 @@ These methods are supported:
 explicit lot selectors like `{2026-01-15, $50}` or `{$50}`,
 or an explicit lot subaccount like `assets:broker:{2026-01-15, $50}`.
 
-**FIFO** (first in first out). Dispose of the oldest lot first. This is the default method when not using SPECID.
+**FIFO** (first in first out). Dispose of the oldest lot first.
 
 **LIFO** (last in first out). Dispose of the youngest lot first.
 
