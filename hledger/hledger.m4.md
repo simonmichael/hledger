@@ -1750,7 +1750,8 @@ This is a more advanced topic, which you can skip if you're not tracking capital
 It is explained more in [Lot reporting](#lot-reporting).
 
 "Cost basis" sounds like the "cost" described above, but they are distinct concepts.
-Cost basis is the original cost of an investment, together with its original acquisition date.
+Cost basis is the original cost of an investment, together with its acquisition date,
+and perhaps an intra-day time or sequence number.
 Calculating capital gain or loss from the sale of investments often requires keeping track of cost basis.
 So when purchasing an investment, we can note its cost basis (or part of it, letting hledger infer the rest)
 in {curly braces} after the amount. And we can use the same notation when transferring or selling it.
@@ -6968,7 +6969,7 @@ and document how you satisfied the rules.
 
 For many kinds of investment, each individual lot has its own cost basis, 
 which must be tracked even if the lot is reduced, split up, or transferred.
-Also lots may need to be moved and disposed of in a prescribed order (*booking method*). 
+Also lots may need to be moved and disposed of in a prescribed order (*cost basis method*).
 These things can be (very) hard to keep track of by hand, 
 so usually it is done by an investment broker, cryptocurrency exchange, or specialised tax software.
 Now, hledger can also do it for you.
@@ -7029,11 +7030,11 @@ dispose before acquire, invalid `lots:` tag values, etc. are reported at load ti
 
 What specifically activates hledger's lots/gains processing ? Any of three things:
 
-- [Cost basis annotations](#more-about-cost-basis) on amounts.
+- Amounts with [cost basis annotations](#more-about-cost-basis).
 - Account names ending with a [lot subaccount](#lot-subaccounts).
 - Postings involving a [lotful commodity or account](#lotful-commodities-and-accounts).
 
-(A posting with any of these is called a *lot posting*.)
+A posting with any of these is called a *lot posting*.
 
 ## More about cost basis
 
@@ -7046,8 +7047,8 @@ In hledger, a cost basis has 2-3 parts:
 3. The nominal acquisition cost (required). Usually this is the same as the transacted cost, ie what you paid for it.
 
 A cost basis annotation (described in [Journal > Cost basis](#cost-basis))
-is the cost basis parts, comma separated and enclosed in curly braces.
-We often omit unnecessary parts, allowing hledger to infer them.
+is comma-separated cost basis parts, enclosed in curly braces.
+We often omit unnecessary parts, letting hledger infer them.
 Some examples:
 
     {2026-01-15, "12:05", $50}
@@ -7058,8 +7059,9 @@ Some examples:
 
 ## Lot subaccounts
 
-Each individual lot is represented by a subaccount. 
-In hledger 1 you had to write these manually; in hledger 2, they are inferred automatically. 
+Each lot is represented by a subaccount, named like its cost basis.
+In hledger 1 you had to write these manually; hledger 2 infers them automatically. 
+
 There can be many lot subaccounts, so reports hide them by default.
 To show them, use the `--lots` flag with any report. Eg:
 
