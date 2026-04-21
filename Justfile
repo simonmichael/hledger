@@ -1733,20 +1733,24 @@ installcommithook:
 #     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
-# Show claude code usage detail today.
+# Run ccusage to show claude code usage detail today. Accepts ccusage options, like -b.
 @ccusage-today *CCUSAGEOPTS:
-    ccusage -O daily -s `date +%Y%m%d` -b {{ CCUSAGEOPTS }}
+    ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}
 
-# Show claude code usage (from existing chat logs) as CSV, monthly by default (daily, weekly, monthly, session, blocks..).
-@ccusage-csv CMD='monthly' *CCUSAGEOPTS:
-    ccusage -O {{ CMD }} {{ CCUSAGEOPTS }} -j | jq -r ' \
+# Watch today's ccusage report update in real time. Affepts ccusage options, like -b.
+@ccusage-watch *CCUSAGEOPTS:
+    watch -n10 -c -d 'ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}| tail +8'
+
+# Run ccusage to show all claude code usage (from existing chat logs) as CSV.
+@ccusage-csv CCUSAGECMD='monthly' *CCUSAGEOPTS:
+    ccusage -O {{ CCUSAGECMD }} {{ CCUSAGEOPTS }} -j | jq -r ' \
       first(.. | arrays | select(length > 0 and (.[0] | type == "object"))) \
       | [.[] | with_entries(select(.value | type != "array" and type != "object"))] \
       | (.[0] | keys_unsorted) as $k \
       | ($k | @csv), (.[] | [.[$k[]]] | @csv) \
     '
 
-# Save daily claude code usage as data/ccusage.journal.
+# Convert ccusage's daily usage data to a hledger journal, with lots of conversions available.
 ccusage-journal:
     #!/usr/bin/env bash
     {
@@ -1812,7 +1816,7 @@ ccusage-journal:
     } > data/ccusage.journal
 
 # Run a hledger command on ccusage.journal.
-@ccusage-run *HLEDGERARGS:
+@ccusage *HLEDGERARGS:
     just ccusage-journal
     hledger -f data/ccusage.journal {{ HLEDGERARGS }}
 
@@ -1823,7 +1827,3 @@ ccusage-journal:
 # Show daily token use, in rounded megatokens during this month by default.
 @ccusage-daily *BALARGS:
     just ccusage-bal -D -p1..tomorrow --layout bare {{ BALARGS }}
-
-# Watch today's claude code usage. ccusage options can be added, like -b for breakdown.
-@ccusage-watch *CCUSAGEOPTS:
-    watch -n10 -c -d 'ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}| tail +8'
