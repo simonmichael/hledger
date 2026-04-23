@@ -6949,9 +6949,9 @@ First, a quick glossary:
 
 # Lot reporting
 
-(AKA Gain reporting.
-Since 1.99.1, experimental.
-For more technical details, see [SPEC-lots](/SPEC-lots.html).)
+(Since 1.99.1)
+
+Also known as Gain reporting.
 
 When you buy (acquire) some amount of an investment commodity (a lot),
 it can be important (depending on your local tax rules) 
@@ -7005,6 +7005,8 @@ Here are some current issues to be aware of:
 - Entries where the per-unit cost basis does not perfectly match the
   required total will not be detected correctly, so will need some workaround.
 
+For more technical details, see [SPEC-lots](/SPEC-lots.html).
+
 ## How to enable lot tracking
 
 Any of three things in your journal will activate hledger's lots/gains processing:
@@ -7038,7 +7040,7 @@ Here are some possibilities:
 
 For more background, see <https://en.wikipedia.org/wiki/Cost_basis>.
 
-### Lot ids
+## Lot ids
 
 A lot's id is the cost basis date and label (if any), with a space between them.
 
@@ -7050,7 +7052,7 @@ So when multiple lots of a commodity are acquired on the same day, the label is 
 If you leave it empty in that case, hledger will add sequence numbers to ensure uniqueness.
 Or you could record times there, in a sortable format like HH:MM.
 
-### Cost basis notation
+## Cost basis notation
 
 When writing a cost basis in the journal, we use cost basis annotations ({} syntax).
 These often mention only part of the cost basis, typically the cost.
