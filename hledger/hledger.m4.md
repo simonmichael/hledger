@@ -1746,22 +1746,18 @@ and your reports would have the advantages of both.
 
 ## Cost basis
 
-This is a more advanced topic, which you can skip if you're not tracking capital gains from investments.
-It is explained more in [Lot reporting](#lot-reporting).
+This section briefly describes the `{}` cost basis syntax used to record the nominal cost of an investment (which can be different from the @ transacted cost).
+This is described in more detail later in [Lot reporting](#lot-reporting).
+If you're not tracking investment lots and capital gains, you can skip this.
 
-"Cost basis" sounds like the "cost" described above, but they are distinct concepts.
-Cost basis is the original cost of an investment, together with its acquisition date,
-and perhaps an intra-day time or sequence number.
-Calculating capital gain or loss from the sale of investments often requires keeping track of cost basis.
-So when purchasing an investment, we can note its cost basis (or part of it, letting hledger infer the rest)
-in {curly braces} after the amount. And we can use the same notation when transferring or selling it.
+hledger's cost basis annotations look like Beancount's: comma-separated parts enclosed in curly braces, after an amount.
+All parts are optional, but when present they must be in this order:
 
-hledger's cost basis annotations look like Beancount's: comma-separated parts enclosed in curly braces.
-All parts are optional, but when present they must be in date, label, cost order.
-The date must be in YYYY-MM-DD format;
-the label must be in double quotes;
-the cost is a single-commodity hledger [amount](#amounts).
-Some examples:
+1. a date, in YYYY-MM-DD format
+2. an optional text label, enclosed in double quotes
+3. a cost, as a single-commodity hledger [amount](#amounts).
+
+Here are some valid hledger cost basis annotations:
 
     {2026-01-15, "12:05", $50}
     {2026-01-15, $50}
@@ -1769,13 +1765,14 @@ Some examples:
     {$50}
     {}
 
-When an amount has both a cost basis and a transacted price, the preferred order is to write {} before @.
-Eg this means "selling 10 AAPL, originally purchased at $50 each, for $60 each":
+This means: selling 10 AAPL, originally purchased at $50 each, for $60 each:
 
     -10 AAPL {$50} @ $60
 
-hledger can also read Ledger's lot syntax, where the parts are written separately, in any order,
-and identified by their different enclosing characters:
+Note the preferred order is to write {} before @, as shown.
+
+hledger can also read Ledger's cost basis syntax. Here, the parts are written separately,
+in any order, with different enclosing characters:
 
     10 AAPL {$50} [2026-01-15] (12:05)
 
@@ -6954,22 +6951,25 @@ First, a quick glossary:
 
 (AKA Gain reporting.
 Since 1.99.1, experimental.
-For more technical details, see also [SPEC-lots](/SPEC-lots.html).)
+For more technical details, see [SPEC-lots](/SPEC-lots.html).)
 
-When you buy (*acquire*) some amount of an investment commodity (a *lot*),
+When you buy (acquire) some amount of an investment commodity (a lot),
 it can be important (depending on your local tax rules) 
-to keep track of its original cost and acquisition date (*cost basis*),
-so that when you sell (*dispose*) it,
-you can calculate *capital gains* (or losses),
-and document how you satisfied the rules.
+to keep track of its original cost and acquisition date (cost basis),
+so that when you sell (dispose) it,
+you can calculate capital gains (or losses),
+and document how you satisfied the rules about disposal order, short term vs long term gains, and so on.
 
 For many kinds of investment, each individual lot has its own cost basis, 
 which must be tracked even if the lot is reduced, split up, or transferred.
 Also lots may need to be moved and disposed of in a prescribed order (*cost basis method*).
-These things can be (very) hard to keep track of by hand, 
+All this can be very hard to keep track of by hand, 
 so usually it is done by an investment broker, cryptocurrency exchange, or specialised tax software.
-Now, hledger can also do it for you.
+Now, you can also do it yourself with hledger.
 
+## hledger's lot tracking
+
+hledger's lot tracking builds on the design first shipped in Ledger, then improved in Beancount.
 hledger understands several kinds of notation describing lots.
 You can record all details explicitly, or use more convenient low-boilerplate entries,
 and it will infer the missing parts.
@@ -6979,11 +6979,9 @@ hledger also checks that all lot entries are valid,
 and will raise an error if there's a problem (such as disposal of nonexistent lots).
 You may want to turn this off if you are working with incomplete journals,
 eg if you are piping hledger print output into another hledger command.
-So you can use the `--ignore-lots` or `-I` flag to disable lot and gain calculations entirely.
+In that case, use `--ignore-lots` or `-I`, which disables lot and gain calculations entirely.
 
-## Limitations
-
-This is an experimental preview of hledger 2.0, which I hope to release around june 2026, 
+Note, this is an experimental preview of hledger 2.0, which I hope to release around june 2026, 
 and things may change. Your testing is very helpful.
 Here are some current issues to be aware of:
 
@@ -7003,49 +7001,61 @@ Here are some current issues to be aware of:
 
 - Not every possible lot-related journal entry can be detected correctly by hledger.
   If you have trouble, use `hledger print -x --verbose-tags` to see how entries have been analysed, and rewrite the entry if needed.
- 
-## Lots and gains processing
 
-When hledger finds lot-related entries in a journal,
-it performs these extra steps to calculate and check lot movements and capital gains:
+- Entries where the per-unit cost basis does not perfectly match the
+  required total will not be detected correctly, so will need some workaround.
 
-1. **Lot posting classification** - lot-related postings are tagged as `acquire`, `dispose`,
-  `transfer-from`, `transfer-to`, or `gain` (via a hidden `ptype` tag,
-  visible with `--verbose-tags`, queryable with `tag:ptype=...`).
-2. **Cost basis inference** - for lotful commodities/accounts, cost basis
-  is inferred from transacted cost and vice versa. Or when the account name
-  ends with a lot subaccount, cost basis can also be inferred from that.
-3. **Lot movement inference** - acquired lots become subaccounts; transfers and disposals select from existing lots using some reduction method.
-4. **Gain posting inference and checking** - in disposal transactions, hledger
-  infers a realised-gain / unrealised-gain posting pair from the lots' cost
-  basis, or checks the user's explicit gain amount against it.
-5. **Lot detail hiding** - lot subaccounts and some lot-related generated postings are hidden, for simpler reports, unless `--lots` is used.
+## How to enable lot tracking
 
-Error checking is performed throughout, so problems like missing lot cost, ambiguous selectors,
-dispose before acquire, invalid `lots:` tag values, etc. are reported at load time.
+Any of three things in your journal will activate hledger's lots/gains processing:
 
-What specifically activates hledger's lots/gains processing ? Any of three things:
-
-- Amounts with [cost basis annotations](#more-about-cost-basis).
+- Amounts with [cost basis annotations](#cost-basis).
 - Account names ending with a [lot subaccount](#lot-subaccounts).
 - Postings involving a [lotful commodity or account](#lotful-commodities-and-accounts).
 
-A posting with any of these is called a *lot posting*.
+A posting with any of these is called a lot posting.
 
-## More about cost basis
+## Lots and cost basis
 
-See also: <https://en.wikipedia.org/wiki/Cost_basis>
-
-In hledger, a cost basis has 2-3 parts:
+Each acquisition of an investment creates a lot with its own cost basis, and lots are named by their cost basis.
+A lot's cost basis has 2-3 parts:
 
 1. The nominal acquisition date (required). Usually this is the date you acquired it.
-2. A short text label (optional). Usually this is used to disambiguate and sequence lots acquired on the same date; eg it could be a time.
-3. The nominal acquisition cost (required). Usually this is the same as the transacted cost, ie what you paid for it.
+2. A short text label (optional). It can be used to distinguish lots acquired on the same date.
+3. The nominal acquisition cost (required). Usually this is what you paid for it.
 
-A cost basis annotation (described in [Journal > Cost basis](#cost-basis))
-is comma-separated cost basis parts, enclosed in curly braces.
-We often omit unnecessary parts, letting hledger infer them.
-Some examples:
+When could the cost basis date or cost differ from the transacted date or cost ?
+Here are some possibilities:
+
+- Gifts — the recipient inherits the donor's original cost basis (carryover basis), not the fair market value at the time of the gift.
+- Inheritance — inherited assets get a "stepped-up" basis to fair market value at the date of death.
+- Employee stock options (NSOs) — the bargain element (FMV minus exercise price) is taxed as ordinary income, and cost basis becomes the FMV at exercise, not the price paid.
+- Incentive stock options (ISOs) — cost basis is the exercise price for regular tax, but FMV at exercise for AMT, so the same lot can have two different bases depending on tax context.
+- RSUs — cost basis is FMV at vesting; the recipient paid nothing.
+- ESPPs — shares bought at a discount; basis treatment depends on qualifying vs disqualifying disposition.
+- Wash sales — disallowed loss from a prior sale is added to the cost basis of the replacement shares.
+- Corporate actions — spin-offs, mergers, and stock splits cause cost basis to be allocated or adjusted in ways unrelated to any payment.
+
+For more background, see <https://en.wikipedia.org/wiki/Cost_basis>.
+
+### Lot ids
+
+A lot's id is the cost basis date and label (if any), with a space between them.
+
+Ids must be unique (within a commodity), so that we can use them to identify specific lots.
+And their sort order documents the order in which lots were acquired
+(which may determine the order in which they are to be disposed).
+
+So when multiple lots of a commodity are acquired on the same day, the label is useful.
+If you leave it empty in that case, hledger will add sequence numbers to ensure uniqueness.
+Or you could record times there, in a sortable format like HH:MM.
+
+### Cost basis notation
+
+When writing a cost basis in the journal, we use cost basis annotations ({} syntax).
+These often mention only part of the cost basis, typically the cost.
+They are described in [Cost basis](#cost-basis).
+As a reminder, here are some examples:
 
     {2026-01-15, "12:05", $50}
     {2026-01-15, $50}
@@ -7055,11 +7065,10 @@ Some examples:
 
 ## Lot subaccounts
 
-Each lot is represented by a subaccount, named like its cost basis.
-In hledger 1 you had to write these manually; hledger 2 infers them automatically. 
-
-There can be many lot subaccounts, so reports hide them by default.
-To show them, use the `--lots` flag with any report. Eg:
+Internally, each lot is tracked as a subaccount, named like the cost basis.
+You don't need to write these subaccounts in the journal; hledger infers them automatically.
+But they are hidden from reports by default, since there can be many of them.
+To show them, just add the `--lots` flag to any report.  Eg:
 
 ```journal
 2026-01-15 buy
@@ -7078,9 +7087,7 @@ $ hledger print --lots
     assets:cash                                $-500
 ```
 
-You can also write lot subaccounts explicitly;
-this is equivalent to writing a cost basis annotation after the amount.
-Eg:
+If you do write a lot subaccount in the journal, it is equivalent to writing a cost basis annotation after the amount:
 
 ```journal
 2026-01-15 buy
@@ -7099,7 +7106,9 @@ you only need to declare the base account (eg `assets:stocks`), not the lot suba
 
 ## Lotful commodities and accounts
 
-Commodities and accounts can be declared as *lotful* by adding a `lots` tag in their declaration:
+The most convenient way to record lot transactions,
+is to declare a commodity or account as lotful,
+by adding a `lots` tag in its declaration:
 
 ```journal
 commodity AAPL          ; lots:
@@ -7107,13 +7116,12 @@ account assets:funds    ; lots:
 ```
 
 This tells hledger that postings involving these commodities or accounts always involve lots,
-so you usually won't need to write cost basis annotations.
-This is the most convenient way to record lot transactions.
+so you won't need to write any cost basis annotations.
 
 ## Lot operations
 
 hledger understands three kinds of lot operation.
-Other real-world lot events can be modelled with these, hopefully.
+Other real-world lot events can usually be modelled using combinations of these.
 
 ### Acquire
 

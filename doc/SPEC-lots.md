@@ -494,6 +494,24 @@ postings (e.g. `assets:cash`) and opening transaction postings retain their asse
 
 ## Processing pipeline
 
+When hledger finds lot-related entries in a journal,
+it performs these extra steps to calculate and check lot movements and capital gains:
+
+1. **Lot posting classification** - lot-related postings are tagged as `acquire`, `dispose`,
+  `transfer-from`, `transfer-to`, or `gain` (via a hidden `ptype` tag,
+  visible with `--verbose-tags`, queryable with `tag:ptype=...`).
+2. **Cost basis inference** - for lotful commodities/accounts, cost basis
+  is inferred from transacted cost and vice versa. Or when the account name
+  ends with a lot subaccount, cost basis can also be inferred from that.
+3. **Lot movement inference** - acquired lots become subaccounts; transfers and disposals select from existing lots using some reduction method.
+4. **Gain posting inference and checking** - in disposal transactions, hledger
+  infers a realised-gain / unrealised-gain posting pair from the lots' cost
+  basis, or checks the user's explicit gain amount against it.
+5. **Lot detail hiding** - lot subaccounts and some lot-related generated postings are hidden, for simpler reports, unless `--lots` is used.
+
+Error checking is performed throughout, so problems like missing lot cost, ambiguous selectors,
+dispose before acquire, invalid `lots:` tag values, etc. are reported at load time.
+
 Lot-related processing runs during journal finalising in two groups:
 
 **Always-on** (independent of `--ignore-lots`):
@@ -577,20 +595,6 @@ The original user posting is preserved via `poriginal` on the transfer portion
   that the output round-trips correctly (preserving the capital gain that
   would otherwise be lost if the dispose portion were hidden). Other
   transactions still display in their mostly-original form.
-
-## When might cost basis differ from the transacted cost ?
-
-In many real-world scenarios, a lot's cost basis (the value recorded for tax purposes)
-can differ from the price actually paid to acquire it. These may include:
-
-- **Gifts** — the recipient inherits the donor's original cost basis (carryover basis), not the fair market value at the time of the gift.
-- **Inheritance** — inherited assets get a "stepped-up" basis to fair market value at the date of death.
-- **Employee stock options (NSOs)** — the bargain element (FMV minus exercise price) is taxed as ordinary income, and cost basis becomes the FMV at exercise, not the price paid.
-- **Incentive stock options (ISOs)** — cost basis is the exercise price for regular tax, but FMV at exercise for AMT, so the same lot can have two different bases depending on tax context.
-- **RSUs** — cost basis is FMV at vesting; the recipient paid nothing.
-- **ESPPs** — shares bought at a discount; basis treatment depends on qualifying vs disqualifying disposition.
-- **Wash sales** — disallowed loss from a prior sale is added to the cost basis of the replacement shares.
-- **Corporate actions** — spin-offs, mergers, and stock splits cause cost basis to be allocated or adjusted in ways unrelated to any payment.
 
 ## Examples
 
