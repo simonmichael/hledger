@@ -1661,16 +1661,11 @@ addLotState commodity lotId account amt =
     (M.singleton lotId (M.singleton account amt))
   where addQty a1 a2 = a1{aquantity = aquantity a1 + aquantity a2}
 
--- | Enrich a selectLots error with reduction method info and a review hint.
+-- | Enrich a selectLots error with reduction method info.
 enrichLotError :: ReductionMethod -> String -> AccountName -> CommoditySymbol
                -> Day -> [FilePath] -> String -> String
-enrichLotError method methodSource account commodity txnDate files err =
+enrichLotError method methodSource _account _commodity _txnDate _files err =
   err ++ "\nUsing " ++ show method ++ " (" ++ methodSource ++ ")."
-      ++ "\nTo review lot movements: hledger"
-      ++ concatMap (" -f " ++) files
-      ++ " reg " ++ T.unpack account ++ " cur:" ++ T.unpack commodity
-      ++ " --lots -e " ++ T.unpack (showDate (addDays 1 txnDate))
-      ++ " --verbose-tags"
 
 -- | Select lots to consume using the given reduction method.
 -- All methods select from the specified account only.
