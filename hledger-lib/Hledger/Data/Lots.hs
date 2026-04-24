@@ -115,15 +115,14 @@ import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Char (isDigit)
-import Data.Time.Calendar (Day, addDays, fromGregorianValid)
+import Data.Time.Calendar (Day, fromGregorianValid)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
-import Hledger.Data.Dates (showDate)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
-import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalFilePaths, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
@@ -1194,7 +1193,7 @@ reduceLotTransferToEquity j t ls p =
             qty       = negate (aquantity a)
             acct      = lotBaseAccount (paccount p)
             (method, methodSource) = resolveReductionMethodWithSource j p commodity
-        selected <- first (enrichLotError method methodSource acct commodity (tdate t) (journalFilePaths j))
+        selected <- first (enrichLotError method methodSource)
                   $ selectLots method (postingErrPrefix p) acct commodity qty cb ls
         let consumed = [(lotId, qty') | (lotId, _, qty') <- selected]
         return $ lotDbg t ("equity-transfer " ++ show qty ++ " " ++ T.unpack commodity
@@ -1415,7 +1414,7 @@ processDisposePosting styles verbosetags j t lotState p = do
         when (isBare && method == SPECID) $
           Left $ showPos ++ "SPECID requires a lot selector on dispose postings"
 
-        selected <- first (enrichLotError method methodSource scopeAcct commodity (tdate t) (journalFilePaths j))
+        selected <- first (enrichLotError method methodSource)
                   $ selectLots method (postingErrPrefix p) scopeAcct commodity posQty cb lotState
 
         -- For AVERAGE methods, compute the weighted average cost across the pool.
@@ -1529,7 +1528,7 @@ processTransferPair styles verbosetags j t lotState fromP toP = do
         fromBaseAcct = lotBaseAccount (paccount fromP)
 
     -- Select lots from source account for the full fromQty
-    selected <- first (enrichLotError method methodSource fromBaseAcct commodity (tdate t) (journalFilePaths j))
+    selected <- first (enrichLotError method methodSource)
               $ selectLots method (postingErrPrefix fromP) fromBaseAcct commodity fromQty fromCb lotState
 
     -- Split selected lots into transfer portion and fee portion
@@ -1662,9 +1661,8 @@ addLotState commodity lotId account amt =
   where addQty a1 a2 = a1{aquantity = aquantity a1 + aquantity a2}
 
 -- | Enrich a selectLots error with reduction method info.
-enrichLotError :: ReductionMethod -> String -> AccountName -> CommoditySymbol
-               -> Day -> [FilePath] -> String -> String
-enrichLotError method methodSource _account _commodity _txnDate _files err =
+enrichLotError :: ReductionMethod -> String -> String -> String
+enrichLotError method methodSource err =
   err ++ "\nUsing " ++ show method ++ " (" ++ methodSource ++ ")."
 
 -- | Select lots to consume using the given reduction method.
