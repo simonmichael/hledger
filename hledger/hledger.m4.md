@@ -1746,7 +1746,7 @@ and your reports would have the advantages of both.
 
 ## Cost basis
 
-This section briefly describes the `{}` cost basis syntax used to record the nominal cost of an investment (which can be different from the @ transacted cost).
+This section briefly describes the `{}` cost basis syntax used to record the nominal cost of an investment (which can be different from the `@` transacted cost).
 This is described in more detail later in [Lot reporting](#lot-reporting).
 If you're not tracking investment lots and capital gains, you can skip this.
 
@@ -1754,7 +1754,7 @@ hledger's cost basis annotations look like Beancount's: comma-separated parts en
 All parts are optional, but when present they must be in this order:
 
 1. a date, in YYYY-MM-DD format
-2. an optional text label, enclosed in double quotes
+2. a text label, enclosed in double quotes
 3. a cost, as a single-commodity hledger [amount](#amounts).
 
 Here are some valid hledger cost basis annotations:
@@ -7026,8 +7026,8 @@ A lot's cost basis has 2-3 parts:
 2. A short text label (optional). It can be used to distinguish lots acquired on the same date.
 3. The nominal acquisition cost (required). Usually this is what you paid for it.
 
-When could the cost basis date or cost differ from the transacted date or cost ?
-Here are some possibilities:
+If you are wondering why "usually", or how could the cost basis date or cost
+be different from the transacted date or cost, here are some possibilities:
 
 - Gifts — the recipient inherits the donor's original cost basis (carryover basis), not the fair market value at the time of the gift.
 - Inheritance — inherited assets get a "stepped-up" basis to fair market value at the date of death.
@@ -7042,14 +7042,13 @@ For more background, see <https://en.wikipedia.org/wiki/Cost_basis>.
 
 ## Lot ids
 
-A lot's id is the cost basis date and label (if any), with a space between them.
+A lot's id is the date and label (if any) from the cost basis, with a space between them.
+It must be unique (within the commodity), so that we can always select specific lots.
+It is also used as a sort key, so that we always know the order in which lots were acquired.
+It does not include the cost.
 
-Ids must be unique (within a commodity), so that we can use them to identify specific lots.
-And their sort order documents the order in which lots were acquired
-(which may determine the order in which they are to be disposed).
-
-So when multiple lots of a commodity are acquired on the same day, the label is useful.
-If you leave it empty in that case, hledger will add sequence numbers to ensure uniqueness.
+So when multiple lots of a commodity are acquired on the same day, the label is used to distinguish them.
+If you leave it empty, hledger will add sequentially numbered labels to ensure uniqueness.
 Or you could record times there, in a sortable format like HH:MM.
 
 ## Cost basis notation
@@ -7102,6 +7101,9 @@ $ hledger print
     assets:stocks    10 AAPL {2026-01-15, $50}
     assets:cash
 ```
+
+Unlike cost basis annotations, lot subaccount names must be complete,
+including all of the cost basis - date, label if any, and cost.
 
 When [strictly checking account names](#account-error-checking), lot subaccounts are ignored -
 you only need to declare the base account (eg `assets:stocks`), not the lot subaccounts.
@@ -7234,7 +7236,7 @@ This is useful if you need to enforce a global disposal order across all account
 ## Lot postings and balance assertions 
 
 On a dispose or transfer posting without an explicit lot subaccount, a [balance assertion](#balance-assertions)
-always refers to the parent account's balance. So if lot subaccounts are added witih `--lots`, the assertion is not affected.
+always refers to the parent account's balance. So if lot subaccounts are added with `--lots`, the assertion is not affected.
 
 By contrast, in a journal entry where the lot subaccounts are recorded explicitly, a balance assertion
 refers to the lot subaccount's balance.
@@ -7312,12 +7314,27 @@ and the hledger 2 entries will use G and U accounts.
 ## Lot reporting example
 
 A simple scenario: two acquisitions and a disposal.
-Here it is recorded using a mixture of cost basis annotations (on the buys)
-and a lotful commodity (on the sell):
+
+Here is a version using explicit lot subaccounts.
+Note this notation can only dispose by specifically identifying the lots involved:
 
 ```journal
-commodity AAPL  ; lots:
+2026-01-15 buy low
+    assets:stocks:{2026-01-15, $50}      10 AAPL
+    assets:cash                       -$500
 
+2026-02-01 buy high
+    assets:stocks:{2026-02-01, $60}      10 AAPL
+    assets:cash                       -$600
+
+2026-03-01 sell some using specific identification
+    assets:stocks:{2026-01-15, $50}      -5 AAPL @ $70
+    assets:cash                        $350
+```
+
+Here is a version using cost basis annotations:
+
+```journal
 2026-01-15 buy low
     assets:stocks      10 AAPL {$50}
     assets:cash     -$500
@@ -7326,21 +7343,38 @@ commodity AAPL  ; lots:
     assets:stocks      10 AAPL {$60}
     assets:cash     -$600
 
-2026-03-01 sell some (FIFO, selects oldest lot first)
+2026-03-01 sell some using default method (FIFO)
+    assets:stocks      -5 AAPL {} @ $70
+    assets:cash      $350
+```
+
+And here it is with a lots tag on the commodity (on account would also work):
+
+```journal
+commodity AAPL         ; lots:
+
+2026-01-15 buy low
+    assets:stocks      10 AAPL
+    assets:cash     -$500
+
+2026-02-01 buy high
+    assets:stocks      10 AAPL
+    assets:cash     -$600
+
+2026-03-01 sell some using AAPL's method (FIFO)
     assets:stocks      -5 AAPL @ $70
     assets:cash      $350
 ```
 
-`balance --lots` shows the current lot balances:
+In all cases, `balance --lots` shows the current lot balances:
 ```
 $ hledger bal assets:stocks --lots -N
               5 AAPL  assets:stocks:{2026-01-15, $50}
              10 AAPL  assets:stocks:{2026-02-01, $60}
 ```
 
-`print -x` shows inferred lots and other details.
-The gain postings are added automatically;
-here 5 shares were acquired at $50 and sold at $70 = 5 × ($70 - $50) = $100 gain
+and `print -x` shows the inferred lot subaccounts and gain postings.
+5 shares were acquired at $50 and sold at $70 = 5 × ($70 - $50) = $100 gain
 (remember that revenue amounts appear negative).
 ```
 $ hledger print desc:sell -x
@@ -7351,7 +7385,7 @@ $ hledger print desc:sell -x
     equity:unrealised-gain                                        $100
 ```
 
-`--verbose-tags` also shows the lot posting classifications, useful for troubleshooting:
+Add `--verbose-tags` to also see the lot posting classifications (ptype tags), useful for troubleshooting:
 ```
 $ hledger print desc:sell -x --verbose-tags
 2026-03-01 sell some (FIFO, selects oldest lot first)
