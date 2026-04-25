@@ -10,9 +10,9 @@
 -- For historical balances, add -H. To see the smallest, add --invert. For value, add -V --infer-market-prices, etc.
 
 -- Examples:
--- $ hledger-register-max -f examples/bcexample.hledger -H checking
+-- $ hledger-register-max -f examples/bcexample.journal -H checking
 -- 2013-01-03 Hoogle | Payroll                Assets:US:BofA:Checking                    1350.60 USD    8799.22 USD
--- $ hledger register-max -- -f examples/bcexample.hledger income --invert
+-- $ hledger register-max -- -f examples/bcexample.journal income --invert
 -- 2014-10-09 Hoogle | Payroll                Income:US:Hoogle:Vacation                   4.62 VACHR   52000.00 IRAUSD, 365071.44 USD, 337.26 VACHR
 
 

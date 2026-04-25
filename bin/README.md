@@ -466,9 +466,9 @@ is the same command implemented as a cabal script rather than a stack script.
 runs a register report and prints the posting with largest historical balance.
 
 ```cli
-$ hledger-register-max -f examples/bcexample.hledger checking
+$ hledger-register-max -f examples/bcexample.journal checking
 2013-01-03 Hoogle | Payroll  Assets:US:BofA:Checking      1350.60 USD  8799.22 USD
-$ hledger register-max -f examples/bcexample.hledger checking
+$ hledger register-max -f examples/bcexample.journal checking
 2013-01-03 Hoogle | Payroll  Assets:US:BofA:Checking      1350.60 USD  8799.22 USD
 ```
 

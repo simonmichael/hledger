@@ -767,7 +767,7 @@ Examples:
 #### Wide layout
 With many commodities, reports can be very wide:
 ```cli
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide
+$ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -T -Y --layout=wide
 Balance changes in 2012-01-01..2014-12-31:
 
                   ||                                          2012                                                     2013                                             2014                                                      Total 
@@ -779,7 +779,7 @@ Balance changes in 2012-01-01..2014-12-31:
 
 A width limit reduces the width, but some commodities will be hidden:
 ```cli  
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=wide,32
+$ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -T -Y --layout=wide,32
 Balance changes in 2012-01-01..2014-12-31:
 
                   ||                             2012                             2013                   2014                            Total 
@@ -792,7 +792,7 @@ Balance changes in 2012-01-01..2014-12-31:
 #### Tall layout
 Each commodity gets a new line (may be different in each column), and account names are repeated:
 ```cli
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=tall
+$ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -T -Y --layout=tall
 Balance changes in 2012-01-01..2014-12-31:
 
                   ||       2012        2013         2014        Total 
@@ -814,7 +814,7 @@ Balance changes in 2012-01-01..2014-12-31:
 Commodity symbols are kept in one column, each commodity has its own row,
 amounts are bare numbers, account names are repeated:
 ```cli
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -T -Y --layout=bare
+$ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -T -Y --layout=bare
 Balance changes in 2012-01-01..2014-12-31:
 
                   || Commodity    2012    2013     2014    Total 
@@ -835,7 +835,7 @@ Balance changes in 2012-01-01..2014-12-31:
 Bare layout also affects [CSV output](#output-format),
 which is useful for producing data that is easier to consume, eg for making charts:
 ```cli
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -O csv --layout=bare
+$ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -O csv --layout=bare
 "account","commodity","balance"
 "Assets:US:ETrade","GLD","70.00"
 "Assets:US:ETrade","ITOT","17.00"
@@ -860,7 +860,7 @@ where every variable has its own column and each row represents a single data po
 This is the easiest kind of data for other software to consume:
 
 ```cli
-$ hledger -f examples/bcexample.hledger bal assets:us:etrade -3 -Y -O csv --layout=tidy
+$ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -Y -O csv --layout=tidy
 "account","period","start_date","end_date","commodity","value"
 "Assets:US:ETrade","2012","2012-01-01","2012-12-31","GLD","0"
 "Assets:US:ETrade","2012","2012-01-01","2012-12-31","ITOT","10.00"
