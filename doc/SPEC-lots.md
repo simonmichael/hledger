@@ -165,7 +165,7 @@ and 2. either per account, or across all accounts.
 The latter needs to be configurable somehow, for different time periods.
 
 Eg in the US, tax rules require that before 2025, lots are tracked across all accounts,
-whereas after 2025, lots are tracked separately within each account.
+whereas from tax year 2025, lots are tracked separately within each account.
 
 ## Lot selectors
 
