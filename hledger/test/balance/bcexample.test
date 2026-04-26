@@ -1,7 +1,7 @@
 # Record a complicated real-life example. Layout is not perfect, but any
 # changes should be noted and evaluated whether they improve things.
 
-$ hledger -f bcexample.hledger bal -t -1 --color=always
+$ hledger -f bcexample.journal bal -t -1 --color=always
 >
              70.00 GLD
             17.00 ITOT
