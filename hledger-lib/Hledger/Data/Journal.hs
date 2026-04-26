@@ -782,9 +782,9 @@ postingInferCostBasis j p = p{pamount = mapMixedAmount amountInferCostBasis $ pa
     costToCostBasis qty cost = CostBasis{cbCost=Just ucost, cbDate=Nothing, cbLabel=Nothing}
       where
         ucost = case cost of
-          UnitCost  amt -> amt
-          TotalCost amt | qty /= 0  -> amt{aquantity = aquantity amt / abs qty}
-                        | otherwise -> amt
+          UnitCost  amt              -> amt
+          TotalCost amt | qty /= 0   -> divideAmountAndCapPrecision (abs qty) amt
+                        | otherwise  -> amt
 
 -- | For positive postings with a cost basis, which are not lot transfers,
 -- infer transacted cost from cost basis.

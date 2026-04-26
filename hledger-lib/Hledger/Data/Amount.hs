@@ -68,6 +68,7 @@ module Hledger.Data.Amount (
   amountLooksZero,
   amountSetQuantity,
   divideAmount,
+  divideAmountAndCapPrecision,
   multiplyAmount,
   invertAmount,
   -- ** styles
@@ -384,6 +385,17 @@ transformAmount f a@Amount{aquantity=q,acost=p} = a{aquantity=f q, acost=f' <$> 
 -- | Divide an amount's quantity (and total cost, if any) by some number.
 divideAmount :: Quantity -> Amount -> Amount
 divideAmount n = transformAmount (/n)
+
+-- | Divide an amount's quantity by some number, then round both internal and
+-- display precision to the quotient's natural precision capped at
+-- 'defaultMaxPrecision'. This avoids non-terminating divisions (eg 53/7) leaving
+-- 255 decimal digits of slop in the internal quantity, while still showing every
+-- decimal digit a clean division produces.
+divideAmountAndCapPrecision :: Quantity -> Amount -> Amount
+divideAmountAndCapPrecision n a =
+  let a' = a{aquantity = aquantity a / n}
+      p  = min defaultMaxPrecision (amountInternalPrecision a')
+  in setAmountInternalPrecision p a'
 
 -- | Multiply an amount's quantity (and its total cost, if it has one) by a constant.
 multiplyAmount :: Quantity -> Amount -> Amount

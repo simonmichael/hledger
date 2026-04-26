@@ -1120,10 +1120,9 @@ lotcostp postingqty =
       when doublebrace $ void $ char '}'
       pure $ CostBasis Nothing Nothing (fmap (convertToUnitCost doublebrace) ma)
 
-    convertToUnitCost isTotal lotamt =
-      if isTotal && postingqty /= 0
-      then lotamt { aquantity = aquantity lotamt / postingqty }
-      else lotamt
+    convertToUnitCost isTotal lotamt
+      | isTotal && postingqty /= 0 = divideAmountAndCapPrecision postingqty lotamt
+      | otherwise                  = lotamt
 
 -- Parse a Ledger-style [LOTDATE].
 lotdatep :: JournalParser m Day
