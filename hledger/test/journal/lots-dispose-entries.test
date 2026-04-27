@@ -271,3 +271,39 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
 
 >=
+
+# *** 13. dispose at cost basis (sale price = lot basis) → no gain pair.
+<
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash
+
+2026-02-01 sell at cost
+    assets:broker    -5 AAPL {$50} @ $50
+    assets:cash      $250
+
+$ hledger -f- print desc:sell --lots
+2026-02-01 sell at cost
+    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $50
+    assets:cash                                       $250
+
+>=
+
+# *** 14. Disposal entry whose acquire posting has a cost-basis vs transacted-cost gap
+# does NOT produce a synthetic gain pair: gain is computed from the disposal side
+# only, so an unrelated acquire-side imbalance no longer leaks into the inferred gain.
+<
+2026-01-01 buy
+    assets:broker    100 AAPL {$50}
+    assets:cash
+
+2026-02-01 swap AAPL for GOOG
+    assets:broker   -100 AAPL {$50} @ $50
+    assets:broker    100 GOOG {$60} @ $50
+
+$ hledger -f- print desc:swap --lots
+2026-02-01 swap AAPL for GOOG
+    assets:broker:{2026-01-01, $50}    -100 AAPL {$50} @ $50
+    assets:broker:{2026-02-01, $60}     100 GOOG {$60} @ $50
+
+>=

@@ -123,7 +123,7 @@ import Hledger.Data.AccountType (isAssetType, isEquityType)
 import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
-import Hledger.Data.Posting (conversionPostingTagName, generatedPostingTagName, hasAmount, isReal, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
+import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
@@ -802,9 +802,11 @@ journalAddGainOrUGainPosting verbosetags j = do
 -- The two postings sum to zero, so the ordinary transaction balancing rule at
 -- transacted cost is satisfied without any special exception.
 --
--- The gain amount is the disposal's residual at cost basis: e.g. for
--- @-5 AAPL {$50} \@ $70 + $350 cash@, the cost-basis residual is
--- @-$250 + $350 = $100@.
+-- The gain amount is the disposal gain: for each dispose posting amount with
+-- both a cost basis and a transacted cost, contribute @aquantity * (B - T)@
+-- (equivalently: cost-basis value minus transacted-cost value). Acquire and
+-- other postings do not contribute. Eg for @-5 AAPL {$50} \@ $70@: gain
+-- contribution is @-5 * ($50 - $70) = $100@.
 --
 -- Runs after 'journalCalculateLots' so that cost basis is populated on dispose
 -- postings. Both generated postings carry the @_generated-posting@ hidden tag,
@@ -827,7 +829,6 @@ journalAddOrCheckGainPostings verbosetags j = do
     isUgain p = accountNameType atypes (paccount p) == Just UnrealisedGain
              || ("_ptype", "ugain") `elem` ptags p
     disposeHasPrice p = isDisposePosting p && any (isJust . acost) (amountsRaw (pamount p))
-    isConversionPosting p = conversionPostingTagName `elem` map fst (ptags p)
 
     addPair t
       | not (any isDisposePosting (tpostings t))  = Right t
@@ -837,55 +838,76 @@ journalAddOrCheckGainPostings verbosetags j = do
       where ps = tpostings t
 
     addNewPair t
-      | mixedAmountIsZero residual = t
+      | mixedAmountIsZero gain = t
       | otherwise = txnTieKnot t{tpostings = tpostings t ++ [rgainP, ugainP]}
       where
-        residual      = foldMap postingCostBasisAmount
-                      $ filter (not . isConversionPosting) (tpostings t)
+        gain          = foldMap postingDisposalGain (tpostings t)
         styleInferred = styleAmounts (journalCommodityStylesWith SoftRounding j)
-        rgainP        = mkGeneratedGainPosting verbosetags rgainAccount (styleInferred $ maNegate residual) "rgain"
-        ugainP        = mkGeneratedGainPosting verbosetags ugainAccount (styleInferred residual)            "ugain"
+        rgainP        = mkGeneratedGainPosting verbosetags rgainAccount (styleInferred $ maNegate gain) "rgain"
+        ugainP        = mkGeneratedGainPosting verbosetags ugainAccount (styleInferred gain)            "ugain"
 
     -- When a disposal already has rgain/ugain postings (user-written, possibly
-    -- completed by journalAddGainOrUGainPosting), check that the claimed gain equals
-    -- the cost-basis residual of the other postings, exactly.
+    -- completed by journalAddGainOrUGainPosting), check that the claimed rgain
+    -- equals the negated disposal gain, exactly.
     validatePair t =
       let ps       = tpostings t
-          nonGainPs = filter (\p -> not (isRgain p) && not (isUgain p) && not (isConversionPosting p)) ps
-          residual = foldMap postingCostBasisAmount nonGainPs
+          gain     = foldMap postingDisposalGain ps
           rgainSum = foldMap pamount (filter isRgain ps)
-          -- rgain_sum should equal -residual (at cost basis). Check rgain_sum + residual == 0.
-          diff = rgainSum <> residual
+          -- rgain_sum should equal -gain. Check rgain_sum + gain == 0.
+          diff = rgainSum <> gain
       in if mixedAmountIsZero diff
            then Right t
-           else Left (mismatchErr t residual rgainSum)
+           else Left (mismatchErr t gain rgainSum)
 
-    mismatchErr t residual rgainSum =
+    mismatchErr t gain rgainSum =
       txnErrPrefix t
       ++ "This disposal's realised gain amount is wrong.\n"
       ++ "  written:    " ++ showamt rgainSum ++ "\n"
-      ++ "  calculated: " ++ showamt (maNegate residual)
+      ++ "  calculated: " ++ showamt (maNegate gain)
       where
         showamt =
           showMixedAmountWith oneLineNoCostFmt{displayZeroCommodity=True}
           . mixedAmountSetFullPrecisionUpTo Nothing
           . mixedAmountSetFullPrecision
 
-    -- Value a posting at cost basis: if it has a cost basis, use quantity * basis cost;
-    -- otherwise use the raw amount. Amountless postings contribute nothing.
-    postingCostBasisAmount :: Posting -> MixedAmount
-    postingCostBasisAmount p
-      | not (hasAmount p) = nullmixedamt
-      | otherwise         = foldMap amountCostBasisValue (amountsRaw (pamount p))
+    -- | The realised-capital-gain contribution from a single posting.
+    --
+    -- Sums 'amountBasisVsTransactedGap' across the posting's amounts,
+    -- treating each non-zero gap as realised gain on the lot units changing
+    -- hands. Eg @assets:broker -5 AAPL {$50} \@ $70@ contributes
+    -- @-5 * ($50 - $70) = $100@ — five shares sold at a $20 profit each.
+    --
+    -- Acquire postings are excluded: a fresh acquisition with
+    -- @basis ≠ transacted@ is a carryover or bookkeeping imbalance, not
+    -- realised gain, and is dealt with separately. Every other kind of
+    -- posting contributes, including postings the lot classifier did not
+    -- explicitly tag as @_ptype:dispose@ (eg a fee paid in lot-tracked
+    -- stock — its disposal economics are real even without the tag).
+    postingDisposalGain :: Posting -> MixedAmount
+    postingDisposalGain p
+      | isAcquirePosting p = nullmixedamt
+      | not (hasAmount p)  = nullmixedamt
+      | otherwise = foldMap amountBasisVsTransactedGap (amountsRaw (pamount p))
 
-    -- Value an amount using a 3-step hierarchy: cost basis -> transacted cost -> raw amount.
-    amountCostBasisValue :: Amount -> MixedAmount
-    amountCostBasisValue a = case acostbasis a >>= cbCost of
-      Just basisCost -> mixedAmount basisCost{aquantity = aquantity a * aquantity basisCost}
-      Nothing -> case acost a of
-        Just (UnitCost  c) -> mixedAmount c{aquantity = aquantity a * aquantity c}
-        Just (TotalCost c) -> mixedAmount c
-        Nothing            -> mixedAmount a
+    -- | The per-amount cost-basis-vs-transacted-cost gap.
+    --
+    -- An amount can carry two unit prices: its /cost basis/ from a @{...}@
+    -- annotation, and its /transacted cost/ from @\@@ or @\@\@@. When both
+    -- are present, this returns @aquantity * (basis - transacted)@,
+    -- equivalently the amount's value at cost basis minus its value at
+    -- transacted cost. Returns 'nullmixedamt' if either side is missing.
+    --
+    -- Pure arithmetic; the caller decides what the gap /means/ in context
+    -- (realised gain on a disposal, carryover/imbalance on an acquire, etc).
+    amountBasisVsTransactedGap :: Amount -> MixedAmount
+    amountBasisVsTransactedGap a = case (acostbasis a >>= cbCost, acost a) of
+      (Just basisCost, Just transactedCost) ->
+        let basisVal      = mixedAmount basisCost{aquantity = aquantity a * aquantity basisCost}
+            transactedVal = case transactedCost of
+              UnitCost  c -> mixedAmount c{aquantity = aquantity a * aquantity c}
+              TotalCost c -> mixedAmount c
+        in basisVal <> maNegate transactedVal
+      _ -> nullmixedamt
 
 -- | Collapse lot-tracking detail from a journal for display when --lots is off.
 -- Makes these targeted changes to each transaction:
