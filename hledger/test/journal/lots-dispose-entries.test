@@ -289,21 +289,23 @@ $ hledger -f- print desc:sell --lots
 
 >=
 
-# *** 14. Disposal entry whose acquire posting has a cost-basis vs transacted-cost gap
-# does NOT produce a synthetic gain pair: gain is computed from the disposal side
-# only, so an unrelated acquire-side imbalance no longer leaks into the inferred gain.
+# *** 14. An acquire with cost-basis != transacted-cost is rejected.
 <
-2026-01-01 buy
-    assets:broker    100 AAPL {$50}
-    assets:cash
+2026-01-01 weird buy with basis typo
+    assets:broker    100 AAPL {$60} @ $50
+    assets:cash     -$5000
 
-2026-02-01 swap AAPL for GOOG
-    assets:broker   -100 AAPL {$50} @ $50
-    assets:broker    100 GOOG {$60} @ $50
+$ hledger -f- print --lots
+>2 /differs from its transacted cost/
+>=1
 
-$ hledger -f- print desc:swap --lots
-2026-02-01 swap AAPL for GOOG
-    assets:broker:{2026-01-01, $50}    -100 AAPL {$50} @ $50
-    assets:broker:{2026-02-01, $60}     100 GOOG {$60} @ $50
+# *** 15. Total basis cost / transacted cost are shown as unit costs in the error message,
+# with non-terminating decimals capped at 8 decimal places (defaultMaxPrecision).
+<
+2026-01-01 weird buy
+    assets:broker    7 AAPL {{$53}} @@ $50
+    assets:cash     -$50
 
->=
+$ hledger -f- print --lots
+>2 /cost basis \(\$7\.57142857\) differs from its transacted cost \(\$7\.14285714\)/
+>=1

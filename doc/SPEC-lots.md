@@ -442,20 +442,31 @@ transaction-balancing rule — sum postings at transacted cost (ignoring cost
 basis), sum must be zero, infer at most one missing amount per commodity.
 No special exception applies to Gain/UnrealisedGain postings.
 
+## Acquire balance constraint
+
+Acquire postings must have per-unit cost basis equal to per-unit transacted
+cost. If a user writes both `{B}` (cost basis) and `@T` (transacted cost)
+on an acquire posting and `B ≠ T`, `journalCheckAcquireBasis`
+raises an error at load time — the cost-basis books would otherwise be
+unbalanced for the entry.
+
 ## Gain-posting inference
+
+The realised gain inferred for a disposal is the **disposal gain**: for each
+dispose posting in the entry whose amount has both a cost basis `B` and a transacted cost `T`,
+contribute `aquantity × (B − T)`. 
 
 Disposal transactions can be written in any of three equivalent styles:
 
 1. **No gain postings written.** After lot matching, hledger computes the
-   cost-basis residual of the non-gain postings and adds both rgain and
-   ugain postings (`journalAddOrCheckGainPostings`).
+   disposal gain and adds both rgain and ugain postings for that amount
+   (`journalAddOrCheckGainPostings`).
 
 2. **Only rgain written** (with an explicit amount). Before transaction
    balancing, hledger adds a matching ugain counter with the negated amount
    (`journalAddGainOrUGainPosting`). The ordinary balancer then accepts the
    paired transaction. After lot matching, the user-written rgain amount is
-   checked against the cost-basis residual; mismatches are reported as
-   errors.
+   checked against the disposal gain; mismatches are reported as errors.
 
 3. **Only ugain written** (uncommon, symmetric with (2)).
 
@@ -465,10 +476,10 @@ supported. Either write the amount explicitly, or omit the posting and let
 hledger infer the pair.
 
 If a user writes rgain or ugain in a disposal where hledger can't compute
-the matching cost-basis residual (eg a bare `-5 AAPL` dispose posting with
-no `{...}` cost basis annotation, where the residual comes out
-multi-commodity), `journalAddGainOrUGainPosting` emits an error pointing to the
-offending posting and suggesting how to resolve it.
+the matching disposal gain (eg a bare `-5 AAPL` dispose posting with no
+`{...}` cost basis annotation, where the gain comes out multi-commodity),
+`journalAddGainOrUGainPosting` emits an error pointing to the offending
+posting and suggesting how to resolve it.
 
 ## Balance assertions
 
@@ -531,9 +542,12 @@ Lot-related processing runs during journal finalising in two groups:
 6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
    disposals, normalise transacted cost.
-7. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
-   the rgain + ugain pair based on the cost-basis residual. Also validates that any
-   user-written gain amount matches the cost-basis residual.
+7. **journalCheckAcquireBasis** — error if any acquire posting has cost basis
+   differing from its transacted cost (per-unit), so the structural problem
+   surfaces before any gain-pair-specific diagnostic.
+8. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
+   the rgain + ugain pair sized at the disposal gain. Also validates that any
+   user-written gain amount matches the disposal gain.
 
 The gated stages raise errors when the journal contains lot-related content that
 can't be resolved (missing lot cost, ambiguous selectors, dispose before acquire,
@@ -624,8 +638,9 @@ Explanation:
    transaction balancer so the postings balance at transacted cost.
 2. 15 AAPL are reduced from one or more existing lots, selected by
    `assets:stock`'s / `AAPL`'s / default (FIFO) reduction method.
-3. `journalAddOrCheckGainPostings` computes the cost-basis residual of the
-   non-gain postings and adds a realised-gain posting (rgain) and a matching
-   unrealised-gain counter (ugain) with the opposite sign. The pair sums to
-   zero, so the disposal stays balanced under the ordinary transacted-cost
-   rule.
+3. `journalAddOrCheckGainPostings` computes the disposal gain
+   (`aquantity × (B − T)` summed over non-acquire postings whose amounts
+   carry both basis and transacted cost) and adds a realised-gain posting
+   (rgain) and a matching unrealised-gain counter (ugain) with the opposite
+   sign. The pair sums to zero, so the disposal stays balanced under the
+   ordinary transacted-cost rule.

@@ -44,22 +44,7 @@ $ hledger -f - print
 >2 /no lots available for commodity AAPL/
 >= 1
 
-# ** 4. Cost basis is not inferred when it has been explicitly recorded.
-<
-commodity AAPL   ; lots:
-
-2024-01-01 buy stock
-    assets:brokerage    10 AAPL {$95} @ $100
-    assets:cash
-
-$ hledger -f - print
-2024-01-01 buy stock
-    assets:brokerage    10 AAPL {$95} @ $100
-    assets:cash
-
->=
-
-# ** 5. Without explicit cost basis, a lotful commodity posting with @ is classified as acquire.
+# ** 4. Without explicit cost basis, a lotful commodity posting with @ is classified as acquire.
 <
 commodity AAPL   ; lots:
 
@@ -73,18 +58,3 @@ $ hledger -f - print --verbose-tags
     assets:cash
 
 >=
-
-# # ** 0. Posting date is used for inferred cost basis date
-# <
-# commodity AAPL   ; lots:
-
-# 2024-03-15 buy stock
-#     assets:brokerage    10 AAPL @ $100  ; date:3/16
-#     assets:cash
-
-# $ hledger -f - print
-# 2024-03-15 buy stock
-#     assets:brokerage    10 AAPL @ $100 {$100} [2024-03-16]  ; date:3/16
-#     assets:cash
-
-# >=

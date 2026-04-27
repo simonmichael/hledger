@@ -91,6 +91,7 @@ journalCalculateLots:
 module Hledger.Data.Lots (
   journalClassifyLotPostings,
   journalCalculateLots,
+  journalCheckAcquireBasis,
   journalCollapseLotDetail,
   journalAddGainOrUGainPosting,
   journalAddOrCheckGainPostings,
@@ -120,10 +121,10 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
+import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
-import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
+import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
 import Hledger.Data.Transaction (txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
@@ -790,6 +791,53 @@ journalAddGainOrUGainPosting verbosetags j = do
       ++ "Write the amount explicitly, or omit the posting entirely\n"
       ++ "(hledger will then infer both rgain and ugain from the cost basis)."
 
+-- | Check that no acquire posting has a disagreement between its cost basis and transacted cost.
+--
+-- We require acquisitions to always have the same cost basis and transacted cost now.
+-- (Real world use cases like a gift with carryover basis can be handled with simpler journal entries.)
+--
+-- This runs after 'journalCalculateLots' so that cost basis is populated on
+-- acquire postings, and before 'journalAddOrCheckGainPostings' so the
+-- error surfaces before gain calculations.
+journalCheckAcquireBasis :: Journal -> Either String Journal
+journalCheckAcquireBasis j = mapM_ checkTxn (jtxns j) >> Right j
+  where
+    checkTxn t = case badps of
+      []                              -> Right ()
+      ((idx, p, basis, transacted):_) -> Left (acquireBasisErr t idx p basis transacted)
+      where
+        badps =
+          [ (idx, p, basis, transacted)
+          | (idx, p) <- zip [0..] (tpostings t)
+          , isAcquirePosting p
+          , a <- amountsRaw (pamount p)
+          , Just basis <- [acostbasis a >>= cbCost]
+          , Just tc <- [acost a]
+          , let transacted = case tc of
+                  UnitCost  x -> x
+                  TotalCost x -> divideAmountAndCapPrecision (abs (aquantity a)) x
+          , aquantity basis /= aquantity transacted
+          ]
+
+    acquireBasisErr t idx p basis transacted =
+      printf "%s:%d:\n%s\n" f l (T.unpack ex)
+      ++ "This acquire posting's cost basis (" ++ showAmt basis
+      ++ ") differs from its transacted cost (" ++ showAmt transacted ++ ").\n"
+      ++ "An acquire posting must have basis equal to transacted cost. Common fixes:\n"
+      ++ "  - drop the {}/{{}} so basis is inferred from the transacted cost\n"
+      ++ "  - drop the @/@@ so transacted cost is inferred from the basis\n"
+      ++ "  - set both to the same value (eg capitalising fees into basis,\n"
+      ++ "    in which case remove any separate fee or expense posting)"
+      where
+        col1 = 5 + if isVirtual p then 1 else 0
+        col2 = col1 + T.length (paccount p) - 1
+        (f, l, _mcols, ex) = makePostingErrorExcerptByIndex t idx (Just (col1, Just col2))
+
+    showAmt =
+      showAmountWith oneLineNoCostFmt{displayZeroCommodity=True}
+      . amountSetFullPrecisionUpTo Nothing
+      . amountSetFullPrecision
+
 -- | For each disposal transaction with a transacted price, add a pair of balanced
 -- postings recognising the realised capital gain:
 --
@@ -835,7 +883,8 @@ journalAddOrCheckGainPostings verbosetags j = do
       | not (any disposeHasPrice  (tpostings t))  = Right t
       | any isRgain ps || any isUgain ps          = validatePair t  -- already paired
       | otherwise                                  = Right (addNewPair t)
-      where ps = tpostings t
+      where
+        ps = tpostings t
 
     addNewPair t
       | mixedAmountIsZero gain = t

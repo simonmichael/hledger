@@ -1746,7 +1746,8 @@ and your reports would have the advantages of both.
 
 ## Cost basis
 
-This section briefly describes the `{}` cost basis syntax used to record the nominal cost of an investment (which can be different from the `@` transacted cost).
+This section briefly describes the `{}` cost basis syntax,
+used to record the nominal cost of an investment being acquired, or to select lots being transfered or disposed.
 This is described in more detail later in [Lot reporting](#lot-reporting).
 If you're not tracking investment lots and capital gains, you can skip this.
 
@@ -7024,10 +7025,11 @@ A lot's cost basis has 2-3 parts:
 
 1. The nominal acquisition date (required). Usually this is the date you acquired it.
 2. A short text label (optional). It can be used to distinguish lots acquired on the same date.
-3. The nominal acquisition cost (required). Usually this is what you paid for it.
+3. The nominal acquisition cost (required). This will be the same as the transacted cost (what you paid for it).
 
-If you are wondering why "usually", or how could the cost basis date or cost
-be different from the transacted date or cost, here are some possibilities:
+## Cost basis, fair market value, transacted cost
+
+There are some situations where you might acquire an investment at a cost basis different from its current fair market value. For example:
 
 - Gifts — the recipient inherits the donor's original cost basis (carryover basis), not the fair market value at the time of the gift.
 - Inheritance — inherited assets get a "stepped-up" basis to fair market value at the date of death.
@@ -7038,7 +7040,11 @@ be different from the transacted date or cost, here are some possibilities:
 - Wash sales — disallowed loss from a prior sale is added to the cost basis of the replacement shares.
 - Corporate actions — spin-offs, mergers, and stock splits cause cost basis to be allocated or adjusted in ways unrelated to any payment.
 
-For more background, see <https://en.wikipedia.org/wiki/Cost_basis>.
+Nevertheless, the entry should always be written with cost basis ({}/{{}}) equal to transacted cost (@/@@).
+Usually, by writing just one of them and letting the other be inferred; but if they are both written, they should match.
+The [Acquire](#acquire) section below shows how this works in practice.
+
+For more background on cost basis, see <https://en.wikipedia.org/wiki/Cost_basis>.
 
 ## Lot ids
 
@@ -7143,6 +7149,20 @@ or inferred from the transacted cost.
 On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
 with cost inferred from the transaction's other postings.
 
+As noted above, the per-unit cost basis and per-unit transacted cost must be the same when acquiring.
+Here is an example of an acquisition where the cost basis differs from the commodity's current market price.
+With GOLD currently priced at $5000, you receive a gift carrying its original cost basis of $3000/oz.
+It is recorded like this:
+```
+P 2026-05-01 GOLD $5000
+
+2026-05-01 gift from Aunt, with carryover basis of $3000
+    income:gifts         $-6000
+    assets:stock              2 GOLD {$3000}
+```
+The transacted cost is $3000 (same as the basis), not $5000.
+And the recorded gift income is $6000 (the gift's current market value is $10000, but remember when you dispose you'll have to declare $2000/oz more capital gain, $4000 more in total).
+
 ### Transfer
 
 A matching pair of negative/positive lotful postings moves one or more existing lots between accounts, preserving its cost basis.
@@ -7174,6 +7194,12 @@ A negative lot posting sells from one or more existing lots.
 ```
 
 The disposal posting must have a transacted price (the selling price), either explicit or inferred: $90 here.
+
+When the gain postings are inferred (not written explicitly),
+hledger sizes them from the disposal side only:
+the sum of `aquantity × (B − T)` over the entry's dispose postings.
+Acquire postings in the same entry don't contribute to the inferred gain
+(any acquire-side `B ≠ T` would be rejected at load time anyway, see [Acquire](#acquire) above).
 
 ## Cost basis methods
 

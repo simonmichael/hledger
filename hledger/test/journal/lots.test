@@ -110,12 +110,12 @@ $ hledger -f- print --lots
 # ** 9. Consolidated with @ transacted cost.
 <
 2026-01-01
-    assets:broker    10 AAPL {2026-01-01, $100} @ $150
+    assets:broker    10 AAPL {2026-01-01, $150} @ $150
     assets:cash
 
-$ hledger -f- print
+$ hledger -f- print -I
 2026-01-01
-    assets:broker    10 AAPL {2026-01-01, $100} @ $150
+    assets:broker    10 AAPL {2026-01-01, $150} @ $150
     assets:cash
 
 >=
@@ -256,12 +256,12 @@ $ hledger -f- bal assets:broker
 # ** 18. print -O ledger produces Ledger-style lot syntax.
 <
 2026-01-01
-    assets:investment    10 AAPL {2026-01-01, "lot A", $100} @ $150
+    assets:investment    10 AAPL {2026-01-01, "lot A", $150} @ $150
     assets:cash
 
-$ hledger -f- print -O ledger
+$ hledger -f- print -O ledger -I
 2026-01-01
-    assets:investment    10 AAPL [2026-01-01] (lot A) {$100} @ $150
+    assets:investment    10 AAPL [2026-01-01] (lot A) {$150} @ $150
     assets:cash
 
 >=

@@ -39,16 +39,3 @@ $ hledger -f - print -x
 $ hledger -f - print
 >2 /dispose posting has no transacted price/
 >= 1
-
-# ** 4. Transacted cost is not inferred when already present.
-<
-2024-01-01 buy stock
-    assets:brokerage    10 AAPL {$95} @ $100
-    assets:cash
-
-$ hledger -f - print
-2024-01-01 buy stock
-    assets:brokerage    10 AAPL {$95} @ $100
-    assets:cash
-
->=

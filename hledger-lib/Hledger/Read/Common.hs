@@ -393,9 +393,10 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
 
       -- Lot and capital gains calculation/checking
       -- (skipped by --ignore-lots or -I; forced back on by --strict or `hledger check lots`)
-      >>= (if checklots then journalCheckLotsTagValues                            else pure)  -- validate lots: tag values on commodity/account declarations
-      >>= (if checklots then journalCalculateLots verbose_tags_                   else pure)  -- evaluate lot selectors, calculate lot balances, add lot subaccounts
-      >>= (if checklots then journalAddOrCheckGainPostings verbose_tags_         else pure)  -- in disposal transactions, add the realised-gain + unrealised-gain posting pair
+      >>= (if checklots then journalCheckLotsTagValues                   else pure)  -- validate lots: tag values on commodity/account declarations
+      >>= (if checklots then journalCalculateLots verbose_tags_          else pure)  -- evaluate lot selectors, calculate lot balances, add lot subaccounts
+      >>= (if checklots then journalCheckAcquireBasis                    else pure)  -- error if any acquire posting has an unfunded {B} ≠ @T gap
+      >>= (if checklots then journalAddOrCheckGainPostings verbose_tags_ else pure)  -- in disposal transactions, add the realised-gain + unrealised-gain posting pair
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.

@@ -83,8 +83,10 @@ journalFinalise
   22. journalCalculateLots              -- evaluate lot selectors, apply reduction methods,
                                         -- calculate lot balances, add explicit lot subaccounts,
                                         -- infer cost basis for bare disposals, normalize transacted cost
-  23. journalAddOrCheckGainPostings    -- for disposals with no gain postings, add the rgain+ugain pair;
-                                       -- otherwise check any user-written gain amount against the cost-basis residual
+  23. journalCheckAcquireBasis         -- error if any acquire posting has cost basis ≠ transacted cost
+  24. journalAddOrCheckGainPostings    -- for disposals with no gain postings, add the rgain+ugain pair
+                                       -- sized at the disposal gain; otherwise check any user-written
+                                       -- gain amount against the disposal gain
 ```
 
 ## Sequencing constraints
@@ -122,6 +124,15 @@ An arrow A → B means "A must run before B".
 
 - **journalClassifyLotPostings → journalCalculateLots**
   Lot calculation reads `_ptype` tags to identify acquire/dispose/transfer postings.
+
+- **journalCalculateLots → journalCheckAcquireBasis**
+  The check needs the cost basis populated by lot calculation (eg from a lot
+  subaccount name) before comparing it to the transacted cost.
+
+- **journalCheckAcquireBasis → journalAddOrCheckGainPostings**
+  When an acquire posting has B ≠ T, we want the structural error to surface
+  before any gain-pair-specific diagnostic (the gain pair's amount would be
+  meaningless given the imbalance).
 
 ### Design decisions
 
@@ -186,6 +197,7 @@ Several steps only run with specific flags:
 | journalAddGainOrUGainPosting           | default; skipped by `--ignore-lots`/`-I`; restored by `--strict` or `hledger check lots` |
 | journalCheckLotsTagValues              | same                                                            |
 | journalCalculateLots                   | same                                                            |
+| journalCheckAcquireBasis               | same                                                            |
 | journalAddOrCheckGainPostings          | same                                                            |
 
 The four lot stages are gated together by a single `checklots` condition, mirroring
