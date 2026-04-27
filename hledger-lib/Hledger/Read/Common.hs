@@ -1055,8 +1055,10 @@ balanceassertionp = do
 -- Parse lot cost in curly braces.
 -- Accepts either:
 --   Ledger-style:  {UNITCOST} or {{TOTALCOST}} or {=FIXEDUNITCOST} or {{=FIXEDTOTALCOST}} or {}
---   Consolidated:  {DATE, "LABEL", COST} with all fields optional and in DLC order
--- If total cost syntax {{}} is used, converts it to unit cost by dividing by the posting quantity.
+--   Consolidated:  {DATE, "LABEL", COST} or {{DATE, "LABEL", TOTALCOST}}
+--                  with all fields optional and in DLC order
+-- If total cost syntax {{}} is used, the parsed cost is converted to unit cost
+-- by dividing by the posting quantity (limiting decimal digits to defaultMaxPrecision).
 lotcostp :: Quantity -> JournalParser m CostBasis
 lotcostp postingqty =
   -- dbg "lotcostp" $
@@ -1064,19 +1066,24 @@ lotcostp postingqty =
   char '{'
   doublebrace <- option False $ char '{' >> pure True
   lift skipNonNewlineSpaces
-  if doublebrace
-    then ledgerCost True
-    else do
-      -- Peek to decide: consolidated vs ledger
-      -- consolidated starts with date (digit), label ("), or empty }
-      -- ledger starts with =, amount, or empty }
-      c <- lookAhead anySingle
-      case c of
-        '}' -> char '}' >> pure (CostBasis Nothing Nothing Nothing)
-        '=' -> ledgerCost False
-        '"' -> consolidatedNoDate  -- no date, start with label
-        _   -> tryDateOrLedger
+  -- Peek to decide: consolidated vs ledger
+  -- consolidated starts with date (digit), label ("), or empty }
+  -- ledger starts with =, amount, or empty }
+  c <- lookAhead anySingle
+  cb <- case c of
+    '}' -> pure (CostBasis Nothing Nothing Nothing)
+    '=' -> ledgerCost
+    '"' -> consolidatedNoDate
+    _   -> tryDateOrLedger
+  char '}'
+  when doublebrace $ void $ char '}'
+  pure $ if doublebrace then mapCbCost convertToUnitCost cb else cb
   where
+    -- Apply a function to the cost amount, if any, of a CostBasis.
+    mapCbCost f (CostBasis md ml mc) = CostBasis md ml (fmap f mc)
+
+    -- The inner parsers below leave the closing }(}) for the outer parser.
+
     tryDateOrLedger = do
       -- Does input look like a date (YYYY-D...) ? If so, commit to consolidated
       -- date parsing (no try), so invalid dates give clear errors instead of
@@ -1089,21 +1096,19 @@ lotcostp postingqty =
           lift skipNonNewlineSpaces
           void $ lookAhead (oneOf [',','}'])
           consolidatedAfterDate d
-        else ledgerCost False  -- not a date, parse as ledger amount
+        else ledgerCost  -- not a date, parse as ledger amount
 
     consolidatedAfterDate d = do
-      -- after date: optional ", LABEL", optional ", COST", then }
+      -- after date: optional ", LABEL", optional ", COST"
       mlabel <- optional $ try $ char ',' >> lift skipNonNewlineSpaces >> quotedLabelp <* lift skipNonNewlineSpaces
       mcost  <- optional $ char ',' >> lift skipNonNewlineSpaces >> simpleamountp False <* lift skipNonNewlineSpaces
-      char '}'
       pure $ CostBasis (Just d) mlabel mcost
 
     consolidatedNoDate = do
-      -- parse "LABEL", then optional ", COST", then }
+      -- parse "LABEL", then optional ", COST"
       mlabel <- Just <$> quotedLabelp
       lift skipNonNewlineSpaces
       mcost <- optional $ char ',' >> lift skipNonNewlineSpaces >> simpleamountp False <* lift skipNonNewlineSpaces
-      char '}'
       pure $ CostBasis Nothing mlabel mcost
 
     quotedLabelp = do
@@ -1112,18 +1117,16 @@ lotcostp postingqty =
       char '"'
       pure lbl
 
-    ledgerCost doublebrace = do
+    ledgerCost = do
       _fixed <- fmap isJust $ optional $ char '='
       lift skipNonNewlineSpaces
       ma <- optional $ simpleamountp False
       lift skipNonNewlineSpaces
-      char '}'
-      when doublebrace $ void $ char '}'
-      pure $ CostBasis Nothing Nothing (fmap (convertToUnitCost doublebrace) ma)
+      pure $ CostBasis Nothing Nothing ma
 
-    convertToUnitCost isTotal lotamt
-      | isTotal && postingqty /= 0 = divideAmountAndCapPrecision postingqty lotamt
-      | otherwise                  = lotamt
+    convertToUnitCost lotamt
+      | postingqty /= 0 = divideAmountAndCapPrecision postingqty lotamt
+      | otherwise       = lotamt
 
 -- Parse a Ledger-style [LOTDATE].
 lotdatep :: JournalParser m Day

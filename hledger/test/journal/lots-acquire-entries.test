@@ -227,3 +227,19 @@ $ hledger -f- print --lots --verbose-tags
     assets:cash                                                $-53
 
 >=
+
+# *** 17. acquire: {{DATE, "LABEL", TOTALCOST}}. The consolidated form (date and
+# label inside braces) is allowed inside double braces too; the cost is still
+# the total, divided by quantity to give unit basis.
+<
+commodity AAPL  ; lots:
+2026-01-01 buy
+    assets:broker    5 AAPL {{2026-01-01, "lot A", $250}}
+    assets:cash     -$250
+
+$ hledger -f- print --lots --verbose-tags
+2026-01-01 buy
+    assets:broker:{2026-01-01, "lot A", $50}    5 AAPL {2026-01-01, "lot A", $50}  ; ptype: acquire
+    assets:cash                                                             $-250
+
+>=
