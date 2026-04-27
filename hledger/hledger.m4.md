@@ -7027,7 +7027,7 @@ A lot's cost basis has 2-3 parts:
 2. A short text label (optional). It can be used to distinguish lots acquired on the same date.
 3. The nominal acquisition cost (required). This must match the transacted cost (what you paid for it).
 
-In an acquisition transaction, the cost basis (`{}`/`{{}}`) and transacted cost (`@`/`@@`) should always match.
+In an acquisition transaction, the cost basis (`{}`) and transacted cost (`@`) should always match.
 Often we write just one of them and let the other be inferred.
 
 This is required even in transactions where you are acquiring an investment at a cost basis different from its current fair market value - such as:
