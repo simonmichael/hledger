@@ -7025,11 +7025,14 @@ A lot's cost basis has 2-3 parts:
 
 1. The nominal acquisition date (required). Usually this is the date you acquired it.
 2. A short text label (optional). It can be used to distinguish lots acquired on the same date.
-3. The nominal acquisition cost (required). This will be the same as the transacted cost (what you paid for it).
+3. The nominal acquisition cost (required). This must match the transacted cost (what you paid for it).
 
 ## Cost basis, fair market value, transacted cost
 
-There are some situations where you might acquire an investment at a cost basis different from its current fair market value. For example:
+In an acquisition transaction, the cost basis (`{}`/`{{}}`) and transacted cost (`@`/`@@`) should always match.
+Often we write just one of them and let the other be inferred.
+
+This is required even in transactions where you are acquiring an investment at a cost basis different from its current fair market value - such as:
 
 - Gifts — the recipient inherits the donor's original cost basis (carryover basis), not the fair market value at the time of the gift.
 - Inheritance — inherited assets get a "stepped-up" basis to fair market value at the date of death.
@@ -7040,9 +7043,7 @@ There are some situations where you might acquire an investment at a cost basis 
 - Wash sales — disallowed loss from a prior sale is added to the cost basis of the replacement shares.
 - Corporate actions — spin-offs, mergers, and stock splits cause cost basis to be allocated or adjusted in ways unrelated to any payment.
 
-Nevertheless, the entry should always be written with cost basis ({}/{{}}) equal to transacted cost (@/@@).
-Usually, by writing just one of them and letting the other be inferred; but if they are both written, they should match.
-The [Acquire](#acquire) section below shows how this works in practice.
+The [Acquire](#acquire) section below shows an example of this in practice.
 
 For more background on cost basis, see <https://en.wikipedia.org/wiki/Cost_basis>.
 
