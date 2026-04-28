@@ -18,7 +18,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 1fd462d7 (2.0 preview 2)
+# 1.99.2 2026-04-28
 
 Doc updates
 
@@ -37,6 +37,7 @@ Infrastructure/tools
 - justfile: functest uses more threads
 - general --help options doc updated
 
+# 1.52.1 2026-04-28
 
 # 1.99.1 2026-03-28
 
