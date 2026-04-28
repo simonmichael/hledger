@@ -9,6 +9,14 @@ See also
 - <https://joyful.com/hledger+lot+tracking>
 - <https://github.com/simonmichael/hledger/issues/1015>
 
+## Background
+
+Before lot tracking was added, hledger 1 users 
+tracked lots manually using one subaccount per lot, 
+used the `close` command and `hledger-move` script to help record complex lot movements,
+and used the transaction balancing mechanism to calculate capital gain/loss.
+Or, they computed gains with `balance --gain`, or the `roi` command.
+These mechanisms still work but the tooling described here aims to largely subsume them.
 
 ## Lots
 
@@ -19,11 +27,6 @@ A lot's acquisition price and date are preserved, to
 
 1. help comply with tax rules, and 
 2. calculate the capital gain or loss, both unrealised (before disposal), and realised (at disposal).
-
-Historically, hledger has not provided much lot-tracking assistance:
-- you could track lots manually by using one subaccount per lot
-- the `balance --gain` report calculates gain/loss in simple cases
-- the `close` command and `hledger-move` script help record lot movements
 
 ## Lots mode
 
@@ -46,6 +49,10 @@ working with incomplete journal fragments (eg piping between hledger commands).
 
 `--strict`/`-s` and `hledger check lots` both override `--ignore-lots`, restoring
 full lot processing for that invocation.
+
+The `journalCheckAcquireBasis` stage is gated separately: it runs only when the
+user explicitly invokes `hledger check basis`, regardless of `--ignore-lots`,
+`--strict`, or `hledger check lots`. See [Acquire basis check](#acquire-basis-check-opt-in) below.
 
 The `--lots` general flag is a display-time toggle. It controls whether reports show
 
@@ -79,13 +86,9 @@ and use `print` to convert to 3 when troubleshooting or reporting.
   It is recorded with hledger lot syntax (consolidated {} notation);
   we can also read ledger lot syntax (separate {}, [], () annotations).
 
-"Transacted cost" is an awkward term, overlapping with "cost basis",
-but it avoids too much change from the historical "cost", and we don't have a better alternative, currently.
-
-The hledger manual has more detail on these.
-
 A posting amount can have transacted cost, cost basis, both, or neither.
 When displaying a posting with both, we show cost basis before transacted cost (like beancount).
+The hledger manual has more detail.
 
 ## Lot names
 
@@ -149,23 +152,20 @@ Examples:
 ## Lot ids
 
 A lot's id is just the date and label parts.
-Lot ids must be unique and ordered, so if there are multiple lots with the same date,
-labels must be used to 1. disambiguate and 2. order them.
+Lot ids must be unique and ordered (per commodity), so if there are multiple lots with the same date,
+labels are used to 1. disambiguate and 2. order them.
 This is normally done by beginning the label with a time of day (HH:MM, or a more precise time as needed)
-or a intra-day sequence number (NNNN, with enough leading zeros so that a day's lot ids sort nicely in numeric order; we'll assume four digits in total.)
-Labels are generated only when needed to satisfy lot id uniqueness rules.
-If there are multiple same-date, same-commodity acquisitions (across all accounts) with no labels,
-hledger adds NNNN labels based on parse/processing order.
-If such acquisitions do have user-provided labels, hledger checks that the resulting lot ids are unique
+or an intra-day sequence number (NNNN, with enough leading zeros so that a day's lot ids sort nicely in numeric order — we'll assume four digits in total).
+Labels are generated only when needed to satisfy uniqueness:
+if there are multiple same-date, same-commodity acquisitions (across all accounts) with no labels,
+hledger adds NNNN labels based on parse/processing order;
+if such acquisitions do have user-provided labels, hledger checks that the resulting lot ids are unique
 (across all accounts, to be safe) and reports an error otherwise.
 
-What is the scope of lot ids' uniqueness and ordering ?
-It is 1. per commodity (lots of different commodities do not clash), 
-and 2. either per account, or across all accounts.
-The latter needs to be configurable somehow, for different time periods.
-
-Eg in the US, tax rules require that before 2025, lots are tracked across all accounts,
-whereas from tax year 2025, lots are tracked separately within each account.
+Whether lot tracking is per-account or across-all-accounts depends on jurisdiction and time period.
+This needs to be, and is, configurable, currently by the lots: tag's value.
+Eg in the US, tax rules require that before tax year 2025, lots are tracked across all accounts,
+but from tax year 2025, lots are tracked separately within each account.
 
 ## Lot selectors
 
@@ -220,8 +220,10 @@ directly without a redundant `{}` annotation on the amount.
 ## Lot postings
 
 After inferring cost basis, we identify and classify lot postings.
-A `ptype` tag is added to each classified posting to record its type:
-acquire, dispose, transfer-from, transfer-to, or gain.
+A `_ptype` tag is added to each classified posting to record its type:
+`acquire`, `dispose`, `transfer-from`, `transfer-to`, or `gain` (the last
+applies to user-written postings on Gain-type accounts; `rgain` and
+`ugain`, used on inferred postings, come later).
 
 (`journalClassifyLotPostings` → `transactionClassifyLotPostings`)
 
@@ -409,32 +411,6 @@ Lot transactions are transactions with lot postings.
 If a transaction has multiple lot postings, we (mostly ?) require that they are all of similar type: all acquire, or all transfer, or all dispose.
 So a lot transaction can be broadly classified as "acquire", "transfer", or "dispose".
 
-## Gain postings
-
-In lots mode, each disposal transaction has a pair of generated postings
-recording the capital gain or loss:
-
-- a **realised gain** posting (rgain) to a Gain-type account (default
-  `revenues:gain`), with the negated gain amount;
-- an **unrealised gain** counter (ugain) to an UnrealisedGain-type account
-  (default `equity:unrealised-gain`), with the gain amount.
-
-The two postings sum to zero, so the ordinary transacted-cost balancing rule
-accepts the disposal — no special exception is needed. Conceptually, the
-ugain posting represents reclassifying what would otherwise accumulate as
-unrealised gain into a realised gain at disposal.
-
-Gain-type and UnrealisedGain-type account declarations cannot be inferred
-from account names; they must be declared explicitly with `type:` tags, eg:
-
-```
-account revenues:gain           ; type: G
-account equity:unrealised-gain  ; type: U
-```
-
-This keeps lots-mode behaviour self-contained and avoids changing the
-meaning of similarly-named accounts in hledger 1 journals.
-
 ## Transaction balancing
 
 All transactions, including disposals, are balanced by the ordinary
@@ -442,29 +418,35 @@ transaction-balancing rule — sum postings at transacted cost (ignoring cost
 basis), sum must be zero, infer at most one missing amount per commodity.
 No special exception applies to Gain/UnrealisedGain postings.
 
-## Acquire basis check (opt-in)
+## Gain postings
 
-`journalCheckAcquireBasis` enforces that every acquire posting has per-unit
-cost basis equal to per-unit transacted cost. If `{B}` and `@T` are both
-written on an acquire posting and `B ≠ T`, the check raises an error citing
-the offending posting. This prevents typos in cost basis causing wrong gain
-to be calculated later.
+In lots mode, each disposal transaction carries a pair of generated postings
+recording the capital gain or loss:
 
-Real-world cases where basis legitimately differs from price paid (gifts
-with carryover basis, NSO exercises, RSU vesting, wash-sale adjustments,
-etc.) are best expressed by adding a separate income/equity/asset posting
-that funds the difference.
+- a **realised gain** posting (rgain) to a Gain-type account (default
+  `revenues:gain`), with the negated gain amount;
+- an **unrealised gain** counter (ugain) to an UnrealisedGain-type account
+  (default `equity:unrealised-gain`), with the gain amount.
 
-However, other PTA apps (hledger 1, Ledger, Beancount, rustledger, acc) accept such entries,
-so this check is off by default, to avoid interoperability pain.
-It is run only when the user types `hledger check basis`
-(it is not yet included in either the default or strict mode checks).
+The two sum to zero so the ordinary transacted-cost balancing rule accepts
+the disposal without any special exception. Conceptually, the ugain side
+reclassifies what would otherwise accumulate as unrealised gain into
+realised gain at disposal.
 
-## Gain-posting inference
+The Gain and UnrealisedGain account types are not inferred from account
+names; they must be declared explicitly via `type:` tags
+(see [DECISIONS.md](DECISIONS.md)):
 
-The realised gain inferred for a disposal is the **disposal gain**: for each
-dispose posting in the entry whose amount has both a cost basis `B` and a transacted cost `T`,
-contribute `aquantity × (B − T)`. 
+```
+account revenues:gain           ; type: G
+account equity:unrealised-gain  ; type: U
+```
+
+### Inference
+
+The realised gain inferred for a disposal is the **disposal gain**: for
+each dispose posting in the entry whose amount has both a cost basis `B`
+and a transacted cost `T`, contribute `aquantity × (B − T)`.
 
 Disposal transactions can be written in any of three equivalent styles:
 
@@ -491,6 +473,25 @@ the matching disposal gain (eg a bare `-5 AAPL` dispose posting with no
 `journalAddGainOrUGainPosting` emits an error pointing to the offending
 posting and suggesting how to resolve it.
 
+## Acquire basis check
+
+`journalCheckAcquireBasis` enforces that every acquire posting has per-unit
+cost basis equal to per-unit transacted cost. If `{B}` and `@T` are both
+written on an acquire posting and `B ≠ T`, the check raises an error citing
+the offending posting. This prevents typos in cost basis causing wrong gain
+to be calculated later.
+
+Real-world cases where basis legitimately differs from price paid (gifts
+with carryover basis, NSO exercises, RSU vesting, wash-sale adjustments,
+etc.) are best expressed by adding a separate income/equity/asset posting
+that funds the difference.
+
+Other PTA apps (hledger 1, Ledger, Beancount, rustledger, acc) accept entries
+where `B ≠ T`, so this check is off by default to avoid interoperability
+pain. It runs only when the user types `hledger check basis` (not in
+default or `--strict` mode). See [DECISIONS.md](DECISIONS.md) for the
+rationale.
+
 ## Balance assertions
 
 A balance assertion on a dispose or transfer posting (eg `= 0 AAPL`) runs before `--lots` processing
@@ -515,25 +516,11 @@ postings (e.g. `assets:cash`) and opening transaction postings retain their asse
 
 ## Processing pipeline
 
-When hledger finds lot-related entries in a journal,
-it performs these extra steps to calculate and check lot movements and capital gains:
-
-1. **Lot posting classification** - lot-related postings are tagged as `acquire`, `dispose`,
-  `transfer-from`, `transfer-to`, or `gain` (via a hidden `ptype` tag,
-  visible with `--verbose-tags`, queryable with `tag:ptype=...`).
-2. **Cost basis inference** - for lotful commodities/accounts, cost basis
-  is inferred from transacted cost and vice versa. Or when the account name
-  ends with a lot subaccount, cost basis can also be inferred from that.
-3. **Lot movement inference** - acquired lots become subaccounts; transfers and disposals select from existing lots using some reduction method.
-4. **Gain posting inference and checking** - in disposal transactions, hledger
-  infers a realised-gain / unrealised-gain posting pair from the lots' cost
-  basis, or checks the user's explicit gain amount against it.
-5. **Lot detail hiding** - lot subaccounts and some lot-related generated postings are hidden, for simpler reports, unless `--lots` is used.
-
-Error checking is performed throughout, so problems like missing lot cost, ambiguous selectors,
-dispose before acquire, invalid `lots:` tag values, etc. are reported at load time.
-
-Lot-related processing runs during journal finalising in two groups:
+Lot-related processing runs during journal finalising as a sequence of
+stages. Errors (missing lot cost, ambiguous selectors, dispose before
+acquire, invalid `lots:` tag values, etc.) are reported at load time.
+See [SPEC-finalising.md](SPEC-finalising.md) for how this sits in the
+broader pipeline.
 
 **Always-on** (independent of `--ignore-lots`):
 
@@ -554,8 +541,8 @@ Lot-related processing runs during journal finalising in two groups:
    disposals, normalise transacted cost.
 7. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
    not on `checklots`. Errors if any acquire posting has cost basis differing
-   from its transacted cost (per-unit). Default mode skips this check, for
-   better compatibility with other plain-text-accounting tools.
+   from its transacted cost (per-unit). Default mode skips this check; see
+   [DECISIONS.md](DECISIONS.md) for the rationale.
 8. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
    the rgain + ugain pair sized at the disposal gain. Also validates that any
    user-written gain amount matches the disposal gain.
