@@ -63,9 +63,53 @@ Major releases and user-visible changes.
 
 
 
+
+## 2026-04-28 hledger-1.52.1
+
+### hledger 1.52.1
+
+
+Breaking changes
+
+- The `Gain` (`G`) account type is no longer auto-detected from account names like
+  `revenue:gains` or `income:capital gains`; it must now be declared explicitly with `; type: G`.
+  Also, the `UnrealisedGain` (`U`) account type, a subtype of Equity, has been added
+  (spellings `U`, `UnrealisedGain`, and `UnrealizedGain` are all accepted).
+  These improve compatibility between hledger 1 and 2.
+
+Docs
+
+- The "Cost basis / lot syntax" section has been renamed to "Cost basis",
+  and updated to mention hledger 2.
+
+
+### hledger-ui 1.52.1
+
+
+Improvements
+
+- Uses hledger 1.52.1.
+
+- Allow vty-crossplatform 0.5.
+
+
+### hledger-web 1.52.1
+
+
+Improvements
+
+- Uses hledger 1.52.1.
+
+
+### credits 1.52.1
+
+
+Simon Michael.
+
+
+
 ## 2026-03-20 hledger-1.52
 
-**Preserve cost basis syntax, cost basis export examples, faster valuation, commodity tags, more robust paging, fixes.**
 
 ### hledger 1.52
 
@@ -286,6 +330,7 @@ Juliano Solanho,
 Oleg Bulatov,
 g. nicholas d'andrea,
 n0vdd.
+
 
 
 
@@ -11043,6 +11088,8 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
 
