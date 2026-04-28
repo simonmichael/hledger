@@ -7148,10 +7148,16 @@ or inferred from the transacted cost.
 On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
 with cost inferred from the transaction's other postings.
 
-As noted above, the per-unit cost basis and per-unit transacted cost must be the same when acquiring.
-Here is an example of an acquisition where the cost basis differs from the commodity's current market price.
+An acquire posting can carry an explicit cost basis (`{}`/`{{}}`), an explicit transacted cost (`@`/`@@`), or both.
+hledger accepts entries where these differ, mainly for compatibility with Ledger, Beancount, hledger 1, etc.
+But we recommend always acquiring with the per-unit basis cost equal to the per-unit transacted cost.
+You can enforce this by running `hledger check basis`
+This prevents typos in the cost basis, which could silently cause wrong gain to be calculated at disposal time. 
+
+Also, it encourages preferred journal entry style: "basis = transacted, with any real world difference funded by a separate posting".
+Here is an acquisition where the cost basis differs from the commodity's current market price.
 With GOLD currently priced at $5000, you receive a gift carrying its original cost basis of $3000/oz.
-It is recorded like this:
+It can be recorded like this:
 ```
 P 2026-05-01 GOLD $5000
 

@@ -289,23 +289,3 @@ $ hledger -f- print desc:sell --lots
 
 >=
 
-# *** 14. An acquire with cost-basis != transacted-cost is rejected.
-<
-2026-01-01 weird buy with basis typo
-    assets:broker    100 AAPL {$60} @ $50
-    assets:cash     -$5000
-
-$ hledger -f- print --lots
->2 /differs from its transacted cost/
->=1
-
-# *** 15. Total basis cost / transacted cost are shown as unit costs in the error message,
-# with non-terminating decimals capped at 8 decimal places (defaultMaxPrecision).
-<
-2026-01-01 weird buy
-    assets:broker    7 AAPL {{$53}} @@ $50
-    assets:cash     -$50
-
-$ hledger -f- print --lots
->2 /cost basis \(\$7\.57142857\) differs from its transacted cost \(\$7\.14285714\)/
->=1

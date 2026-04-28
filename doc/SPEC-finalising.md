@@ -83,7 +83,8 @@ journalFinalise
   22. journalCalculateLots              -- evaluate lot selectors, apply reduction methods,
                                         -- calculate lot balances, add explicit lot subaccounts,
                                         -- infer cost basis for bare disposals, normalize transacted cost
-  23. journalCheckAcquireBasis         -- error if any acquire posting has cost basis ≠ transacted cost
+  23. journalCheckAcquireBasis         -- gated separately on `hledger check basis` (not on checklots);
+                                       -- error if any acquire posting has cost basis ≠ transacted cost
   24. journalAddOrCheckGainPostings    -- for disposals with no gain postings, add the rgain+ugain pair
                                        -- sized at the disposal gain; otherwise check any user-written
                                        -- gain amount against the disposal gain
@@ -197,8 +198,8 @@ Several steps only run with specific flags:
 | journalAddGainOrUGainPosting           | default; skipped by `--ignore-lots`/`-I`; restored by `--strict` or `hledger check lots` |
 | journalCheckLotsTagValues              | same                                                            |
 | journalCalculateLots                   | same                                                            |
-| journalCheckAcquireBasis               | same                                                            |
-| journalAddOrCheckGainPostings          | same                                                            |
+| journalCheckAcquireBasis               | only when `hledger check basis` is requested                    |
+| journalAddOrCheckGainPostings          | same as the other lot stages above                              |
 
 The four lot stages are gated together by a single `checklots` condition, mirroring
 the `checkassertions` mechanism:

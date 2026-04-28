@@ -327,3 +327,31 @@ $ hledger -f- print -x
     assets:broker:{2026-01-15, $50}    10 AAPL {$50} @ $50
 
 >=
+
+# *** 24. An acquire with cost-basis != transacted-cost is accepted by default
+# (for interop with other plain-text-accounting tools).
+<
+2026-01-01 weird buy with basis typo
+    assets:broker    100 AAPL {$60} @ $50
+    assets:cash     -$5000
+
+$ hledger -f- print --lots
+> /weird buy with basis typo/
+>=
+
+# *** 25. But rejected by `hledger check basis`.
+$ hledger -f- check basis
+>2 /differs from its transacted cost/
+>=1
+
+# *** 26. Total basis cost / transacted cost are shown as unit costs in the
+# error message, with non-terminating decimals capped at 8 decimal places
+# (defaultMaxPrecision). `check basis` is required to surface the error.
+<
+2026-01-01 weird buy
+    assets:broker    7 AAPL {{$53}} @@ $50
+    assets:cash     -$50
+
+$ hledger -f- check basis
+>2 /cost basis \(\$7\.57142857\) differs from its transacted cost \(\$7\.14285714\)/
+>=1

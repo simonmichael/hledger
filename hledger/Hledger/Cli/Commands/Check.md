@@ -44,7 +44,7 @@ These important checks are performed by default, by almost all hledger commands:
   with `-I` or `--ignore-assertions`, or as a default by adding that flag to your config file.
   If you put it in your config file, you can override that with `-s`/`--strict` or `hledger check lots`.
 
-- **lots** - all [lot-related](#lot-reporting) journal entries are valid.
+- **lots** - all [lot](#lot-reporting) entries are valid.
   Checks lot posting classifications, lot movements, and that any user-written
   realised or unrealised gain amounts on a disposal match the calculated gain.
   This check can be disabled by `-I` or `--ignore-lots`.
@@ -72,6 +72,11 @@ Also, strict mode ensures that the `assertions` and `lots` checks run (overridin
 ### Other checks
 
 These are not wanted by everyone, but can be run using the `check` command:
+
+- **basis** - all lot acquisitions set a per-unit basis equal to the per-unit transacted cost.
+This guards against typos in cost basis amounts causing wrong capital gain calculation at disposal time.
+It also enforces hledger's preferred style of "basis cost = transacted cost, with any real difference (as in gifts, NSO, RSU, etc) funded by a separate posting",
+rather than expressing the difference as a {B} @ T mismatch.
 
 - **tags** - all tags used must be [declared](#tag-directive).
   This prevents mis-spelled tag names.

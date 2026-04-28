@@ -442,13 +442,23 @@ transaction-balancing rule — sum postings at transacted cost (ignoring cost
 basis), sum must be zero, infer at most one missing amount per commodity.
 No special exception applies to Gain/UnrealisedGain postings.
 
-## Acquire balance constraint
+## Acquire basis check (opt-in)
 
-Acquire postings must have per-unit cost basis equal to per-unit transacted
-cost. If a user writes both `{B}` (cost basis) and `@T` (transacted cost)
-on an acquire posting and `B ≠ T`, `journalCheckAcquireBasis`
-raises an error at load time — the cost-basis books would otherwise be
-unbalanced for the entry.
+`journalCheckAcquireBasis` enforces that every acquire posting has per-unit
+cost basis equal to per-unit transacted cost. If `{B}` and `@T` are both
+written on an acquire posting and `B ≠ T`, the check raises an error citing
+the offending posting. This prevents typos in cost basis causing wrong gain
+to be calculated later.
+
+Real-world cases where basis legitimately differs from price paid (gifts
+with carryover basis, NSO exercises, RSU vesting, wash-sale adjustments,
+etc.) are best expressed by adding a separate income/equity/asset posting
+that funds the difference.
+
+However, other PTA apps (hledger 1, Ledger, Beancount, rustledger, acc) accept such entries,
+so this check is off by default, to avoid interoperability pain.
+It is run only when the user types `hledger check basis`
+(it is not yet included in either the default or strict mode checks).
 
 ## Gain-posting inference
 
@@ -542,9 +552,10 @@ Lot-related processing runs during journal finalising in two groups:
 6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
    disposals, normalise transacted cost.
-7. **journalCheckAcquireBasis** — error if any acquire posting has cost basis
-   differing from its transacted cost (per-unit), so the structural problem
-   surfaces before any gain-pair-specific diagnostic.
+7. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
+   not on `checklots`. Errors if any acquire posting has cost basis differing
+   from its transacted cost (per-unit). Default mode skips this check, for
+   better compatibility with other plain-text-accounting tools.
 8. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
    the rgain + ugain pair sized at the disposal gain. Also validates that any
    user-written gain amount matches the disposal gain.
