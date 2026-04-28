@@ -1,6 +1,6 @@
 Here you can find unreleased test binaries, which are updated occasionally. By using these and providing [feedback](https://hledger.org/support.html), you can help to make the next release better.
 
-These binaries have the following changes since the 2.0pre1 release: https://github.com/simonmichael/hledger/compare/2.0pre1...testlatest
+These binaries have the following changes since the 2.0 preview 2 release: https://github.com/simonmichael/hledger/compare/1.99.2...testlatest
 
 <details>
 <summary>
