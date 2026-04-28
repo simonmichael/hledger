@@ -1,7 +1,5 @@
-G'day all. I'm pleased to announce a hledger double release!
-
-
-hledger 1.52, with
+G'day all. I'm pleased to announce hledger 2.0 preview release 2.
+There is also hledger 1.52.1, which adds hledger 2-compatible G and U account types to hledger 1.
 
 more robust paging,
 faster valuation,
