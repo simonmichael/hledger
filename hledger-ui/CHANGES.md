@@ -23,7 +23,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 1fd462d7
+# 1.99.2 2026-04-28
 
 Fixes
 
@@ -33,9 +33,18 @@ Fixes
 
 Improvements
 
+- Allow brick 3.x.
+
 - Uses hledger 1.99.2.
 
-- Allow brick 3.x.
+
+# 1.52.1 2026-04-28
+
+Improvements
+
+- Uses hledger 1.52.1.
+
+- Allow vty-crossplatform 0.5.
 
 
 # 1.99.1 2026-03-28

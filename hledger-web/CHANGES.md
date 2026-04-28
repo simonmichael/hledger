@@ -23,13 +23,20 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 1fd462d7
+# 1.99.2 2026-04-28
 
 Improvements
 
+- Allow yesod-static 1.6.1.1 and later again.
+
 - Uses hledger 1.99.2.
 
-- Allow yesod-static 1.6.1.1 and later again.
+
+# 1.52.1 2026-04-28
+
+Improvements
+
+- Uses hledger 1.52.1.
 
 
 # 1.99.1 2026-03-28

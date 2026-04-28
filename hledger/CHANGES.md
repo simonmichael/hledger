@@ -28,7 +28,7 @@ AI usage
 User-visible changes in the hledger command line tool and library.
 
 
-# 1fd462d7 (2.0 preview 2)
+# 1.99.2 2026-04-28
 
 Breaking changes
 
@@ -129,6 +129,22 @@ Docs
 [#2570]: https://github.com/simonmichael/hledger/issues/2570
 [#2571]: https://github.com/simonmichael/hledger/issues/2571
 [#2572]: https://github.com/simonmichael/hledger/issues/2572
+
+
+# 1.52.1 2026-04-28
+
+Breaking changes
+
+- The `Gain` (`G`) account type is no longer auto-detected from account names like
+  `revenue:gains` or `income:capital gains`; it must now be declared explicitly with `; type: G`.
+  Also, the `UnrealisedGain` (`U`) account type, a subtype of Equity, has been added
+  (spellings `U`, `UnrealisedGain`, and `UnrealizedGain` are all accepted).
+  These improve compatibility between hledger 1 and 2.
+
+Docs
+
+- The "Cost basis / lot syntax" section has been renamed to "Cost basis",
+  and updated to mention hledger 2.
 
 
 # 1.99.1 2026-03-28
