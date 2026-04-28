@@ -23,6 +23,15 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# b2fe1201
+
+Improvements
+
+- Uses hledger 1.52.1.
+
+- Allow vty-crossplatform 0.5.
+
+
 # 1.52 2026-03-20
 
 Fixes
