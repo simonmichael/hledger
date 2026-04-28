@@ -7020,17 +7020,37 @@ A posting with any of these is called a lot posting.
 
 ## Lots and cost basis
 
-Each acquisition of an investment creates a lot with its own cost basis, and lots are named by their cost basis.
-A lot's cost basis has 2-3 parts:
+Each acquisition of an investment creates a lot with its own cost basis.
+In hledger, lots are named by their cost basis, which has 2-3 parts:
 
-1. The nominal acquisition date (required). Usually this is the date you acquired it.
-2. A short text label (optional). It can be used to distinguish lots acquired on the same date.
-3. The nominal acquisition cost (required). This must match the transacted cost (what you paid for it).
+1. The nominal acquisition date (required). Usually this is the date you acquired the lot.
+2. A short text label (optional). This can be used to distinguish lots acquired on the same date.
+3. The nominal acquisition cost (required). Usually this is what you paid for it.
 
-In an acquisition transaction, the cost basis (`{}`) and transacted cost (`@`) should always match.
-Often we write just one of them and let the other be inferred.
+For more background on cost basis, see <https://en.wikipedia.org/wiki/Cost_basis>.
 
-This is required even in transactions where you are acquiring an investment at a cost basis different from its current fair market value - such as:
+## Cost basis annotations
+
+In the journal, we sometimes write cost basis annotations ({} syntax) after an amount.
+Often these mention only part of the cost basis, for convenience - typically the cost.
+They are described in [Cost basis](#cost-basis).
+As a reminder, here are some examples:
+
+    {2026-01-15, "12:05", $50}
+    {2026-01-15, $50}
+    {1.000.000,33 EUR}
+    {$50}
+    {}
+
+## Cost basis and transacted cost
+
+In acquisition transactions, hledger allows the cost basis (`{}`) and transacted cost (`@`) to be different,
+for compatibility with other plain text accounting apps.
+But the preferred style is to keep these the same; typically we write just one of them and let the other be inferred.
+You can enforce this by running `hledger check basis`.
+This prevents typos in cost basis annotations silently causing incorrect gain to be calculated at disposal time.
+
+Even in real-world cases where the cost basis differs from the asset's current fair market value, the preferred style can be applied:
 
 - Gifts — the recipient inherits the donor's original cost basis (carryover basis), not the fair market value at the time of the gift.
 - Inheritance — inherited assets get a "stepped-up" basis to fair market value at the date of death.
@@ -7041,9 +7061,9 @@ This is required even in transactions where you are acquiring an investment at a
 - Wash sales — disallowed loss from a prior sale is added to the cost basis of the replacement shares.
 - Corporate actions — spin-offs, mergers, and stock splits cause cost basis to be allocated or adjusted in ways unrelated to any payment.
 
-The [Acquire](#acquire) section below shows an example of this in practice.
-
-For more background on cost basis, see <https://en.wikipedia.org/wiki/Cost_basis>.
+In each case, fund any difference between basis and price paid via a separate income, equity, or asset posting,
+rather than expressing the difference as `{B} @ T` with `B ≠ T` on the asset itself.
+The [Acquire](#acquire) section below shows an example.
 
 ## Lot ids
 
@@ -7055,19 +7075,6 @@ It does not include the cost.
 So when multiple lots of a commodity are acquired on the same day, the label is used to distinguish them.
 If you leave it empty, hledger will add sequentially numbered labels to ensure uniqueness.
 Or you could record times there, in a sortable format like HH:MM.
-
-## Cost basis notation
-
-When writing a cost basis in the journal, we use cost basis annotations ({} syntax).
-These often mention only part of the cost basis, typically the cost.
-They are described in [Cost basis](#cost-basis).
-As a reminder, here are some examples:
-
-    {2026-01-15, "12:05", $50}
-    {2026-01-15, $50}
-    {1.000.000,33 EUR}
-    {$50}
-    {}
 
 ## Lot subaccounts
 
