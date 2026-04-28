@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-UI" "1" "March 2026" "hledger-ui-1.99 " "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "March 2026" "hledger-ui-1.99.2 " "hledger User Manuals"
 
 
 
@@ -17,7 +17,7 @@ or
 .PD
 \f[CR]hledger ui [OPTS] [QUERYARGS]\f[R]
 .SH DESCRIPTION
-This manual is for hledger\(aqs terminal interface, version 1.99.
+This manual is for hledger\(aqs terminal interface, version 1.99.2.
 See also the hledger manual for common concepts and file formats.
 .PP
 hledger is a robust, user\-friendly, cross\-platform set of programs for
@@ -69,11 +69,15 @@ Flags:
 and also supports many of hledger\(aqs general options:
 .IP
 .EX
-General input/data transformation flags:
-  \-f \-\-file=[FMT:]FILE      Read data from FILE, or from stdin if FILE is \-,
-                            inferring format from extension or a FMT: prefix.
-                            Can be specified more than once. If not specified,
-                            reads from $LEDGER_FILE or $HOME/.hledger.journal.
+General input flags:
+  \-f \-\-file=[FMT:]FILE      Use this as the journal file (\- means stdin). If
+                            not specified, $LEDGER_FILE or \(ti/.hledger.journal
+                            will be used. If specified more than once, the
+                            files will be read in order. Each file\(aqs format
+                            (journal, csv, timeclock, timedot, rules..) is
+                            inferred from the file extension or a FMT: prefix.
+                            Some commands (add, import) write to the (first)
+                            file, and expect it to be in journal format.
      \-\-rules=RULESFILE      Use rules defined in this rules file for
                             converting subsequent CSV/SSV/TSV files. If not
                             specified, uses FILE.csv.rules for each FILE.csv.
@@ -88,27 +92,30 @@ General input/data transformation flags:
                             will also be applied to these transactions. In
                             hledger\-ui, also make future\-dated transactions
                             visible at startup.
-  \-I \-\-ignore\-assertions    don\(aqt check balance assertions by default
+     \-\-ignore\-assertions    don\(aqt check balance assertions by default
+     \-\-ignore\-lots          don\(aqt check lot entries by default
+  \-I                        shortcut for \-\-ignore\-assertions \-\-ignore\-lots
      \-\-txn\-balancing=...    how to check that transactions are balanced:
-                            \(aqold\(aq:   use global display precision
-                            \(aqexact\(aq: use transaction precision (default)
+                            \(aqold\(aq:   \- use global display precision
+                            \(aqexact\(aq: \- use transaction precision (default)
      \-\-infer\-costs          infer conversion equity postings from costs
      \-\-infer\-equity         infer costs from conversion equity postings
+     \-\-lots                 show lot subaccounts and other lot details
      \-\-infer\-market\-prices  infer market prices from costs
      \-\-pivot=TAGNAME        use a different field or tag as account names
   \-s \-\-strict               do extra error checks (and override \-I)
      \-\-verbose\-tags         add tags indicating generated/modified data
 
-General output/reporting flags (supported by some commands):
+General output flags (affecting some commands):
   \-b \-\-begin=DATE           include postings/transactions on/after this date
   \-e \-\-end=DATE             include postings/transactions before this date
                             (with a report interval, will be adjusted to
                             following subperiod end)
-  \-D \-\-daily                multiperiod report with 1 day interval
-  \-W \-\-weekly               multiperiod report with 1 week interval
-  \-M \-\-monthly              multiperiod report with 1 month interval
-  \-Q \-\-quarterly            multiperiod report with 1 quarter interval
-  \-Y \-\-yearly               multiperiod report with 1 year interval
+  \-D \-\-daily                set report interval: 1 day
+  \-W \-\-weekly               set report interval: 1 week
+  \-M \-\-monthly              set report interval: 1 month
+  \-Q \-\-quarterly            set report interval: 1 quarter
+  \-Y \-\-yearly               set report interval: 1 year
   \-p \-\-period=PERIODEXP     set begin date, end date, and/or report interval,
                             with more flexibility
      \-\-today=DATE           override today\(aqs date (affects relative dates)
@@ -123,25 +130,25 @@ General output/reporting flags (supported by some commands):
      \-\-depth=DEPTHEXP       if a number (or \-NUM): show only top NUM levels
                             of accounts. If REGEXP=NUM, only apply limiting to
                             accounts matching the regular expression.
-  \-B \-\-cost                 show amounts converted to their cost/sale amount
-  \-V \-\-market               Show amounts converted to their value at period
-                            end(s) in their default valuation commodity.
-                            Equivalent to \-\-value=end.
-  \-X \-\-exchange=COMM        Show amounts converted to their value at period
-                            end(s) in the specified commodity.
-                            Equivalent to \-\-value=end,COMM.
-     \-\-value=WHEN[,COMM]    show amounts converted to their value on the
-                            specified date(s) in their default valuation
-                            commodity or a specified commodity. WHEN can be:
+  \-B \-\-cost                 convert amounts to their cost/sale amount (\(at/\(at\(at)
+  \-V \-\-market               valuation mode: show amounts converted to market
+                            value at period end(s) in their default valuation
+                            commodity. Short for \-\-value=end.
+  \-X \-\-exchange=COMM        valuation mode: show amounts converted to market
+                            value at period end(s) in the specified commodity.
+                            Short for \-\-value=end,COMM.
+     \-\-value=WHEN[,COMM]    valuation mode: show amounts converted to market
+                            value on the specified date(s) in their default
+                            valuation commodity or a specified commodity. WHEN
+                            can be:
                             \(aqthen\(aq:     value on transaction dates
                             \(aqend\(aq:      value at period end(s)
                             \(aqnow\(aq:      value today
                             YYYY\-MM\-DD: value on given date
   \-c \-\-commodity\-style=S    Override a commodity\(aqs display style.
                             Eg: \-c \(aq.\(aq or \-c \(aq1.000,00 EUR\(aq
-     \-\-pretty[=YN]          Use box\-drawing characters in text output? Can be
-                            \(aqy\(aq/\(aqyes\(aq or \(aqn\(aq/\(aqno\(aq.
-                            If YN is specified, the equals is required.
+     \-\-pretty[=YN]          Use box\-drawing characters in text output? The
+                            optional \(aqy\(aq/\(aqyes\(aq or \(aqn\(aq/\(aqno\(aq arg requires =.
 
 General help flags:
   \-h \-\-help                 show command line help
