@@ -18,6 +18,18 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# b2fe1201
+
+Doc updates
+
+- relnotes, ANNOUNCE: edits, and html-warning fixes for the new mdbook
+- in-page table of contents placeholders dropped (no longer needed)
+
+Infrastructure/tools
+
+- `just devtag-push` renamed to `just devver`
+
+
 # 1.52 2026-03-20
 
 Doc updates

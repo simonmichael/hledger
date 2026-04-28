@@ -26,6 +26,26 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
+# b2fe1201
+
+Breaking changes
+
+- The `Gain` (`G`) account type is no longer auto-detected from account names like
+  `revenue:gains` or `income:capital gains`; it must now be declared explicitly with `; type: G`.
+  This improves compatibility between hledger 1 and 2.
+
+Features
+
+- The `UnrealisedGain` (`U`) account type, a subtype of Equity, has been added,
+  to improve compatibility with hledger 2 journals.
+  Spellings `U`, `UnrealisedGain`, and `UnrealizedGain` are all accepted.
+
+Docs
+
+- The "Cost basis / lot syntax" section has been renamed to "Cost basis",
+  and updated to mention hledger 2.
+
+
 # 1.52 2026-03-20
 
 Features
