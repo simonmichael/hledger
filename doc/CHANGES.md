@@ -18,6 +18,26 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 1fd462d7 (2.0 preview 2)
+
+Doc updates
+
+- AI: ongoing edits, new monitoring scripts and notes, FOSS credit, link cleanups
+- ACHIEVEMENTS, ANNOUNCE, DECISIONS, DEVFAQ, README, RELEASING: edits
+- SPEC-lots: edits and cleanups
+- SPEC-special-postings: converted to markdown tables
+- relnotes/ghrelnotes: AI doc url fixes, edits
+- references to the master branch updated to main
+
+Infrastructure/tools
+
+- stack configs: bumped to nightly-2026-04-17
+- workflows: fix stack.yaml path in binaries-windows
+- justfile: ccusage scripts
+- justfile: functest uses more threads
+- general --help options doc updated
+
+
 # 1.99.1 2026-03-28
 
 (2.0 preview 1)
