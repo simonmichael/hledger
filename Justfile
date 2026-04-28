@@ -1066,9 +1066,9 @@ ghrel-upload:
 @devver:
     #!/usr/bin/env bash
     set -euo pipefail
-    RELVER=$(just relver)
+    RELVER=$(just majorver)
     DEVVER=$RELVER.99
-    just _on-master-branch
+    just _on-trunk
     echo "Setting versions to $DEVVER.."
     ./Shake setversion "$DEVVER" -c
 
@@ -1473,13 +1473,13 @@ _on-release-branch:
         exit 1
     fi
 
-# Check that we're on the master branch.
-_on-master-branch:
+# Check that we're on the hledger1 or main branch.
+_on-trunk:
     #!/usr/bin/env bash
     set -euo pipefail
     BRANCH=$(git branch --show-current)
-    if [[ ! $BRANCH =~ master ]]; then
-        echo "You are currently on $BRANCH branch. Please switch to the master branch."
+    if [[ ! $BRANCH =~ hledger1 && ! $BRANCH =~ main ]]; then
+        echo "You are currently on $BRANCH branch. Please switch to the hledger1 or main branch."
         exit 1
     fi
 
