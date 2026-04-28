@@ -17,6 +17,16 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
+# 1fd462d7 (2.0 preview 2)
+
+Improvements
+
+- New `Hledger.Data.Errors.makePostingErrorExcerptByIndex` for posting-aware error excerpts
+  in cases where the original posting's account name has been rewritten.
+
+- `escapeName` now also escapes `]`, `{`, `}`, and `.`.
+
+
 # 1.99.1 2026-03-28
 
 (2.0 preview 1)

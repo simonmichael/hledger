@@ -23,6 +23,21 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 1fd462d7
+
+Fixes
+
+- Navigating to lot subaccounts (with names like `{2026-01-01, $50}`) no longer
+  fails with "invalid regular expression" — regex metacharacters in account
+  names are now properly escaped.
+
+Improvements
+
+- Uses hledger 1.99.2.
+
+- Allow brick 3.x.
+
+
 # 1.99.1 2026-03-28
 
 (2.0 preview 1)
