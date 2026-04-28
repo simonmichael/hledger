@@ -7016,7 +7016,7 @@ Any of three things in your journal will activate hledger's lots/gains processin
 - Account names ending with a [lot subaccount](#lot-subaccounts).
 - Postings involving a [lotful commodity or account](#lotful-commodities-and-accounts).
 
-A posting with any of these is called a lot posting.
+These are described below. A posting with any of these is called a lot posting.
 
 ## Lots and cost basis
 
