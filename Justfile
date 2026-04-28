@@ -1066,7 +1066,7 @@ ghrel-upload:
 @devver:
     #!/usr/bin/env bash
     set -euo pipefail
-    RELVER=$(just relver)
+    RELVER=$(just majorver)
     DEVVER=$RELVER.99
     just _on-main-branch
     echo "Setting versions to $DEVVER.."
