@@ -77,7 +77,7 @@ Last updated: 2025-12
 15. **release to github:** manually make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
 16. **major: activate website scripts/redirects:** `j site-restart`
 17. **announce to matrix, irc, mail list, mastodon, forum, pta.o**
-18. **major: update dev version, dev tag:** `j devtag-push`
+18. **major: update dev version:** `j devver`
 19. **update manuals:** `j manuals`
 20. **update changelogs:** `j changelogs`; edit
 
