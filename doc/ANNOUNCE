@@ -1,52 +1,14 @@
-G'day all. I'm pleased to announce hledger 2.0 preview release 2.
-There is also hledger 1.52.1, which adds hledger 2-compatible G and U account types to hledger 1.
+G'day all. I'm pleased to announce hledger 2.0 preview release 2,
+with many refinements to lot tracking based on user testing.
+(And also hledger 1.52.1, which adds hledger 2-compatible G and U account types to hledger 1.)
 
-more robust paging,
-faster valuation,
-commodity tags,
-and cost basis annotations which are preserved and can be exported (examples provided).
-
-I'm delighted to say that 13 people contributed code to this release:
-
-Simon Michael,
-Caleb Maclennan,
-Dmitry Astapov,
-Marko Kocić,
-RahulShankarV52,
-Tuong Nguyen Manh,
-Ilja Kocken,
-Jens Petersen,
-Joshua Chapman,
-Juliano Solanho,
-Oleg Bulatov,
-g. nicholas d'andrea,
-n0vdd.
-
-- https://github.com/simonmichael/hledger/releases/1.52
-- https://hledger.org/relnotes.html#2026-03-20-hledger-152
+- https://github.com/simonmichael/hledger/releases/tag/1.99.2
+- https://hledger.org/relnotes.html#2026-04-28-hledger-1992
 - https://hledger.org/install
-
-
-And hledger 2.0 preview 1 (version number: 1.99.1), which adds
-
-automated lot tracking and capital gains calculation,
-improvements to `print`'s beancount output,
-and a new policy for AI-assisted development.
-
-This is the first hledger release to explore AI-assisted development,
-so please do check out the evolving AI policy/FAQ: https://hledger.org/AI.md
 
 Release contributors:
 
-Simon Michael,
-Juliano Solanho.
-
-- https://github.com/simonmichael/hledger/releases/1.99.1
-- https://hledger.org/relnotes.html#2026-03-28-hledger-1991
-
-
-Also hledger.org has moved to a new server, running the latest mdbook.
-Pages' tables of contents are now integrated in the sidebar, and are more detailed.
+Simon Michael, Joshua Chapman.
 
 
 As always, hledger (https://hledger.org) is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, plain text accounting software.
