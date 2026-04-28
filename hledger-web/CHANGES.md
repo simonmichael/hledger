@@ -23,7 +23,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# b2fe1201
+# 1.52.1 2026-04-28
 
 Improvements
 

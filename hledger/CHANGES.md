@@ -26,19 +26,15 @@ API
 User-visible changes in the hledger command line tool and library.
 
 
-# b2fe1201
+# 1.52.1 2026-04-28
 
 Breaking changes
 
 - The `Gain` (`G`) account type is no longer auto-detected from account names like
   `revenue:gains` or `income:capital gains`; it must now be declared explicitly with `; type: G`.
-  This improves compatibility between hledger 1 and 2.
-
-Features
-
-- The `UnrealisedGain` (`U`) account type, a subtype of Equity, has been added,
-  to improve compatibility with hledger 2 journals.
-  Spellings `U`, `UnrealisedGain`, and `UnrealizedGain` are all accepted.
+  Also, the `UnrealisedGain` (`U`) account type, a subtype of Equity, has been added
+  (spellings `U`, `UnrealisedGain`, and `UnrealizedGain` are all accepted).
+  These improve compatibility between hledger 1 and 2.
 
 Docs
 
