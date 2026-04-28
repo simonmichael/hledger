@@ -823,7 +823,7 @@ journalCheckAcquireBasis j = mapM_ checkTxn (jtxns j) >> Right j
       printf "%s:%d:\n%s\n" f l (T.unpack ex)
       ++ "This acquire posting's cost basis (" ++ showAmt basis
       ++ ") differs from its transacted cost (" ++ showAmt transacted ++ ").\n"
-      ++ "An acquire posting must have basis equal to transacted cost. Common fixes:\n"
+      ++ "Acquire postings should ideally have basis equal to transacted cost. Common fixes:\n"
       ++ "  - drop the {}/{{}} so basis is inferred from the transacted cost\n"
       ++ "  - drop the @/@@ so transacted cost is inferred from the basis\n"
       ++ "  - set both to the same value (eg capitalising fees into basis,\n"
