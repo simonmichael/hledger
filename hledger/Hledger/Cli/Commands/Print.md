@@ -4,7 +4,7 @@ Show full journal entries, representing transactions.
 
 ```flags
 Flags:
-  -x --explicit             show all amounts explicitly
+  -x --explicit             show all inferred info explicitly
      --invert               display all amounts with reversed sign
      --locations            add tags showing file paths and line numbers
   -m --match=DESC           fuzzy search for one recent transaction with

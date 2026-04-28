@@ -39,16 +39,22 @@ commands:
 - assertions - all balance assertions in the journal are passing.
   Balance assertions are a strong defense against errors, catching many
   problems. This check is on by default, but if it gets in your way, you
-  can disable it temporarily with -I/--ignore-assertions, or as a
-  default by adding that flag to your config file. (Then use -s/--strict
-  or hledger check assertions when you want to enable it).
+  can disable it temporarily with -I or --ignore-assertions, or as a
+  default by adding that flag to your config file. If you put it in your
+  config file, you can override that with -s/--strict or
+  hledger check lots.
+
+- lots - all lot entries are valid. Checks lot posting classifications,
+  lot movements, and that any user-written realised or unrealised gain
+  amounts on a disposal match the calculated gain. This check can be
+  disabled by -I or --ignore-lots. If you put it in your config file,
+  you can override that with -s/--strict or hledger check lots.
 
 Strict checks
 
 When the -s/--strict flag is used (AKA strict mode), all commands will
-perform the following additional checks (and assertions, above). These
-provide extra error-catching power to help you keep your data clean and
-correct:
+perform the following additional checks. These provide extra
+error-catching power to help you keep your data clean and correct:
 
 - balanced - like autobalanced, but implicit conversions between
   commodities are not allowed; all conversion transactions must use cost
@@ -63,15 +69,21 @@ correct:
   like :{2026-01-15, $50}, which are automatically exempt; only their
   base account needs to be declared.)
 
+Also, strict mode ensures that the assertions and lots checks run
+(overriding their ignore flags).
+
 Other checks
 
 These are not wanted by everyone, but can be run using the check
 command:
 
-- lots - all lot tracking calculations succeed. Checks lots tag values
-  on declarations, lot posting classification, calculation of lot
-  movements, capital gains, and correct balancing of disposal
-  transactions. Stops at the first error.
+- basis - all lot acquisitions set a per-unit basis equal to the
+  per-unit transacted cost. This guards against typos in cost basis
+  amounts causing wrong capital gain calculation at disposal time. It
+  also enforces hledger's preferred style of "basis cost = transacted
+  cost, with any real difference (as in gifts, NSO, RSU, etc) funded by
+  a separate posting", rather than expressing the difference as a {B} @
+  T mismatch.
 
 - tags - all tags used must be declared. This prevents mis-spelled tag
   names. Note hledger fairly often finds unintended tags in comments.
