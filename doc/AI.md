@@ -221,6 +221,7 @@ Policies
 
 Law
 - <https://www.congress.gov/crs-product/LSB10922>
+- <https://legallayer.substack.com/p/who-owns-the-claude-code-wrote> ([discussion](https://news.ycombinator.com/item?id=47932937))
 
 Research
 - **[AI 2027](https://ai-2027.com)** Mandatory reading.
