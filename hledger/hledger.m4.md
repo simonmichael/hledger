@@ -7155,7 +7155,7 @@ or inferred from the transacted cost.
 On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
 with cost inferred from the transaction's other postings.
 
-An acquire posting can carry an explicit cost basis ( {} / \{\{ }} ), an explicit transacted cost ( @ / @@ ), or both.
+An acquire posting can carry an explicit cost basis (`{}`/`{{{{}}}}`), an explicit transacted cost (`@`/`@@`), or both.
 hledger accepts entries where these differ, mainly for compatibility with Ledger, Beancount, hledger 1, etc.
 But we recommend always acquiring with the per-unit basis cost equal to the per-unit transacted cost.
 You can enforce this by running `hledger check basis`
