@@ -237,6 +237,7 @@ Fixer  bounties began on 2024-01-01.
 | [#2503]                  | 1.50.5, 1.51.1 | Simon Michael (N/A)                                                         | Simon Michael (N/A)
 | **1.51.2** 2026-01-08    | ---       | ---                                                                              | ---
 | [#2553]                  | 1.52      | [pierovera](https://opencollective.com/hledger/expenses/287130)                  | Simon Michael (N/A)
+| **1.52** 2026-03-20      | ---       | ---                                                                              | ---
 
 
 
