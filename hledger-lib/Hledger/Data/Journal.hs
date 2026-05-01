@@ -93,6 +93,7 @@ module Hledger.Data.Journal (
   journalCommodities,
   journalCommoditiesFromPriceDirectives,
   journalCommoditiesFromTransactions,
+  journalBaseCurrencyCode,
   journalDateSpan,
   journalDateSpanBothDates,
   journalStartDate,
@@ -147,7 +148,7 @@ import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
 import Data.Function ((&))
-import Data.List (find, intercalate, sort, sortBy, union, (\\))
+import Data.List (find, intercalate, minimumBy, sort, sortBy, union, (\\))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -170,6 +171,7 @@ import Hledger.Utils
 import Hledger.Data.Types
 import Hledger.Data.AccountName
 import Hledger.Data.Amount
+import Hledger.Data.Currency (CurrencyCode, toCurrencyCode)
 import Hledger.Data.Errors (makeAccountTagErrorExcerpt, makeCommodityTagErrorExcerpt)
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
@@ -463,6 +465,33 @@ journalCommoditiesFromPriceDirectives = S.fromList . concatMap pdcomms . jpriced
 -- | Sorted unique commodity symbols used in transactions, in either posting or cost amounts.
 journalCommoditiesFromTransactions :: Journal -> S.Set CommoditySymbol
 journalCommoditiesFromTransactions j = S.fromList $ map acommodity $ journalPostingAndCostAmounts j
+
+-- | Guess a base currency for this journal, as a ISO 4217 currency code if possible,
+-- choosing as follows:
+-- 1. The "to" commodity that appears most often in P (price) directives, if any.
+-- 2. Otherwise, the commodity that appears most often in posting and cost amounts.
+-- 3. Otherwise, "USD".
+-- Commodity symbols are normalised to ISO 4217 codes where possible,
+-- so that equivalent symbols are tallied together.
+-- Ties are broken by first occurrence order.
+journalBaseCurrencyCode :: Journal -> CurrencyCode
+journalBaseCurrencyCode j =
+  fromMaybe "USD" $ mostFrequent priceTargetComms <|> mostFrequent postingAndCostComms
+  where
+    priceTargetComms    = map (toCurrencyCode . acommodity . pdamount) (jpricedirectives j)
+    postingAndCostComms = map (toCurrencyCode . acommodity) $ journalPostingAndCostAmounts j
+
+    -- Most frequent element, ties broken by first-occurrence order.
+    -- A single pass for efficiency: each map entry stores (negate count, first index),
+    -- so a minimumBy on those tuples picks most-frequent, earliest-first.
+    -- The bang on c forces accumulation strictly to avoid thunk chains.
+    mostFrequent :: Ord a => [a] -> Maybe a
+    mostFrequent [] = Nothing
+    mostFrequent xs = Just $ fst $ minimumBy (comparing snd) $ M.toList stats
+      where
+        stats             = foldl' bump M.empty (zip [0::Int ..] xs)
+        bump m (i, x)     = M.insertWith combine x (-1, i) m
+        combine _ (!c, i) = (c - 1, i)
 
 -- | Unique transaction descriptions used in this journal.
 journalDescriptions :: Journal -> [Text]

@@ -10,22 +10,28 @@ Reference:
 {-# LANGUAGE OverloadedStrings    #-}
 
 module Hledger.Data.Currency (
+  CurrencyCode,
+  CurrencySymbol,
   currencies,
   currencySymbolToCode,
   currencyCodeToSymbol,
+  toCurrencyCode,
 )
 where
 import Data.Map qualified as M
+import           Data.Maybe (fromMaybe)
 import           Data.Text (Text)
 
--- | An ISO 4217 currency code, like EUR. Usually three upper case letters.
+-- | An ISO 4217 currency code, like EUR.
+-- Generally used for fiat currencies, but may also use the X* convention for non-country currencies
+-- (eg XAU, XBT), or ISO 20022 cryptocurrency codes (eg ADA).
 type CurrencyCode = Text
 
--- | A traditional currency symbol, like $. Usually one character, sometimes more.
--- Different from hledger's more general "CommoditySymbol" type.
+-- | A traditional currency symbol like $ or ¥ (as opposed to a currency code like USD or JPY).
+-- Usually one character, sometimes more, like C$ or BZ$.
 type CurrencySymbol = Text
 
--- | Look for a ISO 4217 currency code corresponding to this currency symbol.
+-- | Look for a currency code corresponding to this currency symbol.
 --
 -- >>> currencySymbolToCode ""
 -- Nothing
@@ -34,12 +40,23 @@ type CurrencySymbol = Text
 currencySymbolToCode :: CurrencySymbol -> Maybe CurrencyCode
 currencySymbolToCode s = M.lookup s currencyCodesBySymbol
 
--- | Look for a currency symbol corresponding to this ISO 4217 currency code.
+-- | Look for a currency symbol corresponding to this currency code.
 --
 -- >>> currencyCodeToSymbol "CZK"  -- Just "Kč"
 -- Just "K\269"
 currencyCodeToSymbol :: CurrencyCode -> Maybe CurrencySymbol
 currencyCodeToSymbol c = M.lookup c currencySymbolsByCode
+
+-- | Like 'currencySymbolToCode', but return the input unchanged if no ISO
+-- code is known. Useful for normalising free-form commodity labels: known
+-- currency symbols become ISO codes, while tickers/abbreviations pass through.
+--
+-- >>> toCurrencyCode "$"
+-- "USD"
+-- >>> toCurrencyCode "BTC"
+-- "BTC"
+toCurrencyCode :: CurrencySymbol -> CurrencyCode
+toCurrencyCode s = fromMaybe s (currencySymbolToCode s)
 
 currencyCodesBySymbol = M.fromList [(s,c) | (_,c,s) <- currencies]
 currencySymbolsByCode = M.fromList [(c,s) | (_,c,s) <- currencies]
