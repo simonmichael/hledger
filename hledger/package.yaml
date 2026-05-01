@@ -73,6 +73,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Descriptions.txt
 - Hledger/Cli/Commands/Diff.txt
 - Hledger/Cli/Commands/Files.txt
+- Hledger/Cli/Commands/Getprices.txt
 - Hledger/Cli/Commands/Help.txt
 - Hledger/Cli/Commands/Import.txt
 - Hledger/Cli/Commands/Incomestatement.txt
@@ -193,6 +194,7 @@ library:
   # - Hledger.Cli.Commands.Diff
   # - Hledger.Cli.Commands.Help
   # - Hledger.Cli.Commands.Files
+  # - Hledger.Cli.Commands.Getprices
   # - Hledger.Cli.Commands.Import
   # - Hledger.Cli.Commands.Incomestatement
   # - Hledger.Cli.Commands.Notes

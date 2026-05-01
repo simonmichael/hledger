@@ -1,0 +1,43 @@
+## getprices
+
+Fetch market prices for the commodities used in the journal, up to today's date, where possible.
+By default the prices for each commodity are saved to a `P<COMM>.prices` file
+next to the main journal file; with `-o FILE`, all prices are combined into FILE.
+
+```flags
+Flags:
+     --dry-run             just print the commands that would be run
+  -o --output=FILE         write all prices to FILE (or - for stdout) instead
+                           of per-commodity P<COMM>.prices files
+```
+
+This command first identifies the journal's base currency
+(the commodity that is most used as the target in P price directives;
+or if there are no P directives, the commodity most often used in postings;
+or if there are no postings, "USD").
+
+Then for each other commodity in the journal, it runs the `getprices_` helper
+found in PATH, to get daily prices in the base currency,
+from that commodity's earliest transaction until today.
+By default, the P directives for each commodity are written to a `P<COMM>.prices` file
+next to the main journal file. With `-o/--output FILE`, all prices are combined
+into a single FILE instead.
+
+You can find a [getprices_](https://github.com/simonmichael/hledger/blob/master/bin/getprices_)
+script in the hledger repo's bin directory.
+It uses [pricehist](https://github.com/chrisberkhout/pricehist),
+which you can install with eg `uv tool install pricehist`.
+You might also need to set up API keys in your environment.
+(Some pricehist sources will limit your requests, or how much history is available, without a paid API key.)
+
+Or, you can write your own `getprices_` script, taking 3-4 arguments:
+
+- ISO code for base currency
+- ISO code for commodity to be priced
+- ISO start date
+- optional inclusive ISO end date (default: today)
+
+The `getprices_` commands are logged to stderr.
+With `--dry-run`, you can see these commands without running them.
+The standard getprices_ script will also log the pricehist commands as they are run.
+You can run any of these commands yourself for troubleshooting.
