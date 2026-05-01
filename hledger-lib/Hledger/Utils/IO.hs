@@ -43,6 +43,7 @@ module Hledger.Utils.IO (
   expandPathOrGlob,
   sortByModTime,
   openFileOrStdin,
+  withFileOrStdout,
   readFileOrStdinPortably,
   readFileOrStdinPortably',
   readFileStrictly,
@@ -155,7 +156,7 @@ import           System.Exit (ExitCode(ExitSuccess), exitFailure)
 import           System.FilePath (isRelative, (</>), takeBaseName)
 import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
-import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom, utf8)
+import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom, utf8, withFile)
 import System.IO.Encoding qualified as Enc
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, proc, readCreateProcessWithExitCode, shell, waitForProcess, withCreateProcess)
@@ -476,6 +477,14 @@ readFileOrStdinPortably' c f = openFileOrStdin f >>= hGetContentsPortably c
 openFileOrStdin :: String -> IO Handle
 openFileOrStdin "-" = return stdin
 openFileOrStdin f' = openFile f' ReadMode
+
+-- | Run an action with a handle for writing, opening the given file path in
+-- the given mode, or returning 'stdout' if the path is "-". When opening a
+-- real file, the handle is closed at the end (like 'withFile'); when using
+-- stdout, it is left open for the rest of the program.
+withFileOrStdout :: FilePath -> IOMode -> (Handle -> IO r) -> IO r
+withFileOrStdout "-" _    action = action stdout
+withFileOrStdout f   mode action = withFile f mode action
 
 -- | Read text from a handle, perhaps using a specified encoding from the encoding package.
 -- Or if no encoding is specified, using the handle's current encoding,
