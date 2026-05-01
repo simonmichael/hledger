@@ -83,6 +83,7 @@ dependencies:
 - tasty >=1.2.3
 - tasty-hunit >=0.10.0.2
 - template-haskell
+- temporary
 - terminal-size >=0.3.3
 - text >=1.2.4.1
 - these >=1.0.0

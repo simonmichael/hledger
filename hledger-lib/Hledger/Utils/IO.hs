@@ -44,6 +44,7 @@ module Hledger.Utils.IO (
   sortByModTime,
   openFileOrStdin,
   withFileOrStdout,
+  ensureFilesystemCanAppend,
   readFileOrStdinPortably,
   readFileOrStdinPortably',
   readFileStrictly,
@@ -126,6 +127,7 @@ import           Control.Concurrent (forkIO)
 import           Control.Exception
 import           Control.Monad (when, forM, guard, void)
 import           Data.Char (toLower, isSpace)
+import Data.ByteString qualified as BS
 import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.Colour.SRGB (sRGB)
@@ -158,6 +160,7 @@ import "Glob"    System.FilePath.Glob (glob)
 import           System.Info (os)
 import           System.IO (Handle, IOMode (..), hClose, hGetEncoding, hIsTerminalDevice, hPutStr, hPutStrLn, hSetNewlineMode, hSetEncoding, openFile, stderr, stdin, stdout, universalNewlineMode, utf8_bom, utf8, withFile)
 import System.IO.Encoding qualified as Enc
+import           System.IO.Temp (withTempFile)
 import           System.IO.Unsafe (unsafePerformIO)
 import           System.Process (CreateProcess(..), StdStream(CreatePipe), createPipe, proc, readCreateProcessWithExitCode, shell, waitForProcess, withCreateProcess)
 import           System.Timeout (timeout)
@@ -485,6 +488,25 @@ openFileOrStdin f' = openFile f' ReadMode
 withFileOrStdout :: FilePath -> IOMode -> (Handle -> IO r) -> IO r
 withFileOrStdout "-" _    action = action stdout
 withFileOrStdout f   mode action = withFile f mode action
+
+-- | Verify that the filesystem at 'dir' honors O_APPEND, by doing a
+-- quick test with a dummy file there (.hledger-append-test*).
+-- Returns True if writes opened in 'AppendMode' actually land at end-of-file,
+-- False if they don't.
+-- This is needed because some filesystems (FAT/exFAT, Android shared-storage
+-- and some FUSE mounts) silently drop O_APPEND, so 'appendFile' actually
+-- overwrites the file, potentially causing severe data loss (#2577).
+ensureFilesystemCanAppend :: FilePath -> IO Bool
+ensureFilesystemCanAppend dir =
+  withTempFile dir ".hledger-append-test-" $ \path h -> do
+    let chunk1 = "can this filesystem\n"
+        chunk2 = "append ?\n"
+        expected = chunk1 <> chunk2
+    BS.hPut h chunk1
+    hClose h
+    withFile path AppendMode $ \h2 -> BS.hPut h2 chunk2
+    actual <- BS.readFile path
+    return (actual == expected)
 
 -- | Read text from a handle, perhaps using a specified encoding from the encoding package.
 -- Or if no encoding is specified, using the handle's current encoding,

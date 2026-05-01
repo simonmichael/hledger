@@ -399,9 +399,12 @@ setupJournal meconf = do
   let trim s = either (const s) id $ regexReplace (toRegex' "^Error: ") "" s
   case (ef, ej) of
     (Left err, _) -> p N $ trim err
-    (Right f, Left err) -> p N (f <> ":\n" <> trim err)
+    (Right f, Left err) -> do
+      p N (f <> ":\n" <> trim err)
+      journalFilesystemCanAppend f
     (Right f, Right j@Journal{..}) -> do
       p Y f
+      journalFilesystemCanAppend f
 
       pdesc "it includes additional files ?"
       let numfiles = length jfiles
@@ -566,6 +569,20 @@ pgroup s = putStrLn $ "\n" <> bold' s
 -- | Print a setup test's description, formatting and padding it to a fixed width.
 pdesc :: String -> IO ()
 pdesc s = printf "* %-40s" s
+
+-- | Probe the journal file's directory to confirm it honors O_APPEND,
+-- ie that 'hledger add' will be safe there. Reports the result as a
+-- setup check. Any IOException (eg unwritable directory) is reported
+-- as unknown rather than a failure.
+journalFilesystemCanAppend :: FilePath -> IO ()
+journalFilesystemCanAppend f = do
+  pdesc "its filesystem supports appending ?"
+  let dir = takeDirectory f
+  eres <- try (ensureFilesystemCanAppend dir) :: IO (Either IOException Bool)
+  case eres of
+    Right True  -> p Y ""
+    Right False -> p N "add/import won't work; use a reliable filesystem"
+    Left e      -> i U $ "unknown; " <> show e
 
 (getLatestHledgerVersion, latestHledgerVersionUrlStr) =
   -- (getLatestHledgerVersionFromHackage, "https://hackage.haskell.org/package/hledger/docs")

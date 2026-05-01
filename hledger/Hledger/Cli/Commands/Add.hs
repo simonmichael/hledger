@@ -25,7 +25,6 @@ import Control.Monad (unless, when)
 import Control.Monad.Trans.Class
 import Control.Monad.State.Strict (evalState, evalStateT)
 import Control.Monad.Trans (liftIO)
-import Data.ByteString qualified as BS
 import Data.Char (toUpper, toLower)
 import Data.Either (isRight)
 import Data.Functor.Identity (Identity(..))
@@ -46,8 +45,7 @@ import System.Console.Haskeline.Completion (CompletionFunc, completeWord, isFini
 import System.Console.Wizard (Wizard, defaultTo, line, output, outputLn, retryMsg, linePrewritten, nonEmpty, parser, run)
 import System.Console.Wizard.Haskeline
 import System.FilePath (takeDirectory)
-import System.IO (IOMode(..), hClose, hPutStr, hPutStrLn, stderr, withFile)
-import System.IO.Temp (withTempFile)
+import System.IO (hPutStr, hPutStrLn, stderr)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Printf
@@ -544,24 +542,6 @@ appendToJournalFileOrStdout f s
         ]
       appendFile f $ T.unpack s'
   where s' = "\n" <> ensureOneNewlineTerminated s
-
--- | Verify that the filesystem at 'dir' honors O_APPEND, by doing
--- a quick test with a dummy file there (.hledger-append-test).
--- This is needed because apparently some filesystems (FAT/exFAT, Android shared-storage / FUSE mounts)
--- can silently ignore O_APPEND, so 'appendFile' actually overwrites the file,
--- which could cause severe data loss (#2577).
--- Testing with throwaway data lets us detect this before we touch the user's journal.
-ensureFilesystemCanAppend :: FilePath -> IO Bool
-ensureFilesystemCanAppend dir =
-  withTempFile dir ".hledger-append-test-" $ \path h -> do
-    let chunk1 = "can this filesystem\n"
-        chunk2 = "append ?\n"
-        expected = chunk1 <> chunk2
-    BS.hPut h chunk1
-    hClose h
-    withFile path AppendMode $ \h2 -> BS.hPut h2 chunk2
-    actual <- BS.readFile path
-    return (actual == expected)
 
 -- | Replace a string's 0 or more terminating newlines with exactly one.
 ensureOneNewlineTerminated :: Text -> Text
