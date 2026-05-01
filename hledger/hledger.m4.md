@@ -7001,10 +7001,9 @@ Here are some current issues to be aware of:
   ```
 
 - Not every possible lot-related journal entry can be detected correctly by hledger.
-  If you have trouble, use `hledger print -x --verbose-tags` to see how entries have been analysed, and rewrite the entry if needed.
-
-- Entries where the per-unit cost basis does not perfectly match the
-  required total will not be detected correctly, so will need some workaround.
+  For example, entries with a total cost basis which can't be converted to exact unit cost basis.
+  Use `hledger print -x --verbose-tags` to see how a lot entry has been analysed,
+  and if it's not correct, try to rewrite it until hledger analyses it correctly.
 
 For more technical details, see [SPEC-lots](/SPEC-lots.html).
 
