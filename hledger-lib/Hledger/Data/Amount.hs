@@ -119,7 +119,7 @@ module Hledger.Data.Amount (
   setAmountDecimalPoint,
   withDecimalPoint,
   amountStripCost,
-
+  
   -- * MixedAmount
   nullmixedamt,
   missingmixedamt,
@@ -179,6 +179,7 @@ module Hledger.Data.Amount (
   mixedAmountSetPrecisionMax,
 
   -- * misc.
+  showPriceDirective,
   tests_Amount
 ) where
 
@@ -207,6 +208,7 @@ import System.Console.ANSI (Color(..),ColorIntensity(..))
 import Test.Tasty (testGroup)
 import Test.Tasty.HUnit ((@?=), assertBool, testCase)
 
+import Hledger.Data.Dates (showDate)
 import Hledger.Data.Types
 import Hledger.Utils (colorB, error', numDigitsInt, numDigitsInteger)
 import Hledger.Utils.Text (textQuoteIfNeeded)
@@ -1410,6 +1412,18 @@ mixedAmountStripCosts :: MixedAmount -> MixedAmount
 mixedAmountStripCosts (Mixed ma) =
     foldl' (\m a -> maAddAmount m a{acost=Nothing, acostbasis=Nothing}) (Mixed noCosts) withCosts
   where (noCosts, withCosts) = M.partition (\a -> isNothing (acost a) && isNothing (acostbasis a)) ma
+
+
+-- | Render a price directive in journal format ("P DATE COMMODITY AMOUNT").
+-- Always shows the to-currency, even on a zero quantity, so the directive
+-- round-trips back to the same conversion pair.
+showPriceDirective :: PriceDirective -> T.Text
+showPriceDirective pd = T.unwords
+  [ "P"
+  , showDate (pddate pd)
+  , quoteCommoditySymbolIfNeeded (pdcommodity pd)
+  , wbToText $ showAmountB defaultFmt{displayZeroCommodity=True} (pdamount pd)
+  ]
 
 
 -------------------------------------------------------------------------------

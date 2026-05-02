@@ -9,7 +9,6 @@ module Hledger.Cli.Commands.Prices (
 where
 
 import Data.List
-import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Hledger
 import Hledger.Cli.CliOptions
@@ -85,14 +84,6 @@ mergePriceDirectives pds1 pds2 =
   where
     pds1ids = map pdid pds1
     pdid PriceDirective{pddate,pdcommodity,pdamount} = (pddate, pdcommodity, acommodity pdamount)
-
-showPriceDirective :: PriceDirective -> T.Text
-showPriceDirective mp = T.unwords [
-  "P",
-  T.pack . show $ pddate mp,
-  quoteCommoditySymbolIfNeeded $ pdcommodity mp,
-  wbToText . showAmountB defaultFmt{displayZeroCommodity=True} $ pdamount mp
-  ]
 
 -- | Convert a market price directive to a corresponding one in the
 -- opposite direction, if possible. (A price directive with a zero

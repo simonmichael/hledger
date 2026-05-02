@@ -30,8 +30,7 @@ import Hledger.Utils
 import Data.Maybe
 import Safe (headMay)
 import Hledger.Data.Posting (isVirtual)
-import Hledger.Data.Dates (showDate)
-import Hledger.Data.Amount (showCommoditySymbol, showAmount)
+import Hledger.Data.Amount (showPriceDirective)
 
 
 -- | Given an account name and its account directive, and a problem tag within the latter:
@@ -107,14 +106,6 @@ makePriceDirectiveErrorExcerpt pd _finderrorcolumns = (file, line, merrcols, exc
     line = unPos pos
     merrcols = Nothing
     excerpt = decorateExcerpt line merrcols $ showPriceDirective pd <> "\n"
-
-showPriceDirective :: PriceDirective -> Text
-showPriceDirective PriceDirective{..} = T.unwords [
-   "P"
-  ,showDate pddate
-  ,showCommoditySymbol pdcommodity
-  ,T.pack $ showAmount pdamount 
-  ]
 
 -- | Given a problem transaction and a function calculating the best
 -- column(s) for marking the error region:
