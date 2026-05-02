@@ -18,17 +18,19 @@ module Hledger.Cli.Commands.Getprices (
 ) where
 
 import Control.Exception (IOException, try)
-import Control.Monad (unless)
-import Data.List (nub)
+import Control.Monad (unless, (>=>))
+import Data.List (nub, sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
 import Data.Map.Strict qualified as M
 import Data.Maybe (catMaybes)
+import Data.Set qualified as S
 import Data.Text qualified as T
+import Data.Text.IO qualified as T
 import Data.Time.Calendar (Day)
 import System.Console.CmdArgs.Explicit
-import System.Directory (findExecutable)
+import System.Directory (doesFileExist, findExecutable)
 import System.Exit (ExitCode(..))
 import System.FilePath (takeDirectory, (</>))
 import System.IO (hPutStr, hPutStrLn, stderr)
@@ -52,64 +54,78 @@ getpricesmode = hledgerCommandMode
 scriptName :: FilePath
 scriptName = "getprices_"
 
--- | How the command's stdout will be redirected, used only for logging.
--- The actual handle is set up by the caller via 'withFileOrStdout'.
+-- | The path of the per-commodity prices file in 'dir' for the given code.
+pricesFileFor :: FilePath -> CurrencyCode -> FilePath
+pricesFileFor dir code = dir </> "P" <> T.unpack code <> ".prices"
+
+-- | Like 'warn' but throws away the trailing-action argument; for the common
+-- "log a warning, then continue" pattern.
+warn_ :: String -> IO ()
+warn_ msg = warn msg (return ())
+
+-- | Parse a journal-format text blob and extract its P directives.
+-- Uses the 'ExceptT'-returning 'readJournal' so parse errors come back
+-- as 'Left', without exception-throwing.
+parsePrices :: T.Text -> IO (Either String [PriceDirective])
+parsePrices txt = do
+  hdl <- textToHandle txt
+  fmap jpricedirectives <$> runExceptT (readJournal definputopts Nothing hdl)
+
+-- | How the command's stdout will be presented, used only for logging.
+-- The actual file write is done by the merge code at the end of the run.
 data Redirect
-  = ToStdout              -- ^ stdout (-o -); shown without any "> ..." suffix
-  | ToFile FilePath -- ^ first write to a file; shown as " >FILE"
-  | ToFileAppend FilePath   -- ^ subsequent writes to the same file; shown as " >>FILE"
+  = ToStdout         -- ^ stdout (-o -); shown without any "> ..." suffix
+  | ToFile FilePath  -- ^ collected into a file; shown as " >FILE"
 
 redirSuffix :: Redirect -> String
-redirSuffix ToStdout         = ""
-redirSuffix (ToFile f)       = " >"  <> f
-redirSuffix (ToFileAppend f) = " >>" <> f
+redirSuffix ToStdout    = ""
+redirSuffix (ToFile f)  = " >" <> f
 
 -- | The getprices command.
 getprices :: CliOpts -> Journal -> IO ()
 getprices CliOpts{rawopts_=rawopts} j = do
-  let dryRun  = boolopt "dry-run" rawopts
-      moutput = case stringopt "output" rawopts of
-                  "" -> Nothing
-                  s  -> Just s
-  mscript <- if dryRun then return (Just scriptName) else findExecutable scriptName
-  script <- case mscript of
-    Just s  -> return s
-    Nothing -> error' $ unlines
+  let
+    dryRun  = boolopt "dry-run" rawopts
+    moutput = case stringopt "output" rawopts of
+                "" -> Nothing
+                s  -> Just s
+    notFound = error' $ unlines
       [scriptName <> " was not found on PATH."
       ,"Please install bin/" <> scriptName <> " from the hledger source tree,"
       ,"or your own script, in $PATH."
       ]
+  script <- if dryRun
+              then return scriptName
+              else findExecutable scriptName >>= maybe notFound return
   today <- getCurrentDay
-  let base      = journalBaseCurrencyCode j
-      dir       = takeDirectory (journalFilePath j)
-      -- Per-code (start, end) date span, computed in one pass over postings.
-      commspans = commodityDateSpansByCode (journalPostings j)
-      -- Normalise journal commodities to ISO codes / tickers, drop the base
-      -- currency, deduplicate. Multiple raw symbols can map to one code
-      -- (eg "$" and "USD"); we fetch once per code.
-      codes   = nub . filter (/= base) . map toCurrencyCode $ journalCommoditiesUsed j
-      runFor  = runFetch script base commspans today dryRun
+  let
+    base      = journalBaseCurrencyCode j
+    dir       = takeDirectory (journalFilePath j)
+    -- Per-code (start, end) date span, computed in one pass over postings.
+    commspans = commodityDateSpansByCode (journalPostings j)
+    -- Normalise journal commodities to ISO codes / tickers, drop the base
+    -- currency, deduplicate. Multiple raw symbols can map to one code
+    -- (eg "$" and "USD"); we fetch once per code.
+    codes   = nub . filter (/= base) . map toCurrencyCode $ journalCommoditiesUsed j
+    runFor  = runFetch script base commspans today dryRun
   case moutput of
-    -- Single combined output to stdout; just print each commodity's output.
-    -- No file is created so empty-output handling is trivial.
+    -- Combined output to stdout; just print each commodity's output.
+    -- No file is read or written, so the merge logic doesn't apply.
     Just "-" ->
-      mapM_ (\code -> runFor ToStdout code >>= maybe (return ()) putStr) codes
-    -- Single combined output to a file. Capture every commodity's output
-    -- first; only write the file if at least one commodity produced data.
-    -- Log the redirection as " >FILE" for the first and " >>FILE" for the
-    -- rest, matching what would happen if all were non-empty.
+      mapM_ (\code -> runFor ToStdout code >>= maybe (return ()) T.putStr) codes
+    -- Combined output to a single file. Collect each commodity's output,
+    -- then merge once with whatever's already at outfile.
     Just outfile -> do
-      let redirs = ToFile outfile : repeat (ToFileAppend outfile)
-      outs <- mapM (\(r, code) -> runFor r code) (zip redirs codes)
-      let combined = concat (catMaybes outs)
-      unless (null combined) $ writeFile outfile combined
-    -- One file per commodity, in the journal directory. Skip writing for
-    -- commodities that produced no output, so we don't create empty files.
+      outs <- mapM (runFor (ToFile outfile)) codes
+      let combined = T.concat (catMaybes outs)
+      unless (T.null combined) $
+        mergeAndWritePrices outfile combined >>= reportOutcome outfile
+    -- One file per commodity, merged with that file's existing prices.
     Nothing ->
       mapM_ (\code -> do
-              let outfile = dir </> "P" <> T.unpack code <> ".prices"
+              let outfile = pricesFileFor dir code
               mout <- runFor (ToFile outfile) code
-              maybe (return ()) (writeFile outfile) mout)
+              maybe (return ()) (mergeAndWritePrices outfile >=> reportOutcome outfile) mout)
             codes
 
 -- | Fetch prices for one commodity. Logs the command line to stderr (always),
@@ -118,7 +134,7 @@ getprices CliOpts{rawopts_=rawopts} j = do
 -- script failed (in which case a warning has been logged to stderr) or
 -- because it produced no output. Otherwise returns 'Just' the captured stdout.
 runFetch :: FilePath -> CurrencyCode -> M.Map CurrencyCode (Day, Day) -> Day -> Bool
-         -> Redirect -> CurrencyCode -> IO (Maybe String)
+         -> Redirect -> CurrencyCode -> IO (Maybe T.Text)
 runFetch script base commspans today dryRun redir code =
   case M.lookup code commspans of
     Nothing -> return Nothing
@@ -134,15 +150,88 @@ runFetch script base commspans today dryRun redir code =
                     :: IO (Either IOException (ExitCode, String, String))
           case eres of
             Left e -> do
-              warn (scriptName <> " failed for " <> code' <> ": " <> show e) $ return ()
+              warn_ $ scriptName <> " failed for " <> code' <> ": " <> show e
               return Nothing
-            Right (ExitFailure n, _, err) -> do
+            Right (ec, out, err) -> do
               hPutStr stderr err
-              warn (scriptName <> " exited " <> show n <> " for " <> code') $ return ()
-              return Nothing
-            Right (ExitSuccess, out, err) -> do
-              hPutStr stderr err
-              return $ if null out then Nothing else Just out
+              case ec of
+                ExitFailure n -> do
+                  warn_ $ scriptName <> " exited " <> show n <> " for " <> code'
+                  return Nothing
+                ExitSuccess ->
+                  return $ if null out then Nothing else Just (T.pack out)
+
+-- | Key by which we deduplicate two P directives.
+priceKey :: PriceDirective -> (Day, CommoditySymbol, CommoditySymbol)
+priceKey pd = (pddate pd, pdcommodity pd, acommodity (pdamount pd))
+
+-- | Outcome of attempting to merge new prices into a file.
+data MergeOutcome
+  = MergedWritten Int Int       -- ^ wrote the file: existing kept, new added
+  | NothingNew                  -- ^ no new keys; file untouched
+  | NotPureFileRefused          -- ^ existing file has non-price content; refused
+  | PriceParseError String      -- ^ couldn't parse a prices blob
+
+-- | Quick textual safeguard: file contains only P directives and blank lines.
+-- Comments, transactions, account or other directives all disqualify the
+-- file because re-rendering through hledger would lose them.
+isPurePricesFile :: T.Text -> Bool
+isPurePricesFile =
+  all (\line -> let l = T.strip line in T.null l || "P" `T.isPrefixOf` l)
+  . T.lines
+
+-- | Load existing P directives from a file. Empty list if file is missing.
+-- Returns Left if the file exists but contains content other than P
+-- directives / blank lines, or if it can't be parsed.
+loadExistingPrices :: FilePath -> IO (Either MergeOutcome [PriceDirective])
+loadExistingPrices f = do
+  exists <- doesFileExist f
+  if not exists
+    then return (Right [])
+    else do
+      txt <- T.readFile f
+      if not (isPurePricesFile txt)
+        then return (Left NotPureFileRefused)
+        else either (Left . PriceParseError) Right <$> parsePrices txt
+
+-- | Merge new prices into a destination file (creating if needed).
+-- 'newcontent' is the raw text we'd otherwise write — a journal-format
+-- blob produced by getprices_. Existing prices win on key conflicts;
+-- new prices on unseen keys are added. The merged set is written sorted
+-- ascending by (date, from, to). If nothing new would be added, the file
+-- is left untouched.
+mergeAndWritePrices :: FilePath -> T.Text -> IO MergeOutcome
+mergeAndWritePrices outfile newcontent = do
+  eexisting <- loadExistingPrices outfile
+  case eexisting of
+    Left outcome -> return outcome
+    Right existing -> do
+      enew <- parsePrices newcontent
+      case enew of
+        Left e -> return (PriceParseError ("could not parse new prices: " <> e))
+        Right newpds -> do
+          let existingKeys = S.fromList (map priceKey existing)
+              added        = filter ((`S.notMember` existingKeys) . priceKey) newpds
+          if null added
+            then return NothingNew
+            else do
+              let merged = sortOn priceKey (existing <> added)
+                  out    = T.unlines (map showPriceDirective merged)
+              T.writeFile outfile out
+              return (MergedWritten (length existing) (length added))
+
+-- | Write a one-line summary of a merge outcome to stderr.
+reportOutcome :: FilePath -> MergeOutcome -> IO ()
+reportOutcome outfile outcome = hPutStrLn stderr $ case outcome of
+  MergedWritten ex ad ->
+    "wrote " <> outfile <> " (existing " <> show ex <> ", added " <> show ad <> ")"
+  NothingNew ->
+    outfile <> ": no new prices"
+  NotPureFileRefused ->
+    "Refusing to overwrite " <> outfile <>
+    ": it contains content other than P directives, which would be lost."
+  PriceParseError msg ->
+    outfile <> ": could not read existing prices: " <> msg
 
 -- | Identify the (earliest, latest) posting date for each commodity used in these postings' main amounts.
 commodityDateSpansByCode :: [Posting] -> M.Map CurrencyCode (Day, Day)
