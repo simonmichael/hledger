@@ -46,6 +46,7 @@ Txns last 7 days    : 0 (0.0 per day)
 Payees/descriptions : 1000
 Accounts            : 1000 (depth 10)
 Commodities         : 26
+Base currency code  : USD
 Market prices       : 1000
 Runtime stats       : 0.12 s elapsed, 8266 txns/s, 4 MB live, 16 MB alloc
 ```

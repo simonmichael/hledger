@@ -145,6 +145,7 @@ showLedgerStats verbose l today spn =
       ,("Payees/descriptions", show $ size $ fromList $ map (tdescription) ts)
       ,("Accounts", printf "%d (depth %d)" acctnum acctdepth)
       ,("Commodities",   printf "%s%s" (show $ length cs)        (if verbose then " (" <> T.intercalate ", " cs <> ")" else ""))
+      ,("Base currency code",  T.unpack $ journalBaseCurrencyCode j)
       ,("Market prices", printf "%s%s" (show $ length mktprices) (if verbose then " (" <> T.intercalate ", " mktpricecommodities <> ")" else ""))
     -- Txns this month     : %(monthtxns)s (last month in the same period: %(lastmonthtxns)s)
     -- Unmarked txns      : %(unmarked)s
