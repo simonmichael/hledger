@@ -8,6 +8,8 @@ With --show-reverse, also show additional prices inferred by reversing known pri
 Flags:
      --show-reverse         also show the prices inferred by reversing known
                             prices
+     --summary              summarise declared prices per commodity instead
+                            of listing them
 ```
 
 Price amounts are always displayed with their full precision,
@@ -20,3 +22,21 @@ it will show the same prices used internally to calculate value reports.
 But if in doubt, you can inspect those directly by running the value report
 with --debug=2.
 
+### prices summary
+
+With `--summary`, instead of listing individual prices, `prices` prints
+one row per commodity used in the journal (other than the [base
+currency](#getprices)), with the following columns:
+
+- **Commodity** — the commodity, as an ISO 4217 code if possible.
+- **Prices** — the number of market price declarations for that commodity.
+- **Earliest** / **Latest** — the date range of those prices.
+- **Period** — the duration between earliest and latest.
+- **Coverage** — the percentage of weekdays in that period
+  that have a price declared (or blank when fewer than two prices).
+
+Summary mode is a quick way to spot gaps in your price data, and pairs
+naturally with [getprices](#getprices). Only prices declared with P directives
+are counted; prices inferred with `--show-reverse` or `--infer-market-prices` are ignored.
+
+Queries (`cur:`, `date:`, `amt:`) can be used to narrow the prices that are summarised.

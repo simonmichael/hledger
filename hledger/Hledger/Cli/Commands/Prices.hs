@@ -9,18 +9,24 @@ module Hledger.Cli.Commands.Prices (
 where
 
 import Data.List
+import Data.Set qualified as S
+import Data.Text qualified as T
 import Data.Text.IO qualified as T
+import Data.Time.Calendar (Day, DayOfWeek(..), dayOfWeek)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils (printTitle)
 import System.Console.CmdArgs.Explicit
 import Data.Maybe (mapMaybe)
 import Data.Function ((&))
+import Text.Printf (printf)
 
 pricesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Prices.txt")
   [flagNone ["show-reverse"] (setboolopt "show-reverse")
     "also show the prices inferred by reversing known prices"
+  ,flagNone ["summary"] (setboolopt "summary")
+    "summarise declared prices per commodity instead of listing them"
   ]
   cligeneralflagsgroups1
   (hiddenflags ++
@@ -71,8 +77,110 @@ prices opts j = do
       -- dbg0 "filtered unsorted" $
       filter (matchesPriceDirective q) allprices
 
-  mapM_ (T.putStrLn . showPriceDirective . styleAmounts styles) $
-    sortOn pddate filteredprices
+  if boolopt "summary" (rawopts_ opts)
+    then printSummary j q (filter (matchesPriceDirective q) declaredprices)
+    else mapM_ (T.putStrLn . showPriceDirective . styleAmounts styles) $
+           sortOn pddate filteredprices
+
+-- | Per-commodity stats from the journal's declared price directives.
+data PriceStats = PriceStats
+  { psCommodity :: CommoditySymbol
+  , psCount     :: Int
+  , psEarliest  :: Maybe Day
+  , psLatest    :: Maybe Day
+  , psDays      :: S.Set Day   -- distinct price dates
+  }
+
+-- | Stats for one ISO commodity code, gathered from raw P directives.
+-- Symbol variants (eg "$" / "USD") are grouped together via 'toCurrencyCode'.
+priceStatsFor :: [PriceDirective] -> CurrencyCode -> PriceStats
+priceStatsFor pds c =
+  let xs  = filter ((== c) . toCurrencyCode . pdcommodity) pds
+      dset = S.fromList (map pddate xs)
+  in PriceStats c (length xs)
+       (fst <$> S.minView dset)
+       (fst <$> S.maxView dset)
+       dset
+
+isWeekday :: Day -> Bool
+isWeekday d = case dayOfWeek d of
+  Saturday -> False
+  Sunday   -> False
+  _        -> True
+
+-- | Compact human duration: "45d", "11mo", "1y 3mo".
+-- Approximates with 365-day years and 30-day months — display only.
+compactDuration :: Int -> T.Text
+compactDuration n
+  | n < 60    = T.pack (show n) <> "d"
+  | n < 365   = T.pack (show (n `div` 30)) <> "mo"
+  | otherwise =
+      let (y, r) = n `divMod` 365
+          mo     = r `div` 30
+      in T.pack (show y) <> "y" <>
+         (if mo == 0 then "" else " " <> T.pack (show mo) <> "mo")
+
+-- | The text for the period and coverage columns of a stats row.
+-- Both are blank when the commodity has fewer than two prices.
+-- Coverage is computed on a weekdays-only basis (Mon–Fri), so
+-- weekday-only sources (eg FX) approach 100% rather than ~71%.
+periodAndCoverage :: PriceStats -> (T.Text, T.Text)
+periodAndCoverage ps@PriceStats{psEarliest=Just s, psLatest=Just e}
+  | psCount ps < 2 = ("", "")
+  | otherwise      = (compactDuration nDays, T.pack (printf "%.f%%" pct))
+  where
+    days      = [s..e]
+    nDays     = length days
+    weekdays  = filter isWeekday days
+    nWeekdays = length weekdays
+    nCovered  = length (filter (`S.member` psDays ps) weekdays)
+    pct | nWeekdays == 0 = 0
+        | otherwise      =
+            fromIntegral nCovered / fromIntegral nWeekdays * 100 :: Double
+periodAndCoverage _ = ("", "")
+
+-- | Render the per-commodity summary table.
+-- Lists every commodity used in the journal except the base currency,
+-- normalised to ISO codes and deduplicated. The 'cur:' portion of the
+-- query (if any) narrows the listed commodities. The supplied price
+-- directives (already query-filtered by the caller) drive the counts.
+printSummary :: Journal -> Query -> [PriceDirective] -> IO ()
+printSummary j q pds = do
+  let
+    base    = journalBaseCurrencyCode j
+    -- Just the cur: terms of the query; non-cur terms become Any so
+    -- they don't reject every commodity.
+    symq    = filterQuery queryIsSym q
+    codes   = sort . nub . filter (/= base) . filter (matchesCommodity symq)
+              . map toCurrencyCode
+              $ journalCommoditiesUsed j
+    rows    = map (statsRow . priceStatsFor pds) codes
+    header  = ["Commodity", "Prices", "Earliest", "Latest", "Period", "Coverage"]
+    aligns  = [AlignL, AlignR, AlignL, AlignL, AlignR, AlignR]
+  T.putStr $ renderColumns aligns (header : rows)
+
+statsRow :: PriceStats -> [T.Text]
+statsRow ps =
+  let (perTxt, covTxt) = periodAndCoverage ps
+  in [ psCommodity ps
+     , T.pack (show (psCount ps))
+     , maybe "-" (T.pack . show) (psEarliest ps)
+     , maybe "-" (T.pack . show) (psLatest ps)
+     , perTxt
+     , covTxt
+     ]
+
+data ColAlign = AlignL | AlignR
+
+-- | Render a list of equal-length rows as a column-aligned plain-text
+-- table, two spaces between columns, one row per line.
+renderColumns :: [ColAlign] -> [[T.Text]] -> T.Text
+renderColumns aligns rs =
+  let widths = map (maximum . map T.length) (transpose rs)
+      pad a w t = case a of AlignL -> T.justifyLeft w ' ' t
+                            AlignR -> T.justifyRight w ' ' t
+      renderRow r = T.stripEnd (T.intercalate "  " (zipWith3 pad aligns widths r))
+  in T.unlines (map renderRow rs)
 
 -- XXX performance
 -- | Append any new price directives (with different from commodity,
