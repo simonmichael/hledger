@@ -250,9 +250,6 @@ showPostingLines p = first3 $ postingAsLines defaultFmt False False maxacctwidth
 --
 -- Posting amounts will be aligned with each other, starting about 4 columns
 -- beyond the widest account name (see postingAsLines for details).
--- The postings will appear balanced (amounts summing to zero).
--- Amounts' display precisions, which may have been limited by commodity directives,
--- will be increased if necessary to ensure this.
 --
 postingsAsLines :: AmountFormat -> Bool -> [Posting] -> [Text]
 postingsAsLines basefmt onelineamounts ps = concatMap first3 linesWithWidths
