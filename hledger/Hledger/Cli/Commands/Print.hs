@@ -10,10 +10,11 @@ A ledger-compatible @print@ command.
 module Hledger.Cli.Commands.Print (
   printmode
  ,print'
- -- ,entriesReportAsText
  ,roundFlag
  ,roundFromRawOpts
  ,amountStylesSetRoundingFromRawOpts
+ ,layoutFlag
+ ,layoutFromRawOpts
  ,transactionWithMostlyOriginalPostings
 )
 where
@@ -29,7 +30,7 @@ import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Builder qualified as TB
 import Lens.Micro ((^.), _Just, has)
-import Safe (lastMay, minimumDef)
+import Safe (lastMay, minimumDef, readMay)
 import System.Console.CmdArgs.Explicit
 
 import Hledger
@@ -58,6 +59,7 @@ printmode = hledgerCommandMode
     ("fuzzy search for one recent transaction with description closest to "++arg)
   ,flagNone ["new"] (setboolopt "new") "show only newer-dated transactions added in each file since last run"
   ,roundFlag
+  ,layoutFlag
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX"
     "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
   ,outputFormatFlag ["txt","ledger","beancount","csv","tsv","html","fods","json","sql"]
@@ -103,6 +105,25 @@ amountStylesSetRoundingFromRawOpts rawopts styles =
     Just r  -> amountStylesSetRounding r styles
     Nothing -> styles
 
+-- | The --layout flag for the print command, selecting how posting lines are aligned.
+layoutFlag :: Flag RawOpts
+layoutFlag = flagReq ["layout"] (\s opts -> Right $ setopt "layout" s opts) "hledger1|COL" $
+  intercalate "\n"
+  ["how should posting amounts be aligned ?"
+  ,"hledger1 - right-align amounts, as in hledger 1"
+  ,"COL      - align decimal marks at column COL (default: 53)"
+  ]
+
+-- | Parse the --layout option. Defaults to 'defaultPostingLayout' if absent.
+-- Errors with a clear message if the value is neither \"hledger1\" nor a positive integer.
+layoutFromRawOpts :: RawOpts -> PostingLayout
+layoutFromRawOpts rawopts = case maybestringopt "layout" rawopts of
+  Nothing         -> defaultPostingLayout
+  Just "hledger1" -> LayoutHledger1
+  Just s -> case readMay s of
+    Just n | n > 0 -> LayoutDecimal n
+    _ -> error' $ "--layout's value should be 'hledger1' or a positive integer column number; got: " ++ s
+
 -- | Print journal transactions in standard format.
 print' :: CliOpts -> Journal -> IO ()
 print' opts@CliOpts{rawopts_=rawopts} j = do
@@ -140,7 +161,8 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     fmt = outputFormatFromOpts opts
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
-    render | fmt=="txt"       = entriesReportAsText           . styleAmounts styles . map maybeoriginalamounts
+    postinglayout = layoutFromRawOpts rawopts
+    render | fmt=="txt"       = entriesReportAsTextHelper (showTransactionWithLayout postinglayout) . styleAmounts styles . map maybeoriginalamounts
            | fmt=="ledger"   = entriesReportAsTextHelper showTransactionLedger . styleAmounts styles . map maybeoriginalamounts
            | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map fillBalanceAssignments
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
@@ -203,9 +225,6 @@ transactionWithMostlyOriginalPostings t =
         , pamount = pamount $ if hasTag generatedPostingTagName p then p else orig }
       where orig = originalPosting p
     hasTag name p = name `elem` map fst (ptags p)
-
-entriesReportAsText :: EntriesReport -> TL.Text
-entriesReportAsText = entriesReportAsTextHelper showTransaction
 
 entriesReportAsTextHelper :: (Transaction -> T.Text) -> EntriesReport -> TL.Text
 entriesReportAsTextHelper showtxn = TB.toLazyText . foldMap (TB.fromText . showtxn)

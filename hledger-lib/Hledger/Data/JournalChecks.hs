@@ -34,9 +34,9 @@ import Hledger.Data.Errors
 import Hledger.Data.Journal
 import Hledger.Data.JournalChecks.Ordereddates
 import Hledger.Data.JournalChecks.Uniqueleafnames
-import Hledger.Data.Posting (isVirtual, postingDate, transactionAllTags, conversionPostingTagName, costPostingTagName, postingAsLines, generatedPostingTagName, generatedTransactionTagName, modifiedTransactionTagName)
+import Hledger.Data.Posting (defaultDecimalMarkColumn, isVirtual, postingDate, transactionAllTags, conversionPostingTagName, costPostingTagName, postingAsLines, generatedPostingTagName, generatedTransactionTagName, modifiedTransactionTagName)
 import Hledger.Data.Types
-import Hledger.Data.Amount (amountIsZero, amountsRaw, defaultFmt, missingamt, oneLineFmt, showMixedAmountWith)
+import Hledger.Data.Amount (amountIsZero, amountsRaw, defaultFmt, missingamt)
 import Hledger.Data.Transaction (transactionPayee, showTransactionLineFirstPart, partitionAndCheckConversionPostings)
 import Data.Time (diffDays)
 import Hledger.Utils
@@ -319,10 +319,11 @@ findRecentAssertionError ps = do
     (showposting firsterrorp)
     where
       showposting p =
-        headDef "" $ first3 $ postingAsLines defaultFmt False True acctw amtw p{pcomment=""}
+        headDef "" $ first3 $ postingAsLines defaultFmt False True statusw acctw decimalcol p{pcomment=""}
         where
+          statusw = case pstatus p of Unmarked -> 0; _ -> 2
           acctw = T.length $ paccount p
-          amtw  = length $ showMixedAmountWith oneLineFmt $ pamount p
+          decimalcol = defaultDecimalMarkColumn
 
 -- -- | Print the last balance assertion date & status of all accounts with balance assertions.
 -- printAccountLastAssertions :: Day -> [BalanceAssertionInfo] -> IO ()

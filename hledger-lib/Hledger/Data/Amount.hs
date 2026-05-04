@@ -94,6 +94,7 @@ module Hledger.Data.Amount (
   showAmount,
   showAmountWith,
   showAmountB,
+  showAmountQuantity,
   showAmountCost,
   showAmountCostB,
   showAmountCostBasis,

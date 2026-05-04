@@ -78,9 +78,14 @@ keeping the output parseable.
 
 ### print alignment
 
-Amounts are shown right-aligned within each transaction
-(but not aligned across all transactions; you can achieve that with ledger-mode in Emacs). 
+By default, amounts are aligned so that their decimal mark is at column 53 (or it would be if they had a decimal mark).
+In transactions with wide account names, all amounts shift further right if needed,
+to ensure at least 2 spaces between each account name and amount.
 
+This can be customised with `--layout`:
+
+- `--layout=COL`      — align so that decimal marks are at the specified column (a positive integer).
+- `--layout=hledger1` — align amounts as hledger 1 did: right-aligned within each transaction.
 
 ### print amount style
 

@@ -53,6 +53,7 @@ module Hledger.Data.Transaction
   -- payeeAndNoteFromDescription
   -- * rendering
 , showTransaction
+, showTransactionWithLayout
 , showTransactionOneLineAmounts
 , showTransactionLineFirstPart
 , transactionFile
@@ -170,20 +171,25 @@ are displayed as multiple similar postings, one per commodity.
 (Normally does not happen with this function).
 -}
 showTransaction :: Transaction -> Text
-showTransaction = TL.toStrict . TB.toLazyText . showTransactionHelper False
+showTransaction = TL.toStrict . TB.toLazyText . showTransactionHelper False defaultPostingLayout
+
+-- | Like 'showTransaction', but with an explicit posting layout
+-- (e.g. to support @print --layout=hledger1@).
+showTransactionWithLayout :: PostingLayout -> Transaction -> Text
+showTransactionWithLayout layout = TL.toStrict . TB.toLazyText . showTransactionHelper False layout
 
 -- | Like showTransaction, but explicit multi-commodity amounts
 -- are shown on one line, comma-separated. In this case the output will
 -- not be parseable journal syntax.
 showTransactionOneLineAmounts :: Transaction -> Text
-showTransactionOneLineAmounts = TL.toStrict . TB.toLazyText . showTransactionHelper True
+showTransactionOneLineAmounts = TL.toStrict . TB.toLazyText . showTransactionHelper True defaultPostingLayout
 
 -- | Helper for showTransaction*.
-showTransactionHelper :: Bool -> Transaction -> TB.Builder
-showTransactionHelper onelineamounts t =
+showTransactionHelper :: Bool -> PostingLayout -> Transaction -> TB.Builder
+showTransactionHelper onelineamounts layout t =
       TB.fromText descriptionline <> newline
     <> foldMap ((<> newline) . TB.fromText) newlinecomments
-    <> foldMap ((<> newline) . TB.fromText) (postingsAsLines defaultFmt onelineamounts $ tpostings t)
+    <> foldMap ((<> newline) . TB.fromText) (postingsAsLinesWithLayout defaultFmt onelineamounts layout $ tpostings t)
     <> newline
   where
     descriptionline = T.stripEnd $ showTransactionLineFirstPart t <> T.concat [desc, samelinecomment]
@@ -547,7 +553,7 @@ tests_Transaction =
   testGroup "Transaction" [
 
       testGroup "showPostingLines" [
-          testCase "null posting" $ showPostingLines nullposting @?= ["                   0"]
+          testCase "null posting" $ showPostingLines nullposting @?= ["                                                   0"]
         , testCase "non-null posting" $
            let p =
                 posting
@@ -559,10 +565,10 @@ tests_Transaction =
                   , ptags = [("ptag1", "val1"), ("ptag2", "val2")]
                   }
            in showPostingLines p @?=
-              [ "    * a         $1.00  ; pcomment1"
+              [ "    * a                                           $1.00  ; pcomment1"
               , "    ; pcomment2"
               , "    ;   tag3: val3  "
-              , "    * a         2.00h  ; pcomment1"
+              , "    * a                                            2.00h  ; pcomment1"
               , "    ; pcomment2"
               , "    ;   tag3: val3  "
               ]
@@ -586,26 +592,26 @@ tests_Transaction =
       in testGroup "postingsAsLines" [
               testCase "null-transaction" $ postingsAsLines defaultFmt False (tpostings nulltransaction) @?= []
             , testCase "implicit-amount" $ postingsAsLines defaultFmt False (tpostings timp) @?=
-                  [ "    a           $1.00"
+                  [ "    a                                             $1.00"
                   , "    b" -- implicit amount remains implicit
                   ]
             , testCase "explicit-amounts" $ postingsAsLines defaultFmt False (tpostings texp) @?=
-                  [ "    a           $1.00"
-                  , "    b          $-1.00"
+                  [ "    a                                             $1.00"
+                  , "    b                                            $-1.00"
                   ]
             , testCase "one-explicit-amount" $ postingsAsLines defaultFmt False (tpostings texp1) @?=
-                  [ "    (a)           $1.00"
+                  [ "    (a)                                           $1.00"
                   ]
             , testCase "explicit-amounts-two-commodities" $ postingsAsLines defaultFmt False (tpostings texp2) @?=
-                  [ "    a             $1.00"
-                  , "    b    -1.00h @ $1.00"
+                  [ "    a                                             $1.00"
+                  , "    b                                             -1.00h @ $1.00"
                   ]
             , testCase "explicit-amounts-not-explicitly-balanced" $ postingsAsLines defaultFmt False (tpostings texp2b) @?=
-                  [ "    a           $1.00"
-                  , "    b          -1.00h"
+                  [ "    a                                             $1.00"
+                  , "    b                                             -1.00h"
                   ]
             , testCase "implicit-amount-not-last" $ postingsAsLines defaultFmt False (tpostings t3) @?=
-                  ["    a           $1.00", "    b", "    c          $-1.00"]
+                  ["    a                                             $1.00", "    b", "    c                                            $-1.00"]
             -- , testCase "ensure-visibly-balanced" $
             --    in postingsAsLines False (tpostings t4) @?=
             --       ["    a          $-0.01", "    b           $0.005", "    c           $0.005"]
@@ -637,9 +643,9 @@ tests_Transaction =
           T.unlines
             [ "2012-05-14=2012-05-15 (code) desc  ; tcomment1"
             , "    ; tcomment2"
-            , "    * a         $1.00"
+            , "    * a                                           $1.00"
             , "    ; pcomment2"
-            , "    * a         2.00h"
+            , "    * a                                            2.00h"
             , "    ; pcomment2"
             , ""
             ]
@@ -662,8 +668,8 @@ tests_Transaction =
             in showTransaction t) @?=
           (T.unlines
              [ "2007-01-28 coopportunity"
-             , "    expenses:food:groceries          $47.18"
-             , "    assets:checking                 $-47.18"
+             , "    expenses:food:groceries                      $47.18"
+             , "    assets:checking                             $-47.18"
              , ""
              ])
         , testCase "show an unbalanced transaction, should not elide" $
@@ -685,8 +691,8 @@ tests_Transaction =
                 ])) @?=
           (T.unlines
              [ "2007-01-28 coopportunity"
-             , "    expenses:food:groceries          $47.18"
-             , "    assets:checking                 $-47.19"
+             , "    expenses:food:groceries                      $47.18"
+             , "    assets:checking                             $-47.19"
              , ""
              ])
         , testCase "show a transaction with one posting and a missing amount" $
@@ -722,6 +728,6 @@ tests_Transaction =
                 [ posting {paccount = "a", pamount = mixedAmount $ num 1 `at` (usd 2 `withPrecision` Precision 0)}
                 , posting {paccount = "b", pamount = missingmixedamt}
                 ])) @?=
-          (T.unlines ["2010-01-01 x", "    a          1 @ $2", "    b", ""])
+          (T.unlines ["2010-01-01 x", "    a                                              1 @ $2", "    b", ""])
         ]
     ]

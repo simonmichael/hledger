@@ -54,3 +54,61 @@ $ hledger -f- print --invert -x
 
 >=
 
+# ** 5. By default, posting amounts are aligned on their decimal marks at column 53.
+<
+2024-01-01
+  expenses:groceries:walmart      $10.00
+  assets:checking                $-10.00
+
+$ hledger -f- print
+2024-01-01
+    expenses:groceries:walmart                   $10.00
+    assets:checking                             $-10.00
+
+>=
+
+# ** 6. --layout=COL aligns decimals at column COL, but auto-shifts amounts further right
+# if needed to preserve 2+ spaces between accounts and amounts.
+# The first transaction below aligns at column 20, the second auto-shifts past column 20. 
+<
+2024-01-01
+  a    $1.00
+  b   $-1.00
+
+2024-01-02
+  expenses:groceries:walmart      $10.00
+  assets:checking                $-10.00
+
+$ hledger -f- print --layout=20
+2024-01-01
+    a            $1.00
+    b           $-1.00
+
+2024-01-02
+    expenses:groceries:walmart   $10.00
+    assets:checking             $-10.00
+
+>=
+
+# ** 7. --layout=hledger1 restores the right-aligned amount layout used in hledger 1.
+# The alignment position varies between transactions.
+<
+2024-01-01
+  expenses:groceries:walmart      $10.00
+  assets:checking                $-10.00
+
+2024-01-02
+  a    $1.00
+  b   $-1.00
+
+$ hledger -f- print --layout=hledger1
+2024-01-01
+    expenses:groceries:walmart          $10.00
+    assets:checking                    $-10.00
+
+2024-01-02
+    a           $1.00
+    b          $-1.00
+
+>=
+
