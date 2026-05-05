@@ -115,14 +115,15 @@ account revenue:gains  ; type: G
 2026-11-01 sell using auto selection and inferred gain amount
     assets:broker       -4.9 ETSY {} @ $90
     assets:cash       $441
-    revenue:gains
+    revenue:gains     $-50
+    ; a balancing unrealised-gain posting is inferred here
 
 ; 3f. Sell without writing a gain posting — it is added automatically,
 ; using the first account of Gain type, otherwise revenue:gains.
 2026-12-01 sell, with inferred gain posting
     assets:broker2      -4.9 ETSY {} @ $90
     assets:cash       $441
-    ; gains posting is inferred here
+    ; both gains postings are inferred here
 
 ; ============================================================================
 ; ** 4. REVENUE & EXPENSES - lotful commodities in income/expense accounts
