@@ -33,8 +33,8 @@ $ hledger -f- print
    b
 $ hledger -f- print --explicit
 2010-04-05 x
-    a     10 "DE 0002 635307"
-    b    -10 "DE 0002 635307"
+    a                                             10 "DE 0002 635307"
+    b                                            -10 "DE 0002 635307"
 
 >=
 
@@ -54,9 +54,9 @@ $ hledger -f- balance
 
 $ hledger -f- print -x
 2016-01-01
-    saving-card                   $-105
-    snacks               95 EUR @@ $100
-    Equity:Unbalanced                $5
+    saving-card                                $-105
+    snacks                                        95 EUR @@ $100
+    Equity:Unbalanced                             $5
 
 >=
 
@@ -189,10 +189,10 @@ $ hledger -f- bal a
 
 $ hledger -f - print
 2020-01-01
-    (a)          1.00 $
+    (a)                                            1.00 $
 
 2020-01-02
-    (b)          2.00 $
+    (b)                                            2.00 $
 
 >=
 
@@ -206,8 +206,8 @@ commodity A 1.
   (a)   1.122A = 1.123A
 $ hledger -f - print
 2021-01-01
-    (a)         A 0.001
-    (a)         A 1.122 = A 1.123
+    (a)                                          A 0.001
+    (a)                                          A 1.122 = A 1.123
 
 >=
 
@@ -240,7 +240,7 @@ $ hledger -f- print cur:A1 amt:2
 
 $ hledger -f- print cur:A amt:12
 2021-01-01
-    (a)           A1 2.
+    (a)                                         A1 2.
 
 >=
 
@@ -252,7 +252,7 @@ $ hledger -f- print cur:A amt:12
 
 $ hledger -f- print cur:A amt:12
 2021-01-01
-    (a)           1 2.A
+    (a)                                          1 2.A
 
 >=
 
@@ -266,7 +266,7 @@ $ hledger -f- print cur:A amt:12
 
 $ hledger -f- print cur:A amt:100
 2021-01-01
-    (a)            A100
+    (a)                                         A100
 
 >=
 
@@ -280,7 +280,7 @@ $ hledger -f- print cur:A amt:100
 
 $ hledger -f- print cur:e amt:100
 2021-01-01
-    (a)            100e
+    (a)                                          100e
 
 >=
 
@@ -293,7 +293,7 @@ $ hledger -f- print cur:e amt:100
 
 $ hledger -f- print cur: amt:1112
 2021-01-01
-    (a)          111 2.
+    (a)                                        111 2.
 
 >=
 
@@ -318,6 +318,6 @@ Transactions in a and subaccounts (matching query):
 # ** 25. #1625 (print)
 $ hledger -f- print -BV cur:A
 2021-01-01
-    (a)            10 B
+    (a)                                           10 B
 
 >=

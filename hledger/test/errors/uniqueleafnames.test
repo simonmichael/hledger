@@ -1,13 +1,18 @@
 $$$ hledger check uniqueleafnames -f uniqueleafnames.j
->>>2 /hledger: Error: .*uniqueleafnames.j:12:
-  \| 2022-01-01 p
-9 \|     \(a:c\)               1
+>>>2
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/uniqueleafnames.j:12:
+  | 2022-01-01 p
+9 |     (a:c)                                          1
  ...
-   \| 2022-01-01 p
-12 \|     \(b:c\)               1
-   \|        \^
+   | 2022-01-01 p
+12 |     (b:c)                                          1
+   |        ^
 
 Checking for unique account leaf names is enabled, and
 account leaf name "c" is not unique.
-It appears in these account names, which a/
+It appears in these account names, which are used in 2 places:
+a:c
+b:c
+
+Consider changing these account names so their last parts are different.
 >>>= 1

@@ -10,8 +10,8 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50
-    income:unknown            $-50
+    assets:myacct                                $50
+    income:unknown                              $-50
 
 >=0
 
@@ -30,12 +30,12 @@ currency $
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co🎅
-    Assets:MyAccount             $50
-    income:unknown              $-50
+    Assets:MyAccount                             $50
+    income:unknown                              $-50
 
 2009-09-11 Flubber Co🎅
-    Assets:MyAccount            $-50
-    expenses:unknown             $50
+    Assets:MyAccount                            $-50
+    expenses:unknown                             $50
 
 >=0
 
@@ -53,8 +53,8 @@ if Flubber
   comment cmt
 $  ./csvtest.sh
 2009-09-10 Flubber Co  ; cmt
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 >=0
 
@@ -70,8 +70,8 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50 = $123
-    income:unknown            $-50
+    assets:myacct                                $50 = $123
+    income:unknown                              $-50
 
 >=0
 
@@ -88,12 +88,12 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50 = $123
-    income:unknown            $-50
+    assets:myacct                                $50 = $123
+    income:unknown                              $-50
 
 2009-09-11 Blubber Co
-    assets:myacct              $60
-    income:unknown            $-60
+    assets:myacct                                $60
+    income:unknown                              $-60
 
 >=0
 
@@ -110,12 +110,12 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50 = $123
-    income:unknown            $-50
+    assets:myacct                                $50 = $123
+    income:unknown                              $-50
 
 2009-09-11 Blubber Co
-    assets:myacct              $60
-    income:unknown            $-60
+    assets:myacct                                $60
+    income:unknown                              $-60
 
 >=0
 
@@ -137,12 +137,12 @@ account1 liabilities:bank
 account2 expense:other
 $  ./csvtest.sh
 2009-10-09
-    liabilities:bank            $-50
-    expense:other                $50
+    liabilities:bank                            $-50
+    expense:other                                $50
 
 2009-11-09
-    liabilities:bank             $60
-    expense:other               $-60
+    liabilities:bank                             $60
+    expense:other                               $-60
 
 >=0
 
@@ -162,12 +162,12 @@ currency $
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co🎅
-    Assets:MyAccount             $50
-    income:unknown              $-50
+    Assets:MyAccount                             $50
+    income:unknown                              $-50
 
 2009-09-11 Flubber Co🎅
-    Assets:MyAccount            $-50
-    expenses:unknown             $50
+    Assets:MyAccount                            $-50
+    expenses:unknown                             $50
 
 >=0
 
@@ -183,8 +183,8 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50
-    income:unknown            $-50 = $123
+    assets:myacct                                $50
+    income:unknown                              $-50 = $123
 
 >=0
 
@@ -200,8 +200,8 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50 = $321
-    income:unknown            $-50 = $123
+    assets:myacct                                $50 = $321
+    income:unknown                              $-50 = $123
 
 >=0
 
@@ -220,9 +220,9 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50 = $321
-    income:unknown            $-50 = $123
-    expenses:tax            $0.234  ; VAT
+    assets:myacct                                $50 = $321
+    income:unknown                              $-50 = $123
+    expenses:tax                                  $0.234  ; VAT
     the:remainder
 
 >=0
@@ -241,9 +241,9 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50 = $321
-    income:unknown            $-50 = $123
-    expenses:tax            £0.234  ; VAT
+    assets:myacct                                $50 = $321
+    income:unknown                              $-50 = $123
+    expenses:tax                                  £0.234  ; VAT
     the:remainder
 
 >=0
@@ -263,12 +263,12 @@ currency $
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co🎅
-    Assets:MyAccount             $50
-    income:unknown              $-50
+    Assets:MyAccount                             $50
+    income:unknown                              $-50
 
 2009-09-11 Flubber Co🎅
-    Assets:MyAccount            $-50
-    expenses:unknown             $50
+    Assets:MyAccount                            $-50
+    expenses:unknown                             $50
 
 >=0
 
@@ -293,8 +293,8 @@ currency $
 account1 assets:myacct
 $  ./csvtest.sh
 2009-09-10 Flubber Co Co Co
-    assets:myacct              $50
-    income:unknown            $-50
+    assets:myacct                                $50
+    income:unknown                              $-50
 
 >=0
 
@@ -312,8 +312,8 @@ if Flubber
    amount-in  (%amount-in)
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct               $-50
-    expenses:unknown             $50
+    assets:myacct                               $-50
+    expenses:unknown                             $50
 
 >=0
 
@@ -328,8 +328,8 @@ account1 assets:%(accttype)checking
 account2 income
 $  ./csvtest.sh
 2024-01-01
-    assets:savingschecking              42
-    income                             -42
+    assets:savingschecking                        42
+    income                                       -42
 
 >=0
 
@@ -352,9 +352,9 @@ date-format %m/%d/%Y
 description %description for %itemtitle 
 $  ./csvtest.sh
 2018-12-22 (123456789) Someone for Joyful Systems
-    sm:assets:online:paypal              $9.41 = $57.60
+    sm:assets:online:paypal                       $9.41 = $57.60
     sm:expenses:unknown
-    JS:expenses:banking:paypal          $-0.59
+    JS:expenses:banking:paypal                   $-0.59
 
 >=0
 
@@ -401,12 +401,12 @@ if MIDDLE
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50
-    income:unknown            $-50
+    assets:myacct                                $50
+    income:unknown                              $-50
 
 2009-09-10 Flubber Co
-    assets:myacct              $50
-    income:unknown            $-50
+    assets:myacct                                $50
+    income:unknown                              $-50
 
 >=0
 
@@ -425,15 +425,15 @@ account1 assets
 account2 income
 $  ./csvtest.sh
 2018-10-15 Assets Update
-    assets                 = EUR 100
+    assets                                           = EUR 100
     income
 
 2018-10-16 Assets Update
-    assets                 = EUR 200
+    assets                                           = EUR 200
     income
 
 2018-10-17 Assets Update
-    assets                 = EUR 300
+    assets                                           = EUR 300
     income
 
 >=0
@@ -483,12 +483,12 @@ if ,Empty fee
 
 $  ./csvtest.sh
 2018-12-22 (123456789) Someone for Joyful Systems
-    sm:assets:online:paypal              $9.41 = $57.60
+    sm:assets:online:paypal                       $9.41 = $57.60
     sm:expenses:unknown
-    JS:expenses:banking:paypal          $-0.59
+    JS:expenses:banking:paypal                   $-0.59
 
 2018-12-22 (10101010101) Someone for Joyful Systems
-    sm:assets:online:paypal           $7.77 = $88.66
+    sm:assets:online:paypal                       $7.77 = $88.66
     sm:expenses:unknown
 
 >=0
@@ -506,8 +506,8 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50 ==* $123
-    income:unknown            $-50
+    assets:myacct                                $50 ==* $123
+    income:unknown                              $-50
 
 >=0
 
@@ -523,7 +523,7 @@ account1 (assets:myacct)
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    (assets:myacct)             $50 = $123
+    (assets:myacct)                              $50 = $123
 
 >=0
 
@@ -540,8 +540,8 @@ account2 [assets:another-acct]
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    [assets:myacct]                   $50
-    [assets:another-acct]            $-50
+    [assets:myacct]                              $50
+    [assets:another-acct]                       $-50
 
 >=0
 
@@ -557,7 +557,7 @@ separator TAB
 
 $  ./csvtest.sh
 2009-10-01 Flubber Co
-    (assets:myacct)             $50 = $123
+    (assets:myacct)                              $50 = $123
 
 >=0
 
@@ -572,8 +572,8 @@ account2 expenses:unknown
 
 $  ./csvtest.sh
 2020-01-01
-    a                              5
-    expenses:unknown              -5
+    a                                              5
+    expenses:unknown                              -5
 
 >=0
 
@@ -599,8 +599,8 @@ RULES
 fields date, amount, 
 $  ./csvtest.sh
 2020-01-01
-    expenses:unknown               1
-    income:unknown                -1
+    expenses:unknown                               1
+    income:unknown                                -1
 
 >=0
 
@@ -612,8 +612,8 @@ RULES
 fields date, amount, account1
 $  ./csvtest.sh
 2020-01-01
-    a                            1
-    income:unknown              -1
+    a                                              1
+    income:unknown                                -1
 
 >=0
 
@@ -625,8 +625,8 @@ fields date, amount, account1
 account2 expenses:unknown
 $  ./csvtest.sh
 2020-01-01
-    a                              1
-    expenses:unknown              -1
+    a                                              1
+    expenses:unknown                              -1
 
 >=0
 
@@ -638,7 +638,7 @@ fields date, amount1
 account2 b
 $  ./csvtest.sh
 2020-01-01
-    expenses:unknown               1
+    expenses:unknown                               1
     b
 
 >=0
@@ -652,7 +652,7 @@ account1 a
 $  ./csvtest.sh
 2020-01-01
     a
-    expenses:unknown               1
+    expenses:unknown                               1
 
 >=0
 
@@ -664,8 +664,8 @@ fields date, amt
 amount  %amt @@ 1 EUR
 $  ./csvtest.sh
 2020-01-01
-    expenses:unknown      1 @@ 1 EUR
-    income:unknown            -1 EUR
+    expenses:unknown                               1 @@ 1 EUR
+    income:unknown                                -1 EUR
 
 >=0
 
@@ -677,8 +677,8 @@ RULES
 fields date, amount-out, amount2
 $  ./csvtest.sh
 2020-01-01
-    income:unknown                -1
-    expenses:unknown               1
+    income:unknown                                -1
+    expenses:unknown                               1
 
 >=0
 
@@ -695,8 +695,8 @@ if,account2,comment
 Flubber,acct,cmt
 $  ./csvtest.sh
 2009-09-10 Flubber Co  ; cmt
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 >=0
 
@@ -719,12 +719,12 @@ Blubber
   comment     cmt2
 $  ./csvtest.sh
 2009-09-10 Flubber Co  ; cmt
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 2009-09-10 Blubber Co  ; cmt2
-    assets:myacct            $150
-    acct2                   $-150
+    assets:myacct                               $150
+    acct2                                      $-150
 
 >=0
 
@@ -743,12 +743,12 @@ Flubber,acct,
 Blubber,acct2,
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 2009-09-10 Blubber Co
-    assets:myacct            $150
-    acct2                   $-150
+    assets:myacct                               $150
+    acct2                                      $-150
 
 >=0
 
@@ -767,12 +767,12 @@ if|account2|comment
 %amount 150|acct2|cmt2
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 2009-09-10 Blubber Co  ; cmt2
-    assets:myacct            $150
-    acct2                   $-150
+    assets:myacct                               $150
+    acct2                                      $-150
 
 >=0
 
@@ -867,8 +867,8 @@ if 10/2009/09.*Flubber
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co  ; cmt
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 >=0
 
@@ -911,12 +911,12 @@ if Flubber
   account2 acct
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 2009-09-10 Blubber Co
-    assets:myacct              $50
-    income:unknown            $-50
+    assets:myacct                                $50
+    income:unknown                              $-50
 
 >=0
 
@@ -935,12 +935,12 @@ if Flubber
   account2 acct
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct              $50
-    income:unknown            $-50
+    assets:myacct                                $50
+    income:unknown                              $-50
 
 2009-09-10 Blubber Co
-    assets:myacct              $50
-    income:unknown            $-50
+    assets:myacct                                $50
+    income:unknown                              $-50
 
 >=0
 
@@ -956,12 +956,12 @@ decimal-mark .
 
 $  ./csvtest.sh
 2020-01-01
-    expenses:unknown          1,000.
-    income:unknown           -1,000.
+    expenses:unknown                           1,000.
+    income:unknown                            -1,000.
 
 2020-01-02
-    expenses:unknown           1.000
-    income:unknown            -1.000
+    expenses:unknown                               1.000
+    income:unknown                                -1.000
 
 >=
 
@@ -977,12 +977,12 @@ decimal-mark ,
 
 $  ./csvtest.sh
 2020-01-01
-    expenses:unknown           1,000
-    income:unknown            -1,000
+    expenses:unknown                               1,000
+    income:unknown                                -1,000
 
 2020-01-02
-    expenses:unknown          1.000,
-    income:unknown           -1.000,
+    expenses:unknown                           1.000,
+    income:unknown                            -1.000,
 
 >=
 
@@ -995,8 +995,8 @@ fields date,amount
 
 $  ./csvtest.sh --alias expenses=FOO
 2020-01-01
-    FOO:unknown                 10
-    income:unknown             -10
+    FOO:unknown                                   10
+    income:unknown                               -10
 
 >=
 
@@ -1015,24 +1015,24 @@ account1 assets:myacct
 
 $  ./csvtest.sh
 2009-09-10
-    assets:myacct              $20
-    income:unknown            $-20
+    assets:myacct                                $20
+    income:unknown                              $-20
 
 2009-09-10
-    assets:myacct              $30
-    income:unknown            $-30
+    assets:myacct                                $30
+    income:unknown                              $-30
 
 2009-09-10
-    assets:myacct                -40
-    expenses:unknown              40
+    assets:myacct                                -40
+    expenses:unknown                              40
 
 2009-09-10
-    assets:myacct               $-50
-    expenses:unknown             $50
+    assets:myacct                               $-50
+    expenses:unknown                             $50
 
 2009-09-10
-    assets:myacct               $-60
-    expenses:unknown             $60
+    assets:myacct                               $-60
+    expenses:unknown                             $60
 
 >=0
 
@@ -1049,8 +1049,8 @@ account1 assets:bank:checking
 
 $  ./csvtest.sh
 2020-01-21 Client card point of sale fee
-    assets:bank:checking              $0 = $1068.94
-    expenses:unknown                  $0
+    assets:bank:checking                          $0 = $1068.94
+    expenses:unknown                              $0
 
 >=0
 
@@ -1067,8 +1067,8 @@ code         %unicöde
 
 $  ./csvtest.sh
 2019-11-12 (123) Foo
-    expenses:unknown           10.23
-    income:unknown            -10.23
+    expenses:unknown                              10.23
+    income:unknown                               -10.23
 
 >=0
 
@@ -1118,8 +1118,8 @@ skip 2
 fields date, amount
 $  ./csvtest.sh
 2023-01-01
-    expenses:unknown               1
-    income:unknown                -1
+    expenses:unknown                               1
+    income:unknown                                -1
 
 >=
 
@@ -1147,7 +1147,7 @@ if %desc 1
 $  ./csvtest.sh tag:ttag2
 2020-01-01  ; ttag:tval
     ; ttag2:
-    a                  ; ptag:pval
+    a                                                 ; ptag:pval
     ; date:2022-02-02
 
 >=
@@ -1156,7 +1156,7 @@ $  ./csvtest.sh tag:ttag2
 $  ./csvtest.sh tag:date
 2020-01-01  ; ttag:tval
     ; ttag2:
-    a                  ; ptag:pval
+    a                                                 ; ptag:pval
     ; date:2022-02-02
 
 >=
@@ -1171,7 +1171,7 @@ comment \n %amount
 $  ./csvtest.sh
 2023-01-01
     ;  1
-    (a)               1
+    (a)                                            1
 
 >=
 
@@ -1183,8 +1183,8 @@ fields date, description, , amount
 date-format %d/%m/%Y
 $  ./ssvtest.sh
 2019-11-12 Foo
-    expenses:unknown           10.23
-    income:unknown            -10.23
+    expenses:unknown                              10.23
+    income:unknown                               -10.23
 
 >=
 
@@ -1206,12 +1206,12 @@ if|account2|comment
 ; commented out: %description Flubber|acct3|
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct             $50
-    acct                     $-50
+    assets:myacct                                $50
+    acct                                        $-50
 
 2009-09-10 Blubber Co  ; cmt2
-    assets:myacct            $150
-    acct2                   $-150
+    assets:myacct                               $150
+    acct2                                      $-150
 
 >=0
 
@@ -1228,8 +1228,8 @@ if
 
 $  ./csvtest.sh
 2025-01-01 STOP & SHOP
-    expenses:food              100
-    income:unknown            -100
+    expenses:food                                100
+    income:unknown                              -100
 
 >=
 

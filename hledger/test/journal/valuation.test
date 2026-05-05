@@ -114,7 +114,7 @@ P 2000/1/1 $ €1.20
 
 $ hledger -f- print -V
 2000-01-01
-    (a)            €120 = $100
+    (a)                                         €120 = $100
 
 >=0
 
@@ -142,36 +142,36 @@ P 3000/01/01 A  9 B
 # ** 9. print costs using transaction prices
 $ hledger -f- print --value=cost
 2000-01-01
-    (a)             6 B
+    (a)                                            6 B
 
 2000-02-01
-    (a)             7 B
+    (a)                                            7 B
 
 2000-03-01
-    (a)             8 B
+    (a)                                            8 B
 
 >=0
 
 # ** 10. print value using market prices on each transaction's (posting's) date
 $ hledger -f- print --value=then
 2000-01-01
-    (a)             1 B
+    (a)                                            1 B
 
 2000-02-01
-    (a)             2 B
+    (a)                                            2 B
 
 2000-03-01
-    (a)             3 B
+    (a)                                            3 B
 
 >=0
 
 # ** 11. print value using prices on last day of report period (2000-02-29)
 $ hledger -f- print --value=end date:2000/01-2000/03
 2000-01-01
-    (a)             2 B
+    (a)                                            2 B
 
 2000-02-01
-    (a)             2 B
+    (a)                                            2 B
 
 >=0
 
@@ -179,26 +179,26 @@ $ hledger -f- print --value=end date:2000/01-2000/03
 # specified - uses last day of journal, noting that price directives are included (2000-04-01)
 $ hledger -f- print --value=end
 2000-01-01
-    (a)             4 B
+    (a)                                            4 B
 
 2000-02-01
-    (a)             4 B
+    (a)                                            4 B
 
 2000-03-01
-    (a)             4 B
+    (a)                                            4 B
 
 >=0
 
 # ** 13. print value using prices on a specified date
 $ hledger -f- print --value=2000-01-15
 2000-01-01
-    (a)             5 B
+    (a)                                            5 B
 
 2000-02-01
-    (a)             5 B
+    (a)                                            5 B
 
 2000-03-01
-    (a)             5 B
+    (a)                                            5 B
 
 >=0
 
@@ -206,13 +206,13 @@ $ hledger -f- print --value=2000-01-15
 # (assuming today's date is >= 2000-04-01)
 $ hledger -f- print --value=now
 2000-01-01
-    (a)             4 B
+    (a)                                            4 B
 
 2000-02-01
-    (a)             4 B
+    (a)                                            4 B
 
 2000-03-01
-    (a)             4 B
+    (a)                                            4 B
 
 >=0
 
@@ -220,13 +220,13 @@ $ hledger -f- print --value=now
 # txn dates and market price dates, excluding future market prices in the future.
 $ hledger -f- print -V --today=2025-09-01
 2000-01-01
-    (a)             4 B
+    (a)                                            4 B
 
 2000-02-01
-    (a)             4 B
+    (a)                                            4 B
 
 2000-03-01
-    (a)             4 B
+    (a)                                            4 B
 
 >=0
 
@@ -662,7 +662,7 @@ P 2020-01-01 B 1 C
 
 $ hledger -f- print -V
 2020-01-01
-    a             1 C
-    b            -1 C
+    a                                              1 C
+    b                                             -1 C
 
 >=0

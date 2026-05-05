@@ -37,8 +37,8 @@ $ hledger -f- register -w80 type:A
 # ** 5. We can match transactions by their accounts' types.
 $ hledger -f- print type:A
 2022-01-02
-    (a)               1
-    (l)               1
+    (a)                                            1
+    (l)                                            1
 
 >=
 

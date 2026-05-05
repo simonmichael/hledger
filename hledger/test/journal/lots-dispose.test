@@ -14,12 +14,12 @@
 
 $ hledger -f- print --verbose-tags
 2026-01-01 Buy stock
-    assets:broker    5 AAPL {$100} @ $100  ; ptype: acquire
+    assets:broker                                  5 AAPL {$100} @ $100  ; ptype: acquire
     assets:cash
 
 2026-01-02 Sell stock
-    assets:broker    -5 AAPL {$100} @ $100  ; ptype: dispose
-    assets:cash                       $500
+    assets:broker                                 -5 AAPL {$100} @ $100  ; ptype: dispose
+    assets:cash                                 $500
 
 >=
 
@@ -142,14 +142,14 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print --lots
 2026-01-15 buy
-    assets:stocks:{2026-01-15, $50}    10 AAPL {} @ $50
+    assets:stocks:{2026-01-15, $50}               10 AAPL {} @ $50
     assets:checking
 
 2026-02-01 sell
-    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
-    assets:cash                                                   $300
-    revenue:gains                                                 $-50
-    equity:unrealised-gain                                         $50
+    assets:stocks:{2026-01-15, $50}               -5 AAPL {2026-01-15, $50} @ $60
+    assets:cash                                 $300
+    revenue:gains                               $-50
+    equity:unrealised-gain                       $50
 
 >=
 
@@ -190,11 +190,11 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print --lots -x desc:sell
 2026-03-01 sell some
-    assets:stocks:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50} @ $60
-    assets:stocks:{2026-02-01, $55}     -5 AAPL {2026-02-01, $55} @ $60
-    assets:cash                                                    $900
-    revenue:gains                                                 $-125
-    equity:unrealised-gain                                         $125
+    assets:stocks:{2026-01-15, $50}              -10 AAPL {2026-01-15, $50} @ $60
+    assets:stocks:{2026-02-01, $55}               -5 AAPL {2026-02-01, $55} @ $60
+    assets:cash                                 $900
+    revenue:gains                              $-125
+    equity:unrealised-gain                      $125
 
 >=
 
@@ -217,11 +217,11 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print --lots -x desc:sell
 2026-03-01 sell
-    assets:stocks:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50} @ $60
-    assets:stocks:{2026-02-01, $55}     -5 AAPL {2026-02-01, $55} @ $60
-    assets:cash                                                    $900
-    revenue:gains                                                 $-125
-    equity:unrealised-gain                                         $125
+    assets:stocks:{2026-01-15, $50}              -10 AAPL {2026-01-15, $50} @ $60
+    assets:stocks:{2026-02-01, $55}               -5 AAPL {2026-02-01, $55} @ $60
+    assets:cash                                 $900
+    revenue:gains                              $-125
+    equity:unrealised-gain                      $125
 
 >=
 
@@ -261,12 +261,12 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print --lots -x desc:sell
 2026-03-01 sell all
-    assets:stocks:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50} @ $70
-    assets:stocks:{2026-02-01, $60}    -10 AAPL {2026-02-01, $60} @ $70
-    assets:stocks                                                0 AAPL =* 0 AAPL
-    assets:cash                                                   $1400
-    revenue:gains                                                 $-300
-    equity:unrealised-gain                                         $300
+    assets:stocks:{2026-01-15, $50}              -10 AAPL {2026-01-15, $50} @ $70
+    assets:stocks:{2026-02-01, $60}              -10 AAPL {2026-02-01, $60} @ $70
+    assets:stocks                                  0 AAPL =* 0 AAPL
+    assets:cash                                $1400
+    revenue:gains                              $-300
+    equity:unrealised-gain                      $300
 
 >=
 
@@ -338,10 +338,10 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print --lots -x desc:sell
 2026-02-01 sell with explicit lot subaccount
-    assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $60
-    assets:cash                                                   $300
-    revenue:gains                                                 $-50
-    equity:unrealised-gain                                         $50
+    assets:stocks:{2026-01-15, $50}               -5 AAPL {2026-01-15, $50} @ $60
+    assets:cash                                 $300
+    revenue:gains                               $-50
+    equity:unrealised-gain                       $50
 
 >=
 
@@ -454,12 +454,12 @@ account equity:unrealised-gain    ; type:U
 
 $ hledger -f- print -x desc:transfer
 2026-03-09 transfer
-    assets:custodial:{2026-03-06, $1,980.78}                  -0.999601 ETH {2026-03-06, $1,980.78}
+    assets:custodial:{2026-03-06, $1,980.78}      -0.999601 ETH {2026-03-06, $1,980.78}
     assets:custodial:{2026-03-06, $1,980.78}      -0.000399 ETH {2026-03-06, $1,980.78} @ $1,992.36
-    assets:cold wallet:{2026-03-06, $1,980.78}                 0.999601 ETH {2026-03-06, $1,980.78}
-    expenses:fees:trading                                                  0.000399 ETH @ $1,992.36
-    income:gains                                                                       $-0.00462042
-    equity:unrealised-gain                                                              $0.00462042
+    assets:cold wallet:{2026-03-06, $1,980.78}     0.999601 ETH {2026-03-06, $1,980.78}
+    expenses:fees:trading                          0.000399 ETH @ $1,992.36
+    income:gains                                 $-0.00462042
+    equity:unrealised-gain                        $0.00462042
 
 >=
 
@@ -480,18 +480,18 @@ account income:capital  ; type:G
 
 $ hledger -f- print --lots --infer-equity
 2026-01-15 buy
-    assets:broker:{2026-01-15, $50}    10 AAPL {$50}
-    equity:conversion:$-AAPL:AAPL           -10 AAPL
+    assets:broker:{2026-01-15, $50}               10 AAPL {$50}
+    equity:conversion:$-AAPL:AAPL                -10 AAPL
     equity:conversion:$-AAPL:$                  $500
     assets:cash
 
 2026-02-15 sell
-    assets:cash                                        $600
-    assets:broker:{2026-01-15, $50}    -10 AAPL {$50} @ $60
-    equity:conversion:$-AAPL:AAPL                   10 AAPL
-    equity:conversion:$-AAPL:$                        $-600
-    income:capital                                    $-100
-    equity:unrealised-gain                             $100
+    assets:cash                                 $600
+    assets:broker:{2026-01-15, $50}              -10 AAPL {$50} @ $60
+    equity:conversion:$-AAPL:AAPL                 10 AAPL
+    equity:conversion:$-AAPL:$                 $-600
+    income:capital                             $-100
+    equity:unrealised-gain                      $100
 
 >=
 
@@ -504,10 +504,10 @@ $ hledger -f- print --lots --infer-equity
 
 $ hledger -f- print --infer-equity
 2017-04-09 buy
-    assets:fund                       9.216 FUND @ Rs1801.215277778
-    equity:conversion:FUND-Rs:FUND                      -9.216 FUND
-    equity:conversion:FUND-Rs:Rs                         Rs16600.00
-    assets:cash                                         Rs-16600.00
+    assets:fund                                    9.216 FUND @ Rs1801.215277778
+    equity:conversion:FUND-Rs:FUND                -9.216 FUND
+    equity:conversion:FUND-Rs:Rs             Rs16600.00
+    assets:cash                             Rs-16600.00
 
 >=
 

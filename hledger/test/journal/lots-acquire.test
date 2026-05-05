@@ -10,8 +10,8 @@
 
 $ hledger -f- print --verbose-tags
 2026-01-01 Buy stock
-    assets:broker    10 AAPL {$100}  ; ptype: acquire
-    assets:cash              $-1000
+    assets:broker                                 10 AAPL {$100}  ; ptype: acquire
+    assets:cash                               $-1000
 
 >=
 
@@ -23,8 +23,8 @@ $ hledger -f- print --verbose-tags
 
 $ hledger -f- print
 2026-01-04 Buy with @
-    assets:broker    10 AAPL @ $100
-    assets:cash              $-1000
+    assets:broker                                 10 AAPL @ $100
+    assets:cash                               $-1000
 
 >=
 
@@ -36,8 +36,8 @@ $ hledger -f- print
 
 $ hledger -f- print
 2026-01-05 Equity
-    equity:conversion    10 AAPL {$100}
-    assets:cash                  $-1000
+    equity:conversion                             10 AAPL {$100}
+    assets:cash                               $-1000
 
 >=
 
@@ -52,8 +52,8 @@ account assets:usdc  ; type: Cash
 
 $ hledger -f- print --verbose-tags
 2026-01-06 Buy USDC
-    assets:usdc    1000 USDC {$1}  ; ptype: acquire
-    assets:cash            $-1000
+    assets:usdc                                 1000 USDC {$1}  ; ptype: acquire
+    assets:cash                               $-1000
 
 >=
 
@@ -67,8 +67,8 @@ account assets:broker  ; lots:
 
 $ hledger -f- print --verbose-tags
 2026-01-07 Buy stock
-    assets:broker    10 AAPL {$100}  ; ptype: acquire
-    assets:cash              $-1000
+    assets:broker                                 10 AAPL {$100}  ; ptype: acquire
+    assets:cash                               $-1000
 
 >=
 
@@ -134,8 +134,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --verbose-tags
 2026-01-15 buy
-    assets:stocks    10 AAPL @ $50  ; ptype: acquire
-    assets:cash              $-500
+    assets:stocks                                 10 AAPL @ $50  ; ptype: acquire
+    assets:cash                                $-500
 
 >=
 
@@ -160,8 +160,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --verbose-tags
 2026-01-15 buy
-    assets:stocks         10 AAPL  ; ptype: acquire
-    assets:cash             $-500
+    assets:stocks                                 10 AAPL  ; ptype: acquire
+    assets:cash                                $-500
 
 >=
 
@@ -184,8 +184,8 @@ $ hledger -f- bal assets:stocks --lots -N
 
 $ hledger -f- print
 2026-01-15 buy
-    assets:stocks    10 AAPL @ $50
-    assets:cash              $-500
+    assets:stocks                                 10 AAPL @ $50
+    assets:cash                                $-500
 
 >=
 
@@ -203,8 +203,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --verbose-tags date:2026-02-01
 2026-02-01 transfer
-    assets:old    -10 AAPL {$50}  ; ptype: transfer-from
-    assets:new           10 AAPL  ; ptype: transfer-to
+    assets:old                                   -10 AAPL {$50}  ; ptype: transfer-from
+    assets:new                                    10 AAPL  ; ptype: transfer-to
 
 >=
 
@@ -222,8 +222,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --verbose-tags date:2026-02-01
 2026-02-01 transfer
-    assets:old        -10 AAPL  ; ptype: transfer-from
-    assets:new         10 AAPL  ; ptype: transfer-to
+    assets:old                                   -10 AAPL  ; ptype: transfer-from
+    assets:new                                    10 AAPL  ; ptype: transfer-to
 
 >=
 
@@ -266,8 +266,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots -x
 2026-01-15 buy
-    assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50} @ $50
-    assets:cash                                                  $-500
+    assets:stocks:{2026-01-15, $50}               10 AAPL {2026-01-15, $50} @ $50
+    assets:cash                                $-500
 
 >=
 
@@ -281,8 +281,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots -x
 2026-01-15 buy
-    assets:stocks:{2026-01-15, $50}    10 AAPL {2026-01-15, $50} @ $50
-    assets:cash                                                  $-500
+    assets:stocks:{2026-01-15, $50}               10 AAPL {2026-01-15, $50} @ $50
+    assets:cash                                $-500
 
 >=
 
@@ -310,8 +310,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print -x
 2026-01-15 buy
-    assets:cash                                        $-600
-    assets:broker:{2026-01-15, $60}    10 AAPL {$60} @@ $600
+    assets:cash                                $-600
+    assets:broker:{2026-01-15, $60}               10 AAPL {$60} @@ $600
 
 >=
 
@@ -323,8 +323,8 @@ $ hledger -f- print -x
 
 $ hledger -f- print -x
 2026-01-15 buy
-    assets:cash                                      $-500
-    assets:broker:{2026-01-15, $50}    10 AAPL {$50} @ $50
+    assets:cash                                $-500
+    assets:broker:{2026-01-15, $50}               10 AAPL {$50} @ $50
 
 >=
 
@@ -336,7 +336,10 @@ $ hledger -f- print -x
     assets:cash     -$5000
 
 $ hledger -f- print --lots
-> /weird buy with basis typo/
+2026-01-01 weird buy with basis typo
+    assets:broker:{2026-01-01, $60}              100 AAPL {$60} @ $50
+    assets:cash                               $-5000
+
 >=
 
 # *** 25. But rejected by `hledger check basis`.

@@ -639,11 +639,23 @@ Budget performance in 2020Q1:
   (bbb)   10
 
 $ hledger -f- bal --budget=weekly -p 2021-01
-> /aaa/
+Budget performance in 2021-01:
+
+     ||         Jan 
+=====++=============
+ aaa || 0 [0% of 4] 
+-----++-------------
+     || 0 [0% of 4] 
 >=
 
 $ hledger -f- bal --budget=monthly -p 2021-01
-> !/aaa/
+Budget performance in 2021-01:
+
+     ||          Jan 
+=====++==============
+ bbb || 0 [0% of 10] 
+-----++--------------
+     || 0 [0% of 10] 
 >=
 
 # ** 35. Cumulative budget report.

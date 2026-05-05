@@ -7,10 +7,10 @@
     c         ; a euro and a dollar
 $ hledger -f - print --explicit
 2010-01-01
-    a           EUR 1  ; a euro
-    b           USD 1  ; a dollar
-    c          EUR -1  ; a euro and a dollar
-    c          USD -1  ; a euro and a dollar
+    a                                          EUR 1  ; a euro
+    b                                          USD 1  ; a dollar
+    c                                         EUR -1  ; a euro and a dollar
+    c                                         USD -1  ; a euro and a dollar
 
 >= 0
 
@@ -46,8 +46,8 @@ $ hledger -f - balance -N
   b
 $ hledger -f- print --explicit --empty
 2010-03-01 x
-    a    $0.00 @ 3EUR
-    b            0EUR
+    a                                             $0.00 @ 3EUR
+    b                                              0EUR
 
 >= 0
 

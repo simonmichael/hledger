@@ -14,8 +14,8 @@
 
 $ hledger -f- print --verbose-tags desc:Transfer
 2026-01-03 Transfer
-    assets:broker1    -10 AAPL {$100}  ; ptype: transfer-from
-    assets:broker2     10 AAPL {$100}  ; ptype: transfer-to
+    assets:broker1                               -10 AAPL {$100}  ; ptype: transfer-from
+    assets:broker2                                10 AAPL {$100}  ; ptype: transfer-to
 
 >=
 
@@ -68,12 +68,12 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --verbose-tags
 2026-01-15 buy
-    assets:broker1     10 AAPL {$50}  ; ptype: acquire
+    assets:broker1                                10 AAPL {$50}  ; ptype: acquire
     assets:checking
 
 2026-02-01 transfer
-    assets:broker1    -10 AAPL {$50}  ; ptype: transfer-from
-    assets:broker2           10 AAPL  ; ptype: transfer-to
+    assets:broker1                               -10 AAPL {$50}  ; ptype: transfer-from
+    assets:broker2                                10 AAPL  ; ptype: transfer-to
 
 >=
 
@@ -91,12 +91,12 @@ account assets:broker2  ; lots:
 
 $ hledger -f- print --verbose-tags
 2026-01-15 buy
-    assets:broker1     10 AAPL {$50}  ; ptype: acquire
+    assets:broker1                                10 AAPL {$50}  ; ptype: acquire
     assets:checking
 
 2026-02-01 transfer
-    assets:broker1    -10 AAPL {$50}  ; ptype: transfer-from
-    assets:broker2           10 AAPL  ; ptype: transfer-to
+    assets:broker1                               -10 AAPL {$50}  ; ptype: transfer-from
+    assets:broker2                                10 AAPL  ; ptype: transfer-to
 
 >=
 
@@ -191,10 +191,10 @@ commodity A  ; lots:
 
 $ hledger -f- print --verbose-tags date:2026-02-17
 2026-02-17 transfer with fee
-    assets:a                    -1 A {$100}  ; ptype: transfer-from
-    assets:b                     1 A {$100}  ; ptype: transfer-to
-    assets:a          -0.02 A {$100} @ $100  ; ptype: dispose
-    expenses:fees                        $2
+    assets:a                                      -1 A {$100}  ; ptype: transfer-from
+    assets:b                                       1 A {$100}  ; ptype: transfer-to
+    assets:a                                      -0.02 A {$100} @ $100  ; ptype: dispose
+    expenses:fees                                 $2
     revenues:gains
 
 >=
@@ -215,10 +215,10 @@ commodity A  ; lots:
 
 $ hledger -f- print --verbose-tags date:2026-02-17
 2026-02-17 reclassify with fee
-    assets:cc                -1 A  ; ptype: transfer-from
-    assets:cc                 1 A  ; ptype: transfer-to
-    assets:cc             -0.02 A  ; ptype: dispose
-    expenses:fees              $2
+    assets:cc                                     -1 A  ; ptype: transfer-from
+    assets:cc                                      1 A  ; ptype: transfer-to
+    assets:cc                                     -0.02 A  ; ptype: dispose
+    expenses:fees                                 $2
 
 >=
 
@@ -241,12 +241,12 @@ $ hledger -f- print --verbose-tags date:2026-02-17
 
 $ hledger -f- print --lots -x desc:transfer
 2026-03-01 transfer both lots
-    assets:broker1:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50}
-    assets:broker1:{2026-02-01, $60}    -10 AAPL {2026-02-01, $60}
-    assets:broker1                                          0 AAPL =* 0 AAPL
-    assets:broker2:{2026-01-15, $50}     10 AAPL {2026-01-15, $50}
-    assets:broker2:{2026-02-01, $60}     10 AAPL {2026-02-01, $60}
-    assets:broker2                                          0 AAPL =* 20 AAPL
+    assets:broker1:{2026-01-15, $50}             -10 AAPL {2026-01-15, $50}
+    assets:broker1:{2026-02-01, $60}             -10 AAPL {2026-02-01, $60}
+    assets:broker1                                 0 AAPL =* 0 AAPL
+    assets:broker2:{2026-01-15, $50}              10 AAPL {2026-01-15, $50}
+    assets:broker2:{2026-02-01, $60}              10 AAPL {2026-02-01, $60}
+    assets:broker2                                 0 AAPL =* 20 AAPL
 
 >=
 
@@ -264,8 +264,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print --lots -x desc:transfer
 2026-02-01 transfer with explicit lot subaccounts
-    assets:broker1:{2026-01-15, $50}    -10 AAPL {2026-01-15, $50}
-    assets:broker2:{2026-01-15, $50}     10 AAPL {2026-01-15, $50}
+    assets:broker1:{2026-01-15, $50}             -10 AAPL {2026-01-15, $50}
+    assets:broker2:{2026-01-15, $50}              10 AAPL {2026-01-15, $50}
 
 >=
 
@@ -345,8 +345,8 @@ commodity A  ; lots:
 
 $ hledger -f- print --lots -x desc:fee
 2026-02-17 pay fee
-    assets:x1:{2026-01-15, $100}    -0.001 A {2026-01-15, $100}
-    expenses:fees                                       0.001 A
+    assets:x1:{2026-01-15, $100}                  -0.001 A {2026-01-15, $100}
+    expenses:fees                                  0.001 A
 
 >=
 
@@ -382,10 +382,10 @@ commodity A  ; lots:
 
 $ hledger -f- print --lots -x desc:transfer
 2026-02-17 transfer with fee
-    assets:x1:{2026-01-15, $100}    -1.00 A {2026-01-15, $100}
-    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100}
-    expenses:fees                                       0.05 A
-    assets:x2:{2026-01-15, $100}     1.00 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -1.00 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100}
+    expenses:fees                                  0.05 A
+    assets:x2:{2026-01-15, $100}                   1.00 A {2026-01-15, $100}
 
 >=
 
@@ -472,12 +472,12 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print --lots -x desc:transfer
 2026-02-17 transfer with priced fee
-    assets:x1:{2026-01-15, $100}           -0.95 A {2026-01-15, $100}
-    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100} @ $150
-    expenses:fees                                       0.05 A @ $150
-    assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
-    revenue:gains                                               $-2.5
-    equity:unrealised-gain                                       $2.5
+    assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
+    expenses:fees                                  0.05 A @ $150
+    assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
+    revenue:gains                                $-2.5
+    equity:unrealised-gain                        $2.5
 
 >=
 
@@ -501,12 +501,12 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:transfer
 2026-02-17 transfer with priced fee
-    assets:x1                        -0.95 A
-    assets:x1                 -0.05 A @ $150
-    expenses:fees              0.05 A @ $150
-    assets:x2                         0.95 A
-    revenue:gains                      $-2.5
-    equity:unrealised-gain              $2.5
+    assets:x1                                     -0.95 A
+    assets:x1                                     -0.05 A @ $150
+    expenses:fees                                  0.05 A @ $150
+    assets:x2                                      0.95 A
+    revenue:gains                                $-2.5
+    equity:unrealised-gain                        $2.5
 
 >=
 
@@ -527,12 +527,12 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print --lots desc:transfer
 2026-02-17 transfer with priced fee
-    assets:x1:{2026-01-15, $100}           -0.95 A {2026-01-15, $100}
-    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100} @ $150
-    expenses:fees                                       0.05 A @ $150
-    assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
-    revenue:gains                                               $-2.5
-    equity:unrealised-gain                                       $2.5
+    assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
+    expenses:fees                                  0.05 A @ $150
+    assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
+    revenue:gains                                $-2.5
+    equity:unrealised-gain                        $2.5
 
 >=
 
@@ -556,11 +556,11 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print -x --lots desc:transfer
 2026-02-17 transfer with priced fee
-    assets:x1:{2026-01-15, $100}           -0.95 A {2026-01-15, $100}
-    assets:x1:{2026-01-15, $100}    -0.05 A {2026-01-15, $100} @ $150
-    expenses:fees                                       0.05 A @ $150
-    assets:x2:{2026-01-15, $100}            0.95 A {2026-01-15, $100}
-    revenue:gains                                              $-2.50
-    equity:unrealised-gain                                      $2.50
+    assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
+    expenses:fees                                  0.05 A @ $150
+    assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
+    revenue:gains                                $-2.50
+    equity:unrealised-gain                        $2.50
 
 >=

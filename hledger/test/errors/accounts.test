@@ -1,13 +1,13 @@
 $$$ hledger check accounts -f accounts.j
->>>2 /hledger: Error: .*accounts.j:4:
-  \| 2022-01-01
-4 \|     \(ß\)               1
-  \|      \^
+>>>2
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/accounts.j:4:
+  | 2022-01-01
+4 |     (ß)                                            1
+  |      ^
 
 Strict account checking is enabled, and
 account "ß" has not been declared.
 Consider adding an account directive. Examples:
 
 account ß
-/
 >>>= 1

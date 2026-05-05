@@ -19,40 +19,40 @@ comment
 # ** 1. normal unvalued output
 $ hledger -f- print -x
 2019-06-01
-    a             1 B
-    b            -1 B
+    a                                              1 B
+    b                                             -1 B
 
 >=
 
 # ** 2. current market value in default valuation commodity
 $ hledger -f- print -x -V
 2019-06-01
-    a            10 A
-    b           -10 A
+    a                                             10 A
+    b                                            -10 A
 
 >=
 
 # ** 3. same as above, but request commodity A explicitly
 $ hledger -f- print -x --value=now,A
 2019-06-01
-    a            10 A
-    b           -10 A
+    a                                             10 A
+    b                                            -10 A
 
 >=
 
 # ** 4. request commodity B - no effect
 $ hledger -f- print -x --value=now,B
 2019-06-01
-    a             1 B
-    b            -1 B
+    a                                              1 B
+    b                                             -1 B
 
 >=
 
 # ** 5. request commodity we don't have prices for - no effect
 $ hledger -f- print -x --value=now,Z
 2019-06-01
-    a             1 B
-    b            -1 B
+    a                                              1 B
+    b                                             -1 B
 
 >=
 
@@ -62,16 +62,16 @@ $ hledger -f- print -x --value=now,Z
 # (otherwise it would show C0).
 $ hledger -f- print -x --value=now,C
 2019-06-01
-    a            C0.5
-    b           C-0.5
+    a                                             C0.5
+    b                                            C-0.5
 
 >=
 
 # ** 7. request commodity D - chains B->A, A->D prices
 $ hledger -f- print -x --value=now,D
 2019-06-01
-    a          1000 D
-    b         -1000 D
+    a                                           1000 D
+    b                                          -1000 D
 
 >=
 
@@ -80,8 +80,8 @@ $ hledger -f- print -x --value=now,D
 # increased to show the decimal digits, but no more than 8.
 $ hledger -f- print -x --value=now,E
 2019-06-01
-    a     E333.33333333
-    b    E-333.33333333
+    a                                           E333.33333333
+    b                                          E-333.33333333
 
 >=
 
@@ -96,24 +96,24 @@ $ hledger -f- print -x --value=now,E
 
 $ hledger -f- print
 2000-01-01
-    a        -1A @ 1B
-    b              1B
+    a                                             -1A @ 1B
+    b                                              1B
 
 >=0
 
 # ** 10. Valuing in a commodity with no market price has no effect.
 $ hledger -f- print -XZ
 2000-01-01
-    a        -1A @ 1B
-    b              1B
+    a                                             -1A @ 1B
+    b                                              1B
 
 >=0
 
 # ** 11. -B converts to the transaction price's commodity.
 $ hledger -f- print -B
 2000-01-01
-    a             -1B
-    b              1B
+    a                                             -1B
+    b                                              1B
 
 >=0
 
@@ -121,8 +121,8 @@ $ hledger -f- print -B
 # (-B -XZ is equivalent to --cost --value=end,Z).
 $ hledger -f- print -B -XZ
 2000-01-01
-    a             -1B
-    b              1B
+    a                                             -1B
+    b                                              1B
 
 >=0
 
@@ -137,32 +137,32 @@ P 2000/1/1 A 1B
 # ** 13. 
 $ hledger -f- print
 2000-01-01
-    a        -1A @ 1B
-    b              1B
+    a                                             -1A @ 1B
+    b                                              1B
 
 >=0
 
 # ** 14. 
 $ hledger -f- print -XZ
 2000-01-01
-    a        -1A @ 1B
-    b              1B
+    a                                             -1A @ 1B
+    b                                              1B
 
 >=0
 
 # ** 15. 
 $ hledger -f- print -B
 2000-01-01
-    a             -1B
-    b              1B
+    a                                             -1B
+    b                                              1B
 
 >=0
 
 # ** 16. 
 $ hledger -f- print -B -XA
 2000-01-01
-    a             -1A
-    b              1A
+    a                                             -1A
+    b                                              1A
 
 >=0
 
@@ -353,6 +353,6 @@ P 2000-01-01 B  100.5 C
 
 $ hledger -f- print -X C
 2000-01-01
-    (a)        105525 C
+    (a)                                       105525 C
 
 >=

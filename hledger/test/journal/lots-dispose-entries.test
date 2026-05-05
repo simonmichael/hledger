@@ -19,10 +19,10 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    equity:opening:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
-    assets:cash                                        $275
-    revenue:gains                                      $-25  ; ptype: gain
-    equity:unrealised-gain                              $25  ; ptype: ugain, generated-posting:
+    equity:opening:{2026-01-01, $50}              -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -41,10 +41,10 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
-    assets:cash                                       $275
-    revenue:gains                                     $-25  ; ptype: gain
-    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -66,10 +66,10 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}         -5 AAPL  ; ptype: dispose
-    assets:cash                                $275
-    revenue:gains                              $-25  ; ptype: gain
-    equity:unrealised-gain                      $25  ; ptype: ugain, generated-posting:
+    assets:broker:{2026-01-01, $50}               -5 AAPL  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -89,7 +89,7 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL @ $55  ; ptype: dispose
+    assets:broker:{2026-01-01, $50}               -5 AAPL @ $55  ; ptype: dispose
     assets:cash                                 $275
     revenue:gains                               $-25  ; ptype: gain
     equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
@@ -112,7 +112,7 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50}  ; ptype: dispose
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50}  ; ptype: dispose
     assets:cash                                 $275
     revenue:gains                               $-25  ; ptype: gain
     equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
@@ -135,10 +135,10 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {} @ $55  ; ptype: dispose
-    assets:cash                                    $275
-    revenue:gains                                  $-25  ; ptype: gain
-    equity:unrealised-gain                          $25  ; ptype: ugain, generated-posting:
+    assets:broker:{2026-01-01, $50}               -5 AAPL {} @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -159,10 +159,10 @@ account capital gains  ; type: G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
-    assets:cash                                       $275
-    capital gains                                     $-25  ; ptype: gain
-    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    capital gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -182,10 +182,10 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @@ $275  ; ptype: dispose
-    assets:cash                                         $275
-    revenue:gains                                       $-25  ; ptype: gain
-    equity:unrealised-gain                               $25  ; ptype: ugain, generated-posting:
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @@ $275  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: gain
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -205,8 +205,8 @@ commodity AAPL  ; lots:
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $50  ; ptype: dispose
-    assets:cash                                       $250
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $50  ; ptype: dispose
+    assets:cash                                 $250
 
 >=
 
@@ -243,10 +243,10 @@ account revenue:gains  ; type: G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
-    assets:cash                                       $275
-    revenue:gains                                     $-25  ; ptype: rgain, generated-posting:
-    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -265,10 +265,10 @@ account revenue:gains  ; type:G
 
 $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $55  ; ptype: dispose
-    assets:cash                                       $275
-    revenue:gains                                     $-25  ; ptype: rgain, generated-posting:
-    equity:unrealised-gain                             $25  ; ptype: ugain, generated-posting:
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    revenue:gains                               $-25  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
 
@@ -284,8 +284,8 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 
 $ hledger -f- print desc:sell --lots
 2026-02-01 sell at cost
-    assets:broker:{2026-01-01, $50}    -5 AAPL {$50} @ $50
-    assets:cash                                       $250
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $50
+    assets:cash                                 $250
 
 >=
 

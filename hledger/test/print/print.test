@@ -7,7 +7,7 @@
 
 $ hledger -f- print
 2023-01-01
-    (a)       0 A @ 0 B == 0 A @ 0 B
+    (a)                                            0 A @ 0 B == 0 A @ 0 B
 
 >=
 
@@ -21,10 +21,10 @@ $ hledger -f- print
 
 $ hledger -f- print -x
 2023-01-01
-    a             0 A
-    b             0 B
-    z             0 A
-    z             0 B
+    a                                              0 A
+    b                                              0 B
+    z                                              0 A
+    z                                              0 B
 
 >=
 
@@ -35,7 +35,7 @@ $ hledger -f- print -x
 
 $ hledger -f- print --depth 1
 2023-01-01
-    A:AA             0 A
+    A:AA                                           0 A
 
 >=
 
@@ -48,9 +48,9 @@ $ hledger -f- print --depth 1
 
 $ hledger -f- print --invert -x
 2025-01-01
-    a      -1 A @ 2 B = -1 A @ 2 B
-    b             2 B = 2 B
-    c             0 C = 0
+    a                                             -1 A @ 2 B = -1 A @ 2 B
+    b                                              2 B = 2 B
+    c                                              0 C = 0
 
 >=
 

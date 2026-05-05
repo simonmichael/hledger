@@ -24,7 +24,7 @@
 $ hledger -f - print
 2009-01-01 x  ; transaction same line comment
     ; transaction new line comment
-    a               1  ; posting 1 same line comment
+    a                                              1  ; posting 1 same line comment
     ; posting 1 new line comment
     a
     ; posting 2 new line comment
