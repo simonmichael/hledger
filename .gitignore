@@ -114,7 +114,7 @@ old
 /hledger-lib/test/doctests
 /examples/edk-hledger-ui-mobile.gif
 /examples/tty-ui-1.gif
-/site/**
+/site/
 !/site/src/*.md
 /finance
 /examples/demo/
