@@ -41,7 +41,8 @@ mail lists are a choice these days, we don't use ours much
 
 ### Stars
 
-- [Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&rustledger/rustledger&Date), with Ledger and Beancount
+<!-- - [Github stars history](https://star-history.com/#simonmichael/hledger&ledger/ledger&beancount/beancount&rustledger/rustledger&Date), with Ledger and Beancount -->
+- [PTA apps github star history](https://www.star-history.com/?repos=simonmichael%2Fhledger%2Cledger%2Fledger%2Cbeancount%2Fbeancount%2Crustledger%2Frustledger%2Cad-si%2FTransity%2Choweyc%2Fledger%2Chrj%2Fabandon%2Czhang-accounting%2Fzhang%2Ctackler-ng%2Ftackler%2Csboehler%2Fknut&type=date&legend=top-left)
 
 - [All Github-starred Haskell projects](https://github.com/search?o=desc&q=language%3AHaskell++stars:>4000&ref=searchresults&s=stars&type=repositories) rank:
 
