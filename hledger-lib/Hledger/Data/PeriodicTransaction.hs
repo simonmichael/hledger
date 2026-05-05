@@ -85,91 +85,91 @@ instance Show PeriodicTransaction where
 -- >>> _ptgen "monthly from 2017/1 to 2017/4"
 -- 2017-01-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/4
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-02-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/4
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-03-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/4
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "monthly from 2017/1 to 2017/5"
 -- 2017-01-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-02-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-03-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-04-01
 --     ; generated-transaction: ~ monthly from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 2nd day of month from 2017/02 to 2017/04"
 -- 2017-02-02
 --     ; generated-transaction: ~ every 2nd day of month from 2017/02 to 2017/04
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-03-02
 --     ; generated-transaction: ~ every 2nd day of month from 2017/02 to 2017/04
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 30th day of month from 2017/1 to 2017/5"
 -- 2017-01-30
 --     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-02-28
 --     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-03-30
 --     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-04-30
 --     ; generated-transaction: ~ every 30th day of month from 2017/1 to 2017/5
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every 2nd Thursday of month from 2017/1 to 2017/4"
 -- 2017-01-12
 --     ; generated-transaction: ~ every 2nd Thursday of month from 2017/1 to 2017/4
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-02-09
 --     ; generated-transaction: ~ every 2nd Thursday of month from 2017/1 to 2017/4
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2017-03-09
 --     ; generated-transaction: ~ every 2nd Thursday of month from 2017/1 to 2017/4
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "every nov 29th from 2017 to 2019"
 -- 2017-11-29
 --     ; generated-transaction: ~ every nov 29th from 2017 to 2019
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2018-11-29
 --     ; generated-transaction: ~ every nov 29th from 2017 to 2019
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 --
 -- >>> _ptgen "2017/1"
 -- 2017-01-01
 --     ; generated-transaction: ~ 2017/1
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 --
 -- >>> let reportperiod="daily from 2018/01/03" in let (i,s) = parsePeriodExpr' nulldate reportperiod in runPeriodicTransaction True (nullperiodictransaction{ptperiodexpr=reportperiod, ptspan=s, ptinterval=i, ptpostings=["a" `post` usd 1]}) (DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 03))
@@ -180,21 +180,21 @@ instance Show PeriodicTransaction where
 -- >>> _ptgenspan "every 3 months from 2019-05" (DateSpan (Just $ Flex $ fromGregorian 2020 02 01) (Just $ Flex $ fromGregorian 2020 03 01))
 -- 2020-02-01
 --     ; generated-transaction: ~ every 3 months from 2019-05
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ Flex $ fromGregorian 2018 01 01) (Just $ Flex $ fromGregorian 2018 01 05))
 -- 2018-01-01
 --     ; generated-transaction: ~ every 3 days from 2018
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- 2018-01-04
 --     ; generated-transaction: ~ every 3 days from 2018
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 -- >>> _ptgenspan "every 3 days from 2018" (DateSpan (Just $ Flex $ fromGregorian 2018 01 02) (Just $ Flex $ fromGregorian 2018 01 05))
 -- 2018-01-04
 --     ; generated-transaction: ~ every 3 days from 2018
---     a           $1.00
+--     a                                             $1.00
 -- <BLANKLINE>
 
 runPeriodicTransaction :: Bool -> PeriodicTransaction -> DateSpan -> [Transaction]

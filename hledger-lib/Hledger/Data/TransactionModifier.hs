@@ -71,17 +71,17 @@ modifyTransactions atypes atags styles d verbosetags tmods ts = do
 -- >>> test = either putStr (T.putStr.showTransaction) . fmap ($ t) . transactionModifierToFunction (const Nothing) (const []) mempty nulldate True
 -- >>> test $ TransactionModifier "" ["pong" `tmpost` usd 2]
 -- 0000-01-01
---     ping           $1.00
---     pong           $2.00  ; generated-posting: =
+--     ping                                          $1.00
+--     pong                                          $2.00  ; generated-posting: =
 -- <BLANKLINE>
 -- >>> test $ TransactionModifier "miss" ["pong" `tmpost` usd 2]
 -- 0000-01-01
---     ping           $1.00
+--     ping                                          $1.00
 -- <BLANKLINE>
 -- >>> test $ TransactionModifier "ping" [("pong" `tmpost` nullamt{aquantity=3}){tmprIsMultiplier=True}]
 -- 0000-01-01
---     ping           $1.00
---     pong           $3.00  ; generated-posting: = ping
+--     ping                                          $1.00
+--     pong                                          $3.00  ; generated-posting: = ping
 -- <BLANKLINE>
 --
 transactionModifierToFunction :: (AccountName -> Maybe AccountType)
