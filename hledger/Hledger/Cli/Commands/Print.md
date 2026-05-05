@@ -76,16 +76,28 @@ to be split into multiple single-commodity postings,
 keeping the output parseable.
 
 
-### print alignment
+### print layout
 
-By default, amounts are aligned so that their decimal mark is at column 53 (or it would be if they had a decimal mark).
-In transactions with wide account names, all amounts shift further right if needed,
-to ensure at least 2 spaces between each account name and amount.
+By default, `print` aligns amounts so that their decimal mark is at column 53 (or would be if they had a decimal mark).
+If needed, it will shift a transaction's amounts further to the right to ensure at least 2 spaces between account names and amounts.
 
-This can be customised with `--layout`:
+You can customise this with `--layout`:
 
-- `--layout=COL`      — align so that decimal marks are at the specified column (a positive integer).
-- `--layout=hledger1` — align amounts as hledger 1 did: right-aligned within each transaction.
+- `--layout=COL`      — sets a different target column for the decimal mark
+- `--layout=hledger1` — uses hledger 1 layout: right-aligned within each transaction
+
+If you want to change the default, put something like this in `~/.hledger.conf`:
+```
+[print]
+--layout=hledger1
+```
+
+Other print-like commands (close, import, rewrite, add..) use print's default layout.
+But they don't have a --layout option for customisation, currently. 
+If you need that, you could pipe them through print. Eg:
+```
+hledger import *.rules --dry | hledger -I -f- print --layout 40
+```
 
 ### print amount style
 
