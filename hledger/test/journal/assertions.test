@@ -336,7 +336,6 @@ $ hledger -f- check
     (a)                 = 1A @ 2B
 
 $ hledger -f- print --explicit
->
 2019-01-01
     (a)         1A @ 2B = 1A @ 2B
 
@@ -396,7 +395,6 @@ $ hledger -f- print
   (a:b)  0 ==*  Y7
 
 $ hledger -f- print
->
 2019-01-01
     (a)                X1
     (a)                Y3
@@ -423,7 +421,6 @@ $ hledger -f- print
     (a)        ==* 1
 
 $ hledger -f- print -x
->
 2020-01-25
     (a:aa)               1
 

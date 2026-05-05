@@ -11,7 +11,6 @@
 
 # ** 1. One commodity. Zero accounts should be elided but the final total should not.
 $ hledger -f - balance
->
 --------------------
                    0  
 >=0
@@ -22,13 +21,11 @@ $ hledger -f - balance
 
 # ** 2. An uninteresting parent account (with same balance as its single subaccount) is elided by default, like ledger
 $ hledger -f - balance --no-total --tree
->
                    1  a:b
 >=0
 
 # ** 3. But not with --no-elide
 $ hledger -f - balance --no-total --tree --no-elide
->
                    1  a
                    1    b
 >=0

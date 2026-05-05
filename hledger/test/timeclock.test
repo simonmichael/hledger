@@ -34,7 +34,6 @@ i 2020/1/1 08:00 a
 
 $ hledger -f timeclock:- balance
 > /./
->=
 
 # ** 4. A time log not starting with a clock-in is an error.
 <

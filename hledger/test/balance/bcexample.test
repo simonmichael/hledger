@@ -2,7 +2,6 @@
 # changes should be noted and evaluated whether they improve things.
 
 $ hledger -f bcexample.journal bal -t -1 --color=always
->
              70.00 GLD
             17.00 ITOT
 489.957000000000 RGAGX
