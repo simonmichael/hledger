@@ -77,9 +77,13 @@ module Hledger.Data.Posting (
   showAccountName,
   renderCommentLines,
   showBalanceAssertion,
+  balanceAssertionOperatorB,
+  balanceAssertionAmountB,
   PostingLayout(..),
   defaultPostingLayout,
   defaultDecimalMarkColumn,
+  PostingWidths(..),
+  AmountCols(..),
   amountIntegerWidth,
   -- * misc.
   postingTransformAmount,
@@ -216,14 +220,28 @@ balassertParInc amt = Just $ nullassertion{baamount=amt, bainclusive=True}
 balassertTotInc :: Amount -> Maybe BalanceAssertion
 balassertTotInc amt = Just $ nullassertion{baamount=amt, batotal=True, bainclusive=True}
 
--- | Render a balance assertion, as the =[=][*] symbol and expected amount.
-showBalanceAssertion :: BalanceAssertion -> WideBuilder
-showBalanceAssertion ba =
-    singleton '=' <> eq <> ast <> singleton ' ' <> showAmountB def{displayZeroCommodity=True, displayForceDecimalMark=True} (baamount ba)
+-- | Render the balance-assertion operator glyph: \"=\", \"==\", \"=*\", or \"==*\".
+balanceAssertionOperatorB :: BalanceAssertion -> WideBuilder
+balanceAssertionOperatorB ba =
+    singleton '=' <> eq <> ast
   where
     eq  = if batotal ba     then singleton '=' else mempty
     ast = if bainclusive ba then singleton '*' else mempty
     singleton c = WideBuilder (TB.singleton c) 1
+
+-- | Render a balance assertion's expected amount, using the given AmountFormat.
+balanceAssertionAmountB :: AmountFormat -> BalanceAssertion -> WideBuilder
+balanceAssertionAmountB fmt = showAmountB fmt . baamount
+
+-- | Render a balance assertion, as the =[=][*] symbol and expected amount,
+-- separated by a single space. Used by the legacy hledger 1.x layout path;
+-- the decimal-aligned path renders the operator and amount separately so it
+-- can pad between them.
+showBalanceAssertion :: BalanceAssertion -> WideBuilder
+showBalanceAssertion ba =
+    balanceAssertionOperatorB ba
+    <> WideBuilder (TB.singleton ' ') 1
+    <> balanceAssertionAmountB def{displayZeroCommodity=True, displayForceDecimalMark=True} ba
 
 -- Get the original posting, if any.
 originalPosting :: Posting -> Posting
@@ -247,6 +265,53 @@ defaultDecimalMarkColumn = 53
 -- | Default posting layout: decimal-mark alignment at column 'defaultDecimalMarkColumn'.
 defaultPostingLayout :: PostingLayout
 defaultPostingLayout = LayoutDecimal defaultDecimalMarkColumn
+
+-- | Visible-character widths derived from one posting, for cross-posting
+-- alignment in 'postingsAsLinesDecimal'. All fields are independent of
+-- layout (decimalcol etc.), so they can be safely consumed inside the
+-- lazy knot that decides those columns.
+data PostingWidths = PostingWidths
+  { pwAcct     :: !Int
+    -- ^ Account-name visible width. Used to size the account/status field
+    --   so all postings' account names line up.
+  , pwLeft     :: !Int
+    -- ^ Main amount's integer-side width: characters from the start of the
+    --   rendered amount up to (but not including) the decimal mark.
+    --   Includes any L-side commodity prefix (e.g. \"$\") and sign.
+    --   Computed by 'amountIntegerWidth'. For a multi-commodity amount
+    --   rendered on multiple lines, this is the max across rows.
+    --   Used to position the decimal mark column.
+  , pwRight    :: !Int
+    -- ^ Main amount's post-decimal width: characters from the decimal mark
+    --   (inclusive) to the end of the rendered amount, including any cost
+    --   annotation (\"\@ 1.20 USD\") and any R-side commodity suffix.
+    --   Equivalent to @wbWidth wb - lw@ per amount row, taken as the max
+    --   across rows. Used to position the assertion @=@ column one space
+    --   past the rightmost amount.
+  , pwOperator   :: !Int
+    -- ^ Visible width of this posting's balance-assertion operator:
+    --   1 (@=@), 2 (@==@ or @=*@), 3 (@==*@), or 0 if the posting has no
+    --   @pbalanceassertion@. Used to position the assertion-amount column
+    --   one space past the widest operator.
+  , pwAsnLeft  :: !Int
+    -- ^ Assertion amount's integer-side width, computed via
+    --   'amountIntegerWidth' on @baamount@ with the same display options
+    --   used for the main amount. 0 if no assertion. Used to decimal-align
+    --   the assertion amounts.
+  }
+  deriving (Eq, Show)
+
+-- | The three target columns derived in the knot of 'postingsAsLinesDecimal'
+-- and consumed by 'postingAsLines' for aligning the main amount, the @=@ glyph,
+-- and the assertion amount. @acEquals@ and @acAssDecMark@ are 0 when no posting in
+-- the group has a balance assertion (in which case the renderer never
+-- consults them).
+data AmountCols = AmountCols
+  { acDecMark    :: !Int  -- ^ Column for the main amount's decimal mark.
+  , acEquals     :: !Int  -- ^ Column for the first @=@ of the balance assertion/assignment.
+  , acAssDecMark :: !Int  -- ^ Column for the assertion amount's decimal mark.
+  }
+  deriving (Eq, Show)
 
 -- | Visible width of the part of a rendered amount that appears before its
 -- (real or virtual) decimal mark — i.e. from the start of the amount through
@@ -292,14 +357,21 @@ postingStatusWidth p = case pstatus p of
 -- | Render a posting, at the appropriate width for aligning with
 -- its siblings if any. Used by the rewrite command.
 showPostingLines :: Posting -> [Text]
-showPostingLines p = first3 $ postingAsLines defaultFmt False False maxstatuswidth maxacctwidth decimalcol p
+showPostingLines p = fst $ postingAsLines defaultFmt False False maxstatuswidth maxacctwidth dc p
   where
     siblings = maybe [p] tpostings $ ptransaction p
-    linesWithWidths = map (postingAsLines defaultFmt False False maxstatuswidth maxacctwidth decimalcol) siblings
+    linesWithWidths = map (postingAsLines defaultFmt False False maxstatuswidth maxacctwidth dc) siblings
     maxstatuswidth = maximumBound 0 $ map postingStatusWidth siblings
-    maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
-    maxleftwidth = maximumBound 0 $ map third3 linesWithWidths
-    decimalcol   = max defaultDecimalMarkColumn (maxacctwidth + maxstatuswidth + 7 + maxleftwidth)
+    pws = map snd linesWithWidths
+    maxacctwidth   = maximumBound 0 $ map pwAcct    pws
+    maxleftwidth   = maximumBound 0 $ map pwLeft    pws
+    maxrightwidth  = maximumBound 0 $ map pwRight   pws
+    maxoperatorwidth = maximumBound 0 $ map pwOperator  pws
+    maxasnleftwidth = maximumBound 0 $ map pwAsnLeft pws
+    decimalcol    = max defaultDecimalMarkColumn (maxacctwidth + maxstatuswidth + 7 + maxleftwidth)
+    eqcol         = decimalcol + maxrightwidth + 1
+    asndecimalcol = eqcol + maxoperatorwidth + 1 + maxasnleftwidth
+    dc = AmountCols decimalcol eqcol asndecimalcol
 
 -- | Render a transaction's postings as indented lines, suitable for `print` output,
 -- using the default posting layout (decimal-mark alignment at column 53).
@@ -333,21 +405,32 @@ postingsAsLinesWithLayout basefmt onelineamounts layout ps = case layout of
 -- right per-transaction if needed to keep at least 2 spaces between each
 -- account name and amount.
 postingsAsLinesDecimal :: AmountFormat -> Bool -> Int -> [Posting] -> [Text]
-postingsAsLinesDecimal basefmt onelineamounts targetcol ps = concatMap first3 linesWithWidths
+postingsAsLinesDecimal basefmt onelineamounts targetcol ps = concatMap fst linesWithWidths
   where
-    -- Lazy knot: postingAsLines takes decimalcol and returns thisleftwidth;
-    -- decimalcol is computed from the max of all thisleftwidths. This works
-    -- only because thisleftwidth doesn't depend on decimalcol — the rendered
-    -- amount widths come purely from each posting's own amount data, while
-    -- decimalcol only affects the padding (i.e. the rendered text in the
-    -- first element of the triple, which we don't force until later). If
-    -- thisleftwidth ever started depending on decimalcol, this would
-    -- diverge. Keep that invariant when changing postingAsLines.
-    linesWithWidths = map (postingAsLines basefmt False onelineamounts maxstatuswidth maxacctwidth decimalcol) ps
+    -- Lazy knot: postingAsLines takes the layout columns (AmountCols) and
+    -- returns this posting's PostingWidths; the layout columns are computed
+    -- from the cross-posting maxes of those widths. This terminates only
+    -- because PostingWidths fields do NOT depend on AmountCols — they are
+    -- structural widths of the posting's amount/account/assertion data, while
+    -- AmountCols only affects the rendered text (the first element of each
+    -- linesWithWidths pair, which we don't force until concatMap fst above).
+    -- If any PostingWidths field ever started depending on AmountCols this
+    -- would diverge. Keep that invariant when changing postingAsLines.
+    linesWithWidths = map (postingAsLines basefmt False onelineamounts maxstatuswidth maxacctwidth dc) ps
     maxstatuswidth = maximumBound 0 $ map postingStatusWidth ps
-    maxacctwidth = maximumBound 0 $ map second3 linesWithWidths
-    maxleftwidth = maximumBound 0 $ map third3 linesWithWidths
-    decimalcol   = max targetcol (maxacctwidth + maxstatuswidth + 7 + maxleftwidth)
+    pws = map snd linesWithWidths
+    maxacctwidth    = maximumBound 0 $ map pwAcct    pws
+    maxleftwidth    = maximumBound 0 $ map pwLeft    pws
+    maxrightwidth   = maximumBound 0 $ map pwRight   pws
+    maxoperatorwidth  = maximumBound 0 $ map pwOperator  pws
+    maxasnleftwidth = maximumBound 0 $ map pwAsnLeft pws
+    decimalcol    = max targetcol (maxacctwidth + maxstatuswidth + 7 + maxleftwidth)
+    -- eqcol / asndecimalcol are 0 (and unused by the renderer) when no
+    -- posting in the group has a balance assertion.
+    hasAssertion  = maxoperatorwidth > 0
+    eqcol         = if hasAssertion then decimalcol + maxrightwidth + 1 else 0
+    asndecimalcol = if hasAssertion then eqcol + maxoperatorwidth + 1 + maxasnleftwidth else 0
+    dc            = AmountCols decimalcol eqcol asndecimalcol
 
 -- | hledger 1.x layout: right-align amounts within a 12+-char field, lifted
 -- verbatim from the pre-decimal-alignment code. Kept as an escape hatch for
@@ -407,8 +490,9 @@ postingAsLinesHledger1 basefmt elideamount onelineamounts acctwidth amtwidth p =
                                               c:cs -> (c,cs)
 
 -- | Render one posting, on one or more lines, suitable for `print` output.
--- Also returns the widths calculated for the account name and the amount's
--- left part (the visible width up to and not including the decimal mark).
+-- Also returns the 'PostingWidths' computed from this posting's structural
+-- data (account name, main amount, assertion operator / amount), used by the
+-- caller's lazy knot to derive the layout columns.
 --
 -- There will be an indented account name, plus one or more of status flag,
 -- posting amount, balance assertion, same-line comment, next-line comments.
@@ -422,13 +506,23 @@ postingAsLinesHledger1 basefmt elideamount onelineamounts acctwidth amtwidth p =
 -- If an amount is zero, any commodity symbol attached to it is shown
 -- (and the corresponding commodity display style is used).
 --
--- Posting amounts are left-padded so their first decimal mark sits at the
--- given decimalcol (1-indexed visible column). With multi-commodity postings
--- rendered on multiple lines, every line is aligned at decimalcol; with
--- one-line multi-commodity output, only the first amount's decimal mark is
--- aligned. Callers (postingsAsLines, showPostingLines) pick decimalcol so
--- that at least 2 spaces remain between the widest account name and the
--- start of the amount area.
+-- Three target columns are supplied via 'AmountCols':
+--
+-- * @acDecMark@ — the main amount's decimal mark is left-padded to land here.
+--   With multi-commodity postings rendered on multiple lines, every line is
+--   aligned at this column. Callers (postingsAsLines, showPostingLines) pick
+--   it so that at least 2 spaces remain between the widest account name and
+--   the start of the amount area.
+-- * @acEquals@ — the first @=@ of any balance-assertion operator (@=@, @==@, @=*@,
+--   or @==*@) is padded to land here, one space past the rightmost main
+--   amount across all postings.
+-- * @acAssDecMark@ — the assertion amount's decimal mark is padded to land
+--   here. The leftmost assertion amount starts one space past the widest
+--   operator; narrower-operator postings get extra space so all assertion
+--   amounts line up on their decimals.
+--
+-- @acEquals@ and @acAssDecMark@ are unused (and may be 0) when no posting in the
+-- group has a balance assertion.
 --
 -- Note: this function overrides four fields of the caller's @AmountFormat@:
 --
@@ -441,10 +535,20 @@ postingAsLinesHledger1 basefmt elideamount onelineamounts acctwidth amtwidth p =
 --   multi-commodity amount lines, since this function provides its own
 --   decimal-mark alignment.
 --
-postingAsLines :: AmountFormat -> Bool -> Bool -> Int -> Int -> Int -> Posting -> ([Text], Int, Int)
-postingAsLines basefmt elideamount onelineamounts statuswidth acctwidth decimalcol p =
-    (concatMap (++ newlinecomments) postingblocks, thisacctwidth, thisleftwidth)
+postingAsLines :: AmountFormat -> Bool -> Bool -> Int -> Int -> AmountCols -> Posting -> ([Text], PostingWidths)
+postingAsLines basefmt elideamount onelineamounts statuswidth acctwidth dc p =
+    (concatMap (++ newlinecomments) postingblocks, widths)
   where
+    AmountCols{acDecMark=decimalcol, acEquals=eqcol, acAssDecMark=asndecimalcol} = dc
+
+    widths = PostingWidths
+      { pwAcct     = thisacctwidth
+      , pwLeft     = thisleftwidth
+      , pwRight    = thisrightwidth
+      , pwOperator = thisoperatorwidth
+      , pwAsnLeft  = thisasnleftwidth
+      }
+
     -- This needs to be converted to strict Text in order to strip trailing
     -- spaces. This adds a small amount of inefficiency, and the only difference
     -- is whether there are trailing spaces in print (and related) reports. This
@@ -453,21 +557,21 @@ postingAsLines basefmt elideamount onelineamounts statuswidth acctwidth decimalc
     postingblocks = [map T.stripEnd . T.lines . TL.toStrict $
                        render [ textCell BottomLeft statusandaccount
                               , textCell BottomLeft "  "
-                              , Cell BottomLeft [pad lw amt]
-                              , Cell BottomLeft [assertion]
+                              , Cell BottomLeft [padLeft (decimalcol - acctwidth - statuswidth - 7 - lw) amt]
+                              , Cell BottomLeft [asn]
                               , textCell BottomLeft samelinecomment
                               ]
-                    | (amt, lw, assertion) <- shownTriples]
+                    | (amt, lw, asn) <- amountAssertionRows]
     render = renderRow def{tableBorders=False, borderSpaces=False} . Group NoLine . map Header
 
-    -- Left-pad an amount so its decimal mark lands at column decimalcol.
+    -- Prepend N space characters to a WideBuilder; N is floored at 0.
     -- The amount area starts at column (acctwidth + statuswidth + 7) (1-indexed):
     -- 4 indent + (statuswidth + acctwidth) status/account field + 2 separator.
-    -- With pre-decimal visible width lw, an unpadded decimal would land at
-    -- column (acctwidth + statuswidth + 7 + lw), so padding =
+    -- For the main amount, a pre-decimal width lw means we want the decimal
+    -- at column (acctwidth + statuswidth + 7 + lw + N), so N =
     -- decimalcol - (acctwidth + statuswidth + 7 + lw).
-    pad lw amt = WideBuilder (TB.fromText $ T.replicate w " ") w <> amt
-      where w = max 0 (decimalcol - acctwidth - statuswidth - 7 - lw)
+    padLeft n b = WideBuilder (TB.fromText $ T.replicate w " ") w <> b
+      where w = max 0 n
 
     pacctstr p' = showAccountName Nothing (preal p') (paccount p')
     pstatusandacct p' = pstatusprefix p' <> pacctstr p'
@@ -475,34 +579,60 @@ postingAsLines basefmt elideamount onelineamounts statuswidth acctwidth decimalc
         Unmarked -> ""
         s        -> T.pack (show s) <> " "
 
-    -- For each rendered amount line, compute the visible width left of its
-    -- decimal mark (or where the decimal mark would be if it had one) — i.e.
-    -- the width of the integer portion plus any L-side commodity prefix and
-    -- sign. Computed structurally via amountIntegerWidth, NOT by parsing the
-    -- rendered text. Must remain independent of decimalcol (see the lazy
-    -- knot in postingsAsLinesDecimal).
-    shownAmountsLeftWidths
-      | elideamount = [(mempty, 0)]
+    -- Display options used to render BOTH the main amount and the assertion
+    -- amount, so their lw / rw computations match the rendered text and the
+    -- two amounts share commodity styling within a transaction.
+    -- See postingAsLines's haddock for which fields of basefmt are overridden.
+    displayopts = basefmt{
+        displayZeroCommodity    = True
+      , displayForceDecimalMark = True
+      , displayOneLine          = onelineamounts
+      , displayMinWidth         = Nothing
+      }
+
+    -- Per-amount-row triples (wb, lw, rw): the rendered builder, its
+    -- integer-side visible width left of the decimal, and its post-decimal
+    -- visible width (rw = wbWidth wb - lw). All structural; must remain
+    -- independent of any layout column (see the lazy knot in
+    -- postingsAsLinesDecimal).
+    amountRows
+      | elideamount = [(mempty, 0, 0)]
       | otherwise   = case showMixedAmountLinesPartsB displayopts (pamount p) of
-                        [] -> [(mempty, 0)]
-                        xs -> [(wb, amountIntegerWidth displayopts a) | (wb, a) <- xs]
-      where
-        -- Note: overrides four fields of basefmt — see postingAsLines's haddock for why.
-        displayopts = basefmt{
-            displayZeroCommodity    = True
-          , displayForceDecimalMark = True
-          , displayOneLine          = onelineamounts
-          , displayMinWidth         = Nothing
-          }
+                        [] -> [(mempty, 0, 0)]
+                        xs -> [ (wb, lw, wbWidth wb - lw)
+                              | (wb, a) <- xs
+                              , let lw = amountIntegerWidth displayopts a]
 
-    thisleftwidth = maximumBound 0 $ map snd shownAmountsLeftWidths
+    thisleftwidth   = maximumBound 0 [lw | (_, lw, _) <- amountRows]
+    thisrightwidth  = maximumBound 0 [rw | (_, _, rw) <- amountRows]
 
-    -- when there is a balance assertion, show it only on the last posting line
-    shownTriples =
-        [(wb, lw, asn) | ((wb, lw), asn) <- zip shownAmountsLeftWidths shownAssertions]
+    -- Per-posting balance-assertion widths (0 if the posting has no assertion).
+    (thisoperatorwidth, thisasnleftwidth) = case pbalanceassertion p of
+        Nothing -> (0, 0)
+        Just ba -> ( wbWidth (balanceAssertionOperatorB ba)
+                   , amountIntegerWidth displayopts (baamount ba)
+                   )
+
+    -- The balance-assertion cell on the last amount row (if there's an
+    -- assertion). Lays out as: pad1 + operator + pad2 + amount, where pad1
+    -- lifts the operator to eqcol and pad2 lifts the assertion amount's
+    -- decimal mark to asndecimalcol. By construction in the knot, pad1 and
+    -- pad2 are >= 1 when any sibling has the maximum value; floor at 1
+    -- defensively in case of a single-posting context with no cross-sibling
+    -- alignment to satisfy.
+    assertionWB = case pbalanceassertion p of
+        Nothing -> mempty
+        Just ba ->
+          let pad1Len = max 1 (eqcol - decimalcol - thisrightwidth)
+              pad2Len = max 1 (asndecimalcol - eqcol - thisoperatorwidth - thisasnleftwidth)
+          in padLeft pad1Len (balanceAssertionOperatorB ba)
+             <> padLeft pad2Len (balanceAssertionAmountB displayopts ba)
+
+    -- Pair each amount row with its assertion (only on the last row).
+    amountAssertionRows =
+        [(wb, lw, asn) | ((wb, lw, _), asn) <- zip amountRows shownAssertions]
       where
-        shownAssertions = replicate (length shownAmountsLeftWidths - 1) mempty ++ [assertion]
-        assertion = maybe mempty ((WideBuilder (TB.singleton ' ') 1 <>).showBalanceAssertion) $ pbalanceassertion p
+        shownAssertions = replicate (length amountRows - 1) mempty ++ [assertionWB]
 
     -- pad to the maximum account name width, plus statuswidth chars to leave
     -- room for status flags (where any sibling has one), to keep amounts aligned

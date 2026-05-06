@@ -263,7 +263,7 @@ $ hledger -f- print --lots -x desc:sell
 2026-03-01 sell all
     assets:stocks:{2026-01-15, $50}              -10 AAPL {2026-01-15, $50} @ $70
     assets:stocks:{2026-02-01, $60}              -10 AAPL {2026-02-01, $60} @ $70
-    assets:stocks                                  0 AAPL =* 0 AAPL
+    assets:stocks                                  0 AAPL                         =* 0 AAPL
     assets:cash                                $1400
     revenue:gains                              $-300
     equity:unrealised-gain                      $300

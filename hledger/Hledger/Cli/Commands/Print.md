@@ -78,13 +78,15 @@ keeping the output parseable.
 
 ### print layout
 
-By default, `print` aligns amounts so that their decimal mark is at column 53 (or would be if they had a decimal mark).
+By default, `print` aligns posting amounts so that their decimal mark is at column 53 (or would be if they had a decimal mark).
 If needed, it will shift a transaction's amounts further to the right to ensure at least 2 spaces between account names and amounts.
+Also, any balance assertion/assignment operators (`=`, `=*` etc.) are aligned to the right of the posting amounts;
+and the assertion/assignment amounts will be aligned by their decimal marks.
 
 You can customise this with `--layout`:
 
-- `--layout=COL`      — sets a different target column for the decimal mark
-- `--layout=hledger1` — uses hledger 1 layout: right-aligned within each transaction
+- `--layout=COL`      — sets a different target column for posting amounts' decimal mark
+- `--layout=hledger1` — use hledger 1 layout (right-aligned posting amounts in each transaction).
 
 If you want to change the default, put something like this in `~/.hledger.conf`:
 ```

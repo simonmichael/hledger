@@ -182,11 +182,11 @@ Transactions in assets and subaccounts (matching query):
 # ** 14. #2371 print
 $ hledger -f sample2.journal print -x any:'(checking and amt:>0) or credit'
 2025-01-01 starting balances
-    assets:cash                                  100 USD = 100 USD
-    assets:bank:checking                        1000 USD = 1000 USD
-    assets:broker:usd                           1000 USD = 1000 USD
-    assets:broker:aaa                              1 AAA @ 1.20 USD = 1 AAA @ 1.20 USD
-    liabilities:credit card                     -400 USD = -400 USD
+    assets:cash                                  100 USD            =  100 USD
+    assets:bank:checking                        1000 USD            = 1000 USD
+    assets:broker:usd                           1000 USD            = 1000 USD
+    assets:broker:aaa                              1 AAA @ 1.20 USD =    1 AAA @ 1.20 USD
+    liabilities:credit card                     -400 USD            = -400 USD
     equity:start                               -1701.20 USD
 
 2025-01-02 salary

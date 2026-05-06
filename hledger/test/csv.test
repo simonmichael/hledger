@@ -220,8 +220,8 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct                                $50 = $321
-    income:unknown                              $-50 = $123
+    assets:myacct                                $50     = $321
+    income:unknown                              $-50     = $123
     expenses:tax                                  $0.234  ; VAT
     the:remainder
 
@@ -241,8 +241,8 @@ account4 the:remainder
 
 $  ./csvtest.sh
 2009-09-10 Flubber Co
-    assets:myacct                                $50 = $321
-    income:unknown                              $-50 = $123
+    assets:myacct                                $50     = $321
+    income:unknown                              $-50     = $123
     expenses:tax                                  £0.234  ; VAT
     the:remainder
 

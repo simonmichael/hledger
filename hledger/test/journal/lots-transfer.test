@@ -243,10 +243,10 @@ $ hledger -f- print --lots -x desc:transfer
 2026-03-01 transfer both lots
     assets:broker1:{2026-01-15, $50}             -10 AAPL {2026-01-15, $50}
     assets:broker1:{2026-02-01, $60}             -10 AAPL {2026-02-01, $60}
-    assets:broker1                                 0 AAPL =* 0 AAPL
+    assets:broker1                                 0 AAPL                   =*  0 AAPL
     assets:broker2:{2026-01-15, $50}              10 AAPL {2026-01-15, $50}
     assets:broker2:{2026-02-01, $60}              10 AAPL {2026-02-01, $60}
-    assets:broker2                                 0 AAPL =* 20 AAPL
+    assets:broker2                                 0 AAPL                   =* 20 AAPL
 
 >=
 

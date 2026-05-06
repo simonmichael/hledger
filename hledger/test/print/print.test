@@ -49,8 +49,8 @@ $ hledger -f- print --depth 1
 $ hledger -f- print --invert -x
 2025-01-01
     a                                             -1 A @ 2 B = -1 A @ 2 B
-    b                                              2 B = 2 B
-    c                                              0 C = 0
+    b                                              2 B       =  2 B
+    c                                              0 C       =  0
 
 >=
 
@@ -109,6 +109,32 @@ $ hledger -f- print --layout=hledger1
 2024-01-02
     a           $1.00
     b          $-1.00
+
+>=
+
+# ** 8. Balance-assertion `=` glyphs align one space right of the rightmost main amount,
+# and assertion amounts decimal-align with the leftmost asn amount one space right of
+# the widest operator (=, ==, =*, ==*).
+<
+2025-01-01
+    a              1.0 USD = 1.0 USD
+    b           123.45 USD == 123.45 USD
+    c                      ==* -124.45 USD
+
+$ hledger -f- print
+2025-01-01
+    a                                              1.0 USD  =      1.0 USD
+    b                                            123.45 USD ==   123.45 USD
+    c                                                       ==* -124.45 USD
+
+>=
+
+# ** 9. hledger1 layout keeps its single-space separator.
+$ hledger -f- print --layout=hledger1
+2025-01-01
+    a         1.0 USD = 1.0 USD
+    b      123.45 USD == 123.45 USD
+    c                 ==* -124.45 USD
 
 >=
 

@@ -53,7 +53,7 @@ commodity B1000.00
 # (like 1.31)
 $ hledger -f- print
 2023-01-01
-    (a)                                           A0.1 @ B0.1 = A0.1 @ B0.1
+    (a)                                           A0.1 @ B0.1     = A0.1 @ B0.1
     (b)                                           A0.100 @ B0.100 = A0.100 @ B0.100
     (c)                                           A0.123 @ B0.123 = A0.123 @ B0.123
 
@@ -64,8 +64,8 @@ $ hledger -f- print
 # also does basic styling of balance assertion costs)
 $ hledger -f- print --round=soft
 2023-01-01
-    (a)                                           A0.10 @ B0.1 = A0.10 @ B0.1
-    (b)                                           A0.10 @ B0.100 = A0.10 @ B0.100
+    (a)                                           A0.10 @ B0.1    = A0.10 @ B0.1
+    (b)                                           A0.10 @ B0.100  = A0.10 @ B0.100
     (c)                                           A0.123 @ B0.123 = A0.123 @ B0.123
 
 >=
@@ -73,7 +73,7 @@ $ hledger -f- print --round=soft
 # ** 3. With --round=hard, print rounds non-cost amounts.
 $ hledger -f- print --round=hard
 2023-01-01
-    (a)                                           A0.10 @ B0.1 = A0.10 @ B0.1
+    (a)                                           A0.10 @ B0.1   = A0.10 @ B0.1
     (b)                                           A0.10 @ B0.100 = A0.10 @ B0.100
     (c)                                           A0.12 @ B0.123 = A0.12 @ B0.123
 
