@@ -5613,8 +5613,6 @@ Compound reports, like those just mentioned, also have subreport headings (eg `A
 You can customise these with `--subreport-headings=HEADING1|HEADING2|...`,
 or suppress them with `--subreport-headings=`.
 
-# Period headings
-
 In [multi-period reports](#report-intervals)
 each period will have a heading describing its date range or end date.
 When date ranges correspond to natural period boundaries,
