@@ -5462,54 +5462,6 @@ For example, if the journal's last transaction is on february 20th,
 
 [1] Since hledger 1.29.
 
-## Report heading
-
-Most reports can show a leading heading line (followed by a blank line, then the report).
-The four compound balance reports — `balancesheet`, `balancesheetequity`, `cashflow`, `incomestatement` —
-and the plain `balance` command have a default heading derived from the report period and options
-(eg `Quarterly Balance Sheet 2008-03-31..2008-12-31`, `Balance changes in 2008:`).
-Other reports default to no heading.
-
-Use `--report-heading=TEXT` to set a custom heading text:
-
-```cli
-$ hledger -f examples/sample.journal balance --monthly --report-heading="My monthly view"
-```
-
-Use `--report-heading=` (empty) to suppress the default heading entirely.
-
-The heading is rendered in `txt`, `html` and `fods` output, and also in `csv` and `tsv` output by some reports.
-
-The compound balance reports (`balancesheet`, `balancesheetequity`, `cashflow`, `incomestatement`)
-also have one or more subreport titles (eg `Assets`, `Liabilities`, `Equity`).
-Override these with `--subreport-headings=H1|H2|...`, a `|`-separated list applied to subreports in order.
-A shorter list leaves later subreports' titles unchanged;
-`--subreport-headings=` (empty) suppresses all default subreport titles.
-
-## Period headings
-
-With non-standard subperiods, hledger will show "STARTDATE..ENDDATE" headings.
-With standard subperiods (ie, starting on a natural interval boundary), you'll see more compact headings, which are usually preferable.
-(Though month names will be in english, currently.)
-
-So if you are specifying a start date and you want compact headings:
-choose a start of year for yearly reports,
-a start of quarter for quarterly reports,
-a start of month for monthly reports, etc.
-(Remember, you can write eg `-b 2024` or `1/1` as a shortcut for a start of year,
-or `2024-04` or `202404` or `Apr` for a start of month or quarter.)
-
-For weekly reports, choose a date that's a Monday.
-(You can try different dates until you see the short headings, or write eg `-b '3 weeks ago'`.)
-
-If you would rather always see explicit ISO date ranges (eg for unambiguous output, exports, or copy-paste into other documents),
-use `--period-headings=dates`.
-Each period column will then be labelled `YYYY-MM-DD..YYYY-MM-DD` (inclusive end), regardless of the report interval.
-The default, `--period-headings=compact`, keeps the existing behaviour described above.
-This option affects periodic balance reports (`balance`, `bs`, `cf`, `is` with a report interval) and the periodic register;
-it does not change ending-balance reports (`--cumulative`, `--historical`), which always show a single end date.
-Note that under `dates`, `register --weekly` and similar will use a wider date column.
-
 ## Period expressions
 
 The `-p/--period` option specifies a period expression, which is a compact way
@@ -5650,6 +5602,27 @@ Examples:
 | `-p "every mon,wed,fri"`     | dates will be Mon, Wed, Fri; <br>periods will be Mon-Tue, Wed-Thu, Fri-Sun             |
 | `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
 | `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
+
+# Report headings
+
+Some reports (`balancesheet`, `balancesheetequity`, `cashflow`, `incomestatement`) are displayed with
+a title, and others are not, by default.  You can set a title for any report using `--report-heading='Some Text'`. 
+Or suppress the title with `--report-heading=`.
+
+Compound reports, like those just mentioned, also have subreport headings (eg `Assets` and `Liabilities` in the balance sheet).
+You can customise these with `--subreport-headings=HEADING1|HEADING2|...`,
+or suppress them with `--subreport-headings=`.
+
+# Period headings
+
+In [multi-period reports](#report-intervals)
+each period will have a heading describing its date range or end date.
+When date ranges correspond to natural period boundaries,
+they are described compactly by default (in english, currently).
+Eg: `2026`, `Q1`, `Jan`, `W02`.
+
+You can disable the compact descriptions by using `--period-headings=dates`.
+Then periods will always be described as `STARTDATE..ENDDATE` (where ENDDATE is inclusive).
 
 # Depth
 
