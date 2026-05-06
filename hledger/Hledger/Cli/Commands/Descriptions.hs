@@ -19,6 +19,7 @@ import Data.Text.IO qualified as T
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (printReportHeading)
 
 
 -- | Command line options for this command.
@@ -32,6 +33,7 @@ descriptionsmode = hledgerCommandMode
 -- | The descriptions command.
 descriptions :: CliOpts -> Journal -> IO ()
 descriptions CliOpts{reportspec_=rspec} j = do
+  printReportHeading $ _rsReportOpts rspec
   let ts = entriesReport rspec j
       descs = nubSort $ map tdescription ts
 

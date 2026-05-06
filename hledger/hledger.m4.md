@@ -5462,6 +5462,24 @@ For example, if the journal's last transaction is on february 20th,
 
 [1] Since hledger 1.29.
 
+## Report heading
+
+Most reports can show a leading heading line (followed by a blank line, then the report).
+The four compound balance reports — `balancesheet`, `balancesheetequity`, `cashflow`, `incomestatement` —
+and the plain `balance` command have a default heading derived from the report period and options
+(eg `Quarterly Balance Sheet 2008-03-31..2008-12-31`, `Balance changes in 2008:`).
+Other reports default to no heading.
+
+Use `--report-heading=TEXT` to set a custom heading text:
+
+```cli
+$ hledger -f examples/sample.journal balance --monthly --report-heading="My monthly view"
+```
+
+Use `--report-heading=` (empty) to suppress the default heading entirely.
+
+The heading is rendered in `txt`, `html` and `fods` output, and also in `csv` and `tsv` output by some reports.
+
 ## Period headings
 
 With non-standard subperiods, hledger will show "STARTDATE..ENDDATE" headings.

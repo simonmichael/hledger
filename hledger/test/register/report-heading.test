@@ -1,0 +1,45 @@
+# * register --report-heading option
+
+# ** 1. default register has no heading
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- register
+2024-01-01                      (a)                              1             1
+2024-02-01                      (a)                              1             2
+
+# ** 2. --report-heading=TEXT prepends a heading to txt output
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- register '--report-heading=Reg log'
+Reg log
+
+2024-01-01                      (a)                              1             1
+2024-02-01                      (a)                              1             2
+
+# ** 3. --report-heading= produces no leading line
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- register --report-heading=
+2024-01-01                      (a)                              1             1
+2024-02-01                      (a)                              1             2
+
+# ** 4. --report-heading does not affect csv output
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- register -O csv --report-heading=ignored
+"txnidx","date","code","description","account","amount","total"
+"1","2024-01-01","","","(a)","1","1"
+"2","2024-02-01","","","(a)","1","2"
+

@@ -1,0 +1,139 @@
+# * --report-heading option
+
+# ** 1. default heading is the auto-generated title
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balance --monthly
+Balance changes in 2024-01-01..2024-02-29:
+
+   || Jan  Feb 
+===++==========
+ a ||   1    1 
+---++----------
+   ||   1    1 
+
+# ** 2. --report-heading=TEXT overrides the default
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balance --monthly '--report-heading=My monthly view'
+My monthly view
+
+   || Jan  Feb 
+===++==========
+ a ||   1    1 
+---++----------
+   ||   1    1 
+
+# ** 3. --report-heading= suppresses the default
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balance --monthly --report-heading=
+   || Jan  Feb 
+===++==========
+ a ||   1    1 
+---++----------
+   ||   1    1 
+
+# ** 4. --report-heading also affects compound reports' txt output
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balancesheet --quarterly '--report-heading=Custom BS'
+Custom BS
+
+             || 2024-03-31 
+=============++============
+ Assets      ||            
+-------------++------------
+-------------++------------
+             ||          0 
+=============++============
+ Liabilities ||            
+-------------++------------
+-------------++------------
+             ||          0 
+=============++============
+ Net:        ||          0 
+
+# ** 5. --report-heading affects compound CSV title row
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balancesheet --quarterly --report-heading=Hi -O csv
+"Hi",""
+"Account","2024-03-31"
+"Assets",""
+"Total:","0"
+"Liabilities",""
+"Total:","0"
+"Net:","0"
+
+# ** 6. --report-heading= suppresses compound CSV title row
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balancesheet --quarterly --report-heading= -O csv
+"Account","2024-03-31"
+"Assets",""
+"Total:","0"
+"Liabilities",""
+"Total:","0"
+"Net:","0"
+
+# ** 7. --report-heading also affects compound TSV title row (parity with CSV)
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balancesheet --quarterly --report-heading=Hi -O tsv
+Hi	
+Account	2024-03-31
+Assets	
+Total:	0
+Liabilities	
+Total:	0
+Net:	0
+
+# ** 8. --report-heading= suppresses compound TSV title row
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balancesheet --quarterly --report-heading= -O tsv
+Account	2024-03-31
+Assets	
+Total:	0
+Liabilities	
+Total:	0
+Net:	0
+
+# ** 9. --report-heading=X is shown above the table for the simple balance
+<
+2024/1/1
+  (a)  1
+2024/2/1
+  (a)  1
+$ hledger -f- balance --report-heading=Hi
+Hi
+
+                   2  a
+--------------------
+                   2  
+

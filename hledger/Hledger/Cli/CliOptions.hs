@@ -255,10 +255,13 @@ reportflags = [
     "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"
     "Use box-drawing characters in text output? The optional 'y'/'yes' or 'n'/'no' arg requires =."
- ,flagReq ["period-headings"] (\s opts -> Right $ setopt "period-headings" s opts) "ARG" $ unlines
-    ["type of headings in periodic reports:"
+ ,flagReq ["report-heading"] (\s opts -> Right $ setopt "report-heading" s opts) "H" $ unlines
+    ["set or customise a report heading/title"
+    ]
+ ,flagReq ["period-headings"] (\s opts -> Right $ setopt "period-headings" s opts) "OPT" $ unlines
+    ["customise headings in periodic reports:"
     ,"'compact': readable period names when possible"
-    ,"'dates':   always show exact dates or date ranges"
+    ,"'dates':   exact dates/date ranges always"
     ]
  ]
   where

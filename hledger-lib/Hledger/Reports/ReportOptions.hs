@@ -33,6 +33,7 @@ module Hledger.Reports.ReportOptions (
   ValuationType(..),
   Layout(..),
   PeriodHeadings(..),
+  effectiveReportHeading,
   defreportopts,
   rawOptsToReportOpts,
   defreportspec,
@@ -191,6 +192,10 @@ data ReportOpts = ReportOpts {
     ,transpose_        :: Bool
     ,layout_           :: Layout
     ,period_headings_  :: PeriodHeadings
+    -- | Explicit --report-heading value if given (possibly empty to
+    -- suppress); otherwise Nothing, in which case each report falls
+    -- back to its own default heading. Resolved via effectiveReportHeading.
+    ,report_heading_   :: Maybe T.Text
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
@@ -234,6 +239,7 @@ defreportopts = ReportOpts
     , transpose_        = False
     , layout_           = LayoutWide Nothing
     , period_headings_  = PHCompact
+    , report_heading_   = Nothing
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day and whether to use ANSI colour/styles in standard output.
@@ -305,6 +311,7 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,transpose_        = boolopt "transpose" rawopts
           ,layout_           = layoutopt rawopts
           ,period_headings_  = periodHeadings
+          ,report_heading_   = T.pack <$> maybestringopt "report-heading" rawopts
           }
 
 -- | A fully-determined set of report parameters 
@@ -351,6 +358,12 @@ periodHeadingsOpt rawopts = case maybestringopt "period-headings" rawopts of
   Just "compact" -> PHCompact
   Just "dates"   -> PHDates
   Just s         -> usageError $ "--period-headings's argument should be \"compact\" or \"dates\", not " ++ show s
+
+-- | Resolve the effective report heading: if --report-heading was given
+-- on the command line, use that value (which may be empty to suppress
+-- the heading); otherwise return the supplied per-report default.
+effectiveReportHeading :: ReportOpts -> T.Text -> T.Text
+effectiveReportHeading ropts def = fromMaybe def (report_heading_ ropts)
 
 -- Get the argument of the --budget option if any, or the empty string.
 maybebudgetpatternopt :: RawOpts -> Maybe T.Text

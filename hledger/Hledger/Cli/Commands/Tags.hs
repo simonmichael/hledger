@@ -17,6 +17,7 @@ import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (printReportHeading)
 import Data.Function ((&))
 import Data.Maybe (fromMaybe)
 import Data.List (find)
@@ -39,6 +40,7 @@ tagsmode = hledgerCommandMode
 
 tags :: CliOpts -> Journal -> IO ()
 tags opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=_q, _rsReportOpts=ropts}} j = do
+  printReportHeading ropts
   let today = _rsDay rspec
       args = listofstringopt "args" rawopts
   -- For convenience/power, the first argument is a tag name regex, 

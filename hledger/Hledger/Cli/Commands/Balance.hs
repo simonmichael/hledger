@@ -418,7 +418,7 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
     _ -> do  -- single period simple balance report
         let report = styleAmounts styles $ balanceReport rspec j -- simple Ledger-style balance report
             render = case fmt of
-              "txt"  -> TB.toLazyText . balanceReportAsText ropts
+              "txt"  -> withReportHeading ropts . TB.toLazyText . balanceReportAsText ropts
               "csv"  -> printCSV . balanceReportAsCsv ropts
               "tsv"  -> printTSV . balanceReportAsCsv ropts
               "html" -> (<>"\n") . htmlAsLazyText .
@@ -734,11 +734,13 @@ multiBalanceReportAsSpreadsheet ropts mbr =
 -- | Render a multi-column balance report as plain text suitable for console output.
 multiBalanceReportAsText :: ReportOpts -> MultiBalanceReport -> TL.Text
 multiBalanceReportAsText ropts@ReportOpts{..} r = TB.toLazyText $
-    TB.fromText title
-    <> TB.fromText "\n\n"
+    titleBuilder
     <> multiBalanceReportTableAsText ropts (multiBalanceReportAsTable ropts r)
   where
-    title = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
+    defaultTitle = mtitle <> " in " <> showDateSpan (periodicReportSpan r) <> valuationdesc <> ":"
+    title = effectiveReportHeading ropts defaultTitle
+    titleBuilder | T.null title = mempty
+                 | otherwise    = TB.fromText title <> TB.fromText "\n\n"
 
     mtitle = case (balancecalc_, balanceaccum_) of
         (CalcValueChange, PerPeriod  ) -> "Period-end value changes"
@@ -909,10 +911,10 @@ type BudgetCalcPercentagesFn  = Change -> BudgetGoal -> [Maybe Percentage]
 -- | Render a budget report as plain text suitable for console output.
 budgetReportAsText :: ReportOpts -> BudgetReport -> TL.Text
 budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
-    TB.fromText title <> TB.fromText "\n\n" <>
+    titleBuilder <>
       multiBalanceReportTableAsText ropts (budgetReportAsTable ropts budgetr)
   where
-    title = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
+    defaultTitle = "Budget performance in " <> showDateSpan (periodicReportSpan budgetr)
            <> (case conversionop_ of
                  Just ToCost -> ", converted to cost"
                  _           -> "")
@@ -923,6 +925,9 @@ budgetReportAsText ropts@ReportOpts{..} budgetr = TB.toLazyText $
                  Just (AtDate d _mc) -> ", valued at " <> showDate d
                  Nothing             -> "")
            <> ":"
+    title = effectiveReportHeading ropts defaultTitle
+    titleBuilder | T.null title = mempty
+                 | otherwise    = TB.fromText title <> TB.fromText "\n\n"
 
 -- | Build a 'Table' from a multi-column balance report.
 budgetReportAsTable :: ReportOpts -> BudgetReport -> Table Text Text WideBuilder

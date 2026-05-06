@@ -101,7 +101,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
   where
     styles = journalCommodityStylesWith HardRounding j
     rpt = postingsReport rspec j
-    render | fmt=="txt"  = postingsReportAsText opts
+    render | fmt=="txt"  = withReportHeading (_rsReportOpts rspec) . postingsReportAsText opts
            | fmt=="json" = toJsonText
            | fmt=="csv"  = printCSV . postingsReportAsCsv opts
            | fmt=="tsv"  = printTSV . postingsReportAsCsv opts

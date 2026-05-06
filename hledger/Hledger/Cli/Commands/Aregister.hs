@@ -120,7 +120,7 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
       (if empty_ ropts' then id else filter (not . mixedAmountLooksZero . fifth6)) $
       reverse items
     -- select renderer
-    render | fmt=="txt"  = accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
+    render | fmt=="txt"  = withReportHeading ropts' . accountTransactionsReportAsText opts (_rsQuery rspec') thisacctq
            | fmt=="html" = accountTransactionsReportAsHTML opts (_rsQuery rspec') thisacctq
             | fmt=="csv"  = printCSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq
             | fmt=="tsv"  = printTSV . accountTransactionsReportAsCsv opts hd wd (_rsQuery rspec') thisacctq

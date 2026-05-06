@@ -33,6 +33,7 @@ import Text.Tabular.AsciiWide as Tab
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (printReportHeading)
 
 
 roimode = hledgerCommandMode
@@ -59,7 +60,8 @@ data OneSpan = OneSpan
 
 
 roi ::  CliOpts -> Journal -> IO ()
-roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportOpts{..}}} j = do
+roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}}} j = do
+  printReportHeading ropts
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
     -- lbl = lbl_ "roi"
@@ -77,7 +79,6 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ReportO
       . maybe id (mixedAmountToCost styles) conversionop_
 
   let
-    ropts = _rsReportOpts rspec
     wd = whichDate ropts
     showCashFlow = boolopt "cashflow" rawopts
     prettyTables = pretty_

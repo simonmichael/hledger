@@ -28,6 +28,7 @@ import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (printReportHeading)
 
 
 -- | Command line options for this command.
@@ -55,6 +56,7 @@ accountsmode = hledgerCommandMode
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()
 accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsReportOpts=ropts}} j = do
+  printReportHeading ropts
 
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts

@@ -14,7 +14,7 @@ module Hledger.Cli.CompoundBalanceCommand (
  ,compoundBalanceCommand
 ) where
 
-import Control.Monad (guard)
+import Control.Monad (guard, unless)
 import Data.Bifunctor (second)
 import Data.Foldable (traverse_)
 import Data.Function ((&))
@@ -195,9 +195,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
             (CalcValueChange, Cumulative) -> True
             _                             -> False
 
-    -- make a CompoundBalanceReport.
+    -- make a CompoundBalanceReport. The default heading is the auto-generated
+    -- title above; --report-heading=TEXT overrides it (and =empty suppresses).
     cbr' = compoundBalanceReport rspec{_rsReportOpts=ropts'} j cbcqueries
-    cbr  = cbr'{cbrTitle=title}
+    cbr  = cbr'{cbrTitle = effectiveReportHeading ropts' title}
 
     -- render appropriately
     render = case outputFormatFromOpts opts of
@@ -263,9 +264,11 @@ Balance Sheet
 compoundBalanceReportAsText :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> TL.Text
 compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subreports totalsrow) =
   TB.toLazyText $
-    TB.fromText title <> TB.fromText "\n\n" <>
+    titleBuilder <>
     multiBalanceReportTableAsText ropts bigtablewithtotalsrow
   where
+    titleBuilder | T.null title = mempty
+                 | otherwise    = TB.fromText title <> TB.fromText "\n\n"
     bigtable =
       case map (subreportAsTable ropts) subreports of
         []   -> Tabular.empty
@@ -319,10 +322,13 @@ compoundBalanceReportAsCsv ropts cbr =
             snd $ snd $
             compoundBalanceReportAsSpreadsheet
                 machineFmt "Account" Nothing ropts cbr
+        title = cbrTitle cbr
+        titleRows | T.null title = []
+                  | otherwise =
+                      [Spr.horizontalSpan (NonEmpty.head spreadsheet)
+                         (Spr.headerCell title)]
     in  Spr.rawTableContent $
-        Spr.horizontalSpan (NonEmpty.head spreadsheet)
-           (Spr.headerCell (cbrTitle cbr)) :
-        NonEmpty.toList spreadsheet
+        titleRows ++ NonEmpty.toList spreadsheet
 
 -- | Render a compound balance report as HTML.
 compoundBalanceReportAsHtml :: ReportOpts -> CompoundPeriodicReport DisplayName MixedAmount -> Html
@@ -339,7 +345,8 @@ compoundBalanceReportAsHtml ropts cbr =
       ("tr:nth-child(odd) td", "background-color:#eee")
       ]
     table_ $ do
-      tr_ $ th_ [colspanattr, style_ alignleft] $ h2_ $ toHtml title
+      unless (T.null title) $
+        tr_ $ th_ [colspanattr, style_ alignleft] $ h2_ $ toHtml title
       -- Do not use `styledTableHtml` here since that leads to nested `<table>`s.
       traverse_ formatRow $ fmap (map (fmap L.toHtml)) cells
 

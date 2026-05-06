@@ -19,6 +19,7 @@ import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (printReportHeading)
 import Data.List.Extra (nubSort)
 import Data.List ((\\))
 
@@ -37,7 +38,8 @@ commoditiesmode = hledgerCommandMode
   ([], Just $ argsFlag "[QUERY..]")
 
 commodities :: CliOpts -> Journal -> IO ()
-commodities opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
+commodities opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query, _rsReportOpts=ropts}} j = do
+  printReportHeading ropts
   let
     filt = filter (matchesCommodityExtra (journalCommodityTags j) query)
     used       = dbg5 "used"       $ S.toList $ journalCommoditiesFromPriceDirectives j <> journalCommoditiesFromTransactions j
