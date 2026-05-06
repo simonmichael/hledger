@@ -5616,11 +5616,10 @@ or suppress them with `--subreport-headings=`.
 In [multi-period reports](#report-intervals)
 each period will have a heading describing its date range or end date.
 When date ranges correspond to natural period boundaries,
-they are described compactly by default (in english, currently).
+they are described compactly by default (month names are in english, currently).
 Eg: `2026`, `Q1`, `Jan`, `W02`.
-
-You can disable the compact descriptions by using `--period-headings=dates`.
-Then periods will always be described as `STARTDATE..ENDDATE` (where ENDDATE is inclusive).
+You can disable these compact descriptions by using `--period-headings=dates`;
+then periods will always be described as `STARTDATE..ENDDATE`.
 
 # Depth
 
