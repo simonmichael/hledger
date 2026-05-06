@@ -101,7 +101,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
   where
     styles = journalCommodityStylesWith HardRounding j
     rpt = postingsReport rspec j
-    render | fmt=="txt"  = withReportHeading (_rsReportOpts rspec) . postingsReportAsText opts
+    render | fmt=="txt"  = withTitle (_rsReportOpts rspec) . postingsReportAsText opts
            | fmt=="json" = toJsonText
            | fmt=="csv"  = printCSV . postingsReportAsCsv opts
            | fmt=="tsv"  = printTSV . postingsReportAsCsv opts
@@ -153,10 +153,10 @@ postingsReportItemAsRecord opts@CliOpts{reportspec_=rspec} fmt baseUrl query (_,
     cell = Spr.defaultCell
     idx  = Spr.integerCell . maybe 0 tindex $ ptransaction p
     date = postingDate p -- XXX csv should show date2 with --date2
-    -- With --period-headings=dates and a report interval, render the period as
+    -- With --period-titles=dates and a report interval, render the period as
     -- a full ISO date range string instead of the period start date.
-    dateSpanCellOrDate = case (mperiod, period_headings_ $ _rsReportOpts rspec) of
-      (Just per, PHDates) ->
+    dateSpanCellOrDate = case (mperiod, period_titles_ $ _rsReportOpts rspec) of
+      (Just per, PTDates) ->
         cell (showDateSpanFull (periodAsDateSpan per))
       _ ->
         (dateCell baseUrl query (paccount p) date) {Spr.cellType = Spr.TypeDate}
@@ -230,17 +230,17 @@ postingsReportItemAsText opts@CliOpts{reportspec_=rspec} preferredamtwidth prefe
       where w = fullwidth - wbWidth amt'
     -- calculate widths
     (totalwidth,mdescwidth) = registerWidthsFromOpts opts
-    ph = period_headings_ $ _rsReportOpts rspec
+    ph = period_titles_ $ _rsReportOpts rspec
     datewidth = case mperiod of
                   Nothing  -> 10
                   Just per -> case ph of
-                    PHDates   -> 22  -- YYYY-MM-DD..YYYY-MM-DD
-                    PHCompact -> periodTextWidth per
+                    PTDates   -> 22  -- YYYY-MM-DD..YYYY-MM-DD
+                    PTCompact -> periodTextWidth per
     date = case mperiod of
              Just per -> if isJust mdate
                            then case ph of
-                             PHDates   -> showDateSpanFull (periodAsDateSpan per)
-                             PHCompact -> showPeriod per
+                             PTDates   -> showDateSpanFull (periodAsDateSpan per)
+                             PTCompact -> showPeriod per
                            else ""
              Nothing  -> maybe "" showDate mdate
     (amtwidth, balwidth)

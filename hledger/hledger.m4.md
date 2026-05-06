@@ -5606,21 +5606,21 @@ Examples:
 # Report headings
 
 Some reports (`balancesheet`, `balancesheetequity`, `cashflow`, `incomestatement`) are displayed with
-a title, and others are not, by default.  You can set a title for any report using `--report-heading='Some Text'`. 
-Or suppress the title with `--report-heading=`.
+a title, and others are not, by default.  You can set a title for any report using `--title='Some Text'`. 
+Or suppress the title with `--title=`.
 
 Compound reports, like those just mentioned, also have subreport headings (eg `Assets` and `Liabilities` in the balance sheet).
-You can customise these with `--subreport-headings=HEADING1|HEADING2|...`,
-or suppress them with `--subreport-headings=`.
+You can customise these with `--subreport-titles=HEADING1|HEADING2|...`,
+or suppress them with `--subreport-titles=`.
 
-In both `--report-heading` and `--subreport-headings`, `\n` generates a newline, allowing multi-line headings.
+In both `--title` and `--subreport-titles`, `\n` generates a newline, allowing multi-line headings.
 
 In [multi-period reports](#report-intervals)
 each period will have a heading describing its date range or end date.
 When date ranges correspond to natural period boundaries,
 they are described compactly by default (month names are in english, currently).
 Eg: `2026`, `Q1`, `Jan`, `W02`.
-You can disable these compact descriptions by using `--period-headings=dates`;
+You can disable these compact descriptions by using `--period-titles=dates`;
 then periods will always be described as `STARTDATE..ENDDATE`.
 
 # Depth

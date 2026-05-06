@@ -22,7 +22,7 @@ import Hledger.Utils.IO (error')
 import Hledger.Utils.Text (quoteIfSpaced)
 import Hledger.Data.Dates (showDateSpan, showDateSpanFull, showDate)
 import Hledger.Data.Types (DateSpan)
-import Hledger.Reports.ReportOptions (PeriodHeadings(..))
+import Hledger.Reports.ReportOptions (PeriodTitles(..))
 
 
 registerQueryUrl :: [Text] -> Text
@@ -65,7 +65,7 @@ replaceDate :: Text -> [Text] -> [Text]
 replaceDate prd query = "date:"<>prd : removeDates query
 
 headerDateSpanCell ::
-    PeriodHeadings -> Maybe Text -> [Text] -> DateSpan -> Spr.Cell () Text
+    PeriodTitles -> Maybe Text -> [Text] -> DateSpan -> Spr.Cell () Text
 headerDateSpanCell ph base query spn =
     let prd = renderPeriodHeading ph spn in
     (headerCell prd) {
@@ -89,13 +89,13 @@ dateCell base query acct = dateQueryCell base query acct . showDate
 
 dateSpanCell ::
     (Spr.Lines border) =>
-    PeriodHeadings -> Maybe Text -> [Text] -> Text -> DateSpan -> Spr.Cell border Text
+    PeriodTitles -> Maybe Text -> [Text] -> Text -> DateSpan -> Spr.Cell border Text
 dateSpanCell ph base query acct = dateQueryCell base query acct . renderPeriodHeading ph
 
 -- | Render a DateSpan as a period heading according to the requested style.
-renderPeriodHeading :: PeriodHeadings -> DateSpan -> Text
-renderPeriodHeading PHDates   = showDateSpanFull
-renderPeriodHeading PHCompact = showDateSpan
+renderPeriodHeading :: PeriodTitles -> DateSpan -> Text
+renderPeriodHeading PTDates   = showDateSpanFull
+renderPeriodHeading PTCompact = showDateSpan
 
 setAccountAnchor ::
     Maybe Text -> [Text] -> Text -> Spr.Cell border text -> Spr.Cell border text

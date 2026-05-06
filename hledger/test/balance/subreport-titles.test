@@ -1,4 +1,4 @@
-# * --subreport-headings option (compound balance reports)
+# * --subreport-titles option (compound balance reports)
 
 # ** 1. default subreport headings (Assets, Liabilities)
 <
@@ -30,7 +30,7 @@ Balance Sheet 2024-03-15
 ======================++============
  Net:                 ||         30 
 
-# ** 2. --subreport-headings=A|L overrides both
+# ** 2. --subreport-titles=A|L overrides both
 <
 2024/1/15
   assets:bank:checking   100
@@ -41,7 +41,7 @@ Balance Sheet 2024-03-15
 2024/3/15
   equity:opening          50
   assets:bank:checking   -50
-$ hledger -f- balancesheet '--subreport-headings=A|L'
+$ hledger -f- balancesheet '--subreport-titles=A|L'
 Balance Sheet 2024-03-15
 
                       || 2024-03-15 
@@ -71,7 +71,7 @@ Balance Sheet 2024-03-15
 2024/3/15
   equity:opening          50
   assets:bank:checking   -50
-$ hledger -f- balancesheet '--subreport-headings=Stuff We Own'
+$ hledger -f- balancesheet '--subreport-titles=Stuff We Own'
 Balance Sheet 2024-03-15
 
                       || 2024-03-15 
@@ -101,7 +101,7 @@ Balance Sheet 2024-03-15
 2024/3/15
   equity:opening          50
   assets:bank:checking   -50
-$ hledger -f- balancesheet --subreport-headings=
+$ hledger -f- balancesheet --subreport-titles=
 Balance Sheet 2024-03-15
 
                       || 2024-03-15 
@@ -127,7 +127,7 @@ Balance Sheet 2024-03-15
 2024/3/15
   equity:opening          50
   assets:bank:checking   -50
-$ hledger -f- balancesheet '--subreport-headings=A|L' -O csv
+$ hledger -f- balancesheet '--subreport-titles=A|L' -O csv
 "Balance Sheet 2024-03-15",""
 "Account","2024-03-15"
 "A",""
@@ -149,7 +149,7 @@ $ hledger -f- balancesheet '--subreport-headings=A|L' -O csv
 2024/3/15
   equity:opening          50
   assets:bank:checking   -50
-$ hledger -f- balancesheet --subreport-headings= -O csv
+$ hledger -f- balancesheet --subreport-titles= -O csv
 "Balance Sheet 2024-03-15",""
 "Account","2024-03-15"
 "assets:bank:checking","50"
@@ -169,7 +169,7 @@ $ hledger -f- balancesheet --subreport-headings= -O csv
 2024/3/15
   equity:opening          50
   assets:bank:checking   -50
-$ hledger -f- incomestatement '--subreport-headings=Money in|Money out'
+$ hledger -f- incomestatement '--subreport-titles=Money in|Money out'
 Income Statement 2024-01-15..2024-03-15
 
                || 2024-01-15..2024-03-15 
@@ -199,7 +199,7 @@ Income Statement 2024-01-15..2024-03-15
 2024/3/15
   equity:opening          50
   assets:bank:checking   -50
-$ hledger -f- balancesheetequity '--subreport-headings=A|L|E'
+$ hledger -f- balancesheetequity '--subreport-titles=A|L|E'
 Balance Sheet With Equity 2024-03-15
 
                       || 2024-03-15 

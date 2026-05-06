@@ -32,8 +32,8 @@ module Hledger.Reports.ReportOptions (
   AccountListMode(..),
   ValuationType(..),
   Layout(..),
-  PeriodHeadings(..),
-  effectiveReportHeading,
+  PeriodTitles(..),
+  effectiveTitle,
   defreportopts,
   rawOptsToReportOpts,
   defreportspec,
@@ -127,9 +127,9 @@ data Layout = LayoutWide (Maybe Int)
   deriving (Eq, Show)
 
 -- | How to render period column headings in periodic reports.
-data PeriodHeadings = PHCompact | PHDates deriving (Eq, Show)
+data PeriodTitles = PTCompact | PTDates deriving (Eq, Show)
 
-instance Default PeriodHeadings where def = PHCompact
+instance Default PeriodTitles where def = PTCompact
 
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
@@ -191,15 +191,15 @@ data ReportOpts = ReportOpts {
       --   TERM and existence of NO_COLOR environment variables.
     ,transpose_        :: Bool
     ,layout_           :: Layout
-    ,period_headings_  :: PeriodHeadings
-    -- | Explicit --report-heading value if given (possibly empty to
+    ,period_titles_  :: PeriodTitles
+    -- | Explicit --title value if given (possibly empty to
     -- suppress); otherwise Nothing, in which case each report falls
-    -- back to its own default heading. Resolved via effectiveReportHeading.
-    ,report_heading_   :: Maybe T.Text
-    -- | Explicit --subreport-headings value, a |-separated list of
+    -- back to its own default heading. Resolved via effectiveTitle.
+    ,title_   :: Maybe T.Text
+    -- | Explicit --subreport-titles value, a |-separated list of
     -- subreport titles to use in compound reports. An empty string
     -- means "suppress all default subreport titles".
-    ,subreport_headings_ :: Maybe T.Text
+    ,subreport_titles_ :: Maybe T.Text
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
@@ -242,9 +242,9 @@ defreportopts = ReportOpts
     , color_            = False
     , transpose_        = False
     , layout_           = LayoutWide Nothing
-    , period_headings_  = PHCompact
-    , report_heading_   = Nothing
-    , subreport_headings_ = Nothing
+    , period_titles_  = PTCompact
+    , title_   = Nothing
+    , subreport_titles_ = Nothing
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day and whether to use ANSI colour/styles in standard output.
@@ -277,7 +277,7 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
         !depth            = depthFromRawOpts rawopts
         !sortspec         = getSortSpec rawopts
         !drop_n           = posintopt "drop" rawopts
-        !periodHeadings   = periodHeadingsOpt rawopts
+        !periodTitles     = periodTitlesOpt rawopts
 
     in defreportopts
           {period_           = period
@@ -315,9 +315,9 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,color_            = usecoloronstdout
           ,transpose_        = boolopt "transpose" rawopts
           ,layout_           = layoutopt rawopts
-          ,period_headings_  = periodHeadings
-          ,report_heading_   = unescapeNewlines . T.pack <$> maybestringopt "report-heading" rawopts
-          ,subreport_headings_ = unescapeNewlines . T.pack <$> maybestringopt "subreport-headings" rawopts
+          ,period_titles_  = periodTitles
+          ,title_   = unescapeNewlines . T.pack <$> maybestringopt "title" rawopts
+          ,subreport_titles_ = unescapeNewlines . T.pack <$> maybestringopt "subreport-titles" rawopts
           }
 
 -- | A fully-determined set of report parameters 
@@ -358,18 +358,18 @@ accountlistmodeopt =
       "flat" -> Just ALFlat
       _      -> Nothing
 
-periodHeadingsOpt :: RawOpts -> PeriodHeadings
-periodHeadingsOpt rawopts = case maybestringopt "period-headings" rawopts of
-  Nothing        -> PHCompact
-  Just "compact" -> PHCompact
-  Just "dates"   -> PHDates
-  Just s         -> usageError $ "--period-headings's argument should be \"compact\" or \"dates\", not " ++ show s
+periodTitlesOpt :: RawOpts -> PeriodTitles
+periodTitlesOpt rawopts = case maybestringopt "period-titles" rawopts of
+  Nothing        -> PTCompact
+  Just "compact" -> PTCompact
+  Just "dates"   -> PTDates
+  Just s         -> usageError $ "--period-titles's argument should be \"compact\" or \"dates\", not " ++ show s
 
--- | Resolve the effective report heading: if --report-heading was given
+-- | Resolve the effective report heading: if --title was given
 -- on the command line, use that value (which may be empty to suppress
 -- the heading); otherwise return the supplied per-report default.
-effectiveReportHeading :: ReportOpts -> T.Text -> T.Text
-effectiveReportHeading ropts dflt = fromMaybe dflt (report_heading_ ropts)
+effectiveTitle :: ReportOpts -> T.Text -> T.Text
+effectiveTitle ropts dflt = fromMaybe dflt (title_ ropts)
 
 -- | Replace the literal two-character sequence "\n" with a real newline.
 unescapeNewlines :: T.Text -> T.Text
@@ -935,12 +935,12 @@ reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPr
 --
 -- - all other balance change reports: a description of the datespan,
 --   abbreviated to compact form if possible (see showDateSpan).
-reportPeriodName :: PeriodHeadings -> BalanceAccumulation -> [DateSpan] -> DateSpan -> T.Text
+reportPeriodName :: PeriodTitles -> BalanceAccumulation -> [DateSpan] -> DateSpan -> T.Text
 reportPeriodName ph balanceaccumulation spans =
   case balanceaccumulation of
     PerPeriod -> case ph of
-      PHDates   -> showDateSpanFull
-      PHCompact -> if multiyear then showDateSpan else showDateSpanAbbrev
+      PTDates   -> showDateSpanFull
+      PTCompact -> if multiyear then showDateSpan else showDateSpanAbbrev
       where
         multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
     _ -> maybe "" (showDate . prevday) . spanEnd

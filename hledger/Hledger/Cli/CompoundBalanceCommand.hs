@@ -197,11 +197,11 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
             _                             -> False
 
     -- make a CompoundBalanceReport. The default heading is the auto-generated
-    -- title above; --report-heading=TEXT overrides it (and =empty suppresses).
-    -- --subreport-headings=A|B|... overrides per-subreport titles.
+    -- title above; --title=TEXT overrides it (and =empty suppresses).
+    -- --subreport-titles=A|B|... overrides per-subreport titles.
     cbr' = compoundBalanceReport rspec{_rsReportOpts=ropts'} j cbcqueries
-    cbr  = applySubreportHeadings ropts' $
-           cbr'{cbrTitle = effectiveReportHeading ropts' title}
+    cbr  = applySubreportTitles ropts' $
+           cbr'{cbrTitle = effectiveTitle ropts' title}
 
     -- render appropriately
     render = case outputFormatFromOpts opts of
@@ -216,13 +216,13 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
       "json" -> toJsonText
       x      -> error' $ unsupportedOutputFormatError x
 
--- | Apply --subreport-headings overrides to a compound report's subreports.
+-- | Apply --subreport-titles overrides to a compound report's subreports.
 -- A `|`-separated argument overrides the corresponding subreport titles, in
 -- order; subreports beyond the supplied list keep their default title. An
 -- explicit empty argument suppresses all default subreport titles.
-applySubreportHeadings :: ReportOpts -> CompoundPeriodicReport a b -> CompoundPeriodicReport a b
-applySubreportHeadings ropts cbr@CompoundPeriodicReport{cbrSubreports=subs} =
-  case subreport_headings_ ropts of
+applySubreportTitles :: ReportOpts -> CompoundPeriodicReport a b -> CompoundPeriodicReport a b
+applySubreportTitles ropts cbr@CompoundPeriodicReport{cbrSubreports=subs} =
+  case subreport_titles_ ropts of
     Nothing -> cbr
     Just s
       | T.null s  -> cbr{cbrSubreports = map (\(_,r,b) -> ("", r, b)) subs}
@@ -386,7 +386,7 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
           _ -> []
     dataHeaders =
       (guard (layout_ ropts /= LayoutTidy) >>) $
-      map (Spr.headerCell . reportPeriodName (period_headings_ ropts) (balanceaccum_ ropts) colspans)
+      map (Spr.headerCell . reportPeriodName (period_titles_ ropts) (balanceaccum_ ropts) colspans)
       (if not (summary_only_ ropts) then colspans else []) ++
       (guard (multiBalanceHasTotalsColumn ropts) >> [Spr.headerCell "Total"]) ++
       (guard (average_   ropts) >> [Spr.headerCell "Average"])
@@ -421,7 +421,7 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
       if no_total_ ropts || length subreports == 1 then []
       else
         multiBalanceRowAsCellBuilders fmt ropts colspans
-            Total (simpleDateSpanCell $ period_headings_ ropts) totalrow
+            Total (simpleDateSpanCell $ period_titles_ ropts) totalrow
                              -- make a table of rendered lines of the report totals row
         & map (map (fmap wbToText))
         & Spr.addRowSpanHeader

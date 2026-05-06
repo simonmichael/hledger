@@ -15,8 +15,8 @@ module Hledger.Cli.Utils
      withPossibleJournal,
      writeOutput,
      writeOutputLazyText,
-     withReportHeading,
-     printReportHeading,
+     withTitle,
+     printTitle,
      journalTransform,
      journalReload,
      journalReloadIfChanged,
@@ -164,20 +164,20 @@ writeOutputLazyText opts s = do
 
 -- | Prepend the effective report heading (followed by a blank line) to a
 -- report's lazy text output, if non-empty. Used by reports whose default
--- heading is empty; pass the explicit --report-heading value or "" via
--- effectiveReportHeading.
-withReportHeading :: ReportOpts -> TL.Text -> TL.Text
-withReportHeading ropts body =
-  let h = effectiveReportHeading ropts ""
+-- heading is empty; pass the explicit --title value or "" via
+-- effectiveTitle.
+withTitle :: ReportOpts -> TL.Text -> TL.Text
+withTitle ropts body =
+  let h = effectiveTitle ropts ""
   in if T.null h then body
      else TL.fromStrict h <> "\n\n" <> body
 
 -- | Print the effective report heading (followed by a blank line) to stdout
 -- if non-empty. For commands whose output is written directly via putStrLn,
 -- call this before producing the main output.
-printReportHeading :: ReportOpts -> IO ()
-printReportHeading ropts =
-  let h = effectiveReportHeading ropts ""
+printTitle :: ReportOpts -> IO ()
+printTitle ropts =
+  let h = effectiveTitle ropts ""
   in if T.null h then pure ()
      else T.putStrLn h >> putStrLn ""
 

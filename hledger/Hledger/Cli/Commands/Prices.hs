@@ -13,7 +13,7 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printReportHeading)
+import Hledger.Cli.Utils (printTitle)
 import System.Console.CmdArgs.Explicit
 import Data.Maybe (mapMaybe)
 import Data.Function ((&))
@@ -36,7 +36,7 @@ instance HasAmounts PriceDirective where
 
 -- List market prices.
 prices opts j = do
-  printReportHeading $ _rsReportOpts $ reportspec_ opts
+  printTitle $ _rsReportOpts $ reportspec_ opts
   let
     styles = journalCommodityStyles j
     q      = _rsQuery $ reportspec_ opts

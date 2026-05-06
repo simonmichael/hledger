@@ -19,7 +19,7 @@ import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printReportHeading)
+import Hledger.Cli.Utils (printTitle)
 import Data.List ((\\))
 import Data.List.Extra (nubSort)
 
@@ -40,7 +40,7 @@ payeesmode = hledgerCommandMode
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
 payees opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query, _rsReportOpts=ropts}} j = do
-  printReportHeading ropts
+  printTitle ropts
   let
     -- XXX matchesPayeeWIP is currently an alias for matchesDescription, not sure if it matters
     matchedused       = dbg5 "matchedused"       $ nubSort $ map transactionPayee $ filter (matchesTransaction query) $ jtxns j

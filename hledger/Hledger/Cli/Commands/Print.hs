@@ -162,8 +162,8 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
     postinglayout = layoutFromRawOpts rawopts
-    render | fmt=="txt"       = withReportHeading (_rsReportOpts rspec) . entriesReportAsTextHelper (showTransactionWithLayout postinglayout) . styleAmounts styles . map maybeoriginalamounts
-           | fmt=="ledger"   = withReportHeading (_rsReportOpts rspec) . entriesReportAsTextHelper showTransactionLedger . styleAmounts styles . map maybeoriginalamounts
+    render | fmt=="txt"       = withTitle (_rsReportOpts rspec) . entriesReportAsTextHelper (showTransactionWithLayout postinglayout) . styleAmounts styles . map maybeoriginalamounts
+           | fmt=="ledger"   = withTitle (_rsReportOpts rspec) . entriesReportAsTextHelper showTransactionLedger . styleAmounts styles . map maybeoriginalamounts
            | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map fillBalanceAssignments
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
            | fmt=="tsv"       = printTSV . entriesReportAsCsv . styleAmounts styles

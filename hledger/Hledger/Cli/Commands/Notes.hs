@@ -20,7 +20,7 @@ import Data.Text.IO qualified as T
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printReportHeading)
+import Hledger.Cli.Utils (printTitle)
 
 
 -- | Command line options for this command.
@@ -34,7 +34,7 @@ notesmode = hledgerCommandMode
 -- | The notes command.
 notes :: CliOpts -> Journal -> IO ()
 notes CliOpts{reportspec_=rspec} j = do
-  printReportHeading $ _rsReportOpts rspec
+  printTitle $ _rsReportOpts rspec
   let ts = entriesReport rspec j
       notes' = nubSort $ map transactionNote ts
   mapM_ T.putStrLn notes'

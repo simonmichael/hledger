@@ -33,7 +33,7 @@ import Text.Tabular.AsciiWide as Tab
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printReportHeading)
+import Hledger.Cli.Utils (printTitle)
 
 
 roimode = hledgerCommandMode
@@ -61,7 +61,7 @@ data OneSpan = OneSpan
 
 roi ::  CliOpts -> Journal -> IO ()
 roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}}} j = do
-  printReportHeading ropts
+  printTitle ropts
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
     -- lbl = lbl_ "roi"

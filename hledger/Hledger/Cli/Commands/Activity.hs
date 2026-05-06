@@ -15,7 +15,7 @@ import Lens.Micro ((^.), set)
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printReportHeading)
+import Hledger.Cli.Utils (printTitle)
 
 activitymode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Activity.txt")
@@ -30,7 +30,7 @@ barchar = '*'
 -- | Print a bar chart of number of postings per report interval.
 activity :: CliOpts -> Journal -> IO ()
 activity CliOpts{reportspec_=rspec} j = do
-  printReportHeading $ _rsReportOpts rspec
+  printTitle $ _rsReportOpts rspec
   putStr $ showHistogram rspec j
 
 showHistogram :: ReportSpec -> Journal -> String

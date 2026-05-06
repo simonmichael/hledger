@@ -36,7 +36,7 @@ import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (writeOutput, printReportHeading)
+import Hledger.Cli.Utils (writeOutput, printTitle)
 import Hledger.Cli.Version (packageversion, versionStringWith)
 
 
@@ -55,7 +55,7 @@ statsmode = hledgerCommandMode
 -- | Print various statistics for the journal.
 stats :: CliOpts -> Journal -> IO ()
 stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
-  printReportHeading $ _rsReportOpts rspec
+  printTitle $ _rsReportOpts rspec
   t <- getPOSIXTime
   -- the first lines - general journal stats for one or more periods
   let
