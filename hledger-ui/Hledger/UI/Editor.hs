@@ -81,6 +81,11 @@ runEditor mpos f = editFileAtPositionCommand mpos f >>= runCommand >>= waitForPr
 -- vi & variants    Just (line, _)        vi +LINE FILE
 --                  Just ('-' : _, _)     vi +     FILE
 --                  Nothing               vi       FILE
+-- 
+-- zed & sublime    Just (line, Just col) zed FILE:LINE:COL
+--                  Just (line, Nothing)  zed FILE:LINE
+--                  Just ('-' : _, _)     zed FILE
+--                  Nothing               zed FILE
 --
 -- (other PROG)     _                     PROG FILE
 --
@@ -125,6 +130,10 @@ editFileAtPositionCommand mpos f = do
           Nothing -> [f']
           Just ('-' : _, _) -> [f']
           Just (l, _) -> ['+' : l, f']
+        e | e `elem` ["zed", "subl"] -> case mpos' of
+          Nothing -> [f']
+          Just ('-' : _, _) -> [f']
+          Just (l, mc) -> [join ':' [Just f', Just l, mc]]
         _ -> [f']
   return $ unwords $ cmd:args
 
@@ -142,4 +151,3 @@ getEditCommand = do
   let defaultEditor = Just $ if os == "mingw32" then "notepad.exe" else "emacsclient -a '' -nw"
   let Just cmd = hledger_ui_editor_env <|> editor_env <|> defaultEditor
   return cmd
-
