@@ -133,7 +133,7 @@ editFileAtPositionCommand mpos f = do
         e | e `elem` ["zed", "subl"] -> case mpos' of
           Nothing -> [f']
           Just ('-' : _, _) -> [f']
-          Just (l, mc) -> [join ':' [Just f', Just l, mc]]
+          Just (l, mc) -> [join ":" [Just f', Just l, mc]]
         _ -> [f']
   return $ unwords $ cmd:args
 
