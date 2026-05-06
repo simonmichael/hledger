@@ -5480,6 +5480,12 @@ Use `--report-heading=` (empty) to suppress the default heading entirely.
 
 The heading is rendered in `txt`, `html` and `fods` output, and also in `csv` and `tsv` output by some reports.
 
+The compound balance reports (`balancesheet`, `balancesheetequity`, `cashflow`, `incomestatement`)
+also have one or more subreport titles (eg `Assets`, `Liabilities`, `Equity`).
+Override these with `--subreport-headings=H1|H2|...`, a `|`-separated list applied to subreports in order.
+A shorter list leaves later subreports' titles unchanged;
+`--subreport-headings=` (empty) suppresses all default subreport titles.
+
 ## Period headings
 
 With non-standard subperiods, hledger will show "STARTDATE..ENDDATE" headings.

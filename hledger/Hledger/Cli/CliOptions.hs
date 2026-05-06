@@ -258,6 +258,9 @@ reportflags = [
  ,flagReq ["report-heading"] (\s opts -> Right $ setopt "report-heading" s opts) "H" $ unlines
     ["set or customise a report heading/title"
     ]
+ ,flagReq ["subreport-headings"] (\s opts -> Right $ setopt "subreport-headings" s opts) "H" $ unlines
+    ["customise subreport headings in compound reports (a |-separated list)"
+    ]
  ,flagReq ["period-headings"] (\s opts -> Right $ setopt "period-headings" s opts) "OPT" $ unlines
     ["customise headings in periodic reports:"
     ,"'compact': readable period names when possible"

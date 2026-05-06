@@ -1,0 +1,226 @@
+# * --subreport-headings option (compound balance reports)
+
+# ** 1. default subreport headings (Assets, Liabilities)
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- balancesheet
+Balance Sheet 2024-03-15
+
+                      || 2024-03-15 
+======================++============
+ Assets               ||            
+----------------------++------------
+ assets:bank:checking ||         50 
+----------------------++------------
+                      ||         50 
+======================++============
+ Liabilities          ||            
+----------------------++------------
+ liabilities:credit   ||         20 
+----------------------++------------
+                      ||         20 
+======================++============
+ Net:                 ||         30 
+
+# ** 2. --subreport-headings=A|L overrides both
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- balancesheet '--subreport-headings=A|L'
+Balance Sheet 2024-03-15
+
+                      || 2024-03-15 
+======================++============
+ A                    ||            
+----------------------++------------
+ assets:bank:checking ||         50 
+----------------------++------------
+                      ||         50 
+======================++============
+ L                    ||            
+----------------------++------------
+ liabilities:credit   ||         20 
+----------------------++------------
+                      ||         20 
+======================++============
+ Net:                 ||         30 
+
+# ** 3. a shorter list overrides only the leading subreports
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- balancesheet '--subreport-headings=Stuff We Own'
+Balance Sheet 2024-03-15
+
+                      || 2024-03-15 
+======================++============
+ Stuff We Own         ||            
+----------------------++------------
+ assets:bank:checking ||         50 
+----------------------++------------
+                      ||         50 
+======================++============
+ Liabilities          ||            
+----------------------++------------
+ liabilities:credit   ||         20 
+----------------------++------------
+                      ||         20 
+======================++============
+ Net:                 ||         30 
+
+# ** 4. empty arg suppresses all default subreport titles
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- balancesheet --subreport-headings=
+Balance Sheet 2024-03-15
+
+                      || 2024-03-15 
+======================++============
+ assets:bank:checking ||         50 
+----------------------++------------
+                      ||         50 
+======================++============
+ liabilities:credit   ||         20 
+----------------------++------------
+                      ||         20 
+======================++============
+ Net:                 ||         30 
+
+# ** 5. works in csv too
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- balancesheet '--subreport-headings=A|L' -O csv
+"Balance Sheet 2024-03-15",""
+"Account","2024-03-15"
+"A",""
+"assets:bank:checking","50"
+"Total:","50"
+"L",""
+"liabilities:credit","20"
+"Total:","20"
+"Net:","30"
+
+# ** 6. empty arg in csv suppresses subreport title rows
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- balancesheet --subreport-headings= -O csv
+"Balance Sheet 2024-03-15",""
+"Account","2024-03-15"
+"assets:bank:checking","50"
+"Total:","50"
+"liabilities:credit","20"
+"Total:","20"
+"Net:","30"
+
+# ** 7. works on incomestatement (Revenues, Expenses)
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- incomestatement '--subreport-headings=Money in|Money out'
+Income Statement 2024-01-15..2024-03-15
+
+               || 2024-01-15..2024-03-15 
+===============++========================
+ Money in      ||                        
+---------------++------------------------
+ income:salary ||                    100 
+---------------++------------------------
+               ||                    100 
+===============++========================
+ Money out     ||                        
+---------------++------------------------
+ expenses:food ||                     20 
+---------------++------------------------
+               ||                     20 
+===============++========================
+ Net:          ||                     80 
+
+# ** 8. works on bse with three subreports
+<
+2024/1/15
+  assets:bank:checking   100
+  income:salary         -100
+2024/2/15
+  expenses:food           20
+  liabilities:credit     -20
+2024/3/15
+  equity:opening          50
+  assets:bank:checking   -50
+$ hledger -f- balancesheetequity '--subreport-headings=A|L|E'
+Balance Sheet With Equity 2024-03-15
+
+                      || 2024-03-15 
+======================++============
+ A                    ||            
+----------------------++------------
+ assets:bank:checking ||         50 
+----------------------++------------
+                      ||         50 
+======================++============
+ L                    ||            
+----------------------++------------
+ liabilities:credit   ||         20 
+----------------------++------------
+                      ||         20 
+======================++============
+ E                    ||            
+----------------------++------------
+ equity:opening       ||        -50 
+----------------------++------------
+                      ||        -50 
+======================++============
+ Net:                 ||         80 
+

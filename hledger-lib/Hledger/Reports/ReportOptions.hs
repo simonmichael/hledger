@@ -196,6 +196,10 @@ data ReportOpts = ReportOpts {
     -- suppress); otherwise Nothing, in which case each report falls
     -- back to its own default heading. Resolved via effectiveReportHeading.
     ,report_heading_   :: Maybe T.Text
+    -- | Explicit --subreport-headings value, a |-separated list of
+    -- subreport titles to use in compound reports. An empty string
+    -- means "suppress all default subreport titles".
+    ,subreport_headings_ :: Maybe T.Text
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
@@ -240,6 +244,7 @@ defreportopts = ReportOpts
     , layout_           = LayoutWide Nothing
     , period_headings_  = PHCompact
     , report_heading_   = Nothing
+    , subreport_headings_ = Nothing
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day and whether to use ANSI colour/styles in standard output.
@@ -312,6 +317,7 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,layout_           = layoutopt rawopts
           ,period_headings_  = periodHeadings
           ,report_heading_   = T.pack <$> maybestringopt "report-heading" rawopts
+          ,subreport_headings_ = T.pack <$> maybestringopt "subreport-headings" rawopts
           }
 
 -- | A fully-determined set of report parameters 
@@ -363,7 +369,7 @@ periodHeadingsOpt rawopts = case maybestringopt "period-headings" rawopts of
 -- on the command line, use that value (which may be empty to suppress
 -- the heading); otherwise return the supplied per-report default.
 effectiveReportHeading :: ReportOpts -> T.Text -> T.Text
-effectiveReportHeading ropts def = fromMaybe def (report_heading_ ropts)
+effectiveReportHeading ropts dflt = fromMaybe dflt (report_heading_ ropts)
 
 -- Get the argument of the --budget option if any, or the empty string.
 maybebudgetpatternopt :: RawOpts -> Maybe T.Text

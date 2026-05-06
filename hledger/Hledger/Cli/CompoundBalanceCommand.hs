@@ -20,6 +20,7 @@ import Data.Foldable (traverse_)
 import Data.Function ((&))
 import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
+import Safe (atMay)
 import Data.Map qualified as Map
 import Data.List qualified as List
 import Data.List.NonEmpty qualified as NonEmpty
@@ -197,8 +198,10 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
 
     -- make a CompoundBalanceReport. The default heading is the auto-generated
     -- title above; --report-heading=TEXT overrides it (and =empty suppresses).
+    -- --subreport-headings=A|B|... overrides per-subreport titles.
     cbr' = compoundBalanceReport rspec{_rsReportOpts=ropts'} j cbcqueries
-    cbr  = cbr'{cbrTitle = effectiveReportHeading ropts' title}
+    cbr  = applySubreportHeadings ropts' $
+           cbr'{cbrTitle = effectiveReportHeading ropts' title}
 
     -- render appropriately
     render = case outputFormatFromOpts opts of
@@ -212,6 +215,21 @@ compoundBalanceCommand CompoundBalanceCommandSpec{..} opts@CliOpts{reportspec_=r
                     oneLineNoCostFmt "Account" (Just "") ropts'
       "json" -> toJsonText
       x      -> error' $ unsupportedOutputFormatError x
+
+-- | Apply --subreport-headings overrides to a compound report's subreports.
+-- A `|`-separated argument overrides the corresponding subreport titles, in
+-- order; subreports beyond the supplied list keep their default title. An
+-- explicit empty argument suppresses all default subreport titles.
+applySubreportHeadings :: ReportOpts -> CompoundPeriodicReport a b -> CompoundPeriodicReport a b
+applySubreportHeadings ropts cbr@CompoundPeriodicReport{cbrSubreports=subs} =
+  case subreport_headings_ ropts of
+    Nothing -> cbr
+    Just s
+      | T.null s  -> cbr{cbrSubreports = map (\(_,r,b) -> ("", r, b)) subs}
+      | otherwise ->
+          let custom = T.splitOn "|" s
+              replace i (old,r,b) = (fromMaybe old (atMay custom i), r, b)
+          in  cbr{cbrSubreports = zipWith replace [0..] subs}
 
 -- | Show a simplified description of an Interval.
 showInterval :: Interval -> Maybe T.Text
@@ -299,14 +317,16 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
+    -- An empty subreport title is omitted entirely (no title row above the data).
     subreportAsTable ropts1 (title1, r, _) = tablewithtitle
       where
-        tablewithtitle = Table
-          (Group tableSubreportTitleBottomBorder [Header title1, lefthdrs])  -- row headers
-          tophdrs     -- column headers
-          ([]:cells)  -- cell values
-          where
-            Table lefthdrs tophdrs cells = multiBalanceReportAsTable ropts1 r
+        Table lefthdrs tophdrs cells = multiBalanceReportAsTable ropts1 r
+        tablewithtitle
+          | T.null title1 = Table lefthdrs tophdrs cells
+          | otherwise     = Table
+              (Group tableSubreportTitleBottomBorder [Header title1, lefthdrs])  -- row headers
+              tophdrs       -- column headers
+              ([]:cells)    -- cell values
 
     tableSubreportTitleBottomBorder = SingleLine
     tableInterSubreportBorder       = DoubleLine
@@ -383,17 +403,19 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
       let
         (_, bodyrows, mtotalsrows) =
           multiBalanceReportAsSpreadsheetParts fmt ropts mbr
-
+        titleRows
+          | T.null subreporttitle = []
+          | otherwise =
+              [Spr.horizontalSpan headerrow
+                ((Spr.defaultCell subreporttitle){
+                    Spr.cellStyle = Spr.Body Spr.Total,
+                    Spr.cellClass = Spr.Class "account"
+                })]
       in
-        Spr.horizontalSpan headerrow
-            ((Spr.defaultCell subreporttitle){
-                Spr.cellStyle = Spr.Body Spr.Total,
-                Spr.cellClass = Spr.Class "account"
-            }) :
+        titleRows ++
         bodyrows ++
         mtotalsrows ++
-        maybeToList blankrow ++
-        []
+        maybeToList blankrow
 
     totalrows =
       if no_total_ ropts || length subreports == 1 then []
