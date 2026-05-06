@@ -31,6 +31,7 @@ module Hledger.Reports.ReportOptions (
   AccountListMode(..),
   ValuationType(..),
   Layout(..),
+  PeriodHeadings(..),
   defreportopts,
   rawOptsToReportOpts,
   defreportspec,
@@ -123,6 +124,11 @@ data Layout = LayoutWide (Maybe Int)
             | LayoutTidy
   deriving (Eq, Show)
 
+-- | How to render period column headings in periodic reports.
+data PeriodHeadings = PHCompact | PHDates deriving (Eq, Show)
+
+instance Default PeriodHeadings where def = PHCompact
+
 -- | Standard options for customising report filtering and output.
 -- Most of these correspond to standard hledger command-line options
 -- or query arguments, but not all. Some are used only by certain
@@ -183,6 +189,7 @@ data ReportOpts = ReportOpts {
       --   TERM and existence of NO_COLOR environment variables.
     ,transpose_        :: Bool
     ,layout_           :: Layout
+    ,period_headings_  :: PeriodHeadings
  } deriving (Show)
 
 instance Default ReportOpts where def = defreportopts
@@ -225,6 +232,7 @@ defreportopts = ReportOpts
     , color_            = False
     , transpose_        = False
     , layout_           = LayoutWide Nothing
+    , period_headings_  = PHCompact
     }
 
 -- | Generate a ReportOpts from raw command-line input, given a day and whether to use ANSI colour/styles in standard output.
@@ -281,6 +289,7 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,color_            = usecoloronstdout
           ,transpose_        = boolopt "transpose" rawopts
           ,layout_           = layoutopt rawopts
+          ,period_headings_  = periodHeadingsOpt rawopts
           }
 
 -- | A fully-determined set of report parameters 
@@ -320,6 +329,13 @@ accountlistmodeopt =
       "tree" -> Just ALTree
       "flat" -> Just ALFlat
       _      -> Nothing
+
+periodHeadingsOpt :: RawOpts -> PeriodHeadings
+periodHeadingsOpt rawopts = case maybestringopt "period-headings" rawopts of
+  Nothing        -> PHCompact
+  Just "compact" -> PHCompact
+  Just "dates"   -> PHDates
+  Just s         -> usageError $ "--period-headings's argument should be \"compact\" or \"dates\", not " ++ show s
 
 -- Get the argument of the --budget option if any, or the empty string.
 maybebudgetpatternopt :: RawOpts -> Maybe T.Text
@@ -881,10 +897,12 @@ reportPeriodOrJournalLastDay rspec j = reportPeriodLastDay rspec <|> journalOrPr
 --
 -- - all other balance change reports: a description of the datespan,
 --   abbreviated to compact form if possible (see showDateSpan).
-reportPeriodName :: BalanceAccumulation -> [DateSpan] -> DateSpan -> T.Text
-reportPeriodName balanceaccumulation spans =
+reportPeriodName :: PeriodHeadings -> BalanceAccumulation -> [DateSpan] -> DateSpan -> T.Text
+reportPeriodName ph balanceaccumulation spans =
   case balanceaccumulation of
-    PerPeriod -> if multiyear then showDateSpan else showDateSpanAbbrev
+    PerPeriod -> case ph of
+      PHDates   -> showDateSpanFull
+      PHCompact -> if multiyear then showDateSpan else showDateSpanAbbrev
       where
         multiyear = (>1) $ length $ nubSort $ map spanStartYear spans
     _ -> maybe "" (showDate . prevday) . spanEnd

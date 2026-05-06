@@ -301,7 +301,7 @@ import System.IO qualified as IO
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Utils
-import Hledger.Cli.Anchor (setAccountAnchor, dateSpanCell, headerDateSpanCell)
+import Hledger.Cli.Anchor (setAccountAnchor, dateSpanCell, headerDateSpanCell, renderPeriodHeading)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Ods (printFods)
 import Hledger.Write.Html (Html, styledTableHtml, htmlAsLazyText, toHtml)
@@ -598,8 +598,8 @@ renderComponent topaligned oneline opts (acctname, dep, total) (FormatField ljus
                   }
 
 
-simpleDateSpanCell :: DateSpan -> Ods.Cell Ods.NumLines Text
-simpleDateSpanCell = Ods.defaultCell . showDateSpan
+simpleDateSpanCell :: PeriodHeadings -> DateSpan -> Ods.Cell Ods.NumLines Text
+simpleDateSpanCell ph = Ods.defaultCell . renderPeriodHeading ph
 
 addTotalBorders :: [[Ods.Cell border text]] -> [[Ods.Cell Ods.NumLines text]]
 addTotalBorders =
@@ -688,12 +688,12 @@ multiBalanceReportAsSpreadsheetParts fmt opts@ReportOpts{..} (PeriodicReport col
       LayoutBare -> headerCell "commodity" : dateHeaders
       _          -> dateHeaders
     dateHeaders =
-      (if not summary_only_ then map (headerDateSpanCell balance_base_url_ querystring_) colspans  else [] )++
+      (if not summary_only_ then map (headerDateSpanCell period_headings_ balance_base_url_ querystring_) colspans  else [] )++
       [hCell "rowtotal" "total" | multiBalanceHasTotalsColumn opts] ++
       [hCell "rowaverage" "average" | average_]
     fullRowAsTexts row =
         addRowSpanHeader anchorCell $
-        rowAsText Value (dateSpanCell balance_base_url_ querystring_ acctName) row
+        rowAsText Value (dateSpanCell period_headings_ balance_base_url_ querystring_ acctName) row
       where acctName = prrFullName row
             anchorCell =
               setAccountAnchor balance_base_url_ querystring_ acctName $
@@ -702,7 +702,7 @@ multiBalanceReportAsSpreadsheetParts fmt opts@ReportOpts{..} (PeriodicReport col
       if no_total_
         then []
         else addRowSpanHeader (accountCell totalRowHeadingSpreadsheet) $
-                rowAsText Total simpleDateSpanCell tr
+                rowAsText Total (simpleDateSpanCell period_headings_) tr
     rowAsText rc dsCell =
         map (map (fmap wbToText)) .
         multiBalanceRowAsCellBuilders fmt opts colspans rc dsCell
@@ -799,7 +799,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, balanceaccum_
      (concat rows)
   where
     colheadings = ["Commodity" | layout_ opts == LayoutBare]
-                  ++ (if not summary_only_ then map (reportPeriodName balanceaccum_ spans) spans else [])
+                  ++ (if not summary_only_ then map (reportPeriodName (period_headings_ opts) balanceaccum_ spans) spans else [])
                   ++ ["  Total" | multiBalanceHasTotalsColumn opts]
                   ++ ["Average" | average_]
     (accts, rows) = unzip $ fmap fullRowAsTexts items
@@ -882,13 +882,13 @@ multiBalanceRowAsText :: ReportOpts -> PeriodicReportRow a MixedAmount -> [[Wide
 multiBalanceRowAsText opts =
     rawTableContent .
     multiBalanceRowAsCellBuilders oneLineNoCostFmt{displayColour=color_ opts} opts []
-        Value simpleDateSpanCell
+        Value (simpleDateSpanCell $ period_headings_ opts)
 
 multiBalanceRowAsCsvText :: ReportOpts -> [DateSpan] -> PeriodicReportRow a MixedAmount -> [[T.Text]]
 multiBalanceRowAsCsvText opts colspans =
     map (map (wbToText . Ods.cellContent)) .
     multiBalanceRowAsCellBuilders machineFmt opts colspans
-        Value simpleDateSpanCell
+        Value (simpleDateSpanCell $ period_headings_ opts)
 
 
 -- Budget reports
@@ -951,7 +951,7 @@ budgetReportAsTable ropts@ReportOpts{..} (PeriodicReport spans items totrow) =
           (flip (concatTables SingleLine) $ Table rowhdrs colhdrs totalrows)  -- XXX ?
 
     colheadings = ["Commodity" | layout_ == LayoutBare]
-                  ++ (if not summary_only_ then map (reportPeriodName balanceaccum_ spans) spans else [])
+                  ++ (if not summary_only_ then map (reportPeriodName period_headings_ balanceaccum_ spans) spans else [])
                   ++ ["  Total" | row_total_]
                   ++ ["Average" | average_]
 
@@ -1154,7 +1154,7 @@ budgetReportAsSpreadsheet
   (addHeaderBorders $ map headerCell $
   "Account" :
   ["Commodity" | layout_ == LayoutBare ]
-   ++ (if not summary_only_ then concatMap (\spn -> [showDateSpan spn, "budget"]) colspans else [])
+   ++ (if not summary_only_ then concatMap (\spn -> [renderPeriodHeading period_headings_ spn, "budget"]) colspans else [])
    ++ concat [["Total"  ,"budget"] | row_total_]
    ++ concat [["Average","budget"] | average_]
   ) :

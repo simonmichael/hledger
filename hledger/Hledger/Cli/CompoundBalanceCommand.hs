@@ -359,7 +359,7 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
           _ -> []
     dataHeaders =
       (guard (layout_ ropts /= LayoutTidy) >>) $
-      map (Spr.headerCell . reportPeriodName (balanceaccum_ ropts) colspans)
+      map (Spr.headerCell . reportPeriodName (period_headings_ ropts) (balanceaccum_ ropts) colspans)
       (if not (summary_only_ ropts) then colspans else []) ++
       (guard (multiBalanceHasTotalsColumn ropts) >> [Spr.headerCell "Total"]) ++
       (guard (average_   ropts) >> [Spr.headerCell "Average"])
@@ -392,7 +392,7 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
       if no_total_ ropts || length subreports == 1 then []
       else
         multiBalanceRowAsCellBuilders fmt ropts colspans
-            Total simpleDateSpanCell totalrow
+            Total (simpleDateSpanCell $ period_headings_ ropts) totalrow
                              -- make a table of rendered lines of the report totals row
         & map (map (fmap wbToText))
         & Spr.addRowSpanHeader

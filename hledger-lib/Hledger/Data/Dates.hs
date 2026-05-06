@@ -44,6 +44,7 @@ module Hledger.Data.Dates (
   showDateSpan,
   showDateSpanDebug,
   showDateSpanAbbrev,
+  showDateSpanFull,
   elapsedSeconds,
   prevday,
   periodexprp,
@@ -153,6 +154,16 @@ showDateSpanDebug (DateSpan b e)= "DateSpan (" <> show b <> ") (" <> show e <> "
 -- in the current locale.
 showDateSpanAbbrev :: DateSpan -> Text
 showDateSpanAbbrev = showPeriodAbbrev . dateSpanAsPeriod
+
+-- | Render a datespan as a full ISO date range "YYYY-MM-DD..YYYY-MM-DD"
+-- (inclusive end), regardless of whether it represents a standard
+-- calendar period. Open ends are shown as just "..".
+showDateSpanFull :: DateSpan -> Text
+showDateSpanFull (DateSpan mb me) =
+  T.pack $ start <> ".." <> end
+  where
+    start = maybe "" (formatTime defaultTimeLocale "%F" . fromEFDay) mb
+    end   = maybe "" (formatTime defaultTimeLocale "%F" . addDays (-1) . fromEFDay) me
 
 -- | Get the current local date.
 getCurrentDay :: IO Day

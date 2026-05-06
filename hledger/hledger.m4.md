@@ -5478,6 +5478,14 @@ or `2024-04` or `202404` or `Apr` for a start of month or quarter.)
 For weekly reports, choose a date that's a Monday.
 (You can try different dates until you see the short headings, or write eg `-b '3 weeks ago'`.)
 
+If you would rather always see explicit ISO date ranges (eg for unambiguous output, exports, or copy-paste into other documents),
+use `--period-headings=dates`.
+Each period column will then be labelled `YYYY-MM-DD..YYYY-MM-DD` (inclusive end), regardless of the report interval.
+The default, `--period-headings=compact`, keeps the existing behaviour described above.
+This option affects periodic balance reports (`balance`, `bs`, `cf`, `is` with a report interval) and the periodic register;
+it does not change ending-balance reports (`--cumulative`, `--historical`), which always show a single end date.
+Note that under `dates`, `register --weekly` and similar will use a wider date column.
+
 ## Period expressions
 
 The `-p/--period` option specifies a period expression, which is a compact way
