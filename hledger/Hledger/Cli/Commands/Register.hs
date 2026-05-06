@@ -119,8 +119,15 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
             query = querystring_ $ _rsReportOpts rspec
 
 postingsReportAsCsv :: CliOpts -> PostingsReport -> CSV
-postingsReportAsCsv opts =
-  Spr.rawTableContent . postingsReportAsSpreadsheet opts machineFmt Nothing []
+postingsReportAsCsv opts pr =
+  case postingsReportAsSpreadsheet opts machineFmt Nothing [] pr of
+    []                    -> []
+    rows@(headerrow : _) -> Spr.rawTableContent $ titleRows headerrow ++ rows
+  where
+    titleText = effectiveTitle (_rsReportOpts $ reportspec_ opts) ""
+    titleRows headerrow
+      | T.null titleText = []
+      | otherwise        = [Spr.horizontalSpan headerrow (Spr.headerCell titleText)]
 
 -- ToDo: --layout=bare etc.
 -- ToDo: Text output does not show headers, but Spreadsheet does

@@ -5603,20 +5603,20 @@ Examples:
 | `-p "every weekday"`         | dates will be Mon, Tue, Wed, Thu, Fri; <br>periods will be Mon, Tue, Wed, Thu, Fri-Sun |
 | `-p "every weekendday"`      | dates will be Sat, Sun; <br>periods will be Sat, Sun-Fri                               |
 
-# Report headings
+# Report titles
 
 Some reports (`balancesheet`, `balancesheetequity`, `cashflow`, `incomestatement`) are displayed with
 a title, and others are not, by default.  You can set a title for any report using `--title='Some Text'`. 
 Or suppress the title with `--title=`.
 
-Compound reports, like those just mentioned, also have subreport headings (eg `Assets` and `Liabilities` in the balance sheet).
-You can customise these with `--subreport-titles=HEADING1|HEADING2|...`,
+Compound reports, like those just mentioned, also have subreport headings, like Assets and Liabilities in the balance sheet.
+You can customise these with `--subreport-titles=HEADING1|HEADING2..`,
 or suppress them with `--subreport-titles=`.
 
-In both `--title` and `--subreport-titles`, `\n` generates a newline, allowing multi-line headings.
+In both `--title` and `--subreport-titles`, you can use `\n` to generate a newline.
 
 In [multi-period reports](#report-intervals)
-each period will have a heading describing its date range or end date.
+each period has a heading describing its date range or end date.
 When date ranges correspond to natural period boundaries,
 they are described compactly by default (month names are in english, currently).
 Eg: `2026`, `Q1`, `Jan`, `W02`.

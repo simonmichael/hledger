@@ -7,6 +7,7 @@
   (a)  1
 2024/2/1
   (a)  1
+
 $ hledger -f- balance --monthly
 Balance changes in 2024-01-01..2024-02-29:
 
@@ -17,11 +18,6 @@ Balance changes in 2024-01-01..2024-02-29:
    ||   1    1 
 
 # ** 2. --period-titles=dates always shows full ISO dates or date ranges.
-<
-2024/1/1
-  (a)  1
-2024/2/1
-  (a)  1
 $ hledger -f- balance --monthly --period-titles=dates
 Balance changes in 2024-01-01..2024-02-29:
 
@@ -41,9 +37,6 @@ $ hledger -f- balance --monthly -O csv --period-titles=dates
 "Total:","1"
 
 # ** 4. An invalid argument gives a helpful error message
-<
-2024/1/1
-  (a)  1
 $ hledger -f- balance --monthly --period-titles=foo
 >2 /--period-titles's argument should be "compact" or "dates", not "foo"/
 >=1

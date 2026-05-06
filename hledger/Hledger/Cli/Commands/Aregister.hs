@@ -138,9 +138,15 @@ aregister opts@CliOpts{rawopts_=rawopts,reportspec_=rspec} j = do
 
 accountTransactionsReportAsCsv ::
   CliOpts -> Bool -> WhichDate -> Query -> Query -> AccountTransactionsReport -> CSV
-accountTransactionsReportAsCsv opts hd wd reportq thisacctq =
-  Spr.rawTableContent .
-  accountTransactionsReportAsSpreadsheet opts machineFmt hd wd reportq thisacctq
+accountTransactionsReportAsCsv opts hd wd reportq thisacctq atr =
+  case accountTransactionsReportAsSpreadsheet opts machineFmt hd wd reportq thisacctq atr of
+    []                    -> []
+    rows@(headerrow : _) -> Spr.rawTableContent $ titleRows headerrow ++ rows
+  where
+    titleText = effectiveTitle (_rsReportOpts $ reportspec_ opts) ""
+    titleRows headerrow
+      | T.null titleText = []
+      | otherwise        = [Spr.horizontalSpan headerrow (Spr.headerCell titleText)]
 
 accountTransactionsReportAsSpreadsheet ::
   CliOpts -> AmountFormat -> Bool ->
@@ -199,7 +205,7 @@ accountTransactionsReportAsHTML copts reportq thisacctq items =
 -- | Render a register report as plain text suitable for console output.
 accountTransactionsReportAsText :: CliOpts -> Query -> Query -> AccountTransactionsReport -> TL.Text
 accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
-    (optional (headingopt copts) $ title <> TB.singleton '\n')
+    (optional (headingopt copts) $ acctHeading <> TB.singleton '\n')
     <>
     postingsOrTransactionsReportAsText alignAll copts itemAsText itemamt itembal items
   where
@@ -208,8 +214,8 @@ accountTransactionsReportAsText copts reportq thisacctq items = TB.toLazyText $
     itemamt (_,_,_,_,a,_) = a
     itembal (_,_,_,_,_,a) = a
 
-    -- show a title indicating which account was picked, which can be confusing otherwise
-    title = maybe mempty (\s -> foldMap TB.fromText ["Transactions in ", s, " and subaccounts", qmsg, ":"]) macct
+    -- show a heading indicating which account was picked, which can be confusing otherwise
+    acctHeading = maybe mempty (\s -> foldMap TB.fromText ["Transactions in ", s, " and subaccounts", qmsg, ":"]) macct
       where
         -- XXX temporary hack ? recover the account name from the query
         macct = case filterQuery queryIsAcct thisacctq of
