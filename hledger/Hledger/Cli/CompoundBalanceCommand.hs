@@ -28,7 +28,7 @@ import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Builder qualified as TB
 import Data.Time.Calendar (Day, addDays)
-import Lucid as L hiding (Html, value_)
+import Lucid as L hiding (Html, value_, title_)
 import System.Console.CmdArgs.Explicit as C (Mode, flagNone, flagReq)
 import System.IO qualified as IO
 import Text.Tabular.AsciiWide as Tabular hiding (render)

@@ -312,9 +312,9 @@ makeHledgerClassyLenses x = flip makeLensesWith x $ classyRules
 
     -- Fields which would cause too many conflicts if we exposed lenses with these names.
     commonFields = Set.fromList
-        [ "empty", "drop", "color", "transpose"  -- ReportOpts
-        , "anon", "new", "auto"                  -- InputOpts
-        , "rawopts", "file", "debug", "width"    -- CliOpts
+        [ "empty", "drop", "color", "transpose", "title"  -- ReportOpts
+        , "anon", "new", "auto"                           -- InputOpts
+        , "rawopts", "file", "debug", "width"             -- CliOpts
         ]
 
     -- When updating some fields of ReportOpts within a ReportSpec, we need to
