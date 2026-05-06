@@ -7,7 +7,7 @@ on:
   # When there's a push to the oldest branch, it runs in that branch.
   push:
     branches: [ oldest ]
-  # If manually triggered in github ui, it runs in master.
+  # If manually triggered in github ui, it runs in main.
   workflow_dispatch:
 
 jobs:
