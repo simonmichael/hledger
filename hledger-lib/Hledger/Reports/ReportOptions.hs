@@ -4,6 +4,7 @@ Options common to most hledger reports.
 
 -}
 
+{-# LANGUAGE BangPatterns          #-}
 {-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE LambdaCase            #-}
@@ -244,23 +245,37 @@ defreportopts = ReportOpts
 rawOptsToReportOpts :: Day -> Bool -> RawOpts -> ReportOpts
 rawOptsToReportOpts d usecoloronstdout rawopts =
 
+    -- Bang-let-bind the results of every option parser that can call usageError.
+    -- This forces validation eagerly, so a malformed argument is rejected even
+    -- when the current command would not otherwise read the corresponding field.
+    -- Note: layoutopt is intentionally left lazy because the print command
+    -- defines its own --layout flag with different semantics (column number or
+    -- "hledger1"), reusing the same raw "layout" key.
     let formatstring = T.pack <$> maybestringopt "format" rawopts
         querystring  = map T.pack $ listofstringopt "args" rawopts  -- doesn't handle an arg like "" right
-        pretty = fromMaybe False $ ynopt "pretty" rawopts
 
-        format = case parseStringFormat <$> formatstring of
+        !format = case parseStringFormat <$> formatstring of
             Nothing         -> defaultBalanceLineFormat
             Just (Right x)  -> x
             Just (Left err) -> usageError $ "could not parse format option: " ++ err
+        !pretty           = fromMaybe False $ ynopt "pretty" rawopts
+        !period           = periodFromRawOpts d rawopts
+        !interval         = intervalFromRawOpts rawopts
+        !conversionop     = conversionOpFromRawOpts rawopts
+        !value            = valuationTypeFromRawOpts rawopts
+        !depth            = depthFromRawOpts rawopts
+        !sortspec         = getSortSpec rawopts
+        !drop_n           = posintopt "drop" rawopts
+        !periodHeadings   = periodHeadingsOpt rawopts
 
     in defreportopts
-          {period_           = periodFromRawOpts d rawopts
-          ,interval_         = intervalFromRawOpts rawopts
+          {period_           = period
+          ,interval_         = interval
           ,statuses_         = statusesFromRawOpts rawopts
-          ,conversionop_     = conversionOpFromRawOpts rawopts
-          ,value_            = valuationTypeFromRawOpts rawopts
+          ,conversionop_     = conversionop
+          ,value_            = value
           ,infer_prices_     = boolopt "infer-market-prices" rawopts
-          ,depth_            = depthFromRawOpts rawopts
+          ,depth_            = depth
           ,date2_            = boolopt "date2" rawopts
           ,empty_            = boolopt "empty" rawopts
           ,no_elide_         = boolopt "no-elide" rawopts
@@ -270,13 +285,13 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,querystring_      = querystring
           ,average_          = boolopt "average" rawopts
           ,related_          = boolopt "related" rawopts
-          ,sortspec_         = getSortSpec rawopts
+          ,sortspec_         = sortspec
           ,txn_dates_        = boolopt "txn-dates" rawopts
           ,balancecalc_      = balancecalcopt rawopts
           ,balanceaccum_     = balanceaccumopt rawopts
           ,budgetpat_        = maybebudgetpatternopt rawopts
           ,accountlistmode_  = accountlistmodeopt rawopts
-          ,drop_             = posintopt "drop" rawopts
+          ,drop_             = drop_n
           ,declared_         = boolopt "declared" rawopts
           ,row_total_        = boolopt "row-total" rawopts
           ,no_total_         = boolopt "no-total" rawopts
@@ -289,7 +304,7 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,color_            = usecoloronstdout
           ,transpose_        = boolopt "transpose" rawopts
           ,layout_           = layoutopt rawopts
-          ,period_headings_  = periodHeadingsOpt rawopts
+          ,period_headings_  = periodHeadings
           }
 
 -- | A fully-determined set of report parameters 
