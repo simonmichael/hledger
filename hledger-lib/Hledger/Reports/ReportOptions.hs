@@ -316,8 +316,8 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,transpose_        = boolopt "transpose" rawopts
           ,layout_           = layoutopt rawopts
           ,period_headings_  = periodHeadings
-          ,report_heading_   = T.pack <$> maybestringopt "report-heading" rawopts
-          ,subreport_headings_ = T.pack <$> maybestringopt "subreport-headings" rawopts
+          ,report_heading_   = unescapeNewlines . T.pack <$> maybestringopt "report-heading" rawopts
+          ,subreport_headings_ = unescapeNewlines . T.pack <$> maybestringopt "subreport-headings" rawopts
           }
 
 -- | A fully-determined set of report parameters 
@@ -370,6 +370,10 @@ periodHeadingsOpt rawopts = case maybestringopt "period-headings" rawopts of
 -- the heading); otherwise return the supplied per-report default.
 effectiveReportHeading :: ReportOpts -> T.Text -> T.Text
 effectiveReportHeading ropts dflt = fromMaybe dflt (report_heading_ ropts)
+
+-- | Replace the literal two-character sequence "\n" with a real newline.
+unescapeNewlines :: T.Text -> T.Text
+unescapeNewlines = T.replace "\\n" "\n"
 
 -- Get the argument of the --budget option if any, or the empty string.
 maybebudgetpatternopt :: RawOpts -> Maybe T.Text
