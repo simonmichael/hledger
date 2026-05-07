@@ -121,7 +121,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
+import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
@@ -749,34 +749,49 @@ mkGeneratedGainPosting verbosetags acc amt ptypeTag =
   $ postingAddHiddenAndMaybeVisibleTag False verbosetags (generatedPostingTagName, "")
   $ nullposting{paccount = acc, pamount = amt}
 
--- | For each disposal transaction, if the user wrote an explicit posting on a
--- Gain-type or UnrealisedGain-type account without its matching counterpart,
--- add the missing side with the negated total. This lets the ordinary balancer
--- accept the paired transaction at transacted cost. Amountless gain/ugain
--- postings are rejected with a helpful error — users should either write the
--- amount or omit the posting entirely (hledger will infer the pair).
+-- | For each disposal transaction with a user-written realised-gain (rgain)
+-- posting that lacks its matching ugain counter, append a generated ugain
+-- posting on the default UnrealisedGain account so the entry balances at
+-- transacted cost without any special exception.
 --
--- Intended to run BEFORE transaction balancing. Disposals with neither or
--- both sides present are left alone; the "neither" case is handled later by
--- 'journalAddOrCheckGainPostings' after lot matching.
+-- The user's rgain posting is detected in either of two ways:
+--
+-- 1. By account type — the posting's account is declared with @type:G@. (And
+--    symmetrically for explicitly-written ugain on a @type:U@ account, with
+--    its rgain counter inserted on the default Gain account.)
+--
+-- 2. By transacted-cost residual — when no Gain/UnrealisedGain-typed account
+--    is involved, if the entry's postings sum to a non-zero single-commodity
+--    residual at transacted cost (with @ prices applied), that residual is
+--    treated as the user's rgain amount, and a balancing ugain posting is
+--    appended on the default UnrealisedGain account. This lets users write a
+--    gain posting on any account (without declaring it as @type:G@) and have
+--    hledger infer the balancing ugain posting automatically.
+--
+-- Runs BEFORE transaction balancing. Whether the user-written gain amount is
+-- correct is checked later by 'journalAddOrCheckGainPostings' after lot
+-- matching. Disposals with no detectable rgain are left alone; if there's a
+-- disposal gain, the rgain+ugain pair is added by 'journalAddOrCheckGainPostings'.
 journalAddGainOrUGainPosting :: Bool -> Journal -> Either String Journal
 journalAddGainOrUGainPosting verbosetags j = do
     txns' <- mapM infer (jtxns j)
     Right j{jtxns = txns'}
   where
     atypes = jaccounttypes j
-    rgainAccount = journalBaseGainAccount j
     ugainAccount = journalBaseUnrealisedGainAccount j
     isRgain p = accountNameType atypes (paccount p) == Just Gain
     isUgain p = accountNameType atypes (paccount p) == Just UnrealisedGain
 
+    -- Match the four cases in SPEC-lots.md "Gain inference":
+    -- 1. rgain on type:G + ugain on type:U → no inference
+    -- 2. no rgain or ugain → defer to journalAddOrCheckGainPostings
+    -- 3. rgain on type:G alone → infer ugain counter
+    -- 4. rgain on no type:G account → detect by transacted-cost residual
     infer t
       | not (any isDisposePosting (tpostings t)) = Right t
-      | otherwise = case (filter isRgain ps, filter isUgain ps) of
-          ([], [])   -> Right t                        -- inferred later
-          (_:_, _:_) -> Right t                        -- balancer validates
-          (xs, [])   -> addCounter t xs ugainAccount "ugain"
-          ([], xs)   -> addCounter t xs rgainAccount "rgain"
+      | any isRgain ps && any isUgain ps         = Right t                  -- 1
+      | any isRgain ps                           = addCounter t (filter isRgain ps) ugainAccount "ugain"  -- 3
+      | otherwise                                = tryResidual t            -- 2 or 4
       where ps = tpostings t
 
     addCounter t existing missingAcc ptypeTag
@@ -784,6 +799,24 @@ journalAddGainOrUGainPosting verbosetags j = do
       | otherwise =
           let counterP = mkGeneratedGainPosting verbosetags missingAcc (maNegate $ foldMap pamount existing) ptypeTag
           in  Right $ txnTieKnot t{tpostings = tpostings t ++ [counterP]}
+
+    -- When no posting is on a declared G/U account, treat any non-zero
+    -- single-commodity residual at transacted cost as the user's rgain amount
+    -- and append a ugain counter on the default UnrealisedGain account.
+    -- Multi-commodity residuals are skipped: those typically mean a
+    -- conversion-like entry where the standard balancer's
+    -- 'transactionInferBalancingCosts' will infer a balancing @ price.
+    tryResidual t
+      | any (not . hasAmount) (tpostings t)  = Right t  -- let balancer handle
+      | mixedAmountIsZero residual           = Right t
+      | length resCommodities /= 1           = Right t  -- multi-commodity: defer
+      | otherwise =
+          let counterP = mkGeneratedGainPosting verbosetags ugainAccount (maNegate residual) "ugain"
+          in  Right $ txnTieKnot t{tpostings = tpostings t ++ [counterP]}
+      where
+        residual = foldMap (mixedAmountCost . pamount) (tpostings t)
+        resCommodities = filter (not . isZeroAmount) (amountsRaw residual)
+        isZeroAmount a = aquantity a == 0
 
     amountlessErr t =
       txnErrPrefix t
@@ -895,23 +928,30 @@ journalAddOrCheckGainPostings verbosetags j = do
         rgainP        = mkGeneratedGainPosting verbosetags rgainAccount (styleInferred $ maNegate gain) "rgain"
         ugainP        = mkGeneratedGainPosting verbosetags ugainAccount (styleInferred gain)            "ugain"
 
-    -- When a disposal already has rgain/ugain postings (user-written, possibly
-    -- completed by journalAddGainOrUGainPosting), check that the claimed rgain
-    -- equals the negated disposal gain, exactly.
+    -- When a disposal already has rgain/ugain postings (user-written on
+    -- declared G/U accounts, or completed by journalAddGainOrUGainPosting via
+    -- residual-based detection), check that the gain amount matches the
+    -- calculated disposal gain.
+    --
+    -- We validate using the ugain side because under residual-based detection
+    -- the user-written rgain may be on an undeclared account (untagged), but
+    -- the auto-inserted ugain counter always carries _ptype:ugain. By
+    -- construction, ugainSum == disposal gain when the user's rgain was
+    -- correct.
     validatePair t =
       let ps       = tpostings t
           gain     = foldMap postingDisposalGain ps
-          rgainSum = foldMap pamount (filter isRgain ps)
-          -- rgain_sum should equal -gain. Check rgain_sum + gain == 0.
-          diff = rgainSum <> gain
+          ugainSum = foldMap pamount (filter isUgain ps)
+          -- ugain_sum should equal +gain. Check ugain_sum - gain == 0.
+          diff = ugainSum <> maNegate gain
       in if mixedAmountIsZero diff
            then Right t
-           else Left (mismatchErr t gain rgainSum)
+           else Left (mismatchErr t gain ugainSum)
 
-    mismatchErr t gain rgainSum =
+    mismatchErr t gain ugainSum =
       txnErrPrefix t
       ++ "This disposal's realised gain amount is wrong.\n"
-      ++ "  written:    " ++ showamt rgainSum ++ "\n"
+      ++ "  written:    " ++ showamt (maNegate ugainSum) ++ "\n"
       ++ "  calculated: " ++ showamt (maNegate gain)
       where
         showamt =

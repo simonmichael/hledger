@@ -289,3 +289,43 @@ $ hledger -f- print desc:sell --lots
 
 >=
 
+# *** 14. dispose with an explicit gain posting to an undeclared account.
+# The imbalance is assumed to be rgain; a corresponding ugain posting is inferred.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+    revenues:gain   $-25
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $55  ; ptype: dispose
+    assets:cash                                 $275
+    revenues:gain                               $-25
+    equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
+
+>=
+
+# *** 15. dispose with wrong gain amount on an undeclared account → rejected.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $275
+    revenues:gain   $-10
+
+$ hledger -f- print desc:sell --lots
+>2 /This disposal's realised gain amount is wrong/
+>=1
+

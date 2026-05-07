@@ -7289,51 +7289,131 @@ the balance assertion to a new zero-amount posting to the parent account (and ma
 
 ## Gain postings
 
-In hledger 2, each disposal transaction ends up with a pair of postings
-recording the capital gain:
+In hledger 2, each disposal transaction ends up with a balanced pair of
+postings recording the capital gain:
 
-- a **realised gain** posting on a [Gain-type account](#account-types)
+- a **realised gain** posting (rgain) — often on a [Gain-type account](#account-types)
   (default `revenues:gain`), with the gain or loss as a negated amount
-- a balancing **unrealised gain** posting on an [UnrealisedGain-type account](#account-types)
-  (default `equity:unrealised-gain`), with the same amount and opposite sign.
+- a balancing **unrealised gain** posting (ugain) — usually on an
+  [UnrealisedGain-type account](#account-types) (default `equity:unrealised-gain`),
+  with the same amount and opposite sign.
 
 Conceptually, from the moment you acquire a lot, its market price fluctuates,
 and you are incurring a corresponding hidden (unrealised) gain or loss.
 In a disposal, hledger reclassifies that accumulated unrealised gain as realised gain.
 (And leaves a trace of all accumulated capital gains as an equity balance.)
 
-When recording a disposal you have two options:
+## Recording disposals
 
-1. **Let hledger infer the pair**. Write just the dispose posting and
-   the proceeds; hledger will add the gain postings, using the first
-   declared Gain and UnrealisedGain accounts (or default accounts if
-   none are declared).
+Disposal transactions can be written in five styles. We use the same scenario
+throughout: 1 AAPL acquired at basis $50, sold at $60, $10 gain.
 
-2. **Write one or both gain postings** explicitly.
-   Note, in this case you must write the amount, which may be surprising (it simplifies the implementation).
-   If you write only one gain posting, hledger will add the other.
-   And it will check your gain amount, reporting an error if it's not correct.
+### Style 1: No gain postings (recommended for brevity)
+
+Write only the dispose posting and the proceeds; hledger infers both
+gain postings after lot matching.
+
+```journal
+2026-02-01 sell
+    assets:stocks   -1 AAPL {$50} @ $60
+    assets:cash     $60
+```
+
+### Style 2: Both gain postings written, on type:G and type:U accounts
+
+All explicit. hledger validates the gain amount against the calculated gain.
+
+```journal
+account revenues:gain           ; type:G
+account equity:unrealised-gain  ; type:U
+
+2026-02-01 sell
+    assets:stocks            -1 AAPL {$50} @ $60
+    assets:cash              $60
+    revenues:gain           $-10
+    equity:unrealised-gain   $10
+```
+
+### Style 3: Only rgain written, on a type:G account (recommended for error checking)
+
+hledger identifies the rgain by the declared type:G account, infers the
+ugain counter, and checks the gain amount.
+
+```journal
+account revenues:gain  ; type:G
+
+2026-02-01 sell
+    assets:stocks     -1 AAPL {$50} @ $60
+    assets:cash      $60
+    revenues:gain   $-10
+```
+
+### Style 4: Only rgain written, no type:G declaration
+
+If hledger sees a single-commodity imbalance in a disposal with no type:G
+posting, it assumes the imbalance comes from an unidentified rgain
+posting and infers a balancing ugain. The gain amount is checked against
+the calculated gain after lot matching.
+
+```journal
+2026-02-01 sell
+    assets:stocks     -1 AAPL {$50} @ $60
+    assets:cash      $60
+    revenues:gain   $-10
+```
+
+### Style 5: Only rgain written, no type:G, no @ on dispose (not recommended)
+
+Like style 4, but with no `@` on the dispose the imbalance is
+multi-commodity. hledger infers a transaction-balancing disposal price
+influenced by the assumed gain. No gain check runs.
+
+```journal
+2026-02-01 sell
+    assets:stocks   -1 AAPL {$50}
+    assets:cash     $60
+    revenues:gain   $-10
+```
+
+### Notes
+
+- Style 1 always succeeds (nothing to validate).
+- Styles 2 and 3 raise an error if the written and calculated gain do not match.
+- Style 4 also checks the gain without requiring a type:G declaration.
+  A typo causing an imbalance that coincidentally matches the correct gain
+  amount won't raise an error here; it surfaces in aggregate reports as
+  unrealised gain ≠ realised gain.
+- Style 5 has weaker error checking, so is not recommended.
+  Prefer to write the dispose posting's transacted price with `@` (as in style 4)
+  and/or declare the gain account as type:G (as in style 3).
+- When you write a gain posting on a type:G or type:U account, you must
+  write its amount; amountless stubs aren't supported.
+
+**TLDR:** use style 1 for brevity, or style 3 for best error checking while
+still being concise.
 
 ## Gain/UnrealisedGain account types
 
-The `Gain` (`type:G`) and `UnrealisedGain` (`type:U`) account types serve three purposes:
+The `Gain` (`type:G`) and `UnrealisedGain` (`type:U`) account types are
+optional refinements of Revenue and Equity respectively. Declaring them
+is not strictly required, but it serves three purposes:
 
 1. **Default destinations for generated gain postings.** 
-   They help hledger choose the account to use in generated gain postings -
-   the first declared `type:G` and `type:U` account.
-   (Otherwise it will use `revenues:gain` and `equity:unrealised-gain`.)
+   hledger uses the first declared `type:G` and `type:U` account
+   for inferred gain postings, otherwise `revenues:gain` and `equity:unrealised-gain`.
 
-2. **Recognising your explicit gain postings.** 
-   They help hledger detect realised or unrealised gain posting that you wrote yourself —
-   avoiding a duplicate auto-generated pair,
-   enabling a check of your amount against the calculated gain.
+2. **Recognising your explicit gain postings (sharper error checking).** 
+   When declared, they let hledger identify gain postings by account type
+   (style 2 or 3 above), enabling validation of the user-written amount
+   against the calculated gain. Without the declaration, hledger falls
+   back to detecting an imbalance as gain (style 4 or 5).
 
 3. **Report classification.**
-   Gain is a subtype of Revenue, so it will appear on the income statement;
-   UnrealisedGain is a subtype of Equity, so it will appear on the balance sheet.
+   Gain is a subtype of Revenue, so it appears on the income statement;
+   UnrealisedGain is a subtype of Equity, so it appears on the balance sheet.
 
-Note, unlike other account types, G and U are not inferred from account names, currently — 
-you must declare them explicitly:
+Unlike most account types, G and U are not inferred from account names —
+they must be declared explicitly when you want their semantics:
 
 ```journal
 account revenues:gain           ; type: G

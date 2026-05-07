@@ -66,3 +66,23 @@ Docs recommend users to always keep `B = T`, and to use the `basis` check to che
 with reasons provided (prevent wrong gain caused by basis typos).
 The new check might be moved into strict mode some day, but not yet.
 
+### Don't require Gain/UnrealisedGain account declarations to balance disposals
+
+Originally, writing an explicit gain posting in a disposal entry required
+declaring its account with `type: G` (and the inferred unrealised-gain
+counter required `type: U`), so hledger could recognise it pre-balance and
+insert the matching counter. This coupled balancing to journal metadata,
+which is painful for tools that generate journals from CSV (they'd have to
+emit the declarations too) and surprising to users who expect balancing
+to be purely arithmetic.
+
+Now, hledger detects the user's rgain by either of two paths:
+1. **Account-type detection** — declared `type: G` (preserved for back-compat
+   and for directing the counter to a specific account).
+2. **Transacted-cost residual** — any non-zero single-commodity imbalance at
+   transacted cost in a disposal entry is assumed to be rgain written by the user.
+
+The residual path lets users write `revenues:gain  $-10`, or any other account name,
+without an account type declaration, and have hledger balance the entry. The gain
+amount is still checked (later) and any disagreement will raise an error.
+

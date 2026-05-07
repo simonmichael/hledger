@@ -416,62 +416,70 @@ So a lot transaction can be broadly classified as "acquire", "transfer", or "dis
 All transactions, including disposals, are balanced by the ordinary
 transaction-balancing rule — sum postings at transacted cost (ignoring cost
 basis), sum must be zero, infer at most one missing amount per commodity.
-No special exception applies to Gain/UnrealisedGain postings.
 
-## Gain postings
+## Disposal transactions
 
-In lots mode, each disposal transaction carries a pair of generated postings
-recording the capital gain or loss:
+The realised gain/loss from a disposal is calculated as follows:
+for each dispose posting in the entry whose amount has both 
+a cost basis `B` and a transacted cost `T`, contribute `aquantity × (B − T)`.
 
-- a **realised gain** posting (rgain) to a Gain-type account (default
-  `revenues:gain`), with the negated gain amount;
-- an **unrealised gain** counter (ugain) to an UnrealisedGain-type account
-  (default `equity:unrealised-gain`), with the gain amount.
+### Gain postings
 
-The two sum to zero so the ordinary transacted-cost balancing rule accepts
-the disposal without any special exception. Conceptually, the ugain side
-reclassifies what would otherwise accumulate as unrealised gain into
-realised gain at disposal.
+Conceptually, each disposal transaction has a balanced pair of postings,
+representing the disposal's capital gain or loss:
 
-The Gain and UnrealisedGain account types are not inferred from account
-names; they must be declared explicitly via `type:` tags
-(see [DECISIONS.md](DECISIONS.md)):
+- a **realised gain** posting (rgain), often to a Gain-type account (default `revenues:gain`)
+- an **unrealised gain** posting (ugain) with opposite sign, usually to an UnrealisedGain-type account
+  (default `equity:unrealised-gain`).
+
+The two sum to zero so the transaction balancer accepts the disposal.
+They reclassify the unrealised gain accumulated since acquisition, as realised gain.
+
+### Gain/UnrealisedGain account types
+
+The Gain and UnrealisedGain account types are not inferred from account names
+(to avoid breaking hledger 1 journals which may use those names - see [DECISIONS.md](DECISIONS.md)).
+They can be declared explicitly via `type:` tags:
 
 ```
 account revenues:gain           ; type: G
 account equity:unrealised-gain  ; type: U
 ```
 
-### Inference
+Declaring and using these account types is not strictly required,
+but they can improve error checking in disposals,
+they help select an account for inferred gain postings,
+and they facilitate more precise querying.
 
-The realised gain inferred for a disposal is the **disposal gain**: for
-each dispose posting in the entry whose amount has both a cost basis `B`
-and a transacted cost `T`, contribute `aquantity × (B − T)`.
+### Disposal journal entries
 
-Disposal transactions can be written in any of three equivalent styles:
+Disposal transactions can be written in any of these styles. The user manual's
+"Recording disposals" section walks through each with examples and trade-offs.
 
-1. **No gain postings written.** After lot matching, hledger computes the
-   disposal gain and adds both rgain and ugain postings for that amount
-   (`journalAddOrCheckGainPostings`).
+1. **No gain postings.**
+  After lot matching, hledger computes the disposal gain
+  and infers realised gain and unrealised gain postings for the transaction
+  (`journalAddOrCheckGainPostings`).
 
-2. **Only rgain written** (with an explicit amount). Before transaction
-   balancing, hledger adds a matching ugain counter with the negated amount
-   (`journalAddGainOrUGainPosting`). The ordinary balancer then accepts the
-   paired transaction. After lot matching, the user-written rgain amount is
-   checked against the disposal gain; mismatches are reported as errors.
+2. **rgain and ugain postings written, identified by their type:G and U accounts.**
+  All is explicit (including the gain amounts). No inference is needed; hledger checks the gain amount.
 
-3. **Only ugain written** (uncommon, symmetric with (2)).
+3. **Only rgain written, using a type:G account.**
+  hledger identifies the rgain posting by the type:G account,
+  and infers a balancing ugain posting. The gain amount must be written explicitly, and is checked.
 
-Both rgain and ugain must be written as amountful postings when explicit;
-amountless stubs like `revenues:gain` with no amount are no longer
-supported. Either write the amount explicitly, or omit the posting and let
-hledger infer the pair.
+4. **Only rgain written, not using a type:G account.**
+  If hledger sees a single-commodity imbalance in a disposal transaction with no type:G posting,
+  it assumes the imbalance is from an unidentified rgain posting,
+  and it infers a balancing ugain posting.
+  After lot matching, the assumed gain is checked against the calculated gain,
+  and an error is raised if they are not the same.
 
-If a user writes rgain or ugain in a disposal where hledger can't compute
-the matching disposal gain (eg a bare `-5 AAPL` dispose posting with no
-`{...}` cost basis annotation, where the gain comes out multi-commodity),
-`journalAddGainOrUGainPosting` emits an error pointing to the offending
-posting and suggesting how to resolve it.
+5. **Only rgain written, not using a type:G account, imbalance is multi-commodity.**
+  Like 4, but if the imbalance is multi-commodity (typically because the dispose posting lacks a @ transacted price),
+  hledger infers a transaction-balancing disposal price influenced by the assumed gain.
+  No gain check runs; if the recorded gain is wrong, hledger produces a confused entry
+  with extra gain postings, rather than an error.
 
 ## Acquire basis check
 
