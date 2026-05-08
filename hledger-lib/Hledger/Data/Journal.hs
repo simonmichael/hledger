@@ -24,6 +24,9 @@ module Hledger.Data.Journal (
   addTransaction,
   journalDbg,
   journalInferMarketPricesFromTransactions,
+  journalInferAliasPrices,
+  commodityAliases,
+  commoditiesAndAliases,
   journalInferCommodityStyles,
   journalStyleAmounts,
   journalCommodityStyles,
@@ -155,7 +158,7 @@ import Data.Ord (comparing)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Time.Calendar (Day, addDays, diffDays, fromGregorian)
+import Data.Time.Calendar (Day(..), addDays, diffDays, fromGregorian)
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.Tree (Tree (..), flatten)
 import Safe (headMay, headDef, maximumMay, minimumMay)
@@ -1151,6 +1154,91 @@ journalInferMarketPricesFromTransactions j =
        concatMap postingPriceDirectivesFromCost $
        journalPostings j
    }
+
+-- | Aliases declared on a commodity directive via one or more @alias:@
+-- tags. Each tag's value is split on whitespace, with double- or
+-- single-quoted spans preserved as one token (eg @\"K c\"@).
+-- Self-aliases (matching the directive's own symbol) and empty pieces
+-- are dropped. Unmatched quotes are tolerated.
+commodityAliases :: Commodity -> [CommoditySymbol]
+commodityAliases c =
+  [ a
+  | (n, v) <- ctags c
+  , T.toLower n == "alias"
+  , a <- splitAliases v
+  , a /= csymbol c
+  ]
+
+-- | Split an @alias:@ tag value into individual aliases. Whitespace
+-- separates tokens; double or single quotes group whitespace into a
+-- single token. Total — never throws.
+splitAliases :: T.Text -> [CommoditySymbol]
+splitAliases = go . T.dropWhile isSpace
+  where
+    isSpace c = c == ' ' || c == '\t'
+    go t = case T.uncons t of
+      Nothing       -> []
+      Just ('"', r) -> takeQuoted '"' r
+      Just ('\'',r) -> takeQuoted '\'' r
+      Just _        ->
+        let (tok, rest) = T.break isSpace t
+        in tok : go (T.dropWhile isSpace rest)
+    takeQuoted q r =
+      let (tok, rest) = T.break (== q) r
+          rest'       = T.dropWhile isSpace (T.drop 1 rest)
+      in (if T.null tok then id else (tok :)) (go rest')
+
+-- | All commodity symbols that this journal treats as declared:
+-- both the canonical 'jdeclaredcommodities' keys and any 'alias:'
+-- values declared on those commodity directives.
+commoditiesAndAliases :: Journal -> S.Set CommoditySymbol
+commoditiesAndAliases j =
+  M.keysSet (jdeclaredcommodities j)
+  <> S.fromList [ a
+                | c <- M.elems (jdeclaredcommodities j)
+                , a <- commodityAliases c
+                ]
+
+-- | For each declared commodity with one or more @alias:@ tag values,
+-- inject a synthetic 1:1 P directive, from alias to canonical symbol,
+-- into the journal, so the valuation engine can easily convert between
+-- these commodity symbol variants (eg @$@ to @USD@).
+--
+-- An alias matching a separately declared canonical commodity is
+-- silently allowed: the bridge is still added; the canonical commodity
+-- continues to exist in its own right.
+--
+-- Returns 'Left' with a verbose error if the same alias is declared
+-- for two different commodities.
+journalInferAliasPrices :: Journal -> Either String Journal
+journalInferAliasPrices j =
+  case [(a, cs) | (a, cs) <- M.toList grouped, length cs > 1] of
+    ((a, cs):_) -> Left $ aliasConflictMsg a cs
+    [] ->
+      let used = S.fromList (journalCommoditiesUsed j)
+          bridges =
+            [ PriceDirective
+                { pdsourcepos = csourcepos c
+                , pddate      = nullday
+                , pdcommodity = a
+                , pdamount    = nullamt{acommodity = csymbol c, aquantity = 1}
+                }
+            | (a, c) <- pairs
+            , a `S.member` used
+            ]
+      in Right j{jpricedirectives = jpricedirectives j <> bridges}
+  where
+    pairs   = [ (a, c) | c <- M.elems (jdeclaredcommodities j)
+                       , a <- commodityAliases c ]
+    grouped = M.fromListWith (++) [(a, [c]) | (a,c) <- pairs]
+    nullday = fromGregorian 0 1 1
+    aliasConflictMsg a cs = unlines $
+      [ "Alias '" <> T.unpack a <> "' is declared on more than one commodity:"
+      , ""
+      ] <> map (T.unpack . renderOne) cs
+    renderOne c =
+      let (f, l, _, ex) = makeCommodityTagErrorExcerpt c "alias"
+      in T.pack f <> ":" <> T.pack (show l) <> ":\n" <> ex
 
 -- | Convert all this journal's amounts to cost using their attached prices, if any.
 journalToCost :: ConversionOp -> Journal -> Journal

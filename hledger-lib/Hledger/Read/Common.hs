@@ -390,6 +390,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
 
       -- Market prices and renumbering
       <&> journalInferMarketPricesFromTransactions                                -- infer market prices from commodity-exchanging transactions
+      >>= journalInferAliasPrices                                                -- inject 1:1 bridges for any alias: tags on commodity directives
       <&> journalRenumberAccountDeclarations                                      -- renumber account declarations for consistent ordering
 
       -- Lot and capital gains calculation/checking

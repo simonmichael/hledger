@@ -25,7 +25,7 @@ where
 import Data.Char (isSpace)
 import Data.List.Extra
 import Data.Maybe
-import Data.Map.Strict qualified as M
+import Data.Set qualified as S
 import Data.Text qualified as T
 import Safe (atMay, lastMay, headMay)
 import Text.Printf (printf)
@@ -87,7 +87,8 @@ journalCheckCommodities j = do
   mapM_ checkPriceDirectiveCommodities $ jpricedirectives j
   mapM_ checkPostingCommodities $ journalPostings j
   where
-    firstUndeclaredOf comms = find (`M.notMember` jdeclaredcommodities j) comms
+    declared = commoditiesAndAliases j
+    firstUndeclaredOf comms = find (`S.notMember` declared) comms
 
     errmsg = unlines [
         "%s:%d:"

@@ -2695,6 +2695,39 @@ except where the posting already has a value for that tag.
 (A posting tag or an account tag overrides a commodity tag.)
 Note, these tags will be queryable but won't be shown in `print` output, even with --verbose-tags.
 
+### Commodity aliases
+
+An `alias:` tag on a commodity directive declares one or more alternative symbols
+which should be treated as equivalent to it for valuation purposes.
+This is useful when your journal uses a familiar symbol like `$` while market
+prices are recorded against the canonical ISO code like `USD` (eg as written by
+`hledger getprices`):
+
+```journal
+commodity 1.00 USD  ; alias: $
+
+P 2024-01-01 EUR 1.10 USD
+```
+
+For each alias actually used in the journal, hledger injects a synthetic 1:1
+price directive (eg `$ → USD`), so reports like `bal -X EUR` can convert
+amounts via the alias's canonical form.
+
+Multiple aliases can be listed in one tag value, separated by whitespace.
+Symbols containing special characters or spaces should be enclosed in double
+or single quotes:
+
+```journal
+commodity USD1.00
+    ; alias: $ "US$" USDOLLAR
+```
+
+Aliased symbols are also accepted by `hledger check commodities`, so you
+don't need a separate `commodity` directive for each alias.
+
+If the same alias is declared on two different commodities, hledger reports
+an error.
+
 ### Commodity error checking
 
 In [strict mode] (`-s`/`--strict`) (or when you run `hledger check commodities`),

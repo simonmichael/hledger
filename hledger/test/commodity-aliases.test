@@ -1,0 +1,119 @@
+# * commodity directive alias: tag
+
+# ** 1. A 1:1 bridge price is injected for each declared alias that's
+#       used in the journal, so values can chain across symbol/code variants.
+<
+commodity USD1.00
+    ; alias: $
+
+P 2024-01-01 EUR 1.10 USD
+
+2024-06-01
+    a   100 EUR @ $1.10
+    b
+
+$ hledger -f- prices
+P 0000-01-01 $ USD1
+P 2024-01-01 EUR USD1.10
+
+# ** 2. The bridge lets `bal -X EUR` value $-amounts in EUR via $ -> USD -> EUR.
+<
+commodity USD1.00
+    ; alias: $
+
+P 2024-01-01 EUR 1.10 USD
+
+2024-06-01
+    a   100 EUR @ $1.10
+    b
+
+$ hledger -f- bal -X EUR --no-total
+             100 EUR  a
+            -100 EUR  b
+
+# ** 3. Multiple aliases can be declared on a single commodity, space-separated.
+#       Quoted symbols (with internal spaces or special chars) are preserved as one.
+<
+commodity USD1.00
+    ; alias: $ "US$" USDOLLAR
+
+2024-06-01
+    a   100 USDOLLAR
+    b   "US$"-50
+    c
+
+$ hledger -f- prices
+P 0000-01-01 US$ USD1
+P 0000-01-01 USDOLLAR USD1
+
+# ** 4. Aliases declared on a commodity but not used in the journal are silently
+#       ignored (no bridge is injected).
+<
+commodity USD1.00
+    ; alias: $ UNUSED
+
+2024-06-01
+    a   $100
+    b
+
+$ hledger -f- prices
+P 0000-01-01 $ USD1
+
+# ** 5. The same alias declared on two different canonicals is a finalization
+#       error with a verbose message including both source positions.
+<
+commodity USD1.00
+    ; alias: $
+
+commodity AUD1.00
+    ; alias: $
+
+2024-01-01
+    a   $100
+    b
+
+$ hledger -f- bal
+>2 /Alias '\$' is declared on more than one commodity/
+>=1
+
+# ** 6. An alias matching another separately declared canonical is silently
+#       allowed (a 1:1 bridge is added; the canonical commodity remains too).
+<
+commodity USD1.00
+    ; alias: EUR
+
+commodity EUR1.00
+
+2024-01-01
+    a   USD100
+    b   EUR-100
+
+$ hledger -f- prices
+P 0000-01-01 EUR USD1
+
+# ** 7. A self-alias (matching the directive's own symbol) is silently ignored.
+<
+commodity USD1.00
+    ; alias: USD $
+
+2024-01-01
+    a   USD100
+    b   $-100
+
+$ hledger -f- prices
+P 0000-01-01 $ USD1
+
+# ** 8. With a commodity alias declared, valuation can convert between the
+# alias and canonical symbols at a 1:1 rate.
+<
+commodity USD 1.00  ; alias: $
+
+P 2024-01-01 USD 0.9 EUR
+
+2024-06-01
+    assets:cash       $100
+    equity:opening
+
+$ hledger -f- bal -X EUR --no-total
+            90.0 EUR  assets:cash
+           -90.0 EUR  equity:opening
