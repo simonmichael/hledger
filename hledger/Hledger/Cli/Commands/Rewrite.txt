@@ -13,6 +13,8 @@ Flags:
                                     and AMTEXPR.
      --diff                         generate diff suitable as an input for
                                     patch tool
+     --verbose-tags                 add tags indicating generated/modified
+                                    data
 
 This is a start at a generic rewriter of transaction entries. It reads
 the default journal and prints the transactions, like print, but adds

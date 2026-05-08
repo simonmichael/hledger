@@ -24,6 +24,10 @@ Flags:
                                    (can unbalance transactions)
                             all  - also round cost amounts to precision
                                    (can unbalance transactions)
+     --layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 - right-align amounts, as in hledger 1
+                            COL      - align decimal marks at column COL
+                            (default: 53)
      --base-url=URLPREFIX   in html output, generate links to hledger-web,
                             with this prefix. (Usually the base url shown by
                             hledger-web; can also be relative.)
