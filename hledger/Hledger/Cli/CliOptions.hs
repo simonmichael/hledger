@@ -185,7 +185,6 @@ inputflags = [
     ])
   ,flagNone ["infer-costs"] (setboolopt "infer-costs") "infer conversion equity postings from costs"
   ,flagNone ["infer-equity"] (setboolopt "infer-equity") "infer costs from conversion equity postings"
-  ,flagNone ["lots"] (setboolopt "lots") "show lot subaccounts and other lot details"
   -- history of this flag so far, lest we be confused:
   --  originally --infer-value
   --  2021-02 --infer-market-price added, --infer-value deprecated
@@ -199,9 +198,6 @@ inputflags = [
   ,flagNone ["infer-market-prices"] (setboolopt "infer-market-prices") "infer market prices from costs"
   ,flagReq  ["pivot"]         (\s opts -> Right $ setopt "pivot" s opts)  "TAGNAME" "use a different field or tag as account names"
   ,flagNone ["strict","s"]    (setboolopt "strict") "do extra error checks (and override -I)"
-
-  -- generating transactions/postings
-  ,flagNone ["verbose-tags"]  (setboolopt "verbose-tags") "add tags indicating generated/modified data"
   ]
 
 -- | Common report-related flags: --period, --cost, etc.
@@ -251,6 +247,7 @@ reportflags = [
       ])
 
   -- display
+ ,flagNone ["lots"] (setboolopt "lots") "show lot subaccounts and other lot details"
  ,flagReq ["commodity-style", "c"] (\s opts -> Right $ setopt "commodity-style" s opts) "S"
     "Override a commodity's display style.\nEg: -c '$1000.' or -c '1.000,00 EUR'"
  ,flagOpt "yes" ["pretty"] (\s opts -> Right $ setopt "pretty" s opts) "YN"

@@ -54,6 +54,7 @@ printmode = hledgerCommandMode
    flagNone ["all","a"] (setboolopt "explicit" . setboolopt "lots" . setboolopt "verbose-tags")
     "show all details (--explicit --lots --verbose-tags)"
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all inferred info explicitly"
+  ,flagNone ["verbose-tags"] (setboolopt "verbose-tags") "add tags indicating generated/modified data"
   ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
   ,flagNone ["locations"] (setboolopt "locations") "add tags showing file paths and line numbers"
   ,let arg = "DESC" in

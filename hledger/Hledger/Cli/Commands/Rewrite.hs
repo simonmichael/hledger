@@ -32,6 +32,7 @@ rewritemode = hledgerCommandMode
   [flagReq ["add-posting"] (\s opts -> Right $ setopt "add-posting" s opts) "'ACCT  AMTEXPR'"
            "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
   ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
+  ,flagNone ["verbose-tags"] (setboolopt "verbose-tags") "add tags indicating generated/modified data"
   ]
   cligeneralflagsgroups1
   hiddenflags
