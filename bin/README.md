@@ -44,12 +44,6 @@ It is a simple, customisable front end for price-fetching tools like pricehist.
 is a helper for evaluating Ledger value expressions.
 It's useful eg when converting amount expressions like `(1 USD + 2 USD)` to simple amounts.
 
-### pricehist
-
-[pricehist](https://pypi.org/project/pricehist) is useful for downloading market prices / conversion rates; recommended.
-And [`hledger-pricehist`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-pricehist)
-is a small script to make it show up in the hledger commands list.
-
 ### paypaljson
 
 [`paypaljson`](https://github.com/simonmichael/hledger/blob/main/bin/paypaljson)
