@@ -1,7 +1,7 @@
 # * commodity directive alias: tag
 
-# ** 1. A 1:1 bridge price is injected for each declared alias that's
-#       used in the journal, so values can chain across symbol/code variants.
+# ** 1. A 1:1 price directive is injected for each declared alias,
+#       so values can chain across symbol/code variants.
 <
 commodity USD1.00
     ; alias: $
@@ -43,11 +43,12 @@ commodity USD1.00
     c
 
 $ hledger -f- prices
+P 0000-01-01 $ USD1
 P 0000-01-01 US$ USD1
 P 0000-01-01 USDOLLAR USD1
 
-# ** 4. Aliases declared on a commodity but not used in the journal are silently
-#       ignored (no bridge is injected).
+# ** 4. Aliases are materialised as price directives even if not used
+#       in any posting.
 <
 commodity USD1.00
     ; alias: $ UNUSED
@@ -58,6 +59,7 @@ commodity USD1.00
 
 $ hledger -f- prices
 P 0000-01-01 $ USD1
+P 0000-01-01 UNUSED USD1
 
 # ** 5. The same alias declared on two different canonicals is a finalization
 #       error with a verbose message including both source positions.

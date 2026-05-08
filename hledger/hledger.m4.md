@@ -2709,8 +2709,8 @@ commodity 1.00 USD  ; alias: $
 P 2024-01-01 EUR 1.10 USD
 ```
 
-For each alias actually used in the journal, hledger injects a synthetic 1:1
-price directive (eg `$ → USD`), so reports like `bal -X EUR` can convert
+For each declared alias, hledger injects a synthetic 1:1 price directive
+(eg `$ → USD`), dated `0000-01-01`, so reports like `bal -X EUR` can convert
 amounts via the alias's canonical form.
 
 Multiple aliases can be listed in one tag value, separated by whitespace.

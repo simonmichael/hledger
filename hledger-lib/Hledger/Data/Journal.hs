@@ -1229,13 +1229,13 @@ commoditiesAndAliases j =
                 ]
 
 -- | For each declared commodity with one or more @alias:@ tag values,
--- inject a synthetic 1:1 P directive, from alias to canonical symbol,
--- into the journal, so the valuation engine can easily convert between
--- these commodity symbol variants (eg @$@ to @USD@).
+-- inject a synthetic 1:1 P price directive, from alias to canonical
+-- symbol, into the journal, so the valuation engine can easily convert
+-- between these commodity symbol variants (eg @$@ to @USD@).
 --
 -- An alias matching a separately declared canonical commodity is
--- silently allowed: the bridge is still added; the canonical commodity
--- continues to exist in its own right.
+-- silently allowed: the price directive is still added; the canonical
+-- commodity continues to exist in its own right.
 --
 -- Returns 'Left' with a verbose error if the same alias is declared
 -- for two different commodities.
@@ -1244,8 +1244,7 @@ journalInferAliasPrices j =
   case [(a, cs) | (a, cs) <- M.toList grouped, length cs > 1] of
     ((a, cs):_) -> Left $ aliasConflictMsg a cs
     [] ->
-      let used = S.fromList (journalCommoditiesUsed j)
-          bridges =
+      let aliasprices =
             [ PriceDirective
                 { pdsourcepos = csourcepos c
                 , pddate      = nullday
@@ -1253,9 +1252,8 @@ journalInferAliasPrices j =
                 , pdamount    = nullamt{acommodity = csymbol c, aquantity = 1}
                 }
             | (a, c) <- pairs
-            , a `S.member` used
             ]
-      in Right j{jpricedirectives = jpricedirectives j <> bridges}
+      in Right j{jpricedirectives = jpricedirectives j <> aliasprices}
   where
     pairs   = [ (a, c) | c <- M.elems (jdeclaredcommodities j)
                        , a <- commodityAliases c ]
