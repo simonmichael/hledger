@@ -452,7 +452,7 @@ account equity:unrealised-gain    ; type:U
     assets:cold wallet       0.999601 ETH
     expenses:fees:trading    0.000399 ETH @ $1,992.36
 
-$ hledger -f- print -x desc:transfer
+$ hledger -f- print -x --lots desc:transfer
 2026-03-09 transfer
     assets:custodial:{2026-03-06, $1,980.78}      -0.999601 ETH {2026-03-06, $1,980.78}
     assets:custodial:{2026-03-06, $1,980.78}      -0.000399 ETH {2026-03-06, $1,980.78} @ $1,992.36

@@ -4,6 +4,8 @@ Show full journal entries, representing transactions.
 
 ```flags
 Flags:
+  -a --all                  show all details (--explicit --lots
+                            --verbose-tags)
   -x --explicit             show all inferred info explicitly
      --invert               display all amounts with reversed sign
      --locations            add tags showing file paths and line numbers
@@ -59,7 +61,7 @@ $ hledger print -f examples/sample.journal date:200806
 
 ```
 
-### print amount explicitness
+### print explicitness
 
 Normally, whether posting amounts are implicit or explicit is preserved.
 For example, when an amount is omitted in the journal, it will not appear in the output.
@@ -74,6 +76,11 @@ The `-x`/`--explicit` flag will cause any postings with a multi-commodity amount
 (which can arise when a multi-commodity transaction has an implicit amount)
 to be split into multiple single-commodity postings, 
 keeping the output parseable.
+
+To see more details — not just inferred amounts and costs, 
+but also lot subaccounts and postings,
+and the hidden tags that hledger adds to classify things —
+use `-a`/`--all`, which is equivalent to `--explicit --lots --verbose-tags`.
 
 
 ### print layout

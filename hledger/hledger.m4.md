@@ -6009,11 +6009,10 @@ Such generated data is temporary, existing only at report time.
 You can convert it to permanent recorded data by, eg, capturing the output of `hledger print` and saving it in your journal file.
 This can sometimes be useful as a data entry aid.
 
-If you are curious what data is being generated and why, run `hledger print -x --verbose-tags`.
-`-x/--explicit` shows inferred amounts and `--verbose-tags` adds tags like 
-`generated-transaction` (from periodic rules) and `generated-posting`, `modified` (from auto posting rules).
-Similar hidden tags (with an underscore prefix) are always present, also,
-so you can always match such data with queries like `tag:generated` or `tag:modified`.
+If you are curious what data is being generated and why, run `hledger print -a` (equivalent to `--explicit --lots --verbose-tags`).
+`-x/--explicit` shows inferred amounts and conversion prices, 
+`--lots` shows lot subaccounts and lot-specific postings,
+and `--verbose-tags` shows the hidden tags which hledger uses for classifying things.
 
 # Detecting special postings
 
@@ -7006,7 +7005,7 @@ Here are some current issues to be aware of:
 
 - Not every possible lot-related journal entry can be detected correctly by hledger.
   For example, entries with a total cost basis which can't be converted to exact unit cost basis.
-  Use `hledger print -x --verbose-tags` to see how a lot entry has been analysed,
+  Use `hledger print -a` to see how a lot entry has been analysed,
   and if it's not correct, try to rewrite it until hledger analyses it correctly.
 
 For more technical details, see [SPEC-lots](/SPEC-lots.html).
@@ -7194,7 +7193,7 @@ the fee portion of lots is consumed from the source without being recreated at t
 If that fee also appears as a priced non-asset posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`),
 hledger automatically splits the source posting into a transfer portion and a priced disposal portion,
 so that the disposal is detected correctly.
-Plain `print` shows the user's original entry; `print -x` (and `print --lots`) show the split form
+Plain `print` shows the user's original entry; `print --lots` (or `print -a`) shows the split form
 explicitly, so the output round-trips correctly.
 
 ### Dispose
@@ -7509,11 +7508,11 @@ $ hledger bal assets:stocks --lots -N
              10 AAPL  assets:stocks:{2026-02-01, $60}
 ```
 
-and `print -x` shows the inferred lot subaccounts and gain postings.
+and `print -x --lots` shows the inferred lot subaccounts and gain postings.
 5 shares were acquired at $50 and sold at $70 = 5 × ($70 - $50) = $100 gain
 (remember that revenue amounts appear negative).
 ```
-$ hledger print desc:sell -x
+$ hledger print desc:sell -x --lots
 2026-03-01 sell some (FIFO, selects oldest lot first)
     assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $70
     assets:cash                                                   $350
@@ -7521,9 +7520,9 @@ $ hledger print desc:sell -x
     equity:unrealised-gain                                        $100
 ```
 
-Add `--verbose-tags` to also see the lot posting classifications (ptype tags), useful for troubleshooting:
+Use `-a`/`--all` (short for `-x --lots --verbose-tags`) to also see the lot posting classifications (ptype tags), useful for troubleshooting:
 ```
-$ hledger print desc:sell -x --verbose-tags
+$ hledger print desc:sell -a
 2026-03-01 sell some (FIFO, selects oldest lot first)
     assets:stocks:{2026-01-15, $50}    -5 AAPL {2026-01-15, $50} @ $70  ; ptype: dispose
     assets:cash                                                   $350
