@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "March 2026" "hledger-1.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "May 2026" "hledger-1.99 " "hledger User Manuals"
 
 
 
@@ -3597,6 +3597,42 @@ main amount, except where the posting already has a value for that tag.
 (A posting tag or an account tag overrides a commodity tag.)
 Note, these tags will be queryable but won\(aqt be shown in
 \f[CR]print\f[R] output, even with \-\-verbose\-tags.
+.SS Commodity aliases
+An \f[CR]alias:\f[R] tag on a commodity directive declares one or more
+alternative symbols which should be treated as equivalent to it for
+valuation purposes.
+This is useful when your journal uses a familiar symbol like
+\f[CR]$\f[R] while market prices are recorded against the canonical ISO
+code like \f[CR]USD\f[R] (eg as written by
+\f[CR]hledger getprices\f[R]):
+.IP
+.EX
+commodity 1.00 USD  ; alias: $
+
+P 2024\-01\-01 EUR 1.10 USD
+.EE
+.PP
+For each alias actually used in the journal, hledger injects a synthetic
+1:1 price directive (eg \f[CR]$ → USD\f[R]), so reports like
+\f[CR]bal \-X EUR\f[R] can convert amounts via the alias\(aqs canonical
+form.
+.PP
+Multiple aliases can be listed in one tag value, separated by
+whitespace.
+Symbols containing special characters or spaces should be enclosed in
+double or single quotes:
+.IP
+.EX
+commodity USD1.00
+    ; alias: $ \(dqUS$\(dq USDOLLAR
+.EE
+.PP
+Aliased symbols are also accepted by
+\f[CR]hledger check commodities\f[R], so you don\(aqt need a separate
+\f[CR]commodity\f[R] directive for each alias.
+.PP
+If the same alias is declared on two different commodities, hledger
+reports an error.
 .SS Commodity error checking
 In strict mode (\f[CR]\-s\f[R]/\f[CR]\-\-strict\f[R]) (or when you run
 \f[CR]hledger check commodities\f[R]), hledger will report an error if
@@ -6776,23 +6812,6 @@ report at the end of february (overriding the requested end date).
 end the report on march 4th [1].
 .PP
 [1] Since hledger 1.29.
-.SS Period headings
-With non\-standard subperiods, hledger will show
-\(dqSTARTDATE..ENDDATE\(dq headings.
-With standard subperiods (ie, starting on a natural interval boundary),
-you\(aqll see more compact headings, which are usually preferable.
-(Though month names will be in english, currently.)
-.PP
-So if you are specifying a start date and you want compact headings:
-choose a start of year for yearly reports, a start of quarter for
-quarterly reports, a start of month for monthly reports, etc.
-(Remember, you can write eg \f[CR]\-b 2024\f[R] or \f[CR]1/1\f[R] as a
-shortcut for a start of year, or \f[CR]2024\-04\f[R] or
-\f[CR]202404\f[R] or \f[CR]Apr\f[R] for a start of month or quarter.)
-.PP
-For weekly reports, choose a date that\(aqs a Monday.
-(You can try different dates until you see the short headings, or write
-eg \f[CR]\-b \(aq3 weeks ago\(aq\f[R].)
 .SS Period expressions
 The \f[CR]\-p/\-\-period\f[R] option specifies a period expression,
 which is a compact way of expressing a start date, end date, and/or
@@ -7073,6 +7092,31 @@ T}@T{
 dates will be Sat, Sun; periods will be Sat, Sun\-Fri
 T}
 .TE
+.SH Report titles
+Some reports (\f[CR]balancesheet\f[R], \f[CR]balancesheetequity\f[R],
+\f[CR]cashflow\f[R], \f[CR]incomestatement\f[R]) are displayed with a
+title by default, and others are not.
+For most reports you can set a title with
+\f[CR]\-\-title=\(aqSome Text\(aq\f[R], or suppress the title with
+\f[CR]\-\-title=\f[R].
+.PP
+Compound reports, like those just mentioned, also have subreport
+headings, like Assets and Liabilities in the balance sheet.
+You can customise these with
+\f[CR]\-\-subreport\-titles=HEADING1|HEADING2..\f[R], or suppress them
+with \f[CR]\-\-subreport\-titles=\f[R].
+.PP
+In both \f[CR]\-\-title\f[R] and \f[CR]\-\-subreport\-titles\f[R], you
+can use \f[CR]\(rsn\f[R] to generate a newline.
+.PP
+In multi\-period reports each period has a heading describing its date
+range or end date.
+When date ranges correspond to natural period boundaries, they are
+described compactly by default (month names are in english, currently).
+Eg: \f[CR]2026\f[R], \f[CR]Q1\f[R], \f[CR]Jan\f[R], \f[CR]W02\f[R].
+You can disable these compact descriptions by using
+\f[CR]\-\-period\-titles=dates\f[R]; then periods will always be
+described as \f[CR]STARTDATE..ENDDATE\f[R].
 .SH Depth
 With the \f[CR]\-\-depth NUM\f[R] option (short form, usually preferred:
 \f[CR]\-NUM\f[R]), reports will show accounts only to the specified
@@ -7682,15 +7726,12 @@ output of \f[CR]hledger print\f[R] and saving it in your journal file.
 This can sometimes be useful as a data entry aid.
 .PP
 If you are curious what data is being generated and why, run
-\f[CR]hledger print \-x \-\-verbose\-tags\f[R].
-\f[CR]\-x/\-\-explicit\f[R] shows inferred amounts and
-\f[CR]\-\-verbose\-tags\f[R] adds tags like
-\f[CR]generated\-transaction\f[R] (from periodic rules) and
-\f[CR]generated\-posting\f[R], \f[CR]modified\f[R] (from auto posting
-rules).
-Similar hidden tags (with an underscore prefix) are always present,
-also, so you can always match such data with queries like
-\f[CR]tag:generated\f[R] or \f[CR]tag:modified\f[R].
+\f[CR]hledger print \-a\f[R] (equivalent to
+\f[CR]\-\-explicit \-\-lots \-\-verbose\-tags\f[R]).
+\f[CR]\-x/\-\-explicit\f[R] shows inferred amounts and conversion
+prices, \f[CR]\-\-lots\f[R] shows lot subaccounts and lot\-specific
+postings, and \f[CR]\-\-verbose\-tags\f[R] shows the hidden tags which
+hledger uses for classifying things.
 .SH Detecting special postings
 hledger detects certain kinds of postings, both generated and
 non\-generated, and tags them for additional processing.
@@ -7790,10 +7831,10 @@ T}
 T{
 \f[CR]ptype:ugain\f[R]
 T}@T{
-A generated unrealised\-gain counter posting on an
+A generated unrealised\-gain posting on an
 \f[CR]UnrealisedGain\f[R]\-type account
 T}@T{
-Marks the balancing counter so the disposal sums to zero at transacted
+Marks the balancing posting so the disposal sums to zero at transacted
 cost
 T}
 .TE
@@ -9195,12 +9236,11 @@ account equity:unrealised\-gain   ; type:U
 .IP \(bu 2
 Not every possible lot\-related journal entry can be detected correctly
 by hledger.
-If you have trouble, use \f[CR]hledger print \-x \-\-verbose\-tags\f[R]
-to see how entries have been analysed, and rewrite the entry if needed.
-.IP \(bu 2
-Entries where the per\-unit cost basis does not perfectly match the
-required total will not be detected correctly, so will need some
-workaround.
+For example, entries with a total cost basis which can\(aqt be converted
+to exact unit cost basis.
+Use \f[CR]hledger print \-a\f[R] to see how a lot entry has been
+analysed, and if it\(aqs not correct, try to rewrite it until hledger
+analyses it correctly.
 .PP
 For more technical details, see SPEC\-lots.
 .SS How to enable lot tracking
@@ -9387,9 +9427,15 @@ On lotful commodities/accounts, even a bare positive posting (no
 cost inferred from the transaction\(aqs other postings.
 .PP
 An acquire posting can carry an explicit cost basis
-(\f[CR]{}\f[R]/\(ga\f[CR]), an explicit transacted cost (\f[R]\(at\f[CR]/\f[R]\(at\(at\f[CR]), or both. hledger accepts entries where these differ, mainly for compatibility with Ledger, Beancount, hledger 1, etc. But we recommend always acquiring with the per\-unit basis cost equal to the per\-unit transacted cost. You can enforce this by running\f[R]hledger
-check basis\(ga This prevents typos in the cost basis, which could
-silently cause wrong gain to be calculated at disposal time.
+(\f[CR]{}\f[R]/\f[CR]{{}}\f[R]), an explicit transacted cost
+(\f[CR]\(at\f[R]/\f[CR]\(at\(at\f[R]), or both.
+hledger accepts entries where these differ, mainly for compatibility
+with Ledger, Beancount, hledger 1, etc.
+But we recommend always acquiring with the per\-unit basis cost equal to
+the per\-unit transacted cost.
+You can enforce this by running \f[CR]hledger check basis\f[R] This
+prevents typos in the cost basis, which could silently cause wrong gain
+to be calculated at disposal time.
 .PP
 Also, it encourages preferred journal entry style: \(dqbasis =
 transacted, with any real world difference funded by a separate
@@ -9431,7 +9477,7 @@ commodity (eg \f[CR]expenses:fees 0.001 ETH \(at $3000\f[R]), hledger
 automatically splits the source posting into a transfer portion and a
 priced disposal portion, so that the disposal is detected correctly.
 Plain \f[CR]print\f[R] shows the user\(aqs original entry;
-\f[CR]print \-x\f[R] (and \f[CR]print \-\-lots\f[R]) show the split form
+\f[CR]print \-\-lots\f[R] (or \f[CR]print \-a\f[R]) shows the split form
 explicitly, so the output round\-trips correctly.
 .SS Dispose
 A negative lot posting sells from one or more existing lots.
@@ -9620,15 +9666,17 @@ subaccount\-inclusive).
 \f[CR]hledger \-f\- print \-\-lots \-x | hledger \-f\- check assertions\f[R]
 will still pass.)
 .SS Gain postings
-In hledger 2, each disposal transaction ends up with a pair of postings
-recording the capital gain:
+In hledger 2, each disposal transaction ends up with a balanced pair of
+postings recording the capital gain:
 .IP \(bu 2
-a \f[B]realised gain\f[R] posting on a Gain\-type account (default
-\f[CR]revenues:gain\f[R]), with the gain or loss as a negated amount
+a \f[B]realised gain\f[R] posting (rgain) \(em often on a Gain\-type
+account (default \f[CR]revenues:gain\f[R]), with the gain or loss as a
+negated amount
 .IP \(bu 2
-a balancing \f[B]unrealised gain\f[R] posting on an UnrealisedGain\-type
-account (default \f[CR]equity:unrealised\-gain\f[R]), with the same
-amount and opposite sign.
+a balancing \f[B]unrealised gain\f[R] posting (ugain) \(em usually on an
+UnrealisedGain\-type account (default
+\f[CR]equity:unrealised\-gain\f[R]), with the same amount and opposite
+sign.
 .PP
 Conceptually, from the moment you acquire a lot, its market price
 fluctuates, and you are incurring a corresponding hidden (unrealised)
@@ -9637,41 +9685,142 @@ In a disposal, hledger reclassifies that accumulated unrealised gain as
 realised gain.
 (And leaves a trace of all accumulated capital gains as an equity
 balance.)
+.SS Recording disposals
+Disposal transactions can be written in five styles.
+We use the same scenario throughout: 1 AAPL acquired at basis $50, sold
+at $60, $10 gain.
+.SS Style 1: No gain postings (recommended for brevity)
+Write only the dispose posting and the proceeds; hledger infers both
+gain postings after lot matching.
+.IP
+.EX
+2026\-02\-01 sell
+    assets:stocks   \-1 AAPL {$50} \(at $60
+    assets:cash     $60
+.EE
+.SS Style 2: Both gain postings written, on type:G and type:U accounts
+All explicit.
+hledger validates the gain amount against the calculated gain.
+.IP
+.EX
+account revenues:gain           ; type:G
+account equity:unrealised\-gain  ; type:U
+
+2026\-02\-01 sell
+    assets:stocks            \-1 AAPL {$50} \(at $60
+    assets:cash              $60
+    revenues:gain           $\-10
+    equity:unrealised\-gain   $10
+.EE
+.SS Style 3: Only rgain written, on a type:G account (recommended for error checking)
+hledger identifies the rgain by the declared type:G account, infers the
+balancing ugain posting, and checks the gain amount.
+.IP
+.EX
+account revenues:gain  ; type:G
+
+2026\-02\-01 sell
+    assets:stocks     \-1 AAPL {$50} \(at $60
+    assets:cash      $60
+    revenues:gain   $\-10
+.EE
+.SS Style 4: Only rgain written, no type:G declaration
+hledger identifies gain posting(s) in the entry by their
+characteristics: postings whose account type is not Asset, Liability, or
+Equity (or any subtype), and which have not been classified as lot
+movements, and without which the remaining postings in the entry balance
+to zero.
+If gain postings are detected, hledger infers a single balancing ugain
+posting, and checks the recorded gain against the calculated gain after
+lot matching.
+.IP
+.EX
+2026\-02\-01 sell
+    assets:stocks     \-1 AAPL {$50} \(at $60
+    assets:cash      $60
+    revenues:gain   $\-10
+.EE
 .PP
-When recording a disposal you have two options:
-.IP "1." 3
-\f[B]Let hledger infer the pair\f[R].
-Write just the dispose posting and the proceeds; hledger will add the
-gain postings, using the first declared Gain and UnrealisedGain accounts
-(or default accounts if none are declared).
-.IP "2." 3
-\f[B]Write one or both gain postings\f[R] explicitly.
-Note, in this case you must write the amount, which may be surprising
-(it simplifies the implementation).
-If you write only one gain posting, hledger will add the other.
-And it will check your gain amount, reporting an error if it\(aqs not
-correct.
+A multi\-lot example, where the user records each lot\(aqs gain
+separately:
+.IP
+.EX
+2026\-02\-01 sell some of each lot
+    assets:stocks   \-5 AAPL {$50} \(at $60
+    assets:stocks   \-3 AAPL {$55} \(at $60
+    assets:cash    $480
+    revenues:gain  $\-50          ; gain on first lot
+    revenues:gain  $\-15          ; gain on second lot
+.EE
+.SS Style 5: Only rgain written, no type:G, no \(at on dispose
+Same identification as style 4, applied when the dispose posting lacks
+an \f[CR]\(at\f[R] price.
+The standard balancer\(aqs cost inference infers a balancing
+\f[CR]\(at\f[R] from the entry; the user\(aqs gain is still validated
+post\-match.
+.IP
+.EX
+2026\-02\-01 sell
+    assets:stocks   \-1 AAPL {$50}
+    assets:cash     $60
+    revenues:gain   $\-10
+.EE
+.SS Notes
+.IP \(bu 2
+Style 1 always succeeds (nothing to validate).
+.IP \(bu 2
+Styles 2\-5 raise an error if the written and calculated gain do not
+match.
+.IP \(bu 2
+Style 4 detects gain postings only when the entry has at least one
+candidate posting, and the rest of the entry is balanced (or has a
+multi\-commodity imbalance \(em case 5).
+Otherwise hledger leaves the entry alone and reports any imbalance as a
+standard balance error.
+So a typo in cash, or in any other posting, won\(aqt be silently
+absorbed as gain.
+.IP \(bu 2
+If a transaction has both a fee posting like \f[CR]expenses:fees\f[R],
+and a gain posting to an undeclared account, both could be detected as
+gain postings, incorrectly.
+Workarounds: declare the gain account unambiguously with type:G, or fold
+the fee into cash, or omit the gain posting and let hledger infer it.
+.IP \(bu 2
+When you write a gain posting on a type:G or type:U account, you must
+write its amount; amountless stubs aren\(aqt supported.
+.IP \(bu 2
+Inferred gain posting amounts are rounded to the entry\(aqs local
+precision the gain commodity (or if the local precision is zero, and
+gain is a non\-integer, to 2 decimal places).
+And gain checking is performed at the same precision, so that smaller
+disagreements between recorded and calculated gain is tolerated.
+.PP
+\f[B]TLDR:\f[R] use style 1 for brevity, or style 3 for best error
+checking while still being concise.
 .SS Gain/UnrealisedGain account types
 The \f[CR]Gain\f[R] (\f[CR]type:G\f[R]) and \f[CR]UnrealisedGain\f[R]
-(\f[CR]type:U\f[R]) account types serve three purposes:
+(\f[CR]type:U\f[R]) account types are optional refinements of Revenue
+and Equity respectively.
+Declaring them is not strictly required, but it serves three purposes:
 .IP "1." 3
-\f[B]Default destinations for generated gain postings.\f[R] They help
-hledger choose the account to use in generated gain postings \- the
-first declared \f[CR]type:G\f[R] and \f[CR]type:U\f[R] account.
-(Otherwise it will use \f[CR]revenues:gain\f[R] and
-\f[CR]equity:unrealised\-gain\f[R].)
+\f[B]Default destinations for generated gain postings.\f[R] hledger uses
+the first declared \f[CR]type:G\f[R] and \f[CR]type:U\f[R] account for
+inferred gain postings, otherwise \f[CR]revenues:gain\f[R] and
+\f[CR]equity:unrealised\-gain\f[R].
 .IP "2." 3
-\f[B]Recognising your explicit gain postings.\f[R] They help hledger
-detect realised or unrealised gain posting that you wrote yourself \(em
-avoiding a duplicate auto\-generated pair, enabling a check of your
-amount against the calculated gain.
+\f[B]Recognising your explicit gain postings (sharper error
+checking).\f[R] When declared, they let hledger identify gain postings
+by account type (style 2 or 3 above), enabling validation of the
+user\-written amount against the calculated gain.
+Without the declaration, hledger falls back to detecting an imbalance as
+gain (style 4 or 5).
 .IP "3." 3
 \f[B]Report classification.\f[R] Gain is a subtype of Revenue, so it
-will appear on the income statement; UnrealisedGain is a subtype of
-Equity, so it will appear on the balance sheet.
+appears on the income statement; UnrealisedGain is a subtype of Equity,
+so it appears on the balance sheet.
 .PP
-Note, unlike other account types, G and U are not inferred from account
-names, currently \(em you must declare them explicitly:
+Unlike most account types, G and U are not inferred from account names
+\(em they must be declared explicitly when you want their semantics:
 .IP
 .EX
 account revenues:gain           ; type: G
@@ -9758,13 +9907,13 @@ $ hledger bal assets:stocks \-\-lots \-N
              10 AAPL  assets:stocks:{2026\-02\-01, $60}
 .EE
 .PP
-and \f[CR]print \-x\f[R] shows the inferred lot subaccounts and gain
-postings.
+and \f[CR]print \-x \-\-lots\f[R] shows the inferred lot subaccounts and
+gain postings.
 5 shares were acquired at $50 and sold at $70 = 5 × ($70 \- $50) = $100
 gain (remember that revenue amounts appear negative).
 .IP
 .EX
-$ hledger print desc:sell \-x
+$ hledger print desc:sell \-x \-\-lots
 2026\-03\-01 sell some (FIFO, selects oldest lot first)
     assets:stocks:{2026\-01\-15, $50}    \-5 AAPL {2026\-01\-15, $50} \(at $70
     assets:cash                                                   $350
@@ -9772,11 +9921,12 @@ $ hledger print desc:sell \-x
     equity:unrealised\-gain                                        $100
 .EE
 .PP
-Add \f[CR]\-\-verbose\-tags\f[R] to also see the lot posting
+Use \f[CR]\-a\f[R]/\f[CR]\-\-all\f[R] (short for
+\f[CR]\-x \-\-lots \-\-verbose\-tags\f[R]) to also see the lot posting
 classifications (ptype tags), useful for troubleshooting:
 .IP
 .EX
-$ hledger print desc:sell \-x \-\-verbose\-tags
+$ hledger print desc:sell \-a
 2026\-03\-01 sell some (FIFO, selects oldest lot first)
     assets:stocks:{2026\-01\-15, $50}    \-5 AAPL {2026\-01\-15, $50} \(at $70  ; ptype: dispose
     assets:cash                                                   $350
@@ -10789,6 +10939,8 @@ reversing known prices.
 Flags:
      \-\-show\-reverse         also show the prices inferred by reversing known
                             prices
+     \-\-summary              summarise declared prices per commodity instead
+                            of listing them
 .EE
 .PP
 Price amounts are always displayed with their full precision, except for
@@ -10801,6 +10953,32 @@ Generally if you run this command with \-\-infer\-market\-prices
 calculate value reports.
 But if in doubt, you can inspect those directly by running the value
 report with \-\-debug=2.
+.SS prices summary
+With \f[CR]\-\-summary\f[R], instead of listing individual prices,
+\f[CR]prices\f[R] prints one row per commodity used in the journal
+(other than the base currency), with the following columns:
+.IP \(bu 2
+\f[B]Commodity\f[R] \(em the commodity, as an ISO 4217 code if possible.
+.IP \(bu 2
+\f[B]Prices\f[R] \(em the number of market price declarations for that
+commodity.
+.IP \(bu 2
+\f[B]Earliest\f[R] / \f[B]Latest\f[R] \(em the date range of those
+prices.
+.IP \(bu 2
+\f[B]Period\f[R] \(em the duration between earliest and latest.
+.IP \(bu 2
+\f[B]Coverage\f[R] \(em the percentage of weekdays in that period that
+have a price declared (or blank when fewer than two prices).
+.PP
+Summary mode is a quick way to spot gaps in your price data, and pairs
+naturally with getprices.
+Only prices declared with P directives are counted; prices inferred with
+\f[CR]\-\-show\-reverse\f[R] or \f[CR]\-\-infer\-market\-prices\f[R] are
+ignored.
+.PP
+Queries (\f[CR]cur:\f[R], \f[CR]date:\f[R], \f[CR]amt:\f[R]) can be used
+to narrow the prices that are summarised.
 .SS stats
 Show journal and performance statistics.
 .IP
@@ -10851,6 +11029,7 @@ Txns last 7 days    : 0 (0.0 per day)
 Payees/descriptions : 1000
 Accounts            : 1000 (depth 10)
 Commodities         : 26
+Base currency code  : USD
 Market prices       : 1000
 Runtime stats       : 0.12 s elapsed, 8266 txns/s, 4 MB live, 16 MB alloc
 .EE
@@ -10909,7 +11088,10 @@ Show full journal entries, representing transactions.
 .IP
 .EX
 Flags:
+  \-a \-\-all                  show all details (\-\-explicit \-\-lots
+                            \-\-verbose\-tags)
   \-x \-\-explicit             show all inferred info explicitly
+     \-\-verbose\-tags         add tags indicating generated/modified data
      \-\-invert               display all amounts with reversed sign
      \-\-locations            add tags showing file paths and line numbers
   \-m \-\-match=DESC           fuzzy search for one recent transaction with
@@ -10926,6 +11108,10 @@ Flags:
                                    (can unbalance transactions)
                             all  \- also round cost amounts to precision
                                    (can unbalance transactions)
+     \-\-layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 \- right\-align amounts, as in hledger 1
+                            COL      \- align decimal marks at column COL
+                            (default: 53)
      \-\-base\-url=URLPREFIX   in html output, generate links to hledger\-web,
                             with this prefix. (Usually the base url shown by
                             hledger\-web; can also be relative.)
@@ -10962,7 +11148,7 @@ $ hledger print \-f examples/sample.journal date:200806
     expenses:supplies            $1
     assets:cash                 $\-2
 .EE
-.SS print amount explicitness
+.SS print explicitness
 Normally, whether posting amounts are implicit or explicit is preserved.
 For example, when an amount is omitted in the journal, it will not
 appear in the output.
@@ -10980,10 +11166,46 @@ The \f[CR]\-x\f[R]/\f[CR]\-\-explicit\f[R] flag will cause any postings
 with a multi\-commodity amount (which can arise when a multi\-commodity
 transaction has an implicit amount) to be split into multiple
 single\-commodity postings, keeping the output parseable.
-.SS print alignment
-Amounts are shown right\-aligned within each transaction (but not
-aligned across all transactions; you can achieve that with ledger\-mode
-in Emacs).
+.PP
+To see more details \(em not just inferred amounts and costs, but also
+lot subaccounts and postings, and the hidden tags that hledger adds to
+classify things \(em use \f[CR]\-a\f[R]/\f[CR]\-\-all\f[R], which is
+equivalent to \f[CR]\-\-explicit \-\-lots \-\-verbose\-tags\f[R].
+.SS print layout
+By default, \f[CR]print\f[R] aligns posting amounts so that their
+decimal mark is at column 53 (or would be if they had a decimal mark).
+If needed, it will shift a transaction\(aqs amounts further to the right
+to ensure at least 2 spaces between account names and amounts.
+Also, any balance assertion/assignment operators (\f[CR]=\f[R],
+\f[CR]=*\f[R] etc.)
+are aligned to the right of the posting amounts; and the
+assertion/assignment amounts will be aligned by their decimal marks.
+.PP
+You can customise this with \f[CR]\-\-layout\f[R]:
+.IP \(bu 2
+\f[CR]\-\-layout=COL\f[R] \(em sets a different target column for
+posting amounts\(aq decimal mark
+.IP \(bu 2
+\f[CR]\-\-layout=hledger1\f[R] \(em use hledger 1 layout (right\-aligned
+posting amounts in each transaction).
+.PP
+If you want to change the default, put something like this in
+\f[CR]\(ti/.hledger.conf\f[R]:
+.IP
+.EX
+[print]
+\-\-layout=hledger1
+.EE
+.PP
+Other print\-like commands (close, import, rewrite, add..)
+use print\(aqs default layout.
+But they don\(aqt have a \-\-layout option for customisation, currently.
+If you need that, you could pipe them through print.
+Eg:
+.IP
+.EX
+hledger import *.rules \-\-dry | hledger \-I \-f\- print \-\-layout 40
+.EE
 .SS print amount style
 Amounts will be displayed mostly in their commodity\(aqs display style,
 with standardised symbol placement, decimal mark, and digit group marks.
@@ -13592,6 +13814,84 @@ $ hledger bs \-Y \-f 2023.j                     # unclosed file, no query needed
 .EE
 .SS More detailed close examples
 See examples/multi\-year.
+.SS getprices
+Fetch market prices for the commodities used in the journal, up to
+today\(aqs date, where possible, and add them to per\-commodity prices
+files.
+.IP
+.EX
+Flags:
+     \-\-dry\-run              just print the commands that would be run
+  \-o \-\-output=FILE          write all prices to FILE (or \- for stdout)
+                            instead of per\-commodity P<COMM>.prices files
+.EE
+.PP
+This command first guesses the journal\(aqs base currency.
+That is, the commodity most used as the target in P price directives; or
+if there are no P directives, the commodity most used in postings; or if
+there are no postings, \(dqUSD\(dq.
+(You can check this with the \f[CR]stats\f[R] command.)
+.PP
+Then for each other commodity in the journal, it fetches daily market
+prices in the base currency, from that commodity\(aqs earliest
+transaction until today.
+It uses a \f[CR]getprices_\f[R] helper script in PATH (described below).
+.PP
+Then each commodity\(aqs prices are saved, merging them with previously
+saved prices if any.
+By default they are saved in separate \f[CR]P<COMM>.prices\f[R] files
+next to the main journal file.
+Or with \f[CR]\-o FILE\f[R], they are saved into a single file of your
+choice.
+Or with \f[CR]\-o \-\f[R], they are printed on stdout.
+.PP
+Commands being run, and files being updated, are logged to stderr.
+With \f[CR]\-\-dry\-run\f[R], you can preview the commands without
+running them.
+The standard \f[CR]getprices_\f[R] script will also log
+\f[CR]pricehist\f[R] commands as they are run.
+You can run any of these commands yourself, for troubleshooting.
+.SS Merging new prices
+Complete historical price data can be hard to get, so getprices is
+careful to preserve older prices.
+If prices files already exist, the newly fetched prices will be merged
+as follows:
+.IP \(bu 2
+Prices files will be updated only if they contain nothing but P
+directives (or blank lines).
+.IP \(bu 2
+New prices for dates already seen are discarded.
+(So if you want to replace old prices, you must delete them before
+running getprices.)
+.IP \(bu 2
+If no new prices remain to be added, the prices file is left as\-is.
+.IP \(bu 2
+Otherwise, the old prices plus the new prices are saved to the file,
+ordered by: date, from commodity, to commodity.
+.SS The getprices_ helper
+The \f[CR]getprices\f[R] command runs a \f[CR]getprices_\f[R] helper
+program to fetch each commodity\(aqs prices.
+This allows customisation and avoids hardcoding too much into hledger.
+It may become optional in future, but for now it\(aqs required.
+.PP
+You can find a getprices_ script in the hledger repo\(aqs bin directory.
+It uses the third party pricehist tool, which you can install with eg
+\f[CR]uv tool install pricehist\f[R].
+You might also want to set up price provider API keys in your
+environment.
+Providers may limit the commodity pairs, history, or number of requests
+unless you have a paid API key.
+.PP
+Or, you can make your own \f[CR]getprices_\f[R] script.
+It should accept 3\-4 arguments:
+.IP \(bu 2
+ISO code for base currency
+.IP \(bu 2
+ISO code for commodity to be priced
+.IP \(bu 2
+ISO start date
+.IP \(bu 2
+optional inclusive ISO end date (default: today)
 .SS rewrite
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print
@@ -13607,6 +13907,8 @@ Flags:
                                     and AMTEXPR.
      \-\-diff                         generate diff suitable as an input for
                                     patch tool
+     \-\-verbose\-tags                 add tags indicating generated/modified
+                                    data
 .EE
 .PP
 This is a start at a generic rewriter of transaction entries.
