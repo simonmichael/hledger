@@ -105,7 +105,7 @@ module Hledger.Data.Lots (
 import Control.Applicative ((<|>))
 import Data.Bifunctor (first)
 import Control.Monad (foldM, guard, unless, when)
-import Data.List (intercalate, sortOn)
+import Data.List (intercalate, partition, sortOn)
 import Data.Ord (Down(..))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -120,7 +120,7 @@ import Data.Time.Calendar (Day, fromGregorianValid)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
-import Hledger.Data.AccountType (isAssetType, isEquityType)
+import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
 import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
@@ -750,7 +750,7 @@ mkGeneratedGainPosting verbosetags acc amt ptypeTag =
   $ nullposting{paccount = acc, pamount = amt}
 
 -- | For each disposal transaction with a user-written realised-gain (rgain)
--- posting that lacks its matching ugain counter, append a generated ugain
+-- posting that lacks its matching ugain posting, append a generated ugain
 -- posting on the default UnrealisedGain account so the entry balances at
 -- transacted cost without any special exception.
 --
@@ -758,7 +758,7 @@ mkGeneratedGainPosting verbosetags acc amt ptypeTag =
 --
 -- 1. By account type — the posting's account is declared with @type:G@. (And
 --    symmetrically for explicitly-written ugain on a @type:U@ account, with
---    its rgain counter inserted on the default Gain account.)
+--    its corresponding rgain posting inserted on the default Gain account.)
 --
 -- 2. By transacted-cost residual — when no Gain/UnrealisedGain-typed account
 --    is involved, if the entry's postings sum to a non-zero single-commodity
@@ -785,8 +785,8 @@ journalAddGainOrUGainPosting verbosetags j = do
     -- Match the four cases in SPEC-lots.md "Gain inference":
     -- 1. rgain on type:G + ugain on type:U → no inference
     -- 2. no rgain or ugain → defer to journalAddOrCheckGainPostings
-    -- 3. rgain on type:G alone → infer ugain counter
-    -- 4. rgain on no type:G account → detect by transacted-cost residual
+    -- 3. rgain on type:G alone → infer balancing ugain posting
+    -- 4. rgain on no type:G account → detect rgain postings heuristically and infer ugain posting
     infer t
       | not (any isDisposePosting (tpostings t)) = Right t
       | any isRgain ps && any isUgain ps         = Right t                  -- 1
@@ -797,26 +797,51 @@ journalAddGainOrUGainPosting verbosetags j = do
     addCounter t existing missingAcc ptypeTag
       | any (not . hasAmount) existing = Left (amountlessErr t)
       | otherwise =
-          let counterP = mkGeneratedGainPosting verbosetags missingAcc (maNegate $ foldMap pamount existing) ptypeTag
-          in  Right $ txnTieKnot t{tpostings = tpostings t ++ [counterP]}
+          let balancingP = mkGeneratedGainPosting verbosetags missingAcc (maNegate $ foldMap pamount existing) ptypeTag
+          in  Right $ txnTieKnot t{tpostings = tpostings t ++ [balancingP]}
 
-    -- When no posting is on a declared G/U account, treat any non-zero
-    -- single-commodity residual at transacted cost as the user's rgain amount
-    -- and append a ugain counter on the default UnrealisedGain account.
-    -- Multi-commodity residuals are skipped: those typically mean a
-    -- conversion-like entry where the standard balancer's
-    -- 'transactionInferBalancingCosts' will infer a balancing @ price.
+    -- When no posting is on a declared G/U account, try to identify the
+    -- user-written rgain posting(s); and infer a balancing ugain posting
+    -- to the default UnrealisedGain account. 
+    -- Candidate rgain postings (there can be more than one in an entry)
+    -- have an account type that's not Asset/Liability/Equity (or any subtype),
+    -- and have not been classified as a lot movement by the lot classifier.
+    -- Also, they are accepted as rgain postings
+    -- only when the remaining, non-candidate postings sum to zero
+    -- (indicating that the transaction is balanced without them)
+    -- or to a multi-commodity amount (which we leave the transaction balancer to deal with).
     tryResidual t
-      | any (not . hasAmount) (tpostings t)  = Right t  -- let balancer handle
-      | mixedAmountIsZero residual           = Right t
-      | length resCommodities /= 1           = Right t  -- multi-commodity: defer
-      | otherwise =
-          let counterP = mkGeneratedGainPosting verbosetags ugainAccount (maNegate residual) "ugain"
-          in  Right $ txnTieKnot t{tpostings = tpostings t ++ [counterP]}
+      | any (not . hasAmount) ps = Right t  -- let balancer handle
+      | null rgainCandidates     = Right t  -- no candidate: defer
+      | not shouldInsert         = Right t  -- imbalance isn't pure gain: defer
+      | otherwise                = Right $ txnTieKnot t{tpostings = ps' ++ [ugainP]}
       where
-        residual = foldMap (mixedAmountCost . pamount) (tpostings t)
-        resCommodities = filter (not . isZeroAmount) (amountsRaw residual)
+        ps = tpostings t
+        (rgainCandidates, nonCandidates) = partition isRgainCandidate ps
+        nonCandResidual = foldMap (mixedAmountCost . pamount) nonCandidates
+        nonCandCommodities = filter (not . isZeroAmount) (amountsRaw nonCandResidual)
+        shouldInsert =
+             mixedAmountIsZero nonCandResidual            -- well-formed disposal: net zero
+          || length nonCandCommodities >= 2               -- multi-commodity: cost inference will resolve
         isZeroAmount a = aquantity a == 0
+        ps' = map tagCandidate ps
+        tagCandidate p
+          | isRgainCandidate p = postingAddHiddenAndMaybeVisibleTag True verbosetags (toHiddenTag ("ptype", "rgain")) p
+          | otherwise = p
+        sumCand = foldMap pamount rgainCandidates
+        ugainP = mkGeneratedGainPosting verbosetags ugainAccount (maNegate sumCand) "ugain"
+
+    -- An rgain candidate is a posting whose account type is not Asset,
+    -- Liability, or Equity (or any subtype thereof — Cash, Conversion,
+    -- UnrealisedGain) and which carries no _ptype tag from the lot
+    -- classifier other than "gain".
+    isRgainCandidate p = hasAmount p && (hasGainPtype p || (notALE p && notLotClassified p))
+      where
+        hasGainPtype q = ("_ptype", "gain") `elem` ptags q
+        notALE q = case accountNameType atypes (paccount q) of
+          Just t  -> not (isAssetType t || isLiabilityType t || isEquityType t)
+          Nothing -> True
+        notLotClassified q = not $ any (\(k,v) -> k == "_ptype" && v `elem` ["acquire","dispose","transfer-from","transfer-to"]) (ptags q)
 
     amountlessErr t =
       txnErrPrefix t
@@ -934,10 +959,10 @@ journalAddOrCheckGainPostings verbosetags j = do
     -- calculated disposal gain.
     --
     -- We validate using the ugain side because under residual-based detection
-    -- the user-written rgain may be on an undeclared account (untagged), but
-    -- the auto-inserted ugain counter always carries _ptype:ugain. By
-    -- construction, ugainSum == disposal gain when the user's rgain was
-    -- correct.
+    -- the user-written rgain may be on an undeclared account (though we now
+    -- tag those candidates _ptype:rgain). The auto-inserted ugain posting
+    -- always carries _ptype:ugain. By construction, ugainSum == disposal gain
+    -- when the user's rgain was correct.
     validatePair t =
       let ps       = tpostings t
           gain     = foldMap postingDisposalGain ps

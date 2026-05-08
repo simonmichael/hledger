@@ -469,17 +469,22 @@ Disposal transactions can be written in any of these styles. The user manual's
   and infers a balancing ugain posting. The gain amount must be written explicitly, and is checked.
 
 4. **Only rgain written, not using a type:G account.**
-  If hledger sees a single-commodity imbalance in a disposal transaction with no type:G posting,
-  it assumes the imbalance is from an unidentified rgain posting,
-  and it infers a balancing ugain posting.
-  After lot matching, the assumed gain is checked against the calculated gain,
-  and an error is raised if they are not the same.
+  hledger identifies rgain posting(s) heuristically: one or more postings 
+  whose account type is not Asset, Liability, or Equity (or a subtype of these),
+  which have not been classified as a lot movement by the lot classifier,
+  and whose non-gain siblings sum to zero (or have a multi-commodity imbalance).
+  Also if the lot classifier added a `_ptype:gain` tag, that indicates a gain posting
+  (though currently we don't expect that without a type:G account).
+  When gain postings are detected, hledger tags them with `_ptype:rgain`,
+  and infers a single balancing ugain posting to the default UnrealisedGain account.
+  After lot matching, the transaction's gain amount is checked against
+  the calculated gain, and an error is raised if they are not the same.
 
 5. **Only rgain written, not using a type:G account, imbalance is multi-commodity.**
-  Like 4, but if the imbalance is multi-commodity (typically because the dispose posting lacks a @ transacted price),
-  hledger infers a transaction-balancing disposal price influenced by the assumed gain.
-  No gain check runs; if the recorded gain is wrong, hledger produces a confused entry
-  with extra gain postings, rather than an error.
+  Same detection as 4, but the sum of the non-gain postings is multi-commodity
+  (typically because the dispose posting lacks a `@` transacted price).
+  The transaction balancer fills in a balancing `@` price from the non-gain postings.
+  The total gain amount is then checked against the calculated gain, as in 4.
 
 ## Acquire basis check
 
@@ -541,7 +546,7 @@ broader pipeline.
 `--strict`/`-s` or `hledger check lots` overrides them:
 
 4. **journalAddGainOrUGainPosting** — if the user has written an explicit rgain or ugain
-   posting without its counterpart, add the matching counter-posting (pre-balancer,
+   posting without its counterpart, add the matching balancing posting (pre-balancer,
    so the ordinary balancer accepts the paired transaction).
 5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
 6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
@@ -647,6 +652,6 @@ Explanation:
 3. `journalAddOrCheckGainPostings` computes the disposal gain
    (`aquantity × (B − T)` summed over non-acquire postings whose amounts
    carry both basis and transacted cost) and adds a realised-gain posting
-   (rgain) and a matching unrealised-gain counter (ugain) with the opposite
+   (rgain) and a matching unrealised-gain posting (ugain) with the opposite
    sign. The pair sums to zero, so the disposal stays balanced under the
    ordinary transacted-cost rule.

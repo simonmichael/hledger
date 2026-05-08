@@ -6034,7 +6034,7 @@ To also add visible tags, use `--verbose-tags` (useful for troubleshooting).
 | `ptype:transfer-to`   | The positive posting of a transfer pair; or a positive lot posting with an equity counterpart (equity transfer, e.g. opening balances)                                   | As above                                                                                              |
 | `ptype:gain`          | A user-written posting to a `Gain`-type account                                                                                                                          | Marks the user's explicit realised gain posting in a disposal                                         |
 | `ptype:rgain`         | A generated realised-gain posting on a `Gain`-type account                                                                                                               | Marks hledger-inferred realised capital gain/loss in a disposal                                       |
-| `ptype:ugain`         | A generated unrealised-gain counter posting on an `UnrealisedGain`-type account                                                                                          | Marks the balancing counter so the disposal sums to zero at transacted cost                           |
+| `ptype:ugain`         | A generated unrealised-gain posting on an `UnrealisedGain`-type account                                                                                                  | Marks the balancing posting so the disposal sums to zero at transacted cost                           |
 
 # Forecasting
 
@@ -7337,7 +7337,7 @@ account equity:unrealised-gain  ; type:U
 ### Style 3: Only rgain written, on a type:G account (recommended for error checking)
 
 hledger identifies the rgain by the declared type:G account, infers the
-ugain counter, and checks the gain amount.
+balancing ugain posting, and checks the gain amount.
 
 ```journal
 account revenues:gain  ; type:G
@@ -7350,9 +7350,12 @@ account revenues:gain  ; type:G
 
 ### Style 4: Only rgain written, no type:G declaration
 
-If hledger sees a single-commodity imbalance in a disposal with no type:G
-posting, it assumes the imbalance comes from an unidentified rgain
-posting and infers a balancing ugain. The gain amount is checked against
+hledger identifies rgain posting(s) from the entry by their
+characteristics: postings whose account type is not Asset, Liability,
+or Equity (or any subtype) and which carry no other lot-classifier
+posting type. One or more candidates may be present (eg one rgain
+per lot in a multi-lot disposal). hledger sums their amounts, infers
+a single balancing ugain posting, and checks the summed gain against
 the calculated gain after lot matching.
 
 ```journal
@@ -7362,11 +7365,22 @@ the calculated gain after lot matching.
     revenues:gain   $-10
 ```
 
-### Style 5: Only rgain written, no type:G, no @ on dispose (not recommended)
+A multi-lot example, where the user records each lot's gain separately:
 
-Like style 4, but with no `@` on the dispose the imbalance is
-multi-commodity. hledger infers a transaction-balancing disposal price
-influenced by the assumed gain. No gain check runs.
+```journal
+2026-02-01 sell some of each lot
+    assets:stocks   -5 AAPL {$50} @ $60
+    assets:stocks   -3 AAPL {$55} @ $60
+    assets:cash    $480
+    revenues:gain  $-50          ; gain on first lot
+    revenues:gain  $-15          ; gain on second lot
+```
+
+### Style 5: Only rgain written, no type:G, no @ on dispose
+
+Same identification as style 4, applied when the dispose posting lacks
+an `@` price. The standard balancer's cost inference infers a balancing
+`@` from the entry; the user's gain is still validated post-match.
 
 ```journal
 2026-02-01 sell
@@ -7378,19 +7392,21 @@ influenced by the assumed gain. No gain check runs.
 ### Notes
 
 - Style 1 always succeeds (nothing to validate).
-- Styles 2 and 3 raise an error if the written and calculated gain do not match.
-- Style 4 also checks the gain without requiring a type:G declaration.
-  A typo causing an imbalance that coincidentally matches the correct gain
-  amount won't raise an error here; it surfaces in aggregate reports as
-  unrealised gain ≠ realised gain.
-- Style 5 has weaker error checking, so is not recommended.
-  Prefer to write the dispose posting's transacted price with `@` (as in style 4)
-  and/or declare the gain account as type:G (as in style 3).
+- Styles 2-5 raise an error if the written and calculated gain do not match.
+- Style 4 detects gain postings only when the entry has at least one candidate posting,
+  and the rest of the entry is balanced (or has a multi-commodity imbalance — case 5).
+  Otherwise hledger leaves the entry alone and reports any imbalance as a
+  standard balance error. So a typo in cash, or in any other posting,
+  won't be silently absorbed as gain.
+- If a transaction has both a fee posting like `expenses:fees`,
+  and a gain posting to an undeclared account, both could be detected as gain postings,
+  incorrectly. Workarounds: declare the gain account unambiguously with type:G,
+  or fold the fee into cash, or omit the gain posting and let hledger infer it.
 - When you write a gain posting on a type:G or type:U account, you must
   write its amount; amountless stubs aren't supported.
 
-**TLDR:** use style 1 for brevity, or style 3 for best error checking while
-still being concise.
+**TLDR:** use style 1 for brevity, or style 3 for best error checking
+while still being concise.
 
 ## Gain/UnrealisedGain account types
 

@@ -307,7 +307,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $55  ; ptype: dispose
     assets:cash                                 $275
-    revenues:gain                               $-25
+    revenues:gain                               $-25  ; ptype: rgain
     equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
@@ -328,4 +328,72 @@ commodity AAPL  ; lots:
 $ hledger -f- print desc:sell --lots
 >2 /This disposal's realised gain amount is wrong/
 >=1
+
+# *** 16. dispose with typo'd cash and no gain posting → balance error.
+# Heuristic gain posting detection find no gain posting,
+# letting the standard balancer surface the cash imbalance.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $250        ; typo, should be $275
+
+$ hledger -f- print desc:sell --lots
+>2 /unbalanced/
+>=1
+
+# *** 17. dispose with typo'd cash plus correct rgain on undeclared account → balance error.
+# The non-candidate postings' sum is single-commodity non-zero, so no gain posting is detected,
+# and the balancer reports the imbalance.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker    10 AAPL {$50}
+    assets:cash     -$500
+
+2026-02-01 sell
+    assets:broker    -5 AAPL {$50} @ $55
+    assets:cash      $250        ; typo, should be $275
+    revenues:gain   $-25
+
+$ hledger -f- print desc:sell --lots
+>2 /unbalanced/
+>=1
+
+# *** 18. multi-lot dispose with per-lot gains postings.
+# All gain postings are detected and a single balancing ugain posting is inferred.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy lot1
+    assets:broker     5 AAPL {$50}
+    assets:cash    -$250
+
+2026-01-15 buy lot2
+    assets:broker     3 AAPL {$55}
+    assets:cash    -$165
+
+2026-02-01 sell some of each
+    assets:broker    -5 AAPL {$50} @ $60
+    assets:broker    -3 AAPL {$55} @ $60
+    assets:cash     $480
+    revenues:gain   $-50         ; gain on lot1
+    revenues:gain   $-15         ; gain on lot2
+
+$ hledger -f- print desc:sell --lots --verbose-tags
+2026-02-01 sell some of each
+    assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $60  ; ptype: dispose
+    assets:broker:{2026-01-15, $55}               -3 AAPL {$55} @ $60  ; ptype: dispose
+    assets:cash                                 $480
+    revenues:gain                               $-50  ; ptype: rgain, gain on lot1
+    revenues:gain                               $-15  ; ptype: rgain, gain on lot2
+    equity:unrealised-gain                       $65  ; ptype: ugain, generated-posting:
+
+>=
 
