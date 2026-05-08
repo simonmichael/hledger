@@ -7402,6 +7402,10 @@ an `@` price. The standard balancer's cost inference infers a balancing
   or fold the fee into cash, or omit the gain posting and let hledger infer it.
 - When you write a gain posting on a type:G or type:U account, you must
   write its amount; amountless stubs aren't supported.
+- Inferred gain posting amounts are rounded to the entry's local precision
+  the gain commodity (or if the local precision is zero, and gain is a non-integer,
+  to 2 decimal places). And gain checking is performed at the same precision,
+  so that smaller disagreements between recorded and calculated gain is tolerated.
 
 **TLDR:** use style 1 for brevity, or style 3 for best error checking
 while still being concise.

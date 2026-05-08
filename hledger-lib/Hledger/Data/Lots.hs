@@ -116,16 +116,17 @@ import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Char (isDigit)
+import Data.Decimal (roundTo)
 import Data.Time.Calendar (Day, fromGregorianValid)
 import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
+import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
-import Hledger.Data.Transaction (txnTieKnot)
+import Hledger.Data.Transaction (transactionCommodityStyles, txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
 
@@ -948,10 +949,9 @@ journalAddOrCheckGainPostings verbosetags j = do
       | mixedAmountIsZero gain = t
       | otherwise = txnTieKnot t{tpostings = tpostings t ++ [rgainP, ugainP]}
       where
-        gain          = foldMap postingDisposalGain (tpostings t)
-        styleInferred = styleAmounts (journalCommodityStylesWith SoftRounding j)
-        rgainP        = mkGeneratedGainPosting verbosetags rgainAccount (styleInferred $ maNegate gain) "rgain"
-        ugainP        = mkGeneratedGainPosting verbosetags ugainAccount (styleInferred gain)            "ugain"
+        gain   = foldMap postingDisposalGain (tpostings t)
+        rgainP = mkGeneratedGainPosting verbosetags rgainAccount (roundLocalGain t $ maNegate gain) "rgain"
+        ugainP = mkGeneratedGainPosting verbosetags ugainAccount (roundLocalGain t gain)            "ugain"
 
     -- When a disposal already has rgain/ugain postings (user-written on
     -- declared G/U accounts, or completed by journalAddGainOrUGainPosting via
@@ -967,11 +967,35 @@ journalAddOrCheckGainPostings verbosetags j = do
       let ps       = tpostings t
           gain     = foldMap postingDisposalGain ps
           ugainSum = foldMap pamount (filter isUgain ps)
-          -- ugain_sum should equal +gain. Check ugain_sum - gain == 0.
-          diff = ugainSum <> maNegate gain
-      in if mixedAmountIsZero diff
+          -- ugain_sum should equal +gain. Tolerate sub-ULP noise at the
+          -- precision chosen by roundLocalGain, matching how the balancer
+          -- tolerates balancing imprecision.
+          diff = roundLocalGain t (ugainSum <> maNegate gain)
+      in if mixedAmountLooksZero diff
            then Right t
            else Left (mismatchErr t gain ugainSum)
+
+    -- Round each component amount to the entry's local precision for that
+    -- commodity. Special rule for the 0-dp case (commodity present at 0 dp,
+    -- or absent from top-level posting amounts):
+    --   - if rounding to 2 dp gives an integer value, use 0 dp;
+    --   - otherwise use 2 dp, so cents-bearing gains aren't hidden.
+    -- Higher entry-local precisions are used as-is. This lets sub-cent
+    -- imprecision propagating from B − T arithmetic be hidden from the
+    -- saved postings, while preserving integer display when the gain is
+    -- genuinely an integer.
+    roundLocalGain t = mapMixedAmount roundOne
+      where
+        styles = transactionCommodityStyles t
+        roundOne a@Amount{aquantity = q, astyle = s} =
+          case M.lookup (acommodity a) styles of
+            Just AmountStyle{asprecision = Precision n} | n >= 1 ->
+              a{aquantity = roundTo n q, astyle = s{asprecision = Precision n}}
+            _ ->
+              let q2 = roundTo 2 q
+              in if roundTo 0 q2 == q2
+                 then a{aquantity = roundTo 0 q, astyle = s{asprecision = Precision 0}}
+                 else a{aquantity = q2,           astyle = s{asprecision = Precision 2}}
 
     mismatchErr t gain ugainSum =
       txnErrPrefix t

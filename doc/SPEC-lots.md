@@ -460,6 +460,9 @@ Disposal transactions can be written in any of these styles. The user manual's
   After lot matching, hledger computes the disposal gain
   and infers realised gain and unrealised gain postings for the transaction
   (`journalAddOrCheckGainPostings`).
+  The inferred amounts are rounded to the entry's local precision for the gain commodity
+  (or if that is 0, and the gain has non-zero cents, decimal precision 2.
+  See "Gain precision" below).
 
 2. **rgain and ugain postings written, identified by their type:G and U accounts.**
   All is explicit (including the gain amounts). No inference is needed; hledger checks the gain amount.
@@ -478,13 +481,29 @@ Disposal transactions can be written in any of these styles. The user manual's
   When gain postings are detected, hledger tags them with `_ptype:rgain`,
   and infers a single balancing ugain posting to the default UnrealisedGain account.
   After lot matching, the transaction's gain amount is checked against
-  the calculated gain, and an error is raised if they are not the same.
+  the calculated gain at the entry's local precision; sub-last-place-unit differences
+  are tolerated (see "Gain precision" below), but larger discrepancies
+  raise an error.
 
 5. **Only rgain written, not using a type:G account, imbalance is multi-commodity.**
   Same detection as 4, but the sum of the non-gain postings is multi-commodity
   (typically because the dispose posting lacks a `@` transacted price).
   The transaction balancer fills in a balancing `@` price from the non-gain postings.
   The total gain amount is then checked against the calculated gain, as in 4.
+
+### Gain precision
+
+Inferred gain amounts (cases 1, 3, 4, 5) and the gain-validation
+comparison (cases 2-5) operate at the **entry's local precision** for
+the gain commodity (ie, the maximum precision seen among the
+posting amounts in that commodity).
+
+As a special case, if the local precision is 0 decimal places (or the commodity is absent),
+and if the gain amount is not an integer, it is shown with 2 decimal places.
+
+This tolerance (and non-accounting) of small imprecisions is similar to
+how transaction balancing works. If you want more precision, write more
+decimal places in the entry's amounts.
 
 ## Acquire basis check
 

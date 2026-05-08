@@ -476,8 +476,8 @@ $ hledger -f- print --lots -x desc:transfer
     assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
     expenses:fees                                  0.05 A @ $150
     assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
-    revenue:gains                                $-2.5
-    equity:unrealised-gain                        $2.5
+    revenue:gains                                $-2.50
+    equity:unrealised-gain                        $2.50
 
 >=
 
@@ -505,8 +505,8 @@ $ hledger -f- print desc:transfer
     assets:x1                                     -0.05 A @ $150
     expenses:fees                                  0.05 A @ $150
     assets:x2                                      0.95 A
-    revenue:gains                                $-2.5
-    equity:unrealised-gain                        $2.5
+    revenue:gains                                $-2.50
+    equity:unrealised-gain                        $2.50
 
 >=
 
@@ -531,8 +531,8 @@ $ hledger -f- print --lots desc:transfer
     assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
     expenses:fees                                  0.05 A @ $150
     assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
-    revenue:gains                                $-2.5
-    equity:unrealised-gain                        $2.5
+    revenue:gains                                $-2.50
+    equity:unrealised-gain                        $2.50
 
 >=
 

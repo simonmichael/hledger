@@ -434,10 +434,12 @@ $ hledger -f- bal --lots -N
                 $-49  revenue:gains
 
 # ** 25. Sub-cent gain (issue #2575): a fractional-commodity disposal
-# produces a gain below 2-decimal display precision. The exact gain is
-# recorded in the generated rgain/ugain pair regardless of the journal's
-# display precision; reports at 2-decimal precision show it rounded to $0.00
-# but the data is there (use `-c '$1,000.00000000'` to see the full amount).
+# produces a gain below 2-decimal display precision. The dispose entry has
+# no top-level $ amounts (only ETH), so entry-local $ precision is 0 dp;
+# the inferred gain is rounded to integer $ ($0 / $0) per the
+# precision-tolerance rule. Sub-cent gains in 0-dp entries are rounded
+# away — users who want sub-cent resolution should record cents-bearing
+# amounts explicitly in the entry.
 <
 commodity 1.000000 ETH  ; lots:
 account income:gains              ; type:G
@@ -458,8 +460,8 @@ $ hledger -f- print -x --lots desc:transfer
     assets:custodial:{2026-03-06, $1,980.78}      -0.000399 ETH {2026-03-06, $1,980.78} @ $1,992.36
     assets:cold wallet:{2026-03-06, $1,980.78}     0.999601 ETH {2026-03-06, $1,980.78}
     expenses:fees:trading                          0.000399 ETH @ $1,992.36
-    income:gains                                 $-0.00462042
-    equity:unrealised-gain                        $0.00462042
+    income:gains                                  $0
+    equity:unrealised-gain                        $0
 
 >=
 
@@ -529,9 +531,11 @@ $ hledger -f- print --lots
 >2 /realised gain amount is wrong/
 >=1
 
-# ** 29. An imprecise per-unit cost basis causes an imbalance that we don't tolerate.
-# 9.216 × 1801.215277778 = 16600.000000002, off by 0.000000002 from the Rs16600.00 paid.
-# We treat this as an unbalanced disposal rather than silently rounding it away.
+# ** 29. An imprecise per-unit cost basis produces sub-Rs0.005 noise in
+# calculated gain. The user-written rgain matches at the entry's local
+# Rs precision (2 dp), so it is accepted and the entry is balanced.
+# 9.216 × 1801.215277778 = 16600.000000002, off by 0.000000002 from the
+# Rs16600.00 paid; this rounds away at the entry's 2 dp tolerance.
 <
 account income:capital  ; type:G
 
@@ -545,8 +549,17 @@ account income:capital  ; type:G
     income:capital                                     Rs-2803.24
 
 $ hledger -f- print --lots
->2 /realised gain amount is wrong/
->=1
+2017-04-09 buy
+    assets:fund:{2017-04-09, Rs1801.215277778}         9.216 FUND {Rs1801.215277778}
+    assets:savings                              Rs-16600.00
+
+2019-07-10 sell
+    assets:savings                              Rs19403.24
+    assets:fund:{2017-04-09, Rs1801.215277778}       -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
+    income:capital                              Rs-2803.24
+    equity:unrealised-gain                       Rs2803.24
+
+>=
 
 # ** 30. TODO: {{ }} total cost basis syntax should let us work around test
 # 25's imprecision issue. But currently hledger normalises {{ total }} to

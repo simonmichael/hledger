@@ -397,3 +397,56 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 
 >=
 
+# *** 19. method-1 inferred gain is rounded to the entry's local precision,
+# hiding sub-cent noise from B-T arithmetic. Here 9.216 × 1801.215277778
+# = 16600.000000002, so the calculated gain is Rs2803.240000002... but the
+# entry's local Rs precision is 2 dp (from Rs19403.24), so the inferred
+# rgain/ugain are saved at 2 dp.
+<
+2017-04-09 buy
+    assets:fund    9.216 FUND {Rs1801.215277778}
+    assets:savings                   Rs-16600.00
+
+2019-07-10 sell
+    assets:savings                                     Rs19403.24
+    assets:fund    -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
+
+$ hledger -f- print desc:sell --lots
+2019-07-10 sell
+    assets:savings                              Rs19403.24
+    assets:fund:{2017-04-09, Rs1801.215277778}       -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
+    revenues:gain                               Rs-2803.24
+    equity:unrealised-gain                       Rs2803.24
+
+>=
+
+# *** 20. A user-written rgain that differs from the calculated gain by more
+# than half a ULP at the entry's local precision is rejected, and the error
+# message shows the actual amounts at full precision (so any real
+# discrepancy is visible).
+<
+account income:capital  ; type:G
+
+2017-04-09 buy
+    assets:fund    9.216 FUND {Rs1801.215277778}
+    assets:savings                   Rs-16600.00
+
+2019-07-10 sell
+    assets:savings                                     Rs19403.24
+    assets:fund    -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
+    income:capital                                     Rs-2803.30
+
+$ hledger -f- print --lots
+>2
+hledger: Error: -:7:
+7 | 2019-07-10 sell
+  |     assets:savings                              Rs19403.24
+  |     assets:fund:{2017-04-09, Rs1801.215277778}       -9.216 FUND {2017-04-09, Rs1801.215277778} @@ Rs19403.24
+  |     income:capital                              Rs-2803.30
+  |     equity:unrealised-gain                       Rs2803.30
+
+This disposal's realised gain amount is wrong.
+  written:    Rs-2803.30
+  calculated: Rs-2803.239999997952
+>=1
+
