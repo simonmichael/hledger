@@ -7350,13 +7350,12 @@ account revenues:gain  ; type:G
 
 ### Style 4: Only rgain written, no type:G declaration
 
-hledger identifies rgain posting(s) from the entry by their
-characteristics: postings whose account type is not Asset, Liability,
-or Equity (or any subtype) and which carry no other lot-classifier
-posting type. One or more candidates may be present (eg one rgain
-per lot in a multi-lot disposal). hledger sums their amounts, infers
-a single balancing ugain posting, and checks the summed gain against
-the calculated gain after lot matching.
+hledger identifies gain posting(s) in the entry by their characteristics:
+postings whose account type is not Asset, Liability, or Equity (or any subtype),
+and which have not been classified as lot movements,
+and without which the remaining postings in the entry balance to zero. 
+If gain postings are detected, hledger infers a single balancing ugain posting,
+and checks the recorded gain against the calculated gain after lot matching.
 
 ```journal
 2026-02-01 sell
