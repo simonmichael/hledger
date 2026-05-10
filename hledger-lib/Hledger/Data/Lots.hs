@@ -950,8 +950,8 @@ journalAddOrCheckGainPostings verbosetags j = do
       | otherwise = txnTieKnot t{tpostings = tpostings t ++ [rgainP, ugainP]}
       where
         gain   = foldMap postingDisposalGain (tpostings t)
-        rgainP = mkGeneratedGainPosting verbosetags rgainAccount (roundLocalGain t $ maNegate gain) "rgain"
-        ugainP = mkGeneratedGainPosting verbosetags ugainAccount (roundLocalGain t gain)            "ugain"
+        rgainP = mkGeneratedGainPosting verbosetags rgainAccount (setLocalGainPrecision t $ maNegate gain) "rgain"
+        ugainP = mkGeneratedGainPosting verbosetags ugainAccount (setLocalGainPrecision t gain)            "ugain"
 
     -- When a disposal already has rgain/ugain postings (user-written on
     -- declared G/U accounts, or completed by journalAddGainOrUGainPosting via
@@ -968,34 +968,33 @@ journalAddOrCheckGainPostings verbosetags j = do
           gain     = foldMap postingDisposalGain ps
           ugainSum = foldMap pamount (filter isUgain ps)
           -- ugain_sum should equal +gain. Tolerate sub-ULP noise at the
-          -- precision chosen by roundLocalGain, matching how the balancer
-          -- tolerates balancing imprecision.
-          diff = roundLocalGain t (ugainSum <> maNegate gain)
+          -- precision chosen by setLocalGainPrecision, matching how the
+          -- balancer tolerates balancing imprecision.
+          diff = setLocalGainPrecision t (ugainSum <> maNegate gain)
       in if mixedAmountLooksZero diff
            then Right t
            else Left (mismatchErr t gain ugainSum)
 
-    -- Round each component amount to the entry's local precision for that
-    -- commodity. Special rule for the 0-dp case (commodity present at 0 dp,
-    -- or absent from top-level posting amounts):
-    --   - if rounding to 2 dp gives an integer value, use 0 dp;
-    --   - otherwise use 2 dp, so cents-bearing gains aren't hidden.
-    -- Higher entry-local precisions are used as-is. This lets sub-cent
-    -- imprecision propagating from B − T arithmetic be hidden from the
-    -- saved postings, while preserving integer display when the gain is
-    -- genuinely an integer.
-    roundLocalGain t = mapMixedAmount roundOne
+    -- Set each component amount's display precision to the entry's local
+    -- precision for that commodity.
+    -- Special rule for the 0 decimals case (when the local precision is 0,
+    -- or there are no amounts of the commodity present):
+    -- display with 2 decimals if either of them is non-zero, otherwise
+    -- display with 0 decimals.
+    -- The full precision is preserved internally, so reports like
+    -- `print -c '$1.0000' --round=soft` can still reveal sub-cent detail.
+    setLocalGainPrecision t = mapMixedAmount setOne
       where
         styles = transactionCommodityStyles t
-        roundOne a@Amount{aquantity = q, astyle = s} =
+        setOne a@Amount{aquantity = q, astyle = s} =
           case M.lookup (acommodity a) styles of
             Just AmountStyle{asprecision = Precision n} | n >= 1 ->
-              a{aquantity = roundTo n q, astyle = s{asprecision = Precision n}}
+              a{astyle = s{asprecision = Precision n}}
             _ ->
               let q2 = roundTo 2 q
               in if roundTo 0 q2 == q2
-                 then a{aquantity = roundTo 0 q, astyle = s{asprecision = Precision 0}}
-                 else a{aquantity = q2,           astyle = s{asprecision = Precision 2}}
+                 then a{astyle = s{asprecision = Precision 0}}
+                 else a{astyle = s{asprecision = Precision 2}}
 
     mismatchErr t gain ugainSum =
       txnErrPrefix t

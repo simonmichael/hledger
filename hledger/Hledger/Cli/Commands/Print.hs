@@ -133,14 +133,21 @@ print' opts@CliOpts{rawopts_=rawopts} j = do
   -- The print command should show all amounts with their original decimal places,
   -- but as part of journal reading the posting amounts have already been normalised
   -- according to commodity display styles, and currently it's not easy to avoid
-  -- that. For now we try to reverse it by increasing all amounts' decimal places 
+  -- that. For now we try to reverse it by increasing all amounts' decimal places
   -- sufficiently to show the amount exactly. The displayed amounts may have minor
   -- differences from the originals, such as trailing zeroes added.
+  -- But, we skip this for inferred postings.
+  -- This avoids eg showing too many decimals by default for inferred gain amounts.
   let
     -- lbl = lbl_ "print'"
+    hasPtype t p = ("_ptype", t) `elem` ptags p
+    isGeneratedGainPosting p = hasPtype "rgain" p || hasPtype "ugain" p
+    setFullPrecisionExceptGain p
+      | isGeneratedGainPosting p = p
+      | otherwise = postingTransformAmount mixedAmountSetFullPrecision p
     j' = j
       -- & dbg9With (lbl "amounts before setting full precision".showJournalPostingAmountsDebug)
-      & journalMapPostingAmounts mixedAmountSetFullPrecision
+      & journalMapPostings setFullPrecisionExceptGain
       -- & dbg9With (lbl "amounts after  setting full precision: ".showJournalPostingAmountsDebug)
       & if boolopt "locations" rawopts then journalMapTransactions addLocationTag else id
 
