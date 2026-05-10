@@ -214,7 +214,6 @@ Discussions
   - [mastodon](https://fosstodon.org/@happyborg/116312844334306281)
   - [mail list](https://groups.google.com/g/hledger/c/S7wCGw562yE)
   - [matrix](https://matrix.to/#/!6BCfAOV-btRKuqChph9Z_ppkIj8KttMoIL_rB4eU0Os/$Lu9jFe8JV5-uR8Mu0E9w4kv0moO2P48o64dmeO1InPs?via=asgard.chat&via=matrix.org&via=tchncs.de)
-
 - <https://www.reddit.com/r/plaintextaccounting/comments/1sd1iar/nonai_tools>
 - <https://discourse.haskell.org/t/a-compact-for-responsible-use-of-ai-tools/13923>
 - <https://discourse.haskell.org/t/how-to-filter-out-vibe-coded-dependencies/13918>
