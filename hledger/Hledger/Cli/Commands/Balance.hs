@@ -491,23 +491,55 @@ balanceReportAsCsv opts =
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
-balanceReportAsText opts ((items, total)) = case layout_ opts of
+balanceReportAsText originalopts report@((items, total)) = case layout_ originalopts of
     LayoutBare | iscustom -> error' "Custom format not supported with commodity columns"  -- PARTIAL:
-    LayoutBare -> bareLayoutBalanceReportAsText opts ((items, total))
+    LayoutBare -> bareLayoutBalanceReportAsText originalopts report
     _ -> unlinesB ls <> unlinesB (if no_total_ opts then [] else [overline, totalLines])
   where
+    opts = widenDefaultBalanceLineFormat originalopts report
     (ls, sizes) = unzip $ map (balanceReportItemAsText opts) items
     -- abuse renderBalanceReportItem to render the total with similar format
-    (totalLines, _) = renderBalanceReportItem opts ("",0,total)
+    (totalLines, _totalSizes) = renderBalanceReportItem opts ("",0,total)
     -- with a custom format, extend the line to the full report width;
-    -- otherwise show the usual 20-char line for compatibility
-    iscustom = case format_ opts of
+    -- otherwise show the amount column's width.
+    iscustom = case format_ originalopts of
         OneLine       ((FormatField _ _ _ TotalField):_) -> False
         TopAligned    ((FormatField _ _ _ TotalField):_) -> False
         BottomAligned ((FormatField _ _ _ TotalField):_) -> False
         _ -> True
-    overlinewidth = if iscustom then sum (map maximum' $ transpose sizes) else 20
+    isdefault = format_ originalopts == defaultBalanceLineFormat
+    overlinewidth
+      | iscustom  = sum (map maximum' $ transpose sizes)
+      | isdefault = defaultBalanceAmountColumnWidth originalopts report
+      | otherwise = 20
     overline   = TB.fromText $ T.replicate overlinewidth "-"
+
+-- | The default balance format historically used a 20-character amount
+-- column. Keep that as the minimum, but widen it when any rendered amount
+-- needs more room.
+widenDefaultBalanceLineFormat :: ReportOpts -> BalanceReport -> ReportOpts
+widenDefaultBalanceLineFormat opts report
+  | format_ opts == defaultBalanceLineFormat = opts{format_ = setTotalMinWidth amountwidth defaultBalanceLineFormat}
+  | otherwise = opts
+  where
+    amountwidth = defaultBalanceAmountColumnWidth opts report
+    setTotalMinWidth w (BottomAligned (FormatField l _ m TotalField : rest)) =
+      BottomAligned (FormatField l (Just w) m TotalField : rest)
+    setTotalMinWidth _ fmt = fmt
+
+defaultBalanceAmountColumnWidth :: ReportOpts -> BalanceReport -> Int
+defaultBalanceAmountColumnWidth opts ((items, total)) =
+    maximum' $ 20 : map renderedAmountWidth visibleAmounts
+  where
+    visibleAmounts =
+      map (\(_,_,_,amt) -> amt) items ++
+      [total | not (no_total_ opts)]
+    renderedAmountWidth =
+      wbWidth . showMixedAmountB noCostFmt
+        { displayCommodity = layout_ opts /= LayoutBare
+        , displayMinWidth = Just 0
+        , displayColour = False
+        }
 
 -- | Render a single-column balance report as plain text with a separate commodity column (--layout=bare)
 bareLayoutBalanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder

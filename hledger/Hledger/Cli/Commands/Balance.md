@@ -245,7 +245,7 @@ Some example formats:
 - `%(total)`         - the account's total
 - `%-20.20(account)` - the account's name, left justified, padded to 20 characters and clipped at 20 characters
 - `%,%-50(account)  %25(total)` - account name padded to 50 characters, total padded to 20 characters, with multiple commodities rendered on one line
-- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report
+- `%20(total)  %2(depth_spacer)%-(account)` - the default format for the single-column balance report. The total field keeps this 20-character width as a minimum, but widens automatically when displayed amounts need more room.
 
 [valuation]: #valuation
 [valuation date(s)]: #valuation-date
