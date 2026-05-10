@@ -65,7 +65,7 @@ Here are our current policies for AI use in hledger.
   and activated it from 2026-04-01.
   This is helping recover the costs I incurred during initial experimentation.
 
-- We try to keep track of, optimise, and limit our AI resource usage (measured by tokens in & out, eg).
+- We try to keep track of, optimise, and limit our AI resource usage (measured by output tokens, eg).
 
 - We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
 
