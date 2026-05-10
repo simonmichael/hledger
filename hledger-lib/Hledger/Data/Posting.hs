@@ -331,13 +331,20 @@ amountIntegerWidth opts a
     -- Width of the integer portion of the rendered quantity. Renders the amount
     -- truncated to integer with precision 0; the result has no decimal mark or
     -- fractional digits, so its width is exactly sign + integer-digits + group-seps.
-    -- Sign is added explicitly to handle the -0.x → 0 truncation case.
+    -- Sign is added explicitly to handle the -0.x → 0 truncation case — but only
+    -- when the rendered amount will actually show a sign (i.e., it has fractional
+    -- digits). At Precision 0 a value rounding to 0 shows as "0" with no sign,
+    -- so no extra slot is reserved.
     quantityIntegerW =
         let intAmt   = a{ aquantity = fromInteger (truncate (aquantity a) :: Integer)
                         , astyle    = s{asprecision = Precision 0}
                         }
             w        = wbWidth (showAmountQuantity False intAmt)
+            showsFractional = case asprecision s of
+                Precision 0 -> False
+                _           -> True
             signLost = aquantity a < 0 && (truncate (aquantity a) :: Integer) == 0
+                    && showsFractional
         in w + (if signLost then 1 else 0)
     -- Width of the commodity portion when it appears as a prefix (L-side).
     commodityPrefixW
