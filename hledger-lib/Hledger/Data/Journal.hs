@@ -1447,7 +1447,11 @@ pivotAccount fieldortagname p =
 -- Pivoting on a tag when there are multiple values for that tag, returns the first value.
 -- Pivoting on the "type" tag normalises type values to their short spelling.
 pivotComponent :: Text -> Posting -> Text
-pivotComponent fieldortagname p
+pivotComponent fieldortagname p =
+  firstNonEmpty $ map (`pivotComponentSingle` p) $ T.splitOn "|" fieldortagname
+
+pivotComponentSingle :: Text -> Posting -> Text
+pivotComponentSingle fieldortagname p
   | fieldortagname == "code",        Just t <- ptransaction p = tcode t
   | fieldortagname `elem` descnames, Just t <- ptransaction p = tdescription t
   | fieldortagname == "payee",       Just t <- ptransaction p = transactionPayee t
@@ -1466,6 +1470,12 @@ pivotComponent fieldortagname p
     descnames = ["desc", "description"]   -- allow "description" for hledger <=1.30 compat
     commnames = ["cur","comm"]            -- allow either; cur is the query prefix, comm is more consistent
     unknown   = ""
+
+firstNonEmpty :: [Text] -> Text
+firstNonEmpty [] = ""
+firstNonEmpty (x:xs)
+  | T.null x = firstNonEmpty xs
+  | otherwise = x
 
 postingFindTag :: TagName -> Posting -> Maybe (TagName, TagValue)
 postingFindTag tagname p = find ((tagname==) . fst) $ postingAllTags p

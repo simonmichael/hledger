@@ -5968,6 +5968,7 @@ PIVOTEXPR can be
 - any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`, `payee`, `note`, `acct`, `comm`/`cur`, `amt`, `cost`
 - or a tag name
 - or any combination of these, colon-separated.
+- within each colon-separated component, multiple field or tag names can be tried left-to-right with `|`, taking the first non-empty value.
 
 Some special cases:
 

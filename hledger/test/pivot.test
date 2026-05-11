@@ -130,7 +130,17 @@ $ hledger -f- --pivot acct:kind:project bal ^expense -N
                   20  expenses:equipment:job2
                   25  expenses:fee:job2
 
-# ** 12. Pivot on the commodity symbol with "comm".
+# ** 12. fallback to another value with "|"
+<
+2024/01/01 Lunch
+    assets:bank account             30 USD
+    expenses:food                  -30 USD  ; mynotes: receipt
+$ hledger -f- --pivot mynotes|desc print
+2024-01-01 Lunch
+    receipt                                      30 USD
+    Lunch                                       -30 USD
+
+# ** 13. Pivot on the commodity symbol with "comm".
 <
 2025-01-01
     expenses   1 A
@@ -147,7 +157,7 @@ Balance changes in 2025:
 ---++----------
    || 1 A, 2 B 
 
-# ** 13. "cur" is accepted as a synonym. Postings with multiple commodities currently are lumped in the "" bucket, not pivoted fully.
+# ** 14. "cur" is accepted as a synonym. Postings with multiple commodities currently are lumped in the "" bucket, not pivoted fully.
 $ hledger -f- bal -Y assets --pivot=cur
 Balance changes in 2025:
 
@@ -157,7 +167,7 @@ Balance changes in 2025:
 --++------------
   || -1 A, -2 B 
 
-# ** 14. When commodities are being converted, the original commodity is shown.
+# ** 15. When commodities are being converted, the original commodity is shown.
 <
 2025-01-01
     expenses   1 A @ $10
@@ -174,7 +184,7 @@ Balance changes in 2025, converted to cost:
 ---++------
    || $210 
 
-# ** 15. The "" bucket looks a bit strange in this case..
+# ** 16. The "" bucket looks a bit strange in this case..
 $ hledger -f- bal -Y assets --pivot=comm -B
 Balance changes in 2025, converted to cost:
 
@@ -184,7 +194,7 @@ Balance changes in 2025, converted to cost:
 ---++-------
    || $-210 
 
-# ** 16. Pivot on amount.
+# ** 17. Pivot on amount.
 $ hledger -f- bal -Y --pivot=amt
 Balance changes in 2025:
 
@@ -196,7 +206,7 @@ Balance changes in 2025:
 ------++-----------------
       || $-210, 1 A, 2 B 
 
-# ** 17. Pivot on cost.
+# ** 18. Pivot on cost.
 $ hledger -f- bal -Y --pivot=cost
 Balance changes in 2025:
 
