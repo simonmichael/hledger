@@ -7028,21 +7028,15 @@ For a more technical version of what's in this manual, see [SPEC-lots](/SPEC-lot
 
 Here are some things to be aware of:
 
-- hledger 2 normally handles hledger 1 journals just as hledger 1 did.
-  But if you had {} cost basis annotations in your journal (ignored by hledger 1),
-  they will probably break and need fixing for hledger 2.
-
-- Not every possible lot-related journal entry can be detected correctly by hledger.
-  When starting out, you should always check your lot entry with `hledger print -a`, to see if hledger has analysed it correctly.
-  If not, rewrite it so that hledger can do that.
-
-- In disposal transactions, if you write a gain posting, hledger can usually detect it heuristically.
-  If not, you can help it by declaring and using a Gain account (`type:G`) for gain postings.
-  If you let hledger infer the gain posting, this is also how you customise the account used.
-
-- An amountless gain posting is currently not allowed by hledger 2; if you write a gain posting, you must write its amount.
-
-- AVERAGE/AVERAGEALL methods don't work right.
+- When upgrading to hledger 2:
+  if you had {} cost basis annotations in your journal (ignored by hledger 1),
+  they will probably need fixing for hledger 2.
+- Not every possible lot-related journal entry can be analysed correctly by hledger.
+  Until you are familiar, always check this with `hledger print -a`, and rewrite the entry if needed.
+- If you write a gain posting in a disposal transaction, hledger will usually detect it.
+  But if not: either omit that posting, or use a declared Gain account (`type:G`) for it.
+- An amountless gain posting is currently not allowed by hledger 2; if you write the posting, you must write its amount.
+- AVERAGE/AVERAGEALL cost basis methods don't work yet.
 
 ## How to enable lot tracking
 
@@ -7297,6 +7291,8 @@ which can be useful for tax optimization.
 but uses the weighted average per-unit cost, within the specified account,
 as the disposal cost basis, rather than each lot's individual cost.
 This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
+\
+*Warning: not working yet.*
 
 All of these methods select lots from the account mentioned in the posting.
 But the **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL) additionally validate
@@ -7306,6 +7302,8 @@ they will raise an error showing which account holds it.
 This is useful if you need to enforce a global disposal order across all accounts (brokers, exchanges, wallets etc).
 
 **AVERAGEALL** computes the weighted average cost across the global pool.
+\
+*Warning: not working yet.*
 
 ## Lot postings and balance assertions 
 
