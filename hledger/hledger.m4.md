@@ -7006,7 +7006,7 @@ Now, you can also do it yourself with hledger.
 
 ## hledger's lot tracking
 
-Lot tracking is a flagship feature of hledger 2.0, which will be released in or after june 2026.
+Lot tracking is a feature of hledger 2.0, which will be released in or after june 2026.
 It is currently available in experimental preview releases, and things may change.
 Your testing and feedback are important for making the 2.0 release better.
 
