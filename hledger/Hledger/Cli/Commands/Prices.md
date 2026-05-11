@@ -10,7 +10,16 @@ Flags:
                             prices
      --summary              summarise declared prices per commodity instead
                             of listing them
+     --locations            also show the file and line where each declared
+                            price directive appears
 ```
+
+With `--locations`, each price line gets a trailing
+`; location: FILE:LINE` comment showing where it came from.
+Declared prices point at their P directive; prices inferred from
+[costs](hledger.md#costs) point at the parent transaction's first line.
+Reversed prices keep the source position of the directive they were
+derived from.
 
 Price amounts are always displayed with their full precision,
 except for reverse prices which are limited to 8 decimal digits.

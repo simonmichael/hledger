@@ -23,10 +23,9 @@ import Text.Printf (printf)
 
 pricesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Prices.txt")
-  [flagNone ["show-reverse"] (setboolopt "show-reverse")
-    "also show the prices inferred by reversing known prices"
-  ,flagNone ["summary"] (setboolopt "summary")
-    "summarise declared prices per commodity instead of listing them"
+  [flagNone ["show-reverse"] (setboolopt "show-reverse") "also show the prices inferred by reversing known prices"
+  ,flagNone ["summary"] (setboolopt "summary") "summarise declared prices per commodity instead of listing them"
+  ,flagNone ["locations"] (setboolopt "locations") "also show where prices where declared"
   ]
   cligeneralflagsgroups1
   (hiddenflags ++
@@ -43,8 +42,12 @@ instance HasAmounts PriceDirective where
 prices opts j = do
   printTitle $ _rsReportOpts $ reportspec_ opts
   let
-    styles = journalCommodityStyles j
-    q      = _rsQuery $ reportspec_ opts
+    q       = _rsQuery $ reportspec_ opts
+    showloc = boolopt "locations" (rawopts_ opts)
+    styles  = journalCommodityStyles j
+    render pd =
+      showPriceDirective (styleAmounts styles pd)
+      <> if showloc then locationComment pd else ""
 
     -- XXX duplicates logic in Hledger.Data.Valuation.makePriceGraph, keep synced
 
@@ -52,9 +55,12 @@ prices opts j = do
       -- dbg0 "declaredprices" $
       jpricedirectives j
 
+    -- Use the location-preserving helper only when --locations is set,
+    -- to avoid the per-directive record update otherwise.
     pricesfromcosts =
       -- dbg0 "pricesfromcosts" $
-      concatMap postingPriceDirectivesFromCost $
+      concatMap (if showloc then postingPriceDirectivesWithLoc
+                            else postingPriceDirectivesFromCost) $
       journalPostings j
 
     forwardprices =
@@ -79,8 +85,25 @@ prices opts j = do
 
   if boolopt "summary" (rawopts_ opts)
     then printSummary j q (filter (matchesPriceDirective q) declaredprices)
-    else mapM_ (T.putStrLn . showPriceDirective . styleAmounts styles) $
-           sortOn pddate filteredprices
+    else mapM_ (T.putStrLn . render) $ sortOn pddate filteredprices
+
+-- | Like 'postingPriceDirectivesFromCost', but tags each inferred
+-- price directive with the source position of the parent transaction
+-- (if known) so it can be reported by --locations.
+postingPriceDirectivesWithLoc :: Posting -> [PriceDirective]
+postingPriceDirectivesWithLoc p =
+  [ pd{pdsourcepos = pos} | pd <- postingPriceDirectivesFromCost p ]
+  where
+    pos = maybe nullsourcepos (fst . tsourcepos) (ptransaction p)
+
+-- | A trailing journal comment showing the file and line where a
+-- price directive was declared or inferred. Reversed prices inherit
+-- the source position of the directive they were derived from. Empty
+-- only when no source position is available.
+locationComment :: PriceDirective -> T.Text
+locationComment PriceDirective{pdsourcepos=SourcePos fp l _}
+  | null fp   = ""
+  | otherwise = "  ; location: " <> T.pack fp <> ":" <> T.pack (show (unPos l))
 
 -- | Per-commodity stats from the journal's declared price directives.
 data PriceStats = PriceStats
