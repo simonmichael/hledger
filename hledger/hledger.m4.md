@@ -7006,6 +7006,10 @@ Now, you can also do it yourself with hledger.
 
 ## hledger's lot tracking
 
+Lot tracking is a flagship feature of hledger 2.0, which will be released in or after june 2026.
+It is currently available in experimental preview releases, and things may change.
+Your testing and feedback are important for making the 2.0 release better.
+
 hledger's lot tracking builds on the design first shipped in Ledger, then improved in Beancount.
 hledger understands several kinds of notation describing lots.
 You can record all details explicitly, or use more convenient low-boilerplate entries,
@@ -7018,30 +7022,27 @@ You may want to turn this off if you are working with incomplete journals,
 eg if you are piping hledger print output into another hledger command.
 In that case, use `--ignore-lots` or `-I`, which disables lot and gain calculations entirely.
 
-Note, this is an experimental preview of hledger 2.0, which I hope to release around june 2026, 
-and things may change. Your testing is very helpful.
-Here are some current issues to be aware of:
+For a more technical version of what's in this manual, see [SPEC-lots](/SPEC-lots.html).
+
+## Current lot tracking issues
+
+Here are some things to be aware of:
 
 - hledger 2 normally handles hledger 1 journals just as hledger 1 did.
-  But if you have {} cost basis annotations in your journal for some reason (ignored by hledger 1),
-  you will probably need to fix them for hledger 2.
-
-- Once you start recording lot disposals, 
-  you will probably need to declare a Gain account and an UnrealisedGain account,
-  which hledger will use for capital gains postings.
-  These are subtypes of Revenue and Equity respectively.
-  So eg you could declare:
-  ```journal
-  account revenues:gain            ; type:G
-  account equity:unrealised-gain   ; type:U
-  ```
+  But if you had {} cost basis annotations in your journal (ignored by hledger 1),
+  they will probably break and need fixing for hledger 2.
 
 - Not every possible lot-related journal entry can be detected correctly by hledger.
-  For example, entries with a total cost basis which can't be converted to exact unit cost basis.
-  Use `hledger print -a` to see how a lot entry has been analysed,
-  and if it's not correct, try to rewrite it until hledger analyses it correctly.
+  When starting out, you should always check your lot entry with `hledger print -a`, to see if hledger has analysed it correctly.
+  If not, rewrite it so that hledger can do that.
 
-For more technical details, see [SPEC-lots](/SPEC-lots.html).
+- In disposal transactions, if you write a gain posting, hledger can usually detect it heuristically.
+  If not, you can help it by declaring and using a Gain account (`type:G`) for gain postings.
+  If you let hledger infer the gain posting, this is also how you customise the account used.
+
+- An amountless gain posting is currently not allowed by hledger 2; if you write a gain posting, you must write its amount.
+
+- AVERAGE/AVERAGEALL methods don't work right.
 
 ## How to enable lot tracking
 
