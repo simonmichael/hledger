@@ -275,3 +275,11 @@ $ hledger -f - balance --empty --declared
                   -1  c
 --------------------
                    0  
+
+# ** 22. Single-period balance HTML output respects -c commodity style (#2584).
+<
+2025-01-01
+    assets:bank      1000 USD
+    equity:start
+$ hledger -f- bal -c '1,000. USD' -O html
+> /1,000 USD/

@@ -422,9 +422,9 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
               "csv"  -> printCSV . balanceReportAsCsv ropts
               "tsv"  -> printTSV . balanceReportAsCsv ropts
               "html" -> (<>"\n") . htmlAsLazyText .
-                                   styledTableHtml . map (map (fmap toHtml)) . balanceReportAsSpreadsheet ropts
+                                   styledTableHtml . map (map (fmap toHtml)) . balanceReportAsSpreadsheet oneLineNoCostFmt ropts
               "json" -> (<>"\n") . toJsonText
-              "fods" -> printFods IO.localeEncoding . Map.singleton "Balance Report" . (,) (1,0) . balanceReportAsSpreadsheet ropts
+              "fods" -> printFods IO.localeEncoding . Map.singleton "Balance Report" . (,) (1,0) . balanceReportAsSpreadsheet oneLineNoCostFmt ropts
               _      -> error' $ unsupportedOutputFormatError fmt  -- PARTIAL:
         writeOutputLazyText opts $ render report
   where
@@ -487,7 +487,7 @@ totalRowHeadingBudgetCsv   = "Total:"
 -- | Render a single-column balance report as CSV.
 balanceReportAsCsv :: ReportOpts -> BalanceReport -> CSV
 balanceReportAsCsv opts =
-    rawTableContent . balanceReportAsSpreadsheet opts
+    rawTableContent . balanceReportAsSpreadsheet machineFmt opts
 
 -- | Render a single-column balance report as plain text.
 balanceReportAsText :: ReportOpts -> BalanceReport -> TB.Builder
@@ -645,8 +645,8 @@ addTotalBorders =
 
 -- | Render a single-column balance report as FODS.
 balanceReportAsSpreadsheet ::
-    ReportOpts -> BalanceReport -> [[Ods.Cell Ods.NumLines Text]]
-balanceReportAsSpreadsheet opts (items, total) =
+    AmountFormat -> ReportOpts -> BalanceReport -> [[Ods.Cell Ods.NumLines Text]]
+balanceReportAsSpreadsheet fmt opts (items, total) =
     (if transpose_ opts then Ods.transpose else id) $
     headers :
     concatMap (rows Value) items ++
@@ -679,7 +679,7 @@ balanceReportAsSpreadsheet opts (items, total) =
     renderAmount rc mixedAmt =
         wbToText <$> cellFromMixedAmount bopts (amountClass rc, mixedAmt)
       where
-        bopts = machineFmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
+        bopts = fmt{displayCommodity=showcomm, displayCommodityOrder = commorder}
         (showcomm, commorder)
           | layout_ opts == LayoutBare = (False, Just $ S.toList $ maCommodities mixedAmt)
           | otherwise                  = (True, Nothing)
