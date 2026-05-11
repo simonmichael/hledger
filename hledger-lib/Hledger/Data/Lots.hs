@@ -1742,7 +1742,7 @@ processTransferPair styles verbosetags j t lotState fromP toP = do
             toAcct   = lotBaseAccount (paccount toP)   <> ":" <> lotName
 
         -- Validate transfer-to cost basis if it has specific fields
-        validateToCb toCb lotCb commodity
+        validateToCb toCb lotCb
 
         let fromAmt' = (amountSetQuantity (negate consumedQty) fromAmt){acostbasis = Just lotCb}
             toAmt'   = amountSetQuantity consumedQty fromAmt'
@@ -1789,17 +1789,28 @@ processTransferPair styles verbosetags j t lotState fromP toP = do
                    , poriginal = Just origFromP'
                    }
 
-    -- Validate that transfer-to cost basis (if specified with concrete fields)
-    -- matches the lot's cost basis.
-    validateToCb Nothing _ _ = Right ()
-    validateToCb (Just toCb') lotCb commodity = do
-      case cbCost toCb' of
-        Just toCost | Just lotBasis <- cbCost lotCb ->
-          when (acommodity toCost /= acommodity lotBasis || aquantity toCost /= aquantity lotBasis) $
-            Left $ showPos ++ "lot cost basis " ++ T.unpack (showLotName lotCb)
-                     ++ " does not match transfer-to cost basis " ++ T.unpack (showLotName toCb')
-                     ++ " for commodity " ++ T.unpack commodity
-        _ -> Right ()
+    -- If the transfer-to posting has any attributes specified in a lot annotation,
+    -- make sure they correspond to the source lot's attributes.
+    -- Transfers are not allowed to change a lot's identity.
+    validateToCb Nothing _ = Right ()
+    validateToCb (Just toCb') lotCb =
+        when (dateMismatch || labelMismatch || costMismatch) $
+          Left $ showPos <> unlines
+            ["Destination lot info " <> T.unpack (showLotName toCb') <> " does not match the source lot " <> T.unpack (showLotName lotCb) <> "."
+            ,"Transfers must preserve the source lot's identity."
+            ,"Remove the destination lot annotation, or make it match the source lot's info."
+            ]
+
+      where
+        dateMismatch  = case cbDate toCb' of
+          Just d  -> cbDate lotCb /= Just d
+          Nothing -> False
+        labelMismatch = case cbLabel toCb' of
+          Just l  -> cbLabel lotCb /= Just l
+          Nothing -> False
+        costMismatch  = case (cbCost toCb', cbCost lotCb) of
+          (Just c, Just lc) -> acommodity c /= acommodity lc || aquantity c /= aquantity lc
+          _                 -> False
 
     -- Re-add a transferred lot to LotState under the destination account.
     addTransferredLot commodity destAcct ls (lotId, storedAmt, consumedQty) =

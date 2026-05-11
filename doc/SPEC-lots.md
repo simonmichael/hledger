@@ -360,7 +360,9 @@ we infer a transacted cost from the cost basis.
 
 - A transfer-to posting mirrors a corresponding transfer-from posting in the same transaction,
   recreating its lot(s) under a new parent account.
-  It doesn't need a lot selector; if it has one, it must select the same lot as the transfer-from posting.
+  It doesn't need a lot annotation; if it has one, any specified fields
+  (date, label, cost) must match the source lot.
+  (Transfers must preserve the source lot's identity, and can't rename a lot.)
   Transfer postings (both from and to) must not have explicit transacted cost (@ or @@); this is an error.
   When the transfer-to quantity is less than the transfer-from quantity (a transfer+fee pattern),
   lots are selected for the full source quantity, then split: the transfer portion's lots are

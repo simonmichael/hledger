@@ -178,8 +178,59 @@ commodity AAPL  ; lots:
     assets:broker2    10 AAPL {$60}
 
 $ hledger -f- print desc:transfer --lots --verbose-tags
->2 /does not match transfer-to cost basis/
+>2 /Destination lot info .* does not match the source lot/
 >=1
+
+# *** 10b. transfer-to with a new date (lot-renaming attempt). Error: does not match.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker1    10 AAPL {$50}
+    assets:cash      -$500
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {}
+    assets:broker2    10 AAPL {2026-02-01}
+
+$ hledger -f- print desc:transfer --lots
+>2 /Destination lot info .* does not match the source lot/
+>=1
+
+# *** 10c. transfer-to with a new label (lot-renaming attempt). Error: does not match.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker1    10 AAPL {$50}
+    assets:cash      -$500
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {}
+    assets:broker2    10 AAPL {2026-01-01, "newlotid"}
+
+$ hledger -f- print desc:transfer --lots
+>2 /Destination lot info .* does not match the source lot/
+>=1
+
+# *** 10d. transfer-to with full matching basis (assertion of source lot identity). Succeeds.
+<
+commodity AAPL  ; lots:
+
+2026-01-01 buy
+    assets:broker1    10 AAPL {$50}
+    assets:cash      -$500
+
+2026-02-01 transfer
+    assets:broker1   -10 AAPL {}
+    assets:broker2    10 AAPL {2026-01-01, $50}
+
+$ hledger -f- print desc:transfer --lots
+2026-02-01 transfer
+    assets:broker1:{2026-01-01, $50}             -10 AAPL {}
+    assets:broker2:{2026-01-01, $50}              10 AAPL {2026-01-01, $50}
+
+>=
 
 # ** Bare acquire (@ price) followed by transfer with varying {} placement
 
