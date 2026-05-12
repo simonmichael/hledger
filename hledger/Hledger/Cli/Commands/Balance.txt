@@ -234,7 +234,9 @@ Some example formats:
   total padded to 20 characters, with multiple commodities rendered on
   one line
 - %20(total)  %2(depth_spacer)%-(account) - the default format for the
-  single-column balance report
+  single-column balance report. The total field keeps this 20-character
+  width as a minimum, but widens automatically when displayed amounts
+  need more room.
 
 Filtered balance report
 

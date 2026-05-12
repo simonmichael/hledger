@@ -10,6 +10,13 @@ Flags:
                             prices
      --summary              summarise declared prices per commodity instead
                             of listing them
+     --locations            also show where prices where declared
+
+With --locations, each price line gets a trailing ; location: FILE:LINE
+comment showing where it came from. Declared prices point at their P
+directive; prices inferred from costs point at the parent transaction's
+first line. Reversed prices keep the source position of the directive
+they were derived from.
 
 Price amounts are always displayed with their full precision, except for
 reverse prices which are limited to 8 decimal digits.
