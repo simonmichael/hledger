@@ -2872,13 +2872,13 @@ if you want to prevent this, you can declare and check your tags .
 The `~` directive declares a "periodic rule" which generates temporary extra transactions, usually recurring at some interval,
 when hledger is run with the `--forecast` flag.
 These "forecast transactions" are useful for [forecasting](#forecasting) future activity.
-They exist only for the duration of the report, and only when `--forecast` is used; they are not saved in the journal file by hledger.
+They exist only at report time, when `--forecast` is used; they are not saved in the journal file.
 
 Periodic rules also have a second use: with the `--budget` flag they set budget goals for [budgeting](#budgeting).
 
 Periodic rules can be a little tricky, so before you use them, read this whole section, or at least the following tips:
 
-1. Two spaces accidentally added or omitted will cause you trouble - read about this below.
+1. Two spaces accidentally added or omitted in the rule will cause you trouble - see below.
 2. For troubleshooting, show the generated transactions with `hledger print --forecast tag:generated` or `hledger register --forecast tag:generated`.
 3. Forecasted transactions will begin only after the last non-forecasted transaction's date.
 4. Forecasted transactions will end 6 months from today, by default. See below for the exact start/end rules.
