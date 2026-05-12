@@ -10,8 +10,7 @@ Flags:
                             prices
      --summary              summarise declared prices per commodity instead
                             of listing them
-     --locations            also show the file and line where each declared
-                            price directive appears
+     --locations            also show where prices where declared
 ```
 
 With `--locations`, each price line gets a trailing

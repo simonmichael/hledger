@@ -29,22 +29,24 @@ CB
 CC
 CD
 CE
-DH
 PI
 PJ
 TK
 TL
 
-# ** 2. used
+# ** 2. used (in transactions; P-directive commodities are listed by --priced).
 $ hledger -f - commodities --used
-CA
-CB
 CC
 CD
-PI
-PJ
 TK
 TL
+
+# ** 2b. priced (in P directives).
+$ hledger -f - commodities --priced
+CA
+CB
+PI
+PJ
 
 # ** 3. declared
 $ hledger -f - commodities --declared
@@ -66,7 +68,7 @@ $ hledger -f - commodities --unused
 CE
 
 # ** 6. with a query
-$ hledger -f - commodities --used expr:"cur:CA or cur:'P.*'"
+$ hledger -f - commodities --priced expr:"cur:CA or cur:'P.*'"
 CA
 PI
 PJ

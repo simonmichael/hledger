@@ -4,28 +4,27 @@ List the commodity symbols used or declared in the journal.
 
 ```flags
 Flags:
-     --used                 list commodities used
-     --declared             list commodities declared
-     --undeclared           list commodities used but not declared
-     --unused               list commodities declared but not used
+     --used                 list commodities used in transactions
+     --priced               list commodities appearing in P directives
+     --declared             list commodities declared by commodity directives
+     --undeclared           list commodities used or priced but not declared
+     --unused               list commodities declared but not used or priced
      --find                 list the first commodity matched by the first
                             argument (a case-insensitive infix regexp)
 ```
 
+Most of these flags can be combined.
+Some kinds of query argument are supported: `cur:`, `tag:`, and `date:`
+(also `-b`/`-e`/`-p` report period options).
 
-This command lists commodity symbols/names -
-all of them by default,
-or just the ones which have been used in transactions or `P` directives,
-or declared with `commodity` directives,
-or used but not declared,
-or declared but not used,
-or just the first one matched by a pattern (with `--find`, returning a non-zero exit code if it fails).
+Providing a date query will affect which commodities are reported, as follows:
 
-You can add [query arguments](#queries) to further limit the commodities;
-at least `cur:`, `tag:`, and `date:` (or the `-b`/`-e`/`-p` report period flags) are supported.
-
-When a date query or report period is given:
-
-- The default output, and `--used`, list only commodities used in that period.
-- `--undeclared` lists commodities used in that period but not declared anywhere.
-- `--declared`, `--unused`, and `--find` are not affected by a date query.
+| Flag           | No date query                             | With a date query                              |
+|----------------|-------------------------------------------|------------------------------------------------|
+| (none)         | declared ∪ transacted ∪ priced            | (transacted ∪ priced) in the period            |
+| `--used`       | transacted in the journal                 | transacted in the period                       |
+| `--priced`     | appearing in any P directive              | appearing in a P directive in the period       |
+| `--declared`   | declared with a `commodity` directive     | same                                           |
+| `--undeclared` | (transacted ∪ priced) ∖ declared          | (transacted ∪ priced in the period) ∖ declared |
+| `--unused`     | declared ∖ (transacted ∪ priced)          | same                                           |
+| `--find`       | the first commodity matching the argument | same                                           |
