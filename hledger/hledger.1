@@ -7614,6 +7614,10 @@ substituted): \f[CR]status\f[R], \f[CR]code\f[R], \f[CR]desc\f[R],
 or a tag name
 .IP \(bu 2
 or any combination of these, colon\-separated.
+.IP \(bu 2
+within each colon\-separated component, multiple fields or tags can be
+joined with \f[CR]+\f[R]; their non\-empty values are concatenated with
+spaces.
 .PP
 Some special cases:
 .IP \(bu 2
@@ -7682,6 +7686,16 @@ Hierarchical reports can be generated with multiple pivot values:
 .EX
 $ hledger balance Income:Dues \-\-pivot kind:member
               \-2 EUR  Lifetime:John Doe
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+              \-2 EUR
+.EE
+.PP
+Multiple pivot values can also be shown in the same hierarchy level by
+joining them with \f[CR]+\f[R]:
+.IP
+.EX
+$ hledger balance Income:Dues \-\-pivot kind+member
+              \-2 EUR  Lifetime John Doe
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
               \-2 EUR
 .EE

@@ -7387,6 +7387,9 @@ grouping and display.  PIVOTEXPR can be
      'comm'/'cur', 'amt', 'cost'
    * or a tag name
    * or any combination of these, colon-separated.
+   * within each colon-separated component, multiple fields or tags can
+     be joined with '+'.  Their non-empty values are concatenated with
+     spaces.
 
    Some special cases:
 
@@ -7441,6 +7444,14 @@ $ hledger balance --pivot member acct:.
 
 $ hledger balance Income:Dues --pivot kind:member
               -2 EUR  Lifetime:John Doe
+--------------------
+              -2 EUR
+
+   Multiple pivot values can also be shown in the same hierarchy level by
+joining them with '+':
+
+$ hledger balance Income:Dues --pivot kind+member
+              -2 EUR  Lifetime John Doe
 --------------------
               -2 EUR
 

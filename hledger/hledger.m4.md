@@ -5968,6 +5968,7 @@ PIVOTEXPR can be
 - any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`, `payee`, `note`, `acct`, `comm`/`cur`, `amt`, `cost`
 - or a tag name
 - or any combination of these, colon-separated.
+- within each colon-separated component, multiple fields or tags can be joined with `+`; their non-empty values are concatenated with spaces.
 
 Some special cases:
 
@@ -6018,6 +6019,13 @@ Hierarchical reports can be generated with multiple pivot values:
 ```cli
 $ hledger balance Income:Dues --pivot kind:member
               -2 EUR  Lifetime:John Doe
+--------------------
+              -2 EUR
+```
+Multiple pivot values can also be shown in the same hierarchy level by joining them with `+`:
+```cli
+$ hledger balance Income:Dues --pivot kind+member
+              -2 EUR  Lifetime John Doe
 --------------------
               -2 EUR
 ```

@@ -1441,13 +1441,22 @@ pivotAccount :: Text -> Posting -> Text
 pivotAccount fieldortagname p =
   T.intercalate ":" [pivotComponent x p | x <- T.splitOn ":" fieldortagname]
 
+-- | Resolve one colon-delimited pivot component. A component may contain
+-- plus-delimited fields/tags, whose non-empty values are joined with spaces.
+pivotComponent :: Text -> Posting -> Text
+pivotComponent fieldortagname p
+  | [_] <- fields = pivotFieldOrTag fieldortagname p
+  | otherwise     = T.intercalate " " . filter (not . T.null) $ map (`pivotFieldOrTag` p) fields
+  where
+    fields = T.splitOn "+" fieldortagname
+
 -- | Get the value of the given field or tag for this posting.
 -- "comm" and "cur" are accepted as synonyms meaning the commodity symbol.
 -- Pivoting on an unknown field or tag, or on commodity when there are multiple commodities, returns "".
 -- Pivoting on a tag when there are multiple values for that tag, returns the first value.
 -- Pivoting on the "type" tag normalises type values to their short spelling.
-pivotComponent :: Text -> Posting -> Text
-pivotComponent fieldortagname p
+pivotFieldOrTag :: Text -> Posting -> Text
+pivotFieldOrTag fieldortagname p
   | fieldortagname == "code",        Just t <- ptransaction p = tcode t
   | fieldortagname `elem` descnames, Just t <- ptransaction p = tdescription t
   | fieldortagname == "payee",       Just t <- ptransaction p = transactionPayee t

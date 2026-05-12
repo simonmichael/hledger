@@ -5743,6 +5743,9 @@ Pivoting
 
      * or any combination of these, colon-separated.
 
+     * within each colon-separated component, multiple fields or tags  can  be
+       joined with +; their non-empty values are concatenated with spaces.
+
      Some special cases:
 
      * Colons appearing in PIVOTEXPR or in a pivoted tag value will generate ac-
@@ -5796,6 +5799,14 @@ Pivoting
 
             $ hledger balance Income:Dues --pivot kind:member
                           -2 EUR  Lifetime:John Doe
+            --------------------
+                          -2 EUR
+
+     Multiple pivot values can also be shown in the same hierarchy level by
+     joining them with +:
+
+            $ hledger balance Income:Dues --pivot kind+member
+                          -2 EUR  Lifetime John Doe
             --------------------
                           -2 EUR
 

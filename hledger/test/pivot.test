@@ -130,6 +130,18 @@ $ hledger -f- --pivot acct:kind:project bal ^expense -N
                   20  expenses:equipment:job2
                   25  expenses:fee:job2
 
+# ** 11b. pivot on multiple tags joined with spaces
+<
+2023-01-01 compound purchase
+        expenses  10 ; project: job1, kind: equipment
+        expenses  20 ; project: job2
+        expenses  25 ; kind: fee
+        assets
+$ hledger -f- --pivot kind+project bal ^expense -N
+                  10  equipment job1
+                  25  fee
+                  20  job2
+
 # ** 12. Pivot on the commodity symbol with "comm".
 <
 2025-01-01
