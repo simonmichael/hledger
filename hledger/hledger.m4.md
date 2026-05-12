@@ -5968,6 +5968,7 @@ PIVOTEXPR can be
 - any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`, `payee`, `note`, `acct`, `comm`/`cur`, `amt`, `cost`
 - or a tag name
 - or any combination of these, colon-separated.
+- within each colon-separated component, multiple field or tag names can be listed with `|` as a left-to-right fallback: the first non-empty value is used. Eg `--pivot 'mynotes|desc'` uses the `mynotes` tag value when present, otherwise falls back to the transaction description.
 
 Some special cases:
 
