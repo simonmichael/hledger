@@ -138,8 +138,8 @@ $ hledger -f- --pivot acct:kind:project bal ^expense -N
     expenses:food                   -30 USD  ; mynotes: tasty lunch
 $ hledger -f- --pivot 'mynotes|desc' print
 2024-01-01 Lunch
-    Lunch                                 30 USD
-    tasty lunch                          -30 USD  ; mynotes: tasty lunch
+    Lunch                                         30 USD
+    tasty lunch                                  -30 USD  ; mynotes: tasty lunch
 
 >= 0
 
@@ -150,8 +150,8 @@ $ hledger -f- --pivot 'mynotes|desc' print
     assets:bank                      30 USD
     expenses:food                   -30 USD  ; mynotes: tasty lunch
 $ hledger -f- --pivot 'mynotes|desc' bal --no-total
-               30 USD  Lunch
-              -30 USD  tasty lunch
+              30 USD  Lunch
+             -30 USD  tasty lunch
 
 # ** 14. Three-way pipe fallback: first non-empty among three alternatives.
 <
@@ -159,8 +159,8 @@ $ hledger -f- --pivot 'mynotes|desc' bal --no-total
     assets:bank                      10 USD
     expenses:misc                   -10 USD  ; project: alpha
 $ hledger -f- --pivot 'mynotes|project|desc' bal --no-total
-               10 USD  Meeting
-              -10 USD  alpha
+              10 USD  Meeting
+             -10 USD  alpha
 
 # ** 15. Pipe fallback combined with colon composition.
 # acct:tag1|tag2 builds a two-level account name; fallback applies per component.
@@ -169,8 +169,8 @@ $ hledger -f- --pivot 'mynotes|project|desc' bal --no-total
     assets:bank                      50 USD
     expenses:food                   -50 USD  ; category: produce
 $ hledger -f- --pivot 'acct:category|desc' bal --no-total
-               50 USD  assets:bank:Groceries
-              -50 USD  expenses:food:produce
+              50 USD  assets:bank:Groceries
+             -50 USD  expenses:food:produce
 
 # ** 16. All alternatives absent: result is empty string (existing behaviour preserved).
 <
