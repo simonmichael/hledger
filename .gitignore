@@ -120,6 +120,7 @@ old
 /examples/demo/
 /doc/ghrelnotes.md
 /doc/.*
+/doc/ai/ccusage.journal
 /checks
 /tools/docshelltest
 .latest.*
