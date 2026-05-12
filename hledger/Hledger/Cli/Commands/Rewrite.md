@@ -15,6 +15,11 @@ Flags:
                                     patch tool
      --verbose-tags                 add tags indicating generated/modified
                                     data
+     --layout=hledger1|COL          how should posting amounts be aligned ?
+                                    hledger1 - right-align amounts, as in
+                                    hledger 1
+                                    COL      - align decimal marks at column
+                                    COL (default: 53)
 ```
 
 This is a start at a generic rewriter of transaction entries.

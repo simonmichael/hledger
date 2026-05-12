@@ -18,6 +18,7 @@ import Text.Printf
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
+import Hledger.Cli.Commands.Print (layoutFlag, layoutFromRawOpts)
 import System.IO (stderr)
 import System.FilePath (takeFileName)
 
@@ -25,6 +26,7 @@ importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
   [flagNone ["catchup"] (setboolopt "catchup") "just mark all transactions as already imported"
   ,flagNone ["dry-run"] (setboolopt "dry-run") "just show the transactions to be imported"
+  ,layoutFlag
   ]
   cligeneralflagsgroups1
   hiddenflags
@@ -37,6 +39,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
     inputstr = intercalate ", " $ map (quoteIfNeeded.takeFileName) inputfiles
     catchup = boolopt "catchup" rawopts
     dryrun = boolopt "dry-run" rawopts
+    postinglayout = layoutFromRawOpts rawopts
     combinedStyles = 
       let
         maybeInputStyles = commodity_styles_ . balancingopts_ $ iopts
@@ -75,7 +78,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
               then do
                 -- show txns to be imported
                 hPrintf stderr "would import %d new transactions from %s:\n\n" (length newts) inputstr
-                mapM_ (T.putStr . showTransaction) newts
+                mapM_ (T.putStr . showTransactionWithLayout postinglayout) newts
 
                 -- then check the whole journal with them added, if in strict mode
                 when (strict_ iopts) $ strictChecks

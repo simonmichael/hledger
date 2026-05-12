@@ -22,7 +22,7 @@ import Safe (lastDef, readMay, readDef)
 import System.FilePath (takeBaseName)
 import Data.Char (isDigit)
 import Hledger.Read.RulesReader (parseBalanceAssertionType)
-import Hledger.Cli.Commands.Print (roundFlag, amountStylesSetRoundingFromRawOpts)
+import Hledger.Cli.Commands.Print (roundFlag, amountStylesSetRoundingFromRawOpts, layoutFlag, layoutFromRawOpts)
 
 defclosedesc  = "closing balances"
 defopendesc   = "opening balances"
@@ -48,6 +48,7 @@ closemode = hledgerCommandMode
   ,flagReq  ["open-desc"]    (\s opts -> Right $ setopt "open-desc"  s opts) "DESC" "set opening transaction's description"
   ,flagReq  ["open-acct"]    (\s opts -> Right $ setopt "open-acct"  s opts) "ACCT" "set opening transaction's source account"
   ,roundFlag
+  ,layoutFlag
   ]
   cligeneralflagsgroups1
   (hiddenflags
@@ -264,6 +265,8 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
   -- print them
   -- allow user-specified rounding with --round, like print
   let styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
-  maybe (pure ()) (T.putStr . showTransaction . styleAmounts styles) mclosetxn
-  maybe (pure ()) (T.putStr . showTransaction . styleAmounts styles) mopentxn
+      postinglayout = layoutFromRawOpts rawopts
+      showtxn = showTransactionWithLayout postinglayout . styleAmounts styles
+  maybe (pure ()) (T.putStr . showtxn) mclosetxn
+  maybe (pure ()) (T.putStr . showtxn) mopentxn
  

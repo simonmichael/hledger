@@ -33,6 +33,7 @@ rewritemode = hledgerCommandMode
            "add a posting to ACCT, which may be parenthesised. AMTEXPR is either a literal amount, or *N which means the transaction's first matched amount multiplied by N (a decimal number). Two spaces separate ACCT and AMTEXPR."
   ,flagNone ["diff"] (setboolopt "diff") "generate diff suitable as an input for patch tool"
   ,flagNone ["verbose-tags"] (setboolopt "verbose-tags") "add tags indicating generated/modified data"
+  ,layoutFlag
   ]
   cligeneralflagsgroups1
   hiddenflags
@@ -67,13 +68,13 @@ transactionModifierFromOpts CliOpts{rawopts_=rawopts} =
 
 printOrDiff :: RawOpts -> (CliOpts -> Journal -> Journal -> IO ())
 printOrDiff opts
-    | boolopt "diff" opts = const diffOutput
+    | boolopt "diff" opts = const (diffOutput (layoutFromRawOpts opts))
     | otherwise = flip (const print')
 
-diffOutput :: Journal -> Journal -> IO ()
-diffOutput j j' = do
+diffOutput :: PostingLayout -> Journal -> Journal -> IO ()
+diffOutput postinglayout j j' = do
     let changed = [(transactionWithMostlyOriginalPostings t, transactionWithMostlyOriginalPostings t') | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
-    T.putStr $ renderPatch $ map (uncurry $ diffTxn j) changed
+    T.putStr $ renderPatch $ map (uncurry $ diffTxn postinglayout j) changed
 
 type Chunk = (SourcePos, [DiffLine Text])
 
@@ -125,8 +126,8 @@ renderPatch = go Nothing . sortOn fst where
         Add s -> "+" <> s <> "\n"
         Ctx s -> " " <> s <> "\n"
 
-diffTxn :: Journal -> Transaction -> Transaction -> Chunk
-diffTxn j t t' = case tsourcepos t of
+diffTxn :: PostingLayout -> Journal -> Transaction -> Transaction -> Chunk
+diffTxn postinglayout j t t' = case tsourcepos t of
     (pos1@(SourcePos fp line col), pos2) | pos1 == pos2 -> (SourcePos fp (line <> mkPos 1) col, diffs) where
         -- TODO: use range and produce two chunks: one removes part of
         --       original file, other adds transaction to new file with
@@ -140,7 +141,7 @@ diffTxn j t t' = case tsourcepos t of
         diffs = map mapDiff $ D.getDiff source changed'
         source | Just contents <- lookup fp $ jfiles j = drop (unPos line-1) . take (unPos line' - 1) $ T.lines contents
                | otherwise = []
-        changed = T.lines $ showTransaction t'
+        changed = T.lines $ showTransactionWithLayout postinglayout t'
         changed' | null changed = changed
                  | T.null $ last changed = init changed
                  | otherwise = changed

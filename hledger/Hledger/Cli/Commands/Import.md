@@ -6,6 +6,10 @@ Import new transactions from one or more data files to the main journal.
 Flags:
      --catchup              just mark all transactions as already imported
      --dry-run              just show the transactions to be imported
+     --layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 - right-align amounts, as in hledger 1
+                            COL      - align decimal marks at column COL
+                            (default: 53)
 ```
 
 This command detects new transactions in one or more data files specified as arguments,

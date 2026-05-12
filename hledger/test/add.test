@@ -283,6 +283,23 @@ $  cp add-2478.j add-2478.$$.j; hledger -f add-2478.$$.j add >/dev/null 2>&1; rm
 $  printf '2025-01-01\n  (a)  1\n' >t$$.j; hledger -f t$$.j add 2>&1; rm -f t$$.j
 > /^ +\(a\) +4 = 5/
 
+# ** 21. add supports --layout, controlling the layout of appended transactions.
+<
+2026-01-01
+
+a
+100
+b
+
+.
+
+$  printf '' >t$$.j; hledger -f t$$.j add 2026-01-01 --layout=hledger1 >/dev/null 2>&1; cat t$$.j; rm -f t$$.j
+
+2026-01-01
+    a             100
+    b            -100
+>=
+
 # ** . shouldn't add decimals if there aren't any
 # printf '\n\na\n1\nb\n' | hledger -f /dev/null add
 # <

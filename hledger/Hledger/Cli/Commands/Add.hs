@@ -52,13 +52,16 @@ import Text.Printf
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Commands.Print (layoutFlag, layoutFromRawOpts)
 import Hledger.Cli.Commands.Register (postingsReportAsText)
 import Hledger.Cli.Utils (journalSimilarTransaction)
 
 
 addmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Add.txt")
-  [flagNone ["no-new-accounts"]  (setboolopt "no-new-accounts") "don't allow creating new accounts"]
+  [flagNone ["no-new-accounts"]  (setboolopt "no-new-accounts") "don't allow creating new accounts"
+  ,layoutFlag
+  ]
   [generalflagsgroup2]
   confflags
   ([], Just $ argsFlag "[-f JOURNALFILE] [DATE [DESCRIPTION [ACCOUNT1 [ETC..]]]]]")
@@ -195,7 +198,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
           previnput' = previnput{prevDescAndCmnt=Just descAndCommentString}
       when (isJust mbaset) . liftIO $ do
           hPutStrLn stderr "Using this similar transaction for defaults:"
-          T.hPutStr stderr $ showTransaction (fromJust mbaset)
+          T.hPutStr stderr $ showTransactionWithLayout (layoutFromRawOpts $ rawopts_ asOpts) (fromJust mbaset)
       transactionWizard previnput' state' ((GetPosting TxnData{txnDate=date, txnCode=code, txnDesc=desc, txnCmnt=comment} Nothing) : stack)
     Nothing ->
       transactionWizard previnput state (drop 1 stack)
@@ -280,7 +283,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
     Nothing -> transactionWizard previnput state (drop 1 stack)
 
   Confirm t -> do
-    output . T.unpack $ showTransaction t
+    output . T.unpack $ showTransactionWithLayout (layoutFromRawOpts $ rawopts_ asOpts) t
     y <- let def = "y" in
          retryMsg "Please enter y or n." $
           parser ((fmap (\c -> if c == '<' then Nothing else Just c)) . headMay . map toLower . strip) $
@@ -510,11 +513,12 @@ postingsAreBalanced j ps = isRight $ balanceSingleTransaction bopts nulltransact
 journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
   let f = journalFilePath j
-  appendToJournalFileOrStdout f $ showTransaction t
+      showtxn = showTransactionWithLayout (layoutFromRawOpts $ rawopts_ opts)
+  appendToJournalFileOrStdout f $ showtxn t
     -- unelided shows all amounts explicitly, in case there's a price, cf #283
   when (debug_ opts > 0) $ do
     putStrLn $ printf "\nAdded transaction to %s:" f
-    TL.putStrLn =<< registerFromString (showTransaction t)
+    TL.putStrLn =<< registerFromString (showtxn t)
   return j{jtxns=ts++[t]}
 
 -- | Append a string, typically one or more transactions, to a journal

@@ -298,3 +298,20 @@ $ hledger close -f- -e 2017 --retain
     equity:retained earnings
 
 >=0
+
+# ** 21. close supports --layout, like print.
+<
+2020-01-01
+    assets:a     $100
+    equity:opening/closing balances
+
+$ hledger -f- close --clopen -e 2021 --layout=hledger1
+2020-12-31 closing balances  ; clopen:
+    assets:a                                  $-100 = $0
+    equity:opening/closing balances
+
+2021-01-01 opening balances  ; clopen:
+    assets:a                                   $100 = $100
+    equity:opening/closing balances
+
+>=
