@@ -246,9 +246,12 @@ getViewData = do
       Right (q0, qopts) -> return (q0, qopts, Nothing)
       Left err         -> return (Any, [], Just err)
   -- To this, add any depth limit from the initial startup query, preserving that.
+  -- Also expand cur: terms against this request's current journal so the
+  -- per-request query is commodity-alias-aware (and reflects any commodity directive
+  -- changes since startup).
   let
     initialdepthq = filterQuery queryIsDepth _rsQuery
-    q = simplifyQuery $ And [q1, initialdepthq]
+    q = simplifyQuery $ queryExpandSymAliases j $ And [q1, initialdepthq]
 
   -- if either of the above gave an error, display it
   maybe (pure ()) (setMessage . toHtml) $ mjerr <|> mqerr

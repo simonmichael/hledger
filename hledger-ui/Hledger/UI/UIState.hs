@@ -266,8 +266,17 @@ updateReportPeriod updatePeriod = fromRight err . overEither period updatePeriod
   where err = error' "updateReportPeriod: updating period should not result in an error"
 
 -- | Apply a new filter query, or return the failing query.
+-- Also re-expands cur: terms against the journal's commodity aliases,
+-- so a freshly typed @cur:@ query is alias-aware even when the journal
+-- has been reloaded since startup.
 setFilter :: String -> UIState -> Either String UIState
-setFilter s = first (const s) . setEither querystring (words'' queryprefixes $ T.pack s)
+setFilter s ui = do
+  ui' <- first (const s) $ setEither querystring (words'' queryprefixes $ T.pack s) ui
+  let copts  = uoCliOpts (aopts ui')
+      rspec  = reportspec_ copts
+      rspec' = rspec{_rsQuery = queryExpandSymAliases (ajournal ui') (_rsQuery rspec)}
+      opts'  = (aopts ui'){uoCliOpts = copts{reportspec_ = rspec'}}
+  Right ui'{aopts = opts'}
 
 -- | Reset some filters & toggles.
 resetFilter :: UIState -> UIState
@@ -370,4 +379,13 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
 -- which depend on state from their parent(s); those screens' handlers must do additional work, which is fragile.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
 regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
-  ui{ajournal=j, aScreen=screenUpdate opts d j s, aPrevScreens=map (screenUpdate opts d j) ss}
+  -- Re-derive _rsQuery from the user's querystring_ and re-expand cur:
+  -- terms against the (possibly reloaded) journal's commodity aliases.
+  -- If re-derivation fails, fall back to the existing query.
+  let copts  = uoCliOpts opts
+      rspec  = reportspec_ copts
+      rspec' = case reportSpecExpandSymQueries j rspec of
+                 Right rs -> rs
+                 Left _   -> rspec
+      opts'  = opts{uoCliOpts = copts{reportspec_ = rspec'}}
+  in ui{aopts=opts', ajournal=j, aScreen=screenUpdate opts' d j s, aPrevScreens=map (screenUpdate opts' d j) ss}

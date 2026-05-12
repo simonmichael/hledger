@@ -43,6 +43,7 @@ module Hledger.Reports.ReportOptions (
   updateReportSpec,
   updateReportSpecWith,
   rawOptsToReportSpec,
+  reportSpecExpandSymQueries,
   balanceAccumulationOverride,
   flat_,
   tree_,
@@ -1074,3 +1075,18 @@ updateReportSpecWith = overEither reportOpts
 -- string if there are regular expression errors.
 rawOptsToReportSpec :: Day -> Bool -> RawOpts -> Either String ReportSpec
 rawOptsToReportSpec day coloronstdout = reportOptsToSpec day . rawOptsToReportOpts day coloronstdout
+
+-- | Associate this journal with this ReportSpec, returning a refreshed
+-- ReportSpec whose @_rsQuery@ is rebuilt from the user's @querystring_@
+-- and has any @cur:@ terms expanded against the journal's current
+-- commodity-alias declarations.
+--
+-- This is the canonical way to (re)attach a journal to a ReportSpec:
+-- @querystring_@ is the source of truth, and @_rsQuery@ is a derived
+-- cache that goes stale whenever the journal's commodity/alias
+-- declarations change. Long-lived sessions (hledger-ui watch,
+-- hledger-web) should call this on every reload.
+reportSpecExpandSymQueries :: Journal -> ReportSpec -> Either String ReportSpec
+reportSpecExpandSymQueries j rs = do
+  rs' <- reportOptsToSpec (_rsDay rs) (_rsReportOpts rs)
+  Right rs'{_rsQuery = queryExpandSymAliases j (_rsQuery rs')}

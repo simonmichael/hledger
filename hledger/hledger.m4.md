@@ -442,10 +442,10 @@ bank                 assets:bank, assets:bank:savings, expenses:art:banksy, ...
 Some other queries:
 ```
 desc:'amazon|amzn|audible'  Amazon transactions
-cur:EUR              amounts with commodity symbol containing EUR
-cur:'\$'             amounts with commodity symbol containing $
-cur:'^\$$'           only $ amounts, not eg AU$ or CA$
-cur:....?            amounts with 4-or-more-character symbols
+cur:EUR              amounts with commodity symbol EUR (or any of its declared aliases)
+cur:\\$              amounts with commodity symbol $ (or any of its aliases)
+cur:....?            amounts with 3- or 4-character symbols (or any of their aliases)
+exactcur:EUR         amounts whose commodity is EUR (ignoring aliases)
 tag:.=202[1-3]       things with any tag whose value contains 2021, 2022 or 2023
 ```
 
@@ -5785,12 +5785,29 @@ Keep in mind that `amt:` matches posting amounts, not account balances.
 Match by transaction code (eg check number).
 
 ### cur: query
-**`cur:REGEX`**\
+**`cur:FULLREGEX`**\
 Match postings or transactions including any amounts whose currency/commodity symbol is fully matched by REGEX.
 (Contrary to hledger's usual infix matching. To do infix matching, write `.*REGEX.*`.) 
-Note, to match [special characters](#special-characters) which are regex-significant, you need to escape them with `\`.
-And for characters which are significant to your shell you will usually need one more level of escaping.
-Eg to match the dollar sign: `cur:\\$` or `cur:'\$'`
+
+To match [special characters](#special-characters) which are regex-significant, escape them with `\`.
+And at the command line, characters which are shell-significant need one more level of escaping -
+eg to match the dollar sign, write `cur:\\$` or `cur:'\$'`.
+
+When commodity aliases have been declared, via an `alias:` tag on a
+[commodity directive](#commodity-directive)), `cur:` will match the
+canonical commodity or any of its aliases.
+So if `commodity $1000.00  ; alias: USD U` is declared,
+the queries `cur:\\$`, `cur:USD`, `cur:U` and `cur:U.+` will all match
+amounts like `$1` or `1 USD` or `1 U`.
+\
+*(experimental)*
+
+### exactcur: query
+**`exactcur:FULLREGEX`**\
+This is like `cur:`, but ignores commodity aliases.
+So in the example above, `exactcur:USD` would match `1 USD` but not `$1` or `1 U`.
+\
+*(experimental)*
 
 ### desc: query
 **`desc:REGEX`**\

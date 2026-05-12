@@ -84,7 +84,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
     prettyTables = pretty_
     makeQuery flag = do
         q <- either usageError (return . fst) . parseQuery today . T.pack $ stringopt flag rawopts
-        return . simplifyQuery $ And [queryFromFlags ropts{period_=PeriodAll}, q]
+        return . simplifyQuery . queryExpandSymAliases j $ And [queryFromFlags ropts{period_=PeriodAll}, q]
     cantCompute msg = error' $ msg ++ " - will be unable to compute the rates of return"
 
   investmentsQuery <- makeQuery "investment"

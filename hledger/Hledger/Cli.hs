@@ -424,14 +424,14 @@ main = handleExit $ withGhcDebug' $ do
 
         -- 6.4.3. builtin command which can work with a non-existent journal
         | cmdname `elem` ["add","import"] ->
-          withPossibleJournal opts (cmdaction opts)
+          withPossibleJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
         | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons opts
         | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons opts
 
         -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
-        | otherwise -> withJournal opts $ cmdaction opts
+        | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
     -- 6.5. external addon command found - run it,
     -- passing any cli arguments written after the command name
@@ -468,6 +468,17 @@ main = handleExit $ withGhcDebug' $ do
 
 ------------------------------------------------------------------------------
 
+-- | Refresh the ReportSpec attached to the given CliOpts against this
+-- journal (re-deriving _rsQuery from querystring_ and expanding any
+-- cur: terms to match any of the journal's commodity aliases);
+-- then run the given command action. 
+-- Used as the single integration point so every CLI command sees
+-- a commodity-alias-aware query.
+runWithExpandedCurQueries :: CliOpts -> Journal -> (CliOpts -> Journal -> IO ()) -> IO ()
+runWithExpandedCurQueries opts j cmd =
+  case reportSpecExpandSymQueries j (reportspec_ opts) of
+    Left err    -> error' err
+    Right rspec -> cmd opts{reportspec_ = rspec} j
 
 -- | A helper for addons/scripts: this parses hledger CliOpts from these
 -- command line arguments and add-on command names, roughly how hledger main does.

@@ -27,6 +27,9 @@ module Hledger.Data.Journal (
   journalInferAliasPrices,
   commodityAliases,
   commoditiesAndAliases,
+  journalCommodityAliasGroups,
+  journalCommodityAliasGroup,
+  queryExpandSymAliases,
   journalInferCommodityStyles,
   journalStyleAmounts,
   journalCommodityStyles,
@@ -148,7 +151,7 @@ import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
 import Data.Function ((&))
-import Data.List (find, intercalate, minimumBy, sort, sortBy, union, (\\))
+import Data.List (find, intercalate, minimumBy, nub, partition, sort, sortBy, union, (\\))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -1103,7 +1106,12 @@ journalUntieTransactions t@Transaction{tpostings=ps} = t{tpostings=map (\p -> p{
 -- The first argument selects whether to add visible tags to generated postings & modified transactions.
 journalModifyTransactions :: Bool -> Day -> Journal -> Either String Journal
 journalModifyTransactions verbosetags d j =
-  case modifyTransactions (journalAccountType j) (journalInheritedAccountTags j) (journalCommodityStyles j) d verbosetags (jtxnmodifiers j) (jtxns j) of
+  case modifyTransactions
+         (journalAccountType j)
+         (journalInheritedAccountTags j)
+         (journalCommodityStyles j)
+         (queryExpandSymAliases j)
+         d verbosetags (jtxnmodifiers j) (jtxns j) of
     Right ts -> Right j{jtxns=ts}
     Left err -> Left err
 
@@ -1227,6 +1235,44 @@ commoditiesAndAliases j =
                 | c <- M.elems (jdeclaredcommodities j)
                 , a <- commodityAliases c
                 ]
+
+-- | A lookup from each declared commodity symbol or alias to its full
+-- alias group. Groups from separate commodity directives that share
+-- any symbol (eg an alias which is also independently declared as a
+-- canonical, perhaps to set its own display style) are merged into
+-- one connected component, so the group is symmetric under any
+-- starting symbol.
+journalCommodityAliasGroups :: Journal -> M.Map CommoditySymbol [CommoditySymbol]
+journalCommodityAliasGroups j =
+  let rawGroups = [csymbol c : commodityAliases c | c <- M.elems (jdeclaredcommodities j)]
+      merged    = mergeOverlapping rawGroups
+  in M.fromList [(s, g) | g <- merged, s <- g]
+  where
+    -- Repeatedly fold each group into the accumulator, merging it with
+    -- any existing groups that share a symbol. Quadratic in the number
+    -- of declared commodities, which is small in practice.
+    mergeOverlapping :: [[CommoditySymbol]] -> [[CommoditySymbol]]
+    mergeOverlapping = foldr addGroup []
+      where
+        addGroup g acc =
+          let (overlapping, rest) = partition (any (`elem` g)) acc
+          in nub (concat (g : overlapping)) : rest
+
+-- | Look up the alias group containing a commodity symbol; returns
+-- @[s]@ if the symbol does not appear in any declared group.
+journalCommodityAliasGroup :: Journal -> CommoditySymbol -> [CommoditySymbol]
+journalCommodityAliasGroup j s =
+  M.findWithDefault [s] s (journalCommodityAliasGroups j)
+
+-- | Rewrite Sym terms in a query to also match all alias-group siblings
+-- of any declared symbol matched by the original regex, using this
+-- journal's commodity declarations. SymExact terms are left untouched.
+-- See 'queryExpandSymForAliases' for the rewrite strategy.
+queryExpandSymAliases :: Journal -> Query -> Query
+queryExpandSymAliases j =
+  let groups = journalCommodityAliasGroups j
+      declared = M.keys groups
+  in queryExpandSymForAliases declared (\s -> M.findWithDefault [s] s groups)
 
 -- | For each declared commodity with one or more @alias:@ tag values,
 -- inject a synthetic 1:1 P price directive, from alias to canonical
