@@ -1818,20 +1818,20 @@ ai-ccusagej-update:
     just ai-ccusage-csv daily | hledger -f csv:- --rules {{ AIDIR }}/ccusage.rules print -c '1,000,000 t'
     } > {{ AIDIR }}/ccusage.journal
 
-# Run a hledger command on ccusage.journal.
+# Run a hledger command on ccusage.journal. Regenerates it every time.
 @ai-ccusagej *HLEDGERARGS:
     just ai-ccusagej-update
     hledger -f {{ AIDIR }}/ccusage.journal {{ HLEDGERARGS }}
 
-# Show a claude code token use balance report.
+# Show a claude code usage balance report.
 @ai-ccusagej-bal *BALARGS:
     just ai-ccusagej bal -NTA --transpose --layout=bare {{ BALARGS }}
 
-# Show claude code monthly token use (by default).
+# Show claude code monthly usage (by default).
 @ai-ccusagej-monthly *BALARGS:
     just ai-ccusagej bal -M {{ BALARGS }}
 
-# Show claude code daily token use this month (by default).
+# Show claude code daily usage this month (by default).
 @ai-ccusagej-daily *BALARGS:
     just ai-ccusagej-bal -D -p1..tomorrow {{ BALARGS }}
 
@@ -1840,4 +1840,12 @@ ai-ccusagej-update:
     cd {{ AIDIR }} \
     ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv \
     | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
+
+# Run a hledger command on ai.journal.
+@ai-aij *HLEDGERARGS:
+    hledger -f {{ AIDIR }}/ai.journal {{ HLEDGERARGS }}
+
+# Show a project ai usage balance report.
+@ai-aij-bal *BALARGS:
+    just ai-aij bal -NTA --transpose --layout=bare {{ BALARGS }}
 
