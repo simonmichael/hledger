@@ -1836,7 +1836,7 @@ ai-ccusagej-update:
     just ai-ccusagej-bal -D -p1..tomorrow {{ BALARGS }}
 
 # Import any new, summarised, past-months data from the personal ccusage.journal to the project's ai.journal.
-@aij-update *IMPORTARGS:
+@ai-aij-update *IMPORTARGS:
     cd {{ AIDIR }} \
     ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv \
     | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}

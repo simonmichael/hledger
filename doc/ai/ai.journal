@@ -1,13 +1,19 @@
-; journal created 2026-05-12 by hledger
+# Rough monthly estimates of AI usage by the hledger project.
+# See AI.md and `just h ai-`.
+# YYYY-MM-01 is an estimate for usage in YYYY-MM.
 
-2026-01-01
+2026-01-01 sm
     (ai)                                         796 opus_output_tokens
 
-2026-02-01
+2026-02-01 sm
     (ai)                                       53205 opus_output_tokens
 
-2026-03-01
+2026-03-01 sm
     (ai)                                      117518 opus_output_tokens
 
-2026-04-01
+2026-04-01 sm
     (ai)                                     2001479 opus_output_tokens
+
+2026-04-01 adamsardo | 2582
+    (ai)                                       20000 codex_output_tokens  ; time:2-3h interactive
+

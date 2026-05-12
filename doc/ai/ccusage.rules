@@ -1,4 +1,4 @@
-# Convert csv from ccusage to ccusage.journal (see `just ccusagej-update`).
+# Convert csv from ccusage to ccusage.journal (see `just ai-ccusagej-update`).
 
 skip     1
 fields   date,inputTokens,outputTokens,cacheCreationTokens,cacheReadTokens,totalTokens,totalCost
