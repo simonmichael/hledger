@@ -163,13 +163,15 @@ because the cost of designing and building it outweighed the need and the availa
 
 ## Measuring usage
 
-Some notes on tracking AI usage.
+The hledger project's estimated AI usage is tracked in [ai.journal](https://github.com/simonmichael/hledger/blob/main/doc/ai/ai.journal).
 
-### platform.claude.com/usage
+Some notes on tracking AI usage:
 
-For the lots work in the 2.0pre1 release,
-here's an estimate of my (SM's) claude token use (in+out) and cost,
-from <https://platform.claude.com/usage>.
+### Anthropic API
+
+For the initial lots work in the 2.0pre1 release, 
+here's my (SM's) estimated claude input+output tokens and costs,
+from <https://platform.claude.com/usage>:
 
 - 2026-01: 133 Mt,   $85
 - 2026-02: 598 Mt,  $551
@@ -178,34 +180,19 @@ from <https://platform.claude.com/usage>.
 
 Estimated human dev time: ~150h, market value ~$10k-30k
 
-This report works only for API usage; it shows nothing after switching to subscription billing.
+### Anthropic monthly plan
 
-### ccusage
+From 2026-04, I'm using the 6-month FOSS Claude Max plan, donated by Anthropic.
 
-[ccusage](https://ccusage.com) shows data from the claude code chat logs on your machine,
-I believe regardless of how they were billed (API or subscription).
-I'm not sure how durable the data is.
-Probably when old chat logs get cleaned up or deleted, ccusage no longer shows data for those.
+[ccusage](https://ccusage.com) shows data from the claude code chat logs on your machine.
+Probably it stops showing data if old chat logs get cleaned up or lost.
 
-`just h ccusage` shows some related report scripts in the Justfile.
-At the start of april, on my machine they showed the following.
-I don't know why the numbers are so much lower than the ones from platform.claude.com.
+I believe the chat logs have data for both API and monthly plan usage.
+For me ccusage shows numbers much lower than the ones from platform.claude.com above, I'm not sure why.
 
-```
-$ j ccusage-journal
-$ j ccusage-bal
-Balance changes in 2026-01-01..2026-04-30, valued at period ends:
-
-           || claude 
-===========++========
- Commodity ||     Mt 
- Jan       ||   10.7 
- Feb       ||   67.1 
- Mar       ||  432.8 
- Apr       ||   11.4 
-   Total   ||  521.9 
- Average   ||  130.5 
-```
+`just h ai-` shows some related Justfile scripts.
+Each month I import my estimated claude code usage data, summarised, to the project's ai.journal.
+Other contributors' usage estimates can be added here too.
 
 ## Related
 

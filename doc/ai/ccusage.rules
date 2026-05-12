@@ -1,8 +1,9 @@
+# Convert csv from ccusage to ccusage.journal (see `just ccusagej-update`).
+
 skip     1
 fields   date,inputTokens,outputTokens,cacheCreationTokens,cacheReadTokens,totalTokens,totalCost
 account1 (ai)
 amount1  %outputTokens opus_output_tokens @@ $%totalCost
-#amount1  %totalTokens t @@ $%totalCost
 
 # 1 token corresponds very roughly to 3 characters. There are four types:
 #

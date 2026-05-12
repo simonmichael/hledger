@@ -1733,16 +1733,17 @@ installcommithook:
 #     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
+
 # Run ccusage to show claude code usage detail today. Accepts ccusage options, like -b.
-@ccusage-today *CCUSAGEOPTS:
+@ai-ccusage-today *CCUSAGEOPTS:
     ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}
 
 # Watch today's ccusage report update in real time. Affepts ccusage options, like -b.
-@ccusage-watch *CCUSAGEOPTS:
+@ai-ccusage-watch *CCUSAGEOPTS:
     watch -n10 -c -d 'ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}| tail +8'
 
 # Run ccusage to show all claude code usage (from existing chat logs) as CSV.
-@ccusage-csv CCUSAGECMD='monthly' *CCUSAGEOPTS:
+@ai-ccusage-csv CCUSAGECMD='monthly' *CCUSAGEOPTS:
     ccusage -O {{ CCUSAGECMD }} {{ CCUSAGEOPTS }} -j | jq -r ' \
       first(.. | arrays | select(length > 0 and (.[0] | type == "object"))) \
       | [.[] | with_entries(select(.value | type != "array" and type != "object"))] \
@@ -1750,8 +1751,10 @@ installcommithook:
       | ($k | @csv), (.[] | [.[$k[]]] | @csv) \
     '
 
-# Convert ccusage's daily usage data to a hledger journal, with lots of conversions available.
-ccusage-journal:
+AIDIR := 'doc/ai'
+
+# Convert ccusage's daily usage data to a personal hledger journal, with lots of unit conversions available.
+ai-ccusagej-update:
     #!/usr/bin/env bash
     {
     cat <<'EOS'
@@ -1812,18 +1815,29 @@ ccusage-journal:
     account ai
 
     EOS
-    just ccusage-csv daily | hledger -f csv:- --rules data/ccusage.rules print -c '1,000,000 t'
-    } > data/ccusage.journal
+    just ai-ccusage-csv daily | hledger -f csv:- --rules {{ AIDIR }}/ccusage.rules print -c '1,000,000 t'
+    } > {{ AIDIR }}/ccusage.journal
 
 # Run a hledger command on ccusage.journal.
-@ccusage *HLEDGERARGS:
-    just ccusage-journal
-    hledger -f data/ccusage.journal {{ HLEDGERARGS }}
+@ai-ccusagej *HLEDGERARGS:
+    just ai-ccusagej-update
+    hledger -f {{ AIDIR }}/ccusage.journal {{ HLEDGERARGS }}
 
-# Run a vertical-time balance report on ccusage.journal, showing monthly megatokens by default.
-@ccusage-bal *BALARGS:
-    just ccusage bal -NM --transpose {{ BALARGS }}
+# Show a claude code token use balance report.
+@ai-ccusagej-bal *BALARGS:
+    just ai-ccusagej bal -NTA --transpose --layout=bare {{ BALARGS }}
 
-# Show daily token use, in rounded megatokens during this month by default.
-@ccusage-daily *BALARGS:
-    just ccusage-bal -D -p1..tomorrow --layout bare {{ BALARGS }}
+# Show claude code monthly token use (by default).
+@ai-ccusagej-monthly *BALARGS:
+    just ai-ccusagej bal -M {{ BALARGS }}
+
+# Show claude code daily token use this month (by default).
+@ai-ccusagej-daily *BALARGS:
+    just ai-ccusagej-bal -D -p1..tomorrow {{ BALARGS }}
+
+# Import any new, summarised, past-months data from the personal ccusage.journal to the project's ai.journal.
+@aij-update *IMPORTARGS:
+    cd {{ AIDIR }} \
+    ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv \
+    | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
+

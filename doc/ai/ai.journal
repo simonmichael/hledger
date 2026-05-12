@@ -1,0 +1,13 @@
+; journal created 2026-05-12 by hledger
+
+2026-01-01
+    (ai)                                         796 opus_output_tokens
+
+2026-02-01
+    (ai)                                       53205 opus_output_tokens
+
+2026-03-01
+    (ai)                                      117518 opus_output_tokens
+
+2026-04-01
+    (ai)                                     2001479 opus_output_tokens
