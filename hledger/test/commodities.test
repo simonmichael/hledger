@@ -71,3 +71,29 @@ CA
 PI
 PJ
 
+# ** 7. date: queries filter transactions and price directives by date.
+<
+commodity 1. DA
+commodity 1. DB
+
+P 2025-01-01 PA 1 PB
+P 2099-01-01 PX 1 PY
+
+2025-01-01
+  a   1 UA
+  b  -1 UA
+
+2099-06-01
+  a   1 UX
+  b  -1 UX
+
+$ hledger -f - commodities date:2025
+PA
+PB
+UA
+
+# ** 8. --declared ignores date: (declarations have no date).
+$ hledger -f - commodities --declared date:2099
+DA
+DB
+

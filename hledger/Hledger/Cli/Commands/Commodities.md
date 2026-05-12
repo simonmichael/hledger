@@ -22,4 +22,10 @@ or declared but not used,
 or just the first one matched by a pattern (with `--find`, returning a non-zero exit code if it fails).
 
 You can add [query arguments](#queries) to further limit the commodities;
-at least `cur:` and `tag:` are supported.
+at least `cur:`, `tag:`, and `date:` (or the `-b`/`-e`/`-p` report period flags) are supported.
+
+When a date query or report period is given:
+
+- The default output, and `--used`, list only commodities used in that period.
+- `--undeclared` lists commodities used in that period but not declared anywhere.
+- `--declared`, `--unused`, and `--find` are not affected by a date query.
