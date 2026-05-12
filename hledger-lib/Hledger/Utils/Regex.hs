@@ -51,6 +51,7 @@ module Hledger.Utils.Regex (
   ,toRegexCI
   ,toRegex'
   ,toRegexCI'
+  ,regexEscape
    -- * type aliases
   ,Replacement
   ,RegexError
@@ -151,6 +152,15 @@ toRegex' = either errorWithoutStackTrace id . toRegex
 -- Like toRegex', but make a case-insensitive Regex.
 toRegexCI' :: Text -> Regexp
 toRegexCI' = either errorWithoutStackTrace id . toRegexCI
+
+-- | Escape POSIX extended regex metacharacters in a text so the result
+-- matches the input as a literal. Eg @regexEscape "U$"@ produces @"U\\$"@,
+-- which compiled as a regex matches only the two-character string @U$@.
+regexEscape :: Text -> Text
+regexEscape = T.concatMap esc
+  where
+    esc c | c `elem` ("\\.^$*+?()[]{}|" :: String) = T.pack ['\\', c]
+          | otherwise                              = T.singleton c
 
 -- | A replacement pattern. May include numeric backreferences (\N).
 type Replacement = String
