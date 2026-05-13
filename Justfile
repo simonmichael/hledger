@@ -1753,7 +1753,7 @@ installcommithook:
 
 AIDIR := 'doc/ai'
 
-# Convert ccusage's daily usage data to a personal hledger journal, with lots of unit conversions available.
+# Convert ccusage's daily usage data to a personal hledger journal (regenerating it), with lots of unit conversions available.
 ai-ccusagej-update:
     #!/usr/bin/env bash
     {
@@ -1799,8 +1799,8 @@ ai-ccusagej-update:
     P 0000-01-01 Gt 1000 Mt
     P 0000-01-01 kg 1000 g
 
-    # equivalences
-    P 0000-01-01 t 3 c           ; 1 token =~ 3 characters
+    # other conversions
+    P 0000-01-01 t 3 c    ; 1 token =~ 3 characters
     P 0000-01-01 opus_output_tokens $0.000075
     P 0000-01-01 opus_output_tokens 10j
     P 0000-01-01 opus_output_tokens 0.0028Wh
@@ -1818,9 +1818,8 @@ ai-ccusagej-update:
     just ai-ccusage-csv daily | hledger -f csv:- --rules {{ AIDIR }}/ccusage.rules print -c '1,000,000 t'
     } > {{ AIDIR }}/ccusage.journal
 
-# Run a hledger command on ccusage.journal. Regenerates it every time.
+# Run a hledger command on ccusage.journal. Run just ai-ccusagej-update first.
 @ai-ccusagej *HLEDGERARGS:
-    just ai-ccusagej-update
     hledger -f {{ AIDIR }}/ccusage.journal {{ HLEDGERARGS }}
 
 # Show a claude code usage balance report.
@@ -1837,6 +1836,7 @@ ai-ccusagej-update:
 
 # Import any new, summarised, past-months data from the personal ccusage.journal to the project's ai.journal.
 @ai-aij-update *IMPORTARGS:
+    just ai-ccusagej-update
     cd {{ AIDIR }} \
     ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv \
     | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
