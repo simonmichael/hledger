@@ -64,6 +64,8 @@ Here are our current policies for AI use in hledger.
   We'll review/update the list periodically.
 
 9. We try to keep track of, optimise, and limit our AI resource usage (measured by output tokens, eg).
+  We ask contributors to note, eg in a commit message, a rough estimate of output tokens used or
+  time spent interacting with/running AI, and with which providers/models. See also "Measuring usage" below.
 
 10. We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
 
