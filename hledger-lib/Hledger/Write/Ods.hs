@@ -34,7 +34,7 @@ import Text.Printf (printf)
 
 import Hledger.Write.Spreadsheet qualified as Spr
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
-import Hledger.Data.Types (CommoditySymbol, AmountPrecision(..))
+import Hledger.Data.Types (Amount, CommoditySymbol, AmountPrecision(..))
 import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
 
 printFods ::
@@ -145,7 +145,7 @@ dataStyleFromType typ =
         TypeString -> DataString
         TypeInteger -> DataInteger
         TypeDate -> DataDate
-        TypeAmount amt -> DataAmount (acommodity amt) (asprecision $ astyle amt)
+        TypeAmount amt -> DataAmount $ commodityStyleFromAmount amt
         TypeMixedAmount -> DataMixedAmount
 
 cellStyles ::
@@ -158,24 +158,34 @@ cellStyles =
             ((cellBorder cell, cellStyle cell),
              dataStyleFromType $ cellType cell))
 
-numberStyleName :: (CommoditySymbol, AmountPrecision) -> String
-numberStyleName (comm, prec) =
+data CommodityStyle =
+    CommodityStyle {
+        commodityStyle :: CommoditySymbol,
+        commodityPrecision :: AmountPrecision
+    } deriving (Eq, Ord, Show)
+
+commodityStyleFromAmount :: Amount -> CommodityStyle
+commodityStyleFromAmount amt =
+    CommodityStyle (acommodity amt) (asprecision $ astyle amt)
+
+numberStyleName :: CommodityStyle -> String
+numberStyleName (CommodityStyle comm prec) =
     printf "%s-%s" comm $
     case prec of
         NaturalPrecision -> "natural"
         Precision k -> show k
 
-numberParams :: DataStyle -> Set (CommoditySymbol, AmountPrecision)
-numberParams (DataAmount comm prec) = Set.singleton (comm, prec)
+numberParams :: DataStyle -> Set CommodityStyle
+numberParams (DataAmount commStyle) = Set.singleton commStyle
 numberParams _ = Set.empty
 
-numberConfig :: (CommoditySymbol, AmountPrecision) -> [String]
-numberConfig (comm, prec) =
+numberConfig :: CommodityStyle -> [String]
+numberConfig commStyle@(CommodityStyle comm prec) =
     let precStr =
             case prec of
                 NaturalPrecision -> ""
                 Precision k -> printf " number:decimal-places='%d'" k
-        name = numberStyleName (comm, prec)
+        name = numberStyleName commStyle
     in
     printf "  <number:number-style style:name='number-%s'>" name :
     printf "    <number:number number:min-integer-digits='1'%s/>" precStr :
@@ -241,7 +251,7 @@ data DataStyle =
       DataString
     | DataInteger
     | DataDate
-    | DataAmount CommoditySymbol AmountPrecision
+    | DataAmount CommodityStyle
     | DataMixedAmount
     deriving (Eq, Ord, Show)
 
@@ -355,8 +365,8 @@ styleNames cstyle border dataStyle =
             (printf "%s-%s-date" cstyleName bordName, Just "iso-date")
         DataInteger ->
             (printf "%s-%s-integer" cstyleName bordName, Just "integer")
-        DataAmount comm prec ->
-            let name = numberStyleName (comm, prec) in
+        DataAmount commStyle ->
+            let name = numberStyleName commStyle in
             (printf "%s-%s-%s" cstyleName bordName name,
                 Just $ printf "number-%s" name)
         DataMixedAmount ->
