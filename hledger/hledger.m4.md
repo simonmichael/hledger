@@ -805,6 +805,12 @@ Btw. you can still extract CSV from FODS/ODS
 using various utilities like `libreoffice --headless` or
 [ods2csv](https://hackage.haskell.org/package/ods2csv).
 
+For [digit group marks](#digit-group-marks),
+ODS has not as many options as hledger.
+It only supports thousands separators in the respective locale.
+Thus FODS export enables thousands separators
+if your commodity style contains any digit groups.
+
 [FODS]: https://en.wikipedia.org/wiki/OpenDocument
 
 ### Ledger output

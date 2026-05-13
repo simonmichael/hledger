@@ -34,8 +34,10 @@ import Text.Printf (printf)
 
 import Hledger.Write.Spreadsheet qualified as Spr
 import Hledger.Write.Spreadsheet (Type(..), Style(..), Emphasis(..), Cell(..))
-import Hledger.Data.Types (Amount, CommoditySymbol, AmountPrecision(..))
-import Hledger.Data.Types (acommodity, aquantity, astyle, asprecision)
+import Hledger.Data.Types
+        (Amount, CommoditySymbol, AmountPrecision(..), DigitGroupStyle(..),
+         acommodity, aquantity, astyle, asprecision, asdigitgroups,
+        )
 
 printFods ::
     IO.TextEncoding ->
@@ -161,34 +163,47 @@ cellStyles =
 data CommodityStyle =
     CommodityStyle {
         commodityStyle :: CommoditySymbol,
-        commodityPrecision :: AmountPrecision
+        commodityPrecision :: AmountPrecision,
+        commodityGrouping :: Bool
     } deriving (Eq, Ord, Show)
 
 commodityStyleFromAmount :: Amount -> CommodityStyle
 commodityStyleFromAmount amt =
-    CommodityStyle (acommodity amt) (asprecision $ astyle amt)
+    CommodityStyle
+        (acommodity amt)
+        (asprecision $ astyle amt)
+        (case asdigitgroups $ astyle amt of
+            Just (DigitGroups _ (_:_)) -> True
+            _ -> False)
 
 numberStyleName :: CommodityStyle -> String
-numberStyleName (CommodityStyle comm prec) =
-    printf "%s-%s" comm $
-    case prec of
-        NaturalPrecision -> "natural"
-        Precision k -> show k
+numberStyleName (CommodityStyle comm prec grp) =
+    printf "%s-%s%s"
+        comm
+        (case prec of
+            NaturalPrecision -> "natural"
+            Precision k -> show k)
+        (if grp then "-grouping" else "")
 
 numberParams :: DataStyle -> Set CommodityStyle
 numberParams (DataAmount commStyle) = Set.singleton commStyle
 numberParams _ = Set.empty
 
 numberConfig :: CommodityStyle -> [String]
-numberConfig commStyle@(CommodityStyle comm prec) =
+numberConfig commStyle@(CommodityStyle comm prec grp) =
     let precStr =
             case prec of
                 NaturalPrecision -> ""
                 Precision k -> printf " number:decimal-places='%d'" k
+        grpStr =
+            if grp
+                then " number:grouping='true'"
+                else ""
         name = numberStyleName commStyle
     in
     printf "  <number:number-style style:name='number-%s'>" name :
-    printf "    <number:number number:min-integer-digits='1'%s/>" precStr :
+    printf "    <number:number number:min-integer-digits='1'%s%s/>"
+                        precStr grpStr :
     printf "    <number:text>%s%s</number:text>"
       (if T.null comm then "" else " ") comm :
     "  </number:number-style>" :
