@@ -1,6 +1,6 @@
 # AI policy
 
-Last updated: 2026-04-03
+Last updated: 2026-05-12
 
 The productivity benefits from AI-assisted software development are becoming obvious.
 And the disruptions, costs and risks of AI will keep becoming clearer.
@@ -10,6 +10,9 @@ From 2026, in the hledger 2.x series, we are exploring ethical and effective use
 If you are a hledger user who objects to any use of AI, for one reason or another: I can understand.
 The AI-free hledger 1.x still exists, will continue to receive regression fixes, and can be revived or forked at any time.
 
+Since writing this policy, I applied for and received Anthropic's FOSS 6-month Claude Max credit (currently worth $1200),
+and activated it from 2026-04-01.
+This is helping recover the costs I incurred during initial experimentation.
 
 ## Justification for AI use in this project
 
@@ -38,36 +41,31 @@ The AI-free hledger 1.x still exists, will continue to receive regression fixes,
 
 - It is a learning experiment that can be discontinued or even rolled back at any time.
 
-
 ## Rules of engagement
 
 Here are our current policies for AI use in hledger.
 
-- hledger does not use AI at runtime.
+1. hledger does not use AI at runtime.
 
-- hledger 1.x (2007..2025) was developed without AI assistance.
+2. hledger 1.x (2007..2025) was developed without AI assistance.
 
-- hledger 2.x (2026..) is developed with careful AI assistance.
+3. hledger 2.x (2026..) is developed with careful AI assistance.
 
-- We aim to increase quality and maintainability, not decrease them.
+4. We aim to increase quality and maintainability, not decrease them.
 
-- The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
+5. The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
 
-- The human committer is responsible for everything in their commits.
+6. The human committer is responsible for everything in their commits.
 
-- PRs require human review; if they are hard to review, they don't get merged, as always.
+7. PRs require human review; if they are hard to review, they don't get merged, as always.
 
-- We want to use only the more principled/trustworthy/sustainable tools and providers.
+8. We want to use only the more principled/trustworthy/sustainable tools and providers.
   Currently this means we try to use only Anthropic, Ecosia, local LLMs, and such.
   We'll review/update the list periodically.
 
-- Since writing this policy, I applied for and received Anthropic's FOSS 6-month Claude Max credit (currently worth $1200),
-  and activated it from 2026-04-01.
-  This is helping recover the costs I incurred during initial experimentation.
+9. We try to keep track of, optimise, and limit our AI resource usage (measured by output tokens, eg).
 
-- We try to keep track of, optimise, and limit our AI resource usage (measured by output tokens, eg).
-
-- We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
+10. We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
 
 
 ## More discussion / thoughts
