@@ -1,5 +1,5 @@
 # Rough monthly estimates of AI usage by the hledger project.
-# See AI.md and `just h ai-`.
+# See ../AI.md and `just h ai-`.
 # YYYY-MM-01 is an estimate for usage in YYYY-MM.
 
 2026-01-01 sm
