@@ -439,14 +439,18 @@ They reclassify the unrealised gain accumulated since acquisition, as realised g
 
 ### Gain/UnrealisedGain account types
 
-The Gain and UnrealisedGain account types are not inferred from account names
-(to avoid breaking hledger 1 journals which may use those names - see [DECISIONS.md](DECISIONS.md)).
-They can be declared explicitly via `type:` tags:
+The Gain and UnrealisedGain account types can be declared explicitly via `type:` tags:
 
 ```
 account revenues:gain           ; type: G
 account equity:unrealised-gain  ; type: U
 ```
+
+They are also inferred from conventional English account names
+(see the regex table under
+[Account types](https://hledger.org/hledger.html#account-types) in the user manual).
+For example `revenues:gain`, `income:capital-gains`, `equity:unrealised-gain`,
+and `equity:unrealized gains` are all detected automatically.
 
 Declaring and using these account types is not strictly required,
 but they can improve error checking in disposals,

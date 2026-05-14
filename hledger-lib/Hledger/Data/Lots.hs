@@ -934,10 +934,10 @@ journalAddOrCheckGainPostings verbosetags j = do
     rgainAccount = journalBaseGainAccount j
     ugainAccount = journalBaseUnrealisedGainAccount j
 
-    -- rgain/ugain postings are identified either by user-declared account type,
-    -- or by the _ptype:rgain / _ptype:ugain hidden tag that journalAddGainOrUGainPosting
-    -- (and this function, for its own output) attaches to generated postings.
-    -- We do not infer Gain/UnrealisedGain from account names.
+    -- rgain/ugain postings are identified either by account type
+    -- (declared or inferred from name), or by the _ptype:rgain / _ptype:ugain
+    -- hidden tag that journalAddGainOrUGainPosting (and this function, for its
+    -- own output) attaches to generated postings.
     isRgain p = accountNameType atypes (paccount p) == Just Gain
              || ("_ptype", "rgain") `elem` ptags p
     isUgain p = accountNameType atypes (paccount p) == Just UnrealisedGain

@@ -307,7 +307,7 @@ $ hledger -f- print desc:sell --lots --verbose-tags
 2026-02-01 sell
     assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $55  ; ptype: dispose
     assets:cash                                 $275
-    revenues:gain                               $-25  ; ptype: rgain
+    revenues:gain                               $-25  ; ptype: gain
     equity:unrealised-gain                       $25  ; ptype: ugain, generated-posting:
 
 >=
@@ -391,8 +391,8 @@ $ hledger -f- print desc:sell --lots --verbose-tags
     assets:broker:{2026-01-01, $50}               -5 AAPL {$50} @ $60  ; ptype: dispose
     assets:broker:{2026-01-15, $55}               -3 AAPL {$55} @ $60  ; ptype: dispose
     assets:cash                                 $480
-    revenues:gain                               $-50  ; ptype: rgain, gain on lot1
-    revenues:gain                               $-15  ; ptype: rgain, gain on lot2
+    revenues:gain                               $-50  ; ptype: gain, gain on lot1
+    revenues:gain                               $-15  ; ptype: gain, gain on lot2
     equity:unrealised-gain                       $65  ; ptype: ugain, generated-posting:
 
 >=

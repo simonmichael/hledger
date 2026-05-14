@@ -187,7 +187,6 @@ commodity A  ; lots:
     assets:b        1 A {$100}
     assets:a    -0.02 A {$100} @ $100
     expenses:fees   $2
-    revenues:gains
 
 $ hledger -f- print --verbose-tags date:2026-02-17
 2026-02-17 transfer with fee
@@ -195,7 +194,6 @@ $ hledger -f- print --verbose-tags date:2026-02-17
     assets:b                                       1 A {$100}  ; ptype: transfer-to
     assets:a                                      -0.02 A {$100} @ $100  ; ptype: dispose
     expenses:fees                                 $2
-    revenues:gains
 
 >=
 

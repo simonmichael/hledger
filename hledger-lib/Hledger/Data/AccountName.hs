@@ -33,6 +33,7 @@ module Hledger.Data.AccountName (
   ,conversionAccountRegex
   ,revenueAccountRegex
   ,gainAccountRegex
+  ,unrealisedGainAccountRegex
   ,expenseAccountRegex
   ,acctsep
   ,acctsepchar
@@ -111,20 +112,23 @@ equityAccountRegex     = toRegexCI' "^equity(:|$)"
 conversionAccountRegex = toRegexCI' "^equity:(trade|trades|trading|conversion)(:|$)"
 revenueAccountRegex    = toRegexCI' "^(income|revenue)s?(:|$)"
 gainAccountRegex       = toRegexCI' "^(income|revenue)s?:(capital[- ]?)?(gains?|loss(es)?)(:|$)"
+unrealisedGainAccountRegex = toRegexCI' "^equity:unreali[sz]ed([- ](capital[- ])?gains?)?(:|$)"
 expenseAccountRegex    = toRegexCI' "^expenses?(:|$)"
 
 -- | Try to guess an account's type from its name,
 -- matching common English top-level account names.
 accountNameInferType :: AccountName -> Maybe AccountType
 accountNameInferType a
-  | regexMatchText cashAccountRegex       a = Just Cash
-  | regexMatchText assetAccountRegex      a = Just Asset
-  | regexMatchText liabilityAccountRegex  a = Just Liability
-  | regexMatchText conversionAccountRegex a = Just Conversion
-  | regexMatchText equityAccountRegex     a = Just Equity
-  | regexMatchText revenueAccountRegex    a = Just Revenue
-  | regexMatchText expenseAccountRegex    a = Just Expense
-  | otherwise                               = Nothing
+  | regexMatchText cashAccountRegex            a = Just Cash
+  | regexMatchText assetAccountRegex           a = Just Asset
+  | regexMatchText liabilityAccountRegex       a = Just Liability
+  | regexMatchText conversionAccountRegex      a = Just Conversion
+  | regexMatchText unrealisedGainAccountRegex  a = Just UnrealisedGain
+  | regexMatchText equityAccountRegex          a = Just Equity
+  | regexMatchText gainAccountRegex            a = Just Gain
+  | regexMatchText revenueAccountRegex         a = Just Revenue
+  | regexMatchText expenseAccountRegex         a = Just Expense
+  | otherwise                                    = Nothing
 
 -- | Like accountNameInferType, but exclude the provided types from the guesses.
 -- Used eg to prevent "equity:conversion" being inferred as Conversion when a different
@@ -461,14 +465,16 @@ tests_AccountName = testGroup "AccountName" [
     accountNameInferType "revenues"          @?= Just Revenue
     accountNameInferType "revenue"           @?= Just Revenue
     accountNameInferType "income"            @?= Just Revenue
-    -- Gain type is no longer inferred from names; these are now Revenue
-    accountNameInferType "income:gains"          @?= Just Revenue
-    accountNameInferType "revenue:gain"          @?= Just Revenue
-    accountNameInferType "revenues:capital-gains" @?= Just Revenue
-    accountNameInferType "income:capitalgain"    @?= Just Revenue
-    accountNameInferType "income:losses"         @?= Just Revenue
-    accountNameInferType "revenue:capital-loss"  @?= Just Revenue
-    accountNameInferType "income:gains:realized" @?= Just Revenue
+    accountNameInferType "income:gains"          @?= Just Gain
+    accountNameInferType "revenue:gain"          @?= Just Gain
+    accountNameInferType "revenues:capital-gains" @?= Just Gain
+    accountNameInferType "income:capitalgain"    @?= Just Gain
+    accountNameInferType "income:losses"         @?= Just Gain
+    accountNameInferType "revenue:capital-loss"  @?= Just Gain
+    accountNameInferType "income:gains:realized" @?= Just Gain
+    accountNameInferType "equity:unrealised-gain"  @?= Just UnrealisedGain
+    accountNameInferType "equity:unrealized gains" @?= Just UnrealisedGain
+    accountNameInferType "equity:unrealisedfoo"    @?= Just Equity
   ,testCase "joinAccountNames" $ do
     joinAccountNames "assets" "cash"     @?= "assets:cash"
     joinAccountNames "assets:cash" "a"   @?= "assets:cash:a"

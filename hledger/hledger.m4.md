@@ -2342,8 +2342,7 @@ hledger also uses a few subtypes:
 
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
-As a convenience, hledger will detect most of these types automatically from english account names.
-(All except Gain and UnrealisedGain. For more about them, see [Gain postings](#gain-postings).)
+As a convenience, hledger will detect these types automatically from english account names.
 But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
 The tag's value can be any of the types or one-letter abbreviations above.
 
@@ -2363,7 +2362,7 @@ account assets:cash        ; type: C
 account equity:conversion       ; type: V
 account equity:unrealised-gain  ; type: U
 
-account revenues:capital        ; type: G
+account revenues:gain           ; type: G
 ```
 
 This enables the easy [balancesheet], [balancesheetequity], [cashflow] and [incomestatement] reports, and querying by [type:](#queries).
@@ -2388,7 +2387,9 @@ Tips:
   ^assets?(:|$)                                                       | Asset
   ^(debts?|liabilit(y|ies))(:|$)                                      | Liability
   ^equity:(trad(e|ing)|conversion)s?(:|$)                             | Conversion
+  ^equity:unreali[sz]ed([- ](capital[- ])?gains?)?(:|$)               | UnrealisedGain
   ^equity(:|$)                                                        | Equity
+  ^(income|revenue)s?:(capital[- ]?)?(gains?|loss(es)?)(:|$)          | Gain
   ^(income|revenue)s?(:|$)                                            | Revenue
   ^expenses?(:|$)                                                     | Expense
   ```
@@ -7420,14 +7421,15 @@ Declaring an account with the G type (and optionally one with the U type) serves
    rather than the defaults (`revenues:gain` and `equity:unrealised-gain`).
 3. **Categorising** - when reporting, you can match on the G (or U) account type specifically.
 
-Unlike most account types, G and U are not inferred from account names - declare them explicitly:
+G and U are inferred from conventional English account names
+(eg `revenues:gain`, `income:capital-gains`, `equity:unrealised-gain`, `equity:unrealized gains`;
+see the regex table under [Account types](#account-types)).
+You can also declare them explicitly:
 
 ```journal
 account revenues:capital gain   ; type: G
 account equity:unrealised gain  ; type: U
 ```
-
-This avoids breaking hledger 1 journals, which may have used names like revenues:gain to record gains.
 
 Why do we post both gains and losses to a revenue account ?
 It's more convenient than using separate revenue and expense accounts, and the sign keeps things correct.
