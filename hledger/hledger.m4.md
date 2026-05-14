@@ -1777,6 +1777,8 @@ in any order, with different enclosing characters:
 
     10 AAPL {$50} [2026-01-15] (12:05)
 
+If a Ledger-style label annotation contains double quotes, they will be stripped (`("foo")` is read as label `foo`).
+
 ## Balance assertions
 
 hledger supports

@@ -1143,6 +1143,8 @@ lotdatep =
   return d
 
 -- Parse a Ledger-style (LOT NOTE).
+-- Any double-quote characters inside the parentheses are stripped,
+-- because they would disrupt round-tripping of hledger's label syntax.
 lotnotep :: JournalParser m Text
 lotnotep =
   -- dbg "lotnotep" $
@@ -1151,7 +1153,7 @@ lotnotep =
   lift skipNonNewlineSpaces
   note <- stripEnd . T.pack <$> (many $ noneOf [')','\n'])  -- XXX other line endings ?
   char ')'
-  return note
+  return $ T.filter (/= '"') note
 
 -- | Parse a string representation of a number for its value and display
 -- attributes.
