@@ -124,7 +124,7 @@ layoutFromRawOpts rawopts = case maybestringopt "layout" rawopts of
   Nothing         -> defaultPostingLayout
   Just "hledger1" -> LayoutHledger1
   Just s -> case readMay s of
-    Just n | n > 0 -> LayoutDecimal n
+    Just n | n >= 0 -> LayoutDecimal n
     _ -> error' $ "--layout's value should be 'hledger1' or a positive integer column number; got: " ++ s
 
 -- | Print journal transactions in standard format.
