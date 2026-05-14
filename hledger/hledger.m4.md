@@ -7204,21 +7204,20 @@ you only need to declare the base account (eg `assets:stocks`), not the lot suba
 
 ### Lot ids
 
-A lot's id is the cost basis date, followed by the label if any, with a space between them.
+A lot id is a unique identifier for that lot, used internally by hledger.
+It is the cost basis date, followed by the label if any, with a space between them.
 
-Lot ids must be unique (within the commodity), so that we can always select specific lots.
+Lot ids also record the order in which lots were acquired.
+So if multiple lots of a commodity are acquired on the same date, they must have distinct, sortable labels.
+Eg the time of the event, in `HH:MM` format, could be used.
+Or if no labels are provided, hledger will add sequentially numbered labels starting from `0001`.
 
-Lot ids are also used to sort lots, so that we know the order in which lots were acquired.
-So if multiple lots of a commodity are acquired on the same date, their labels are used to distinguish them.
-You could record the time there, in a sortable format like HH:MM.
-Or if you leave the labels empty, hledger will add sequentially numbered labels (with at least 4 digits),
-ensuring uniqueness and ordering.
+Acquisitions with these cost basis annotations would produce those lot ids:
 
-For example, these cost basis annotations produce these lot ids:
-
-    {2026-01-15, $50}                    →  "2026-01-15"
-    {2026-01-15, "12:05", $50}           →  "2026-01-15 12:05"
-    {2026-01-15, $50}  (2nd on same day) →  "2026-01-15 0002"   (sequence number added)
+    {2026-01-01, $50}           ; → "2026-01-01"
+    {2026-01-02, "12:30", $50}  ; → "2026-01-02 12:30"
+    {2026-01-03, $50}           ; → "2026-01-03 0001"
+    {2026-01-03, $50}           ; → "2026-01-04 0002"
 
 ### Cost basis vs transacted cost
 
