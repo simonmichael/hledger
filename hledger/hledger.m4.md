@@ -7033,22 +7033,19 @@ Your testing and feedback are important for making it better.
 
 For a more technical version of what's in this manual, see [SPEC-lots](/SPEC-lots.html).
 
-## How to enable lot tracking
+## How to enable or disable lot tracking
 
-Any of three things in your journal will activate hledger's lots/gains tracking:
+hledger will enable lots/gains tracking if it sees any of these three things, described below:
 
 - Amounts with [cost basis annotations](#cost-basis-annotations).
 - Postings involving a [lotful commodity or account](#lotful-commodities-and-accounts).
 - Account names ending with a [lot subaccount](#lot-subaccounts).
 
-A posting with any of these is called a lot posting; each is described below.
+A posting with any of these is called a lot posting.
 
-## How to disable lot tracking
-
-Sometimes you may want to silence lot-related errors -
-eg if you are working with incomplete journals, as when piping hledger print output into another hledger command.
-
-In this case, use the `--ignore-lots` flag, or just `-I`, to disable lot tracking temporarily.
+Sometimes you may want to disable lots/gains calculations, and silence lot-related errors.
+Eg if you are working with incomplete journals, as when piping hledger print output into another hledger command.
+For this, use the `--ignore-lots` flag, or just `-I`.
 
 ## First lots example
 
