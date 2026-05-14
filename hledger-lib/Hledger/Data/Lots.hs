@@ -158,15 +158,26 @@ resolveReductionMethodWithSource j p commodity =
            (v:_) -> parseReductionMethod v
            []    -> Nothing
 
--- | Strip any trailing lot subaccount (a component starting with '{') from an account name.
--- E.g., @\"assets:broker:{2026-01-15, $50}\"@ becomes @\"assets:broker\"@.
--- Handles the case where a user writes the lot subaccount explicitly in a journal entry.
+-- | If the account name ends with a final @:{...}@ component that is
+-- syntactically a hledger lot annotation, return @Just (base, "{...}")@,
+-- splitting off the trailing lot subaccount. Otherwise return @Nothing@.
+-- The split looks for the last @\":{\"@ such that the content between
+-- it and the terminating @\"}\"@ has no further braces. This handles
+-- @\":\"@ inside labels (eg @\"12:05\"@) and stray @\"{\"@ earlier in
+-- the account name.
+splitLotSubaccount :: AccountName -> Maybe (AccountName, Text)
+splitLotSubaccount a = do
+  inner <- T.stripSuffix "}" a
+  let (prefix, content) = T.breakOnEnd ":{" inner
+  guard $ not (T.null prefix)
+  guard $ T.all (\c -> c /= '{' && c /= '}') content
+  Just (T.dropEnd 2 prefix, "{" <> content <> "}")
+
+-- | Strip any trailing lot subaccount (a final @:{...}@ component) from an
+-- account name. E.g., @\"assets:broker:{2026-01-15, $50}\"@ becomes
+-- @\"assets:broker\"@.
 lotBaseAccount :: AccountName -> AccountName
-lotBaseAccount a =
-  let (prefix, lastComp) = T.breakOnEnd ":" a
-  in if not (T.null prefix) && "{" `T.isPrefixOf` lastComp
-     then T.init prefix  -- strip the trailing ':'
-     else a
+lotBaseAccount a = maybe a fst (splitLotSubaccount a)
 
 -- | Render a lot name in the consolidated hledger format for use as a subaccount name.
 -- Format: @{YYYY-MM-DD, COST}@ or @{YYYY-MM-DD, \"LABEL\", COST}@.
@@ -195,11 +206,7 @@ styleLotCbCost styles cb = cb{cbCost = styleAmounts styles <$> cbCost cb}
 -- or @Nothing@ if there is none.
 -- E.g., @\"assets:broker:{2026-01-15, $50}\"@ returns @Just \"{2026-01-15, $50}\"@.
 lotSubaccountName :: AccountName -> Maybe Text
-lotSubaccountName a =
-  let (prefix, lastComp) = T.breakOnEnd ":" a
-  in if not (T.null prefix) && "{" `T.isPrefixOf` lastComp
-     then Just lastComp
-     else Nothing
+lotSubaccountName = fmap snd . splitLotSubaccount
 
 -- | Parse a lot name (as produced by 'showLotName') back into a 'CostBasis'.
 -- The input should be the full @{...}@ string including braces.
