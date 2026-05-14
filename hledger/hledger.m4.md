@@ -7021,8 +7021,6 @@ All this can be very hard to keep track of by hand,
 so usually it is done by an investment broker, cryptocurrency exchange, or specialised tax software.
 Now, you can also do it yourself with hledger.
 
-## hledger's lot tracking
-
 hledger's lot tracking builds on the design first shipped in Ledger, then improved in Beancount.
 hledger understands several kinds of notation describing lots.
 You can record all details explicitly; or use more convenient low-boilerplate entries, and it will infer the missing parts.
@@ -7030,8 +7028,8 @@ hledger checks lot entries,
 tracks and infers lot movements (reporting any problems, such as disposal of nonexistent lots), 
 and calculates capital gains when lots are sold.
 
-Note, lot tracking is currently available in the experimental preview releases 
-of hledger 2.0. Your testing and feedback are important for making it better.
+Note, this is currently available in experimental preview releases of hledger 2.0.
+Your testing and feedback are important for making it better.
 
 For a more technical version of what's in this manual, see [SPEC-lots](/SPEC-lots.html).
 
