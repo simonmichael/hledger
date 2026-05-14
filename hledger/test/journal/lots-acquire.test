@@ -122,7 +122,23 @@ $ hledger -f- bal assets:stocks --lots -N
               1 AAPL  assets:stocks:{2026-01-15, "12:05", $50}
               1 AAPL  assets:stocks:{2026-01-15, $50}
 
-# ** 10. User-provided labels resulting in non-unique lot ids are an error,
+# ** 10. Auto-generated labels skip numbers already used by user-provided
+# labels on the same date, so they never collide. Here the user labelled
+# one lot "0002"; the two unlabeled lots get "0001" and "0003" rather than
+# "0001" and "0002".
+<
+2026-01-15 buy
+    assets:stocks    1 AAPL {"0002", $50}
+    assets:stocks    1 AAPL {$50}
+    assets:stocks    1 AAPL {$50}
+    assets:checking
+
+$ hledger -f- bal assets:stocks --lots -N
+              1 AAPL  assets:stocks:{2026-01-15, "0001", $50}
+              1 AAPL  assets:stocks:{2026-01-15, "0002", $50}
+              1 AAPL  assets:stocks:{2026-01-15, "0003", $50}
+
+# ** 11. User-provided labels resulting in non-unique lot ids are an error,
 # with a source position and excerpt pointing to the duplicate transaction.
 <
 2026-01-15 buy first
@@ -137,7 +153,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /-:5:/
 >=1
 
-# ** 11. Bare acquire with explicit @ on lotful commodity - classified as acquire.
+# ** 12. Bare acquire with explicit @ on lotful commodity - classified as acquire.
 <
 commodity AAPL  ; lots:
 
@@ -152,7 +168,7 @@ $ hledger -f- print --verbose-tags
 
 >=
 
-# ** 12. Bare acquire with @ on lotful commodity creates a lot subaccount with --lots.
+# ** 13. Bare acquire with @ on lotful commodity creates a lot subaccount with --lots.
 <
 commodity AAPL  ; lots:
 
@@ -163,7 +179,7 @@ commodity AAPL  ; lots:
 $ hledger -f- bal assets:stocks --lots -N
              10 AAPL  assets:stocks:{2026-01-15, $50}
 
-# ** 13. Bare acquire with balancer-inferred cost on lotful commodity - classified as acquire.
+# ** 14. Bare acquire with balancer-inferred cost on lotful commodity - classified as acquire.
 <
 commodity AAPL  ; lots:
 
@@ -178,7 +194,7 @@ $ hledger -f- print --verbose-tags
 
 >=
 
-# ** 14. Bare acquire with balancer-inferred cost creates a lot subaccount with --lots.
+# ** 15. Bare acquire with balancer-inferred cost creates a lot subaccount with --lots.
 <
 commodity AAPL  ; lots:
 
@@ -189,7 +205,7 @@ commodity AAPL  ; lots:
 $ hledger -f- bal assets:stocks --lots -N
              10 AAPL  assets:stocks:{2026-01-15, $50}
 
-# ** 15. Without lots: tag, bare positive posting with @ is NOT classified as acquire.
+# ** 16. Without lots: tag, bare positive posting with @ is NOT classified as acquire.
 <
 2026-01-15 buy
     assets:stocks    10 AAPL @ $50
@@ -202,7 +218,7 @@ $ hledger -f- print
 
 >=
 
-# ** 16. Transfer-to takes priority over bare acquire when transfer-from counterpart exists.
+# ** 17. Transfer-to takes priority over bare acquire when transfer-from counterpart exists.
 <
 commodity AAPL  ; lots:
 
@@ -221,7 +237,7 @@ $ hledger -f- print --verbose-tags date:2026-02-01
 
 >=
 
-# ** 17. Bare lotful transfer: both postings bare (no {}) - still classified as transfer.
+# ** 18. Bare lotful transfer: both postings bare (no {}) - still classified as transfer.
 <
 commodity AAPL  ; lots:
 
@@ -240,7 +256,7 @@ $ hledger -f- print --verbose-tags date:2026-02-01
 
 >=
 
-# ** 18. Zero-amount balance assertion posting on lotful commodity is NOT classified as acquire.
+# ** 19. Zero-amount balance assertion posting on lotful commodity is NOT classified as acquire.
 <
 commodity AAPL  ; lots:
 
@@ -254,7 +270,7 @@ commodity AAPL  ; lots:
 $ hledger -f- bal assets:stocks --lots -N
              10 AAPL  assets:stocks:{2026-01-15, $50}
 
-# ** 19. Bare positive lotful posting without inferable cost is a hard error with --lots.
+# ** 20. Bare positive lotful posting without inferable cost is a hard error with --lots.
 <
 commodity AAPL  ; lots:
 
@@ -269,7 +285,7 @@ commodity AAPL  ; lots:
 $ hledger -f- bal assets:stocks --lots 2>/dev/null
 >=1
 
-# ** 20. Explicit lot subaccount infers cost basis from account name (no {} on amount).
+# ** 21. Explicit lot subaccount infers cost basis from account name (no {} on amount).
 <
 commodity AAPL  ; lots:
 
@@ -284,7 +300,7 @@ $ hledger -f- print --lots -x
 
 >=
 
-# ** 21. Explicit lot subaccount with matching {} on amount - no double-append.
+# ** 22. Explicit lot subaccount with matching {} on amount - no double-append.
 <
 commodity AAPL  ; lots:
 
@@ -299,7 +315,7 @@ $ hledger -f- print --lots -x
 
 >=
 
-# ** 22. Conflicting cost basis between lot subaccount and amount annotation is an error.
+# ** 23. Conflicting cost basis between lot subaccount and amount annotation is an error.
 <
 commodity AAPL  ; lots:
 
@@ -311,7 +327,7 @@ $ hledger -f- print --lots
 >2 /conflicting cost basis cost/
 >=1
 
-# ** 23. Inferred transacted cost is attached to the lotful posting (commodity lots: tag).
+# ** 24. Inferred transacted cost is attached to the lotful posting (commodity lots: tag).
 # Lot calculation also infers a cost basis from the cost, visible with -x;
 # --lots also shows the lot subaccount.
 <
@@ -328,7 +344,7 @@ $ hledger -f- print -x --lots
 
 >=
 
-# ** 24. Inferred transacted cost is attached to the lot posting (cost basis annotation, no lots: tag).
+# ** 25. Inferred transacted cost is attached to the lot posting (cost basis annotation, no lots: tag).
 <
 2026-01-15 buy
     assets:cash    $-500
@@ -341,7 +357,7 @@ $ hledger -f- print -x --lots
 
 >=
 
-# *** 25. An acquire with cost-basis != transacted-cost is accepted by default
+# *** 26. An acquire with cost-basis != transacted-cost is accepted by default
 # (for interop with other plain-text-accounting tools).
 <
 2026-01-01 weird buy with basis typo
@@ -355,12 +371,12 @@ $ hledger -f- print --lots
 
 >=
 
-# *** 26. But rejected by `hledger check basis`.
+# *** 27. But rejected by `hledger check basis`.
 $ hledger -f- check basis
 >2 /differs from its transacted cost/
 >=1
 
-# *** 27. Total basis cost / transacted cost are shown as unit costs in the
+# *** 28. Total basis cost / transacted cost are shown as unit costs in the
 # error message, with non-terminating decimals capped at 8 decimal places
 # (defaultMaxPrecision). `check basis` is required to surface the error.
 <

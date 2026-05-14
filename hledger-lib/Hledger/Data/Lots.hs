@@ -1268,18 +1268,23 @@ getLotDate :: Transaction -> CostBasis -> Day
 getLotDate t cb = fromMaybe (tdate t) (cbDate cb)
 
 -- | Generate a label for a lot that needs one (due to same-date collision).
--- Uses a sequence number formatted as four (or more) digits: "0001", "0002", etc.
--- Uses O(log n) Map operations to count same-date lots efficiently.
+-- Uses the smallest sequence number, formatted as four (or more) digits
+-- ("0001", "0002", ...), that isn't already a label of an existing same-date
+-- lot. Skipping used numbers avoids colliding with user-provided labels
+-- that happen to be in the same format.
 generateLabel :: CommoditySymbol -> Day -> LotState -> T.Text
-generateLabel commodity date lotState =
-    T.pack $ printf "%04d" nextNum
+generateLabel commodity date lotState = nextFree 1
   where
     existingLots = M.findWithDefault M.empty commodity lotState
     -- Use takeWhileAntitone/dropWhileAntitone for O(log n) range extraction.
     -- LotId is ordered by date first, so same-date lots form a contiguous range.
     sameDate = M.takeWhileAntitone (\(LotId d _) -> d == date)
              $ M.dropWhileAntitone (\(LotId d _) -> d < date) existingLots
-    nextNum = M.size sameDate + 1 :: Int
+    usedLabels = S.fromList $ mapMaybe (\(LotId _ ml) -> ml) (M.keys sameDate)
+    nextFree :: Int -> T.Text
+    nextFree n =
+      let l = T.pack (printf "%04d" n)
+      in if S.notMember l usedLabels then l else nextFree (n + 1)
 
 -- Transaction dispatch
 
