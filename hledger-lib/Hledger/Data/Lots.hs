@@ -1216,9 +1216,13 @@ validateUserLabels txns =
     txnsByKey = foldl' (\m (k, t) -> M.insertWith (++) k [t] m) M.empty labeled
     duplicates = M.filter (\ts -> length ts > 1) txnsByKey
 
--- | Find (commodity, date) pairs that have multiple acquisitions and thus need labels.
--- Only counts acquisitions that don't already have a user-provided label.
--- Includes bare acquire postings (no acostbasis), which use the transaction date.
+-- | Find (commodity, date) pairs where there are multiple unlabeled
+-- acquisitions, and thus need auto-generated labels to disambiguate.
+-- Acquisitions with a user-provided label are already unique by that label,
+-- so they don't force unlabeled siblings on the same date to be labelled.
+-- (Duplicate user labels on the same date are caught later by the
+-- duplicate-lot-id check in 'processAcquirePosting'.)
+-- Bare acquire postings (no acostbasis) use the transaction date.
 findDatesNeedingLabels :: [Transaction] -> S.Set (CommoditySymbol, Day)
 findDatesNeedingLabels txns =
     M.keysSet $ M.filter (> 1) counts
@@ -1229,6 +1233,7 @@ findDatesNeedingLabels txns =
       , p <- tpostings t
       , isAcquirePosting p
       , a <- amountsRaw (pamount p)
+      , isNothing (acostbasis a >>= cbLabel)   -- only count unlabeled
       ]
     countAcquire m (c, d) = M.insertWith (+) (c, d) (1 :: Int) m
     acquireDate t a = case acostbasis a of
