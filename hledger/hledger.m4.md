@@ -7263,10 +7263,9 @@ or inferred from the transacted cost.
 On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
 with cost inferred from the transaction's other postings.
 
-An acquire posting can carry an explicit cost basis (`{}` per-unit, or `{{{{}}}}` total),
-an explicit transacted cost (`@` or `@@`), or both.
-See [Cost basis and transacted cost](#cost-basis-and-transacted-cost) above for
-why hledger accepts entries where these differ but recommends keeping them equal.
+Acquire postings may carry a per-unit (`{}`) or total (`{{{{}}}}`) cost basis annotation,
+and a per-unit (`@`) or total (`@@`) transacted cost.
+See [Cost basis vs transacted cost](#cost-basis-vs-transacted-cost) for the recommended style.
 
 Here is a worked example: an acquisition where the cost basis differs from the
 commodity's current market price. With GOLD currently priced at $5000, you
@@ -7372,14 +7371,16 @@ which can be useful for tax optimization.
 but uses the weighted average per-unit cost, within the specified account,
 as the disposal cost basis, rather than each lot's individual cost.
 This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
+-->
 
 All of these methods select lots from the account mentioned in the posting.
-But the **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL) additionally validate
+But the **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL) additionally validate
 that these lots are the ones that would be chosen if considering the global pool (all accounts holding that commodity).
 So if there is a more appropriate lot in another account (eg an older lot when using FIFOALL),
 they will raise an error showing which account holds it.
 This is useful if you need to enforce a global disposal order across all accounts (brokers, exchanges, wallets etc).
 
+<!-- XXX Not working yet
 **AVERAGEALL** computes the weighted average cost across the global pool.
 -->
 
@@ -7427,7 +7428,7 @@ account equity:unrealised gain  ; type: U
 
 This avoids breaking hledger 1 journals, which may have used names like revenues:gain to record gains.
 
-Why do we post both gains and losses to a Revenue account ?
+Why do we post both gains and losses to a revenue account ?
 It's more convenient than using separate revenue and expense accounts, and the sign keeps things correct.
 
 ## Recording gains
