@@ -456,7 +456,9 @@ and they facilitate more precise querying.
 ### Disposal journal entries
 
 Disposal transactions can be written in any of these styles. The user manual's
-"Recording disposals" section walks through each with examples and trade-offs.
+"Recording gains" section walks through each with examples and trade-offs.
+
+Styles are listed in the same order as the manual, from implicit to explicit.
 
 1. **No gain postings.**
   After lot matching, hledger computes the disposal gain
@@ -466,14 +468,7 @@ Disposal transactions can be written in any of these styles. The user manual's
   (or if that is 0, and the gain has non-zero cents, decimal precision 2.
   See "Gain precision" below).
 
-2. **rgain and ugain postings written, identified by their type:G and U accounts.**
-  All is explicit (including the gain amounts). No inference is needed; hledger checks the gain amount.
-
-3. **Only rgain written, using a type:G account.**
-  hledger identifies the rgain posting by the type:G account,
-  and infers a balancing ugain posting. The gain amount must be written explicitly, and is checked.
-
-4. **Only rgain written, not using a type:G account.**
+2. **Only rgain written, not using a type:G account.**
   hledger identifies rgain posting(s) heuristically: one or more postings 
   whose account type is not Asset, Liability, or Equity (or a subtype of these),
   which have not been classified as a lot movement by the lot classifier,
@@ -487,16 +482,21 @@ Disposal transactions can be written in any of these styles. The user manual's
   are tolerated (see "Gain precision" below), but larger discrepancies
   raise an error.
 
-5. **Only rgain written, not using a type:G account, imbalance is multi-commodity.**
-  Same detection as 4, but the sum of the non-gain postings is multi-commodity
-  (typically because the dispose posting lacks a `@` transacted price).
-  The transaction balancer fills in a balancing `@` price from the non-gain postings.
-  The total gain amount is then checked against the calculated gain, as in 4.
+  When the imbalance is multi-commodity (typically because the dispose posting lacks an `@`
+  transacted price), the transaction balancer fills in a balancing `@` price from the
+  non-gain postings; the gain check then proceeds as above.
+
+3. **Only rgain written, using a type:G account.**
+  hledger identifies the rgain posting by the type:G account,
+  and infers a balancing ugain posting. The gain amount must be written explicitly, and is checked.
+
+4. **rgain and ugain postings written, identified by their type:G and U accounts.**
+  All is explicit (including the gain amounts). No inference is needed; hledger checks the gain amount.
 
 ### Gain precision
 
-Inferred gain amounts (cases 1, 3, 4, 5) and the gain-validation
-comparison (cases 2-5) operate at the **entry's local precision** for
+Inferred gain amounts (cases 1, 2, 3) and the gain-validation
+comparison (cases 2-4) operate at the **entry's local precision** for
 the gain commodity (ie, the maximum precision seen among the
 posting amounts in that commodity).
 
@@ -644,7 +644,9 @@ The original user posting is preserved via `poriginal` on the transfer portion
 
 ## Examples
 
-<https://github.com/simonmichael/hledger/blob/main/examples/lots/lot-entries.journal>
+For end-to-end walkthroughs, see the user manual's "First lots example" and "Lot reporting example" sections.
+
+A larger collection of example entries: <https://github.com/simonmichael/hledger/blob/main/examples/lots/lot-entries.journal>
 
 ### Disposal
 
