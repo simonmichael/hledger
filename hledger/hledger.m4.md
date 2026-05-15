@@ -2144,7 +2144,7 @@ You can add directives to a `journal` file, to add error checking, improve parsi
 hledger's directives are broadly similar to Ledger's, though with many [differences](ledger.md).
 Directives begin with a keyword, not a date. Some of them can have indented subdirectives.
 
-**Some directives affect only the following entries, and included subfiles, until the end of the current file.**
+**Some directives affect only the subsequent entries, and any included subfiles, until the end of the current file.**
 This makes reports stable and deterministic, regardless of the order of -f options or the positions of include directives.
 This is sometimes inconvenient, but there are usually workarounds.
 Eg, to have `alias` directives affect all of your files, put them at the start of the main file, before any `include`s.
@@ -2167,7 +2167,7 @@ Eg, to have `alias` directives affect all of your files, put them at the start o
 | **[`~`]**                 | Declares a periodic transaction rule that generates <br>1. future transactions with [`--forecast`](#--forecast), and <br>2. budget goals with [`balance --budget`](#budget-report).                                                     | N                 |
 |                           | <br>**File reading (legacy/deprecated):**                                                                                                                                                                                               |                   |
 | [`apply account`]         | Prepends a common parent account to all account names, in following entries until `end apply account` or file end.                                                                                                                      | Y                 |
-| [`D`]                     | Sets a default commodity to use for no-symbol amounts in this file and subfiles;<br>and its parsing decimal mark and display style (overridden by `commodity` or `decimal-mark`).                                                       | Y, <br>Y, <br>N   |
+| [`D`]                     | Sets <br>1.a default commodity to use for no-symbol amounts in this file and subfiles, and <br>2. its parsing decimal mark and display style (overridden by `commodity` or `decimal-mark`).                                             | Y, <br>Y, <br>N   |
 | [`Y`]                     | Sets a default year to use for any yearless dates, in following entries until file end.                                                                                                                                                 | Y                 |
 | [other][other-directives] | These other Ledger directives are accepted but ignored.                                                                                                                                                                                 |                   |
 
