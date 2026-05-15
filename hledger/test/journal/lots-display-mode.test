@@ -33,7 +33,6 @@ $ hledger -f- bal assets --lots
 # even without --lots (gains are always quantified).
 <
 commodity AAPL  ; lots:
-account revenue:gains  ; type:G
 
 2026-01-01 buy
     assets:stocks    10 AAPL {$50} @ $50
@@ -50,7 +49,7 @@ Income Statement 2026-01-01..2026-02-01
 ===============++========================
  Revenues      ||                        
 ---------------++------------------------
- revenue:gains ||                   $200 
+ revenues:gain ||                   $200 
 ---------------++------------------------
                ||                   $200 
 ===============++========================

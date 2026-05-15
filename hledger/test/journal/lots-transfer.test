@@ -102,8 +102,6 @@ $ hledger -f- print --verbose-tags
 
 # ** 6. Transfer then dispose from new account.
 <
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:broker1    10 AAPL {$50}
     assets:checking
@@ -407,8 +405,6 @@ $ hledger -f- bal assets:x2 --lots -N
 # ** 20. Transfer+fee: subsequent disposal from destination works.
 <
 commodity A  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:x1    2 A {$100}
     assets:cash
@@ -429,8 +425,6 @@ $ hledger -f- bal assets:x1 assets:x2 --lots -N
 # The lot quantities should be summed, not overwritten.
 <
 commodity A  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:x1    3 A {$100}
     assets:cash
@@ -457,8 +451,6 @@ $ hledger -f- bal assets --lots -N
 # so that the disposal is properly detected and gain is calculated.
 <
 commodity A  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:x1    1 A {$100}
     assets:cash
@@ -474,7 +466,7 @@ $ hledger -f- print --lots -x desc:transfer
     assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
     expenses:fees                                  0.05 A @ $150
     assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
-    revenue:gains                                $-2.50
+    revenues:gain                                $-2.50
     equity:unrealised-gain                        $2.50
 
 >=
@@ -486,8 +478,6 @@ $ hledger -f- print --lots -x desc:transfer
 # ({...}) is stripped on each amount since --lots is off.
 <
 commodity A  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:x1    1 A {$100}
     assets:cash
@@ -503,7 +493,7 @@ $ hledger -f- print desc:transfer
     assets:x1                                     -0.05 A @ $150
     expenses:fees                                  0.05 A @ $150
     assets:x2                                      0.95 A
-    revenue:gains                                $-2.50
+    revenues:gain                                $-2.50
     equity:unrealised-gain                        $2.50
 
 >=
@@ -512,8 +502,6 @@ $ hledger -f- print desc:transfer
 # containing auto-split postings, so output round-trips correctly.
 <
 commodity A  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:x1    1 A {$100}
     assets:cash
@@ -529,7 +517,7 @@ $ hledger -f- print --lots desc:transfer
     assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
     expenses:fees                                  0.05 A @ $150
     assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
-    revenue:gains                                $-2.50
+    revenues:gain                                $-2.50
     equity:unrealised-gain                        $2.50
 
 >=
@@ -540,8 +528,6 @@ $ hledger -f- print --lots desc:transfer
 <
 commodity $1.00
 commodity A  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:x1    1 A {$100}
     assets:cash
@@ -558,7 +544,7 @@ $ hledger -f- print -x --lots desc:transfer
     assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
     expenses:fees                                  0.05 A @ $150
     assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
-    revenue:gains                                $-2.50
+    revenues:gain                                $-2.50
     equity:unrealised-gain                        $2.50
 
 >=

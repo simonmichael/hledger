@@ -50,8 +50,6 @@ $ hledger -f- bal assets:stocks --lots -N
 
 # ** 4. FIFO multi-lot disposal: sell with {} can select multiple lots, oldest first.
 <
-account revenue:gains  ; type:G
-
 2026-01-15 buy cheap
     assets:stocks    10 AAPL {$50}
     assets:checking
@@ -129,8 +127,6 @@ $ hledger -f- bal assets:stocks --lots
 # ** 9. Explicit lot subaccount on dispose posting is accepted when it matches the resolved lot.
 <
 commodity AAPL  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:stocks    10 AAPL {} @ $50
     assets:checking
@@ -156,8 +152,6 @@ $ hledger -f- print --lots
 # ** 10. Explicit lot subaccount that doesn't match the resolved lot is an error.
 <
 commodity AAPL  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:stocks    10 AAPL {} @ $50
     assets:checking
@@ -174,8 +168,6 @@ $ hledger -f- print --lots
 # ** 11. Implicit multi-lot disposal: bare negative amount with no cost basis, sale price inferred from cash.
 <
 commodity AAPL  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy cheap
     assets:stocks    10 AAPL {} @ $50
     assets:checking
@@ -193,7 +185,7 @@ $ hledger -f- print --lots -x desc:sell
     assets:stocks:{2026-01-15, $50}              -10 AAPL {2026-01-15, $50} @ $60
     assets:stocks:{2026-02-01, $55}               -5 AAPL {2026-02-01, $55} @ $60
     assets:cash                                 $900
-    revenue:gains                              $-125
+    revenues:gain                              $-125
     equity:unrealised-gain                      $125
 
 >=
@@ -201,8 +193,6 @@ $ hledger -f- print --lots -x desc:sell
 # ** 12. Implicit multi-lot disposal: negative amount with explicit @ cost, cash and gains inferred.
 <
 commodity AAPL  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy cheap
     assets:stocks    10 AAPL {} @ $50
     assets:checking
@@ -220,7 +210,7 @@ $ hledger -f- print --lots -x desc:sell
     assets:stocks:{2026-01-15, $50}              -10 AAPL {2026-01-15, $50} @ $60
     assets:stocks:{2026-02-01, $55}               -5 AAPL {2026-02-01, $55} @ $60
     assets:cash                                 $900
-    revenue:gains                              $-125
+    revenues:gain                              $-125
     equity:unrealised-gain                      $125
 
 >=
@@ -245,8 +235,6 @@ $ hledger -f- bal assets:stocks --lots -N
 # posting with subaccount-inclusive checking (=*), so the assertion still passes on re-read.
 
 <
-account revenue:gains  ; type:G
-
 2026-01-15 buy cheap
     assets:stocks    10 AAPL {$50}
     assets:checking
@@ -265,7 +253,7 @@ $ hledger -f- print --lots -x desc:sell
     assets:stocks:{2026-02-01, $60}              -10 AAPL {2026-02-01, $60} @ $70
     assets:stocks                                  0 AAPL                         =* 0 AAPL
     assets:cash                                $1400
-    revenue:gains                              $-300
+    revenues:gain                              $-300
     equity:unrealised-gain                      $300
 
 >=
@@ -307,7 +295,6 @@ $ hledger -f- check assertions
 
 # ** 17. Round-trip: print --lots -x output can be re-read and balance assertions still pass.
 # A generated parent account posting with a =* assertion reproduces the original assertion's meaning.
-# But a lotful account declaration for the generated revenue:gains account is needed.
 <
 2026-01-15 buy cheap
     assets:stocks    10 AAPL {$50}
@@ -321,13 +308,11 @@ $ hledger -f- check assertions
     assets:stocks    -20 AAPL {} @ $70 = 0 AAPL
     assets:cash       $1400
 
-$ hledger -f- print --lots -x | (echo 'account revenue:gains  ; type:G'; cat) | hledger -f- check assertions
+$ hledger -f- print --lots -x | hledger -f- check assertions
 
 # ** 18. Dispose with explicit lot subaccount infers cost basis from account name.
 <
 commodity AAPL  ; lots:
-account revenue:gains  ; type:G
-
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
     assets:cash
@@ -340,7 +325,7 @@ $ hledger -f- print --lots -x desc:sell
 2026-02-01 sell with explicit lot subaccount
     assets:stocks:{2026-01-15, $50}               -5 AAPL {2026-01-15, $50} @ $60
     assets:cash                                 $300
-    revenue:gains                               $-50
+    revenues:gain                               $-50
     equity:unrealised-gain                       $50
 
 >=
@@ -414,8 +399,6 @@ $ hledger -f- bal assets:stocks --lots
 # ** 24. Expense posting with cost basis does not get a lot subaccount.
 <
 commodity AAPL  ; lots:
-account revenue:gains  ; type: G
-
 2026-01-15 buy
     assets:stocks    10 AAPL {$80}
     assets:cash
@@ -442,9 +425,6 @@ $ hledger -f- bal --lots -N
 # amounts explicitly in the entry.
 <
 commodity 1.000000 ETH  ; lots:
-account income:gains              ; type:G
-account equity:unrealised-gain    ; type:U
-
 2026-03-06 buy
     assets:custodial      1.000000 ETH
     assets:custodial    $-1,980.78
@@ -460,7 +440,7 @@ $ hledger -f- print -x --lots desc:transfer
     assets:custodial:{2026-03-06, $1,980.78}      -0.000399 ETH {2026-03-06, $1,980.78} @ $1,992.36
     assets:cold wallet:{2026-03-06, $1,980.78}     0.999601 ETH {2026-03-06, $1,980.78}
     expenses:fees:trading                          0.000399 ETH @ $1,992.36
-    income:gains                                  $0
+    revenues:gain                                 $0
     equity:unrealised-gain                        $0
 
 >=
