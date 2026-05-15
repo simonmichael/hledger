@@ -569,7 +569,7 @@ For reference, here is what the combinations of accumulation and valuation show:
 
 ### Budget report
 
-The `--budget` report is like a regular balance report, but with two main differences:
+The `balance --budget` report is like a regular balance report, but with two main differences:
 
 - Budget goals and performance percentages are also shown, in brackets
 - Accounts which don't have budget goals are hidden by default.
