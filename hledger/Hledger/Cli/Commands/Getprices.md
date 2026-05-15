@@ -7,7 +7,7 @@ and add them to per-commodity prices files.
 Flags:
      --dry-run              just print the commands that would be run
   -o --output=FILE          write all prices to FILE (or - for stdout)
-                            instead of per-commodity P<COMM>.prices files
+                            instead of per-commodity prices/<COMM>.prices files
 ```
 
 This command first guesses the journal's base currency.
@@ -21,7 +21,7 @@ from that commodity's earliest transaction until today.
 It uses a `getprices_` helper script in PATH (described below).
 
 Then each commodity's prices are saved, merging them with previously saved prices if any.
-By default they are saved in separate `P<COMM>.prices` files next to the main journal file.
+By default they are saved in `prices/<COMM>.prices` files next to the main journal file.
 Or with `-o FILE`, they are saved into a single file of your choice.
 Or with `-o -`, they are printed on stdout.
 

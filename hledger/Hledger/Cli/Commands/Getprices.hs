@@ -30,7 +30,7 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Data.Time.Calendar (Day)
 import System.Console.CmdArgs.Explicit
-import System.Directory (doesFileExist, findExecutable)
+import System.Directory (createDirectoryIfMissing, doesFileExist, findExecutable)
 import System.Exit (ExitCode(..))
 import System.FilePath (takeDirectory, (</>))
 import System.IO (hPutStr, hPutStrLn, stderr)
@@ -56,7 +56,7 @@ scriptName = "getprices_"
 
 -- | The path of the per-commodity prices file in 'dir' for the given code.
 pricesFileFor :: FilePath -> CurrencyCode -> FilePath
-pricesFileFor dir code = dir </> "P" <> T.unpack code <> ".prices"
+pricesFileFor dir code = dir </> "prices" </> T.unpack code <> ".prices"
 
 -- | Like 'warn' but throws away the trailing-action argument; for the common
 -- "log a warning, then continue" pattern.
@@ -217,6 +217,7 @@ mergeAndWritePrices outfile newcontent = do
             else do
               let merged = sortOn priceKey (existing <> added)
                   out    = T.unlines (map showPriceDirective merged)
+              createDirectoryIfMissing True (takeDirectory outfile)
               T.writeFile outfile out
               return (MergedWritten (length existing) (length added))
 
