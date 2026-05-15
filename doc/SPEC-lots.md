@@ -636,9 +636,9 @@ classify and balance as if the user had written:
 ```
 
 The original user posting is preserved via `poriginal` on the transfer portion
-(p1), and the dispose portion (p2) is tagged `_split-posting`. As a result:
+(p1), and the dispose portion (p2) is tagged `_feesplit-posting`. As a result:
 
-- Plain `print` shows the user's original entry (the `_split-posting`-tagged
+- Plain `print` shows the user's original entry (the `_feesplit-posting`-tagged
   portion is hidden, and the remaining portion displays at the original
   quantity via `poriginal`).
 - `print -x` shows the split form explicitly (both portions visible at their

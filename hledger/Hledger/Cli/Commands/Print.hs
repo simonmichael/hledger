@@ -204,7 +204,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           -- and leave an unbalanced entry.
           -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
           | otherwise = \t ->
-              if any (hasTag splitPostingTagName) (tpostings t)
+              if any (hasTag feesplitPostingTagName) (tpostings t)
               then t
               else transactionWithMostlyOriginalPostings t
           where hasTag name p = name `elem` map fst (ptags p)
@@ -222,7 +222,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
 
 -- | Replace this transaction's postings with the original postings if any, but keep the
 -- current possibly rewritten account names, and the inferred values of any auto postings.
--- Drops postings tagged 'splitPostingTagName' (synthetic fragments carved off other
+-- Drops postings tagged 'feesplitPostingTagName' (synthetic fragments carved off other
 -- postings, eg by lot transfer auto-split), so the user sees their original entry.
 -- Postings tagged 'lotsplitPostingTagName' (per-lot dispose/transfer split fragments)
 -- are retained, keeping their fragment 'pamount' rather than reverting to 'poriginal' —
@@ -232,7 +232,7 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
 transactionWithMostlyOriginalPostings :: Transaction -> Transaction
 transactionWithMostlyOriginalPostings t =
   transactionMapPostings postingMostlyOriginal
-    t{tpostings = filter (not . hasTag splitPostingTagName) (tpostings t)}
+    t{tpostings = filter (not . hasTag feesplitPostingTagName) (tpostings t)}
   where
     postingMostlyOriginal p = orig
         { paccount = paccount p

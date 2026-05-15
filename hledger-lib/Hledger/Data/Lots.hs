@@ -125,7 +125,7 @@ import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
 import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
-import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
+import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
 import Hledger.Data.Transaction (transactionCommodityStyles, txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
@@ -372,7 +372,7 @@ journalClassifyLotPostings verbosetags j =
 -- If no such pattern is found, the transaction is returned unchanged.
 -- The transfer portion inherits the original's identity (poriginal preserves
 -- the unsplit quantity, so plain print shows the user's original entry).
--- The dispose portion is tagged `_split-posting` so plain print hides it,
+-- The dispose portion is tagged `_feesplit-posting` so plain print hides it,
 -- and `_generated-posting` to mark its provenance; -x or --verbose-tags
 -- reveals it.
 transactionAutoSplitPricedFeeOutflows
@@ -413,7 +413,7 @@ transactionAutoSplitPricedFeeOutflows verbosetags lookupAccountType commodityIsL
       let origP = originalPosting p
           p1    = p{ pamount = mixedAmount (amountSetQuantity (negate toQty)  a)
                    , poriginal = Just origP }
-          p2    = addTag splitPostingTagName
+          p2    = addTag feesplitPostingTagName
                 $ addTag generatedPostingTagName
                 $ p{ pamount = mixedAmount (amountSetQuantity (negate feeQty) a){ acost = Just feeAcost }
                    , poriginal = Just origP }
@@ -1065,7 +1065,7 @@ journalAddOrCheckGainPostings verbosetags j = do
 --   that was absent on the posting's @poriginal@ (ie added by lot processing) is
 --   stripped.
 --
--- Postings tagged @_split-posting@ (synthetic fee fragments from auto-split) are
+-- Postings tagged @_feesplit-posting@ (synthetic fee fragments from auto-split) are
 -- retained so transactions stay balanced in reports like 'print'.
 --
 -- 'print' relies on its existing 'transactionWithMostlyOriginalPostings' logic to
@@ -1077,7 +1077,7 @@ journalCollapseLotDetail j
   | any (any needsCollapse . tpostings) (jtxns j) = journalMapTransactions collapseTransaction j
   | otherwise                                      = j
   where
-    needsCollapse p = postingHasTag splitPostingTagName p
+    needsCollapse p = postingHasTag feesplitPostingTagName p
                    || postingHasTag lotsplitPostingTagName p
                    || postingHasTag lotParentAssertionTagName p
                    || isJust (lotSubaccountName (paccount p))
