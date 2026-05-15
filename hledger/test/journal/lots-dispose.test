@@ -306,7 +306,26 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
-# ** 18. A balance assertion on a dispose posting is moved to a generated parent-account
+# ** 18. Single-lot disposal with balance assertion: no =* parent synthetic is
+# needed, since the lot subaccount balance equals the parent balance when no
+# other lots exist. The user's assertion stays on the single fragment.
+<
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 sell all
+    assets:stocks   -10 AAPL {$50} @ $50 = 0 AAPL
+    assets:cash       $500
+
+$ hledger -f- print --lots -x desc:sell
+2026-02-01 sell all
+    assets:stocks:{2026-01-15, $50}              -10 AAPL {2026-01-15, $50} @ $50 = 0 AAPL
+    assets:cash                                 $500
+
+>=
+
+# ** 19. A balance assertion on a dispose posting is moved to a generated parent-account
 # posting with subaccount-inclusive checking (=*).
 # Here after selling lot1, assets:stocks:{2026-01-15, $50} is 0 but assets:stocks:{2026-02-01, $60} is 10 AAPL.
 # The assertion = 10 AAPL, converted to =*, checks the inclusive balance of assets:stocks = 10 AAPL.
@@ -325,7 +344,7 @@ $ hledger -f- print --lots -x desc:sell
 
 $ hledger -f- --lots check assertions
 
-# ** 19. But if a lot subaccount is written explicitly, a balance assertion checks that subaccount's balance.
+# ** 20. But if a lot subaccount is written explicitly, a balance assertion checks that subaccount's balance.
 <
 2026-01-15 buy lot1
     assets:stocks:{2026-01-15, $50}    10 AAPL
@@ -341,7 +360,7 @@ $ hledger -f- --lots check assertions
 
 $ hledger -f- check assertions
 
-# ** 20. Round-trip: print --lots -x output can be re-read and balance assertions still pass.
+# ** 21. Round-trip: print --lots -x output can be re-read and balance assertions still pass.
 # A generated parent account posting with a =* assertion reproduces the original assertion's meaning.
 <
 2026-01-15 buy cheap
@@ -358,7 +377,7 @@ $ hledger -f- check assertions
 
 $ hledger -f- print --lots -x | hledger -f- check assertions
 
-# ** 21. Dispose with explicit lot subaccount infers cost basis from account name.
+# ** 22. Dispose with explicit lot subaccount infers cost basis from account name.
 <
 commodity AAPL  ; lots:
 2026-01-15 buy
@@ -378,7 +397,7 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
-# ** 22. Insufficient lots error shows reduction method.
+# ** 23. Insufficient lots error shows reduction method.
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -392,7 +411,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /Using FIFO \(default\)/
 >=1
 
-# ** 23. Insufficient lots error shows review hint.
+# ** 24. Insufficient lots error shows review hint.
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -406,7 +425,7 @@ $ hledger -f- check
 >2 /need 15 but only 10 available/
 >=1
 
-# ** 24. No lots available error shows commodity tag as method source.
+# ** 25. No lots available error shows commodity tag as method source.
 <
 commodity AAPL  ; lots: LIFO
 
@@ -418,7 +437,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /Using LIFO \(from commodity tag on AAPL\)/
 >=1
 
-# ** 25. Error shows account tag as method source.
+# ** 26. Error shows account tag as method source.
 <
 account assets:stocks  ; lots: LIFO
 
@@ -430,7 +449,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /Using LIFO \(from account tag on assets:stocks\)/
 >=1
 
-# ** 26. Lot error highlights the posting line, not the transaction line.
+# ** 27. Lot error highlights the posting line, not the transaction line.
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -444,7 +463,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /6 \|     assets:stocks/
 >=1
 
-# ** 27. Expense posting with cost basis does not get a lot subaccount.
+# ** 28. Expense posting with cost basis does not get a lot subaccount.
 <
 commodity AAPL  ; lots:
 2026-01-15 buy
@@ -464,7 +483,7 @@ $ hledger -f- bal --lots -N
             0.1 AAPL  expenses:fees
                 $-49  revenue:gains
 
-# ** 28. Sub-cent gain (issue #2575): a fractional-commodity disposal
+# ** 29. Sub-cent gain (issue #2575): a fractional-commodity disposal
 # produces a gain below 2-decimal display precision. The dispose entry has
 # no top-level $ amounts (only ETH), so entry-local $ precision is 0 dp;
 # the inferred gain is rounded to integer $ ($0 / $0) per the
@@ -493,7 +512,7 @@ $ hledger -f- print -x --lots desc:transfer
 
 >=
 
-# ** 29. Disposal balance check works with --infer-equity.
+# ** 30. Disposal balance check works with --infer-equity.
 # Equity conversion postings (from --infer-equity) should not disrupt the
 # disposal cost-basis balance check, and should not carry cost basis annotations.
 <
@@ -525,7 +544,7 @@ $ hledger -f- print --lots --infer-equity
 
 >=
 
-# ** 30. Equity conversion amounts are rounded to the transaction's local display precision.
+# ** 31. Equity conversion amounts are rounded to the transaction's local display precision.
 # 9.216 * 1801.215277778 = 16600.000000002, which should be rounded to 16600.00 (2dp from Rs-16600.00).
 <
 2017-04-09 buy
@@ -541,7 +560,7 @@ $ hledger -f- print --infer-equity
 
 >=
 
-# ** 31. Unbalanced disposal error shows per-posting cost-basis breakdown.
+# ** 32. Unbalanced disposal error shows per-posting cost-basis breakdown.
 <
 account income:capital  ; type:G
 commodity FUND  ; lots:
@@ -559,7 +578,7 @@ $ hledger -f- print --lots
 >2 /realised gain amount is wrong/
 >=1
 
-# ** 32. An imprecise per-unit cost basis produces sub-Rs0.005 noise in
+# ** 33. An imprecise per-unit cost basis produces sub-Rs0.005 noise in
 # calculated gain. The user-written rgain matches at the entry's local
 # Rs precision (2 dp), so it is accepted and the entry is balanced.
 # 9.216 × 1801.215277778 = 16600.000000002, off by 0.000000002 from the
@@ -589,7 +608,7 @@ $ hledger -f- print --lots
 
 >=
 
-# ** 33. TODO: {{ }} total cost basis syntax should let us work around test
+# ** 34. TODO: {{ }} total cost basis syntax should let us work around test
 # 25's imprecision issue. But currently hledger normalises {{ total }} to
 # { per-unit } internally, and this normalisation is flawed:
 #

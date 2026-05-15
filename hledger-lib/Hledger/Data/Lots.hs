@@ -1677,11 +1677,20 @@ processDisposePosting styles verbosetags j t lotState p = do
               _   -> map (postingAddHiddenAndMaybeVisibleTag False verbosetags (lotsplitPostingTagName, "")) newPostings0
         let consumed  = [(lotId, qty) | (lotId, _, qty) <- selected]
             lotState' = reduceLotState scopeAcct commodity consumed lotState
+            -- A single-fragment dispose with no other lots remaining for this
+            -- commodity on scopeAcct doesn't need the =* parent-assertion
+            -- synthetic: the lot subaccount balance equals the parent balance,
+            -- so the user's assertion is correct as-is on the single fragment.
+            noOtherLots = all (M.notMember scopeAcct) $ M.elems
+                        $ M.findWithDefault M.empty commodity lotState'
+            finalPostings = case taggedPostings of
+              [_] | noOtherLots -> taggedPostings
+              _ -> preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) taggedPostings
 
         return $ lotDbg t ("disposed " ++ show posQty ++ " " ++ T.unpack commodity
                            ++ " from " ++ T.unpack scopeAcct
                            ++ " (" ++ show method ++ ", lots: " ++ showSelectedLots selected ++ ")")
-               (lotState', preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) taggedPostings)
+               (lotState', finalPostings)
   where
     showPos = txnErrPrefix t
 
