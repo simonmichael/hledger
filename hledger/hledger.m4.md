@@ -1213,7 +1213,8 @@ include other.journal   ; Include another journal file here.
 ## Comments
 
 Lines in the journal will be ignored if they begin with a hash (`#`) or a semicolon (`;`). (See also [Other syntax](#other-syntax).)
-hledger will also ignore regions beginning with a `comment` line and ending with an `end comment` line (or file end).
+hledger will also ignore regions beginning with a [`comment` line](#comment-directive),
+and ending with an [`end comment` line](#end-comment-directive) or file end.
 Here's a suggestion for choosing between them:
 
 - `#` for top-level notes
@@ -2139,60 +2140,36 @@ You can add the `--verbose-tags` flag to make them visible in `print` output, wh
 
 ## Directives
 
-Besides transactions, there is something else you can put in a `journal` file: directives.
-These are declarations, beginning with a keyword, that modify hledger's behaviour.
-Some directives can have more specific subdirectives, indented below them.
-hledger's directives are similar to Ledger's in many cases, but there are also many [differences](ledger.md).
-Directives are not required, but can be useful. Here are the main directives:
+You can add directives to a `journal` file, to add error checking, improve parsing, et cetera.
+hledger's directives are broadly similar to Ledger's, though with many [differences](ledger.md).
+Directives begin with a keyword, not a date. Some of them can have indented subdirectives.
 
-| purpose                                                       | directive                                      |
-|---------------------------------------------------------------|------------------------------------------------|
-| **READING DATA:**                                             |                                                |
-| Rewrite account names                                         | [`alias`]                                      |
-| Comment out sections of the file                              | [`comment`]                                    |
-| Declare file's decimal mark, to help parse amounts accurately | [`decimal-mark`]                               |
-| Include other data files                                      | [`include`]                                    |
-| **GENERATING DATA:**                                          |                                                |
-| Generate recurring transactions or budget goals               | [`~`]                                          |
-| Generate extra postings on existing transactions              | [`=`]                                          |
-| **CHECKING FOR ERRORS:**                                      |                                                |
-| Define valid entities to provide more error checking          | [`account`], [`commodity`], [`payee`], [`tag`] |
-| **REPORTING:**                                                |                                                |
-| Declare accounts' type and display order                      | [`account`]                                    |
-| Declare commodity display styles                              | [`commodity`]                                  |
-| Declare market prices                                         | [`P`]                                          |
+**Some directives affect only the following entries, and included subfiles, until the end of the current file.**
+This makes reports stable and deterministic, regardless of the order of -f options or the positions of include directives.
+This is sometimes inconvenient, but there are usually workarounds.
+Eg, to have `alias` directives affect all of your files, put them at the start of the main file, before any `include`s.
 
-### Directives and multiple files
-
-Directives vary in their scope, ie which journal entries and which input files they affect.
-Most often, a directive will affect the following entries and included files if any, until the end of the current file - and no further.
-You might find this inconvenient! 
-For example, `alias` directives [do not affect parent or sibling files](#aliases-and-multiple-files).
-But there are usually workarounds; for example, put `alias` directives in your top-most file, before including other files.
-
-The restriction, though it may be annoying at first, is in a good cause; it allows reports to be stable and deterministic, independent of the order of input. Without it, reports could show different numbers depending on the order of -f options, or the positions of include directives in your files.
-
-### Directive effects
-
-Here are all hledger's directives, with their effects and scope summarised - nine main directives, plus four others which we consider non-essential:
-
-| directive                     | what it does                                                                                                                                                                                                                                                                                                                                                                                                                                   | ends at file end?   |
-|-------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
-| **[`account`]**               | Declares an account, for [checking](#check) all entries in all files; <br>and its [display order](#account-display-order) and [type](#account-types). <br>Subdirectives: any text, ignored.                                                                                                                                                                                                                                                    | N                   |
-| **[`alias`]**                 | Rewrites account names, in following entries until end of current file or [`end aliases`]. <br>Command line equivalent: [`--alias`]                                                                                                                                                                                                                                                                                                            | Y                   |
-| **[`comment`]**               | Ignores part of the journal file, until end of current file or `end comment`.                                                                                                                                                                                                                                                                                                                                                                  | Y                   |
-| **[`commodity`]**             | Declares <br>1. a commodity symbol, for checking all amounts in all files <br>2. the commodity's display style <br>3. the decimal mark for parsing this commodity, in the rest of this file and subfiles (overridden by `decimal-mark`) <br>4. (with `alias` tags:) aliases for this commodity <br> Takes precedence over `D`. <br>Subdirectives: `format` (ignored). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N,<br>N,<br>Y,<br>N |
-| **[`decimal-mark`]**          | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or end of current file. Overrides ``commodity` and `D`. Subfiles can override.                                                                                                                                                                                                                                                | Y                   |
-| **[`include`]**               | Includes entries and directives from another file, as if they were written inline. <br>Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                                                                                                                                                                                                       | N                   |
-| **[`payee`]**                 | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                                                                                                                                                                  | N                   |
-| **[`P`]**                     | Declares the market price of a commodity on some date, for [value reports](#value-reporting).                                                                                                                                                                                                                                                                                                                                                  | N                   |
-| **[`~`]** (tilde)             | Declares a periodic transaction rule that generates future transactions with `--forecast` and budget goals with `balance --budget`.                                                                                                                                                                                                                                                                                                            | N                   |
-| Other syntax:                 |                                                                                                                                                                                                                                                                                                                                                                                                                                                |                     |
-| **[`apply account`]**         | Prepends a common parent account to all account names, in following entries until end of current file or `end apply account`.                                                                                                                                                                                                                                                                                                                  | Y                   |
-| **[`D`]**                     | Sets a default commodity to use for no-symbol amounts;<br>and, if there is no `commodity` directive for this commodity: its decimal mark, balancing precision, and display style, as above.                                                                                                                                                                                                                                                    | Y,<br>Y,<br>N,<br>N |
-| **[`Y`]**                     | Sets a default year to use for any yearless dates, in following entries until end of current file.                                                                                                                                                                                                                                                                                                                                             | Y                   |
-| **[`=`]** (equals)            | Declares an auto posting rule that generates extra postings on matched transactions with `--auto`, in current/parent/subfiles (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                                                                                                                                                                                       | partly              |
-| **[Other Ledger directives]** | Other directives from Ledger's file format are accepted but ignored.                                                                                                                                                                                                                                                                                                                                                                           |                     |
+| directive                 | what it does                                                                                                                                                                                                                            | ends at file end? |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
+|                           | <br>**Affects file reading:**                                                                                                                                                                                                           |                   |
+| **[`alias`]**             | Rewrites account names, in following entries until [`end aliases`] or file end. Command line equivalent: [`--alias`]                                                                                                                    | Y                 |
+| **[`comment`]**           | Ignores following entries, until [`end comment`] or file end.                                                                                                                                                                           | Y                 |
+| **[`decimal-mark`]**      | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or file end. Subfiles can override.                                                                                    | Y                 |
+| **[`include`]**           | Includes entries from another file, as if they were written inline. Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                   |                   |
+|                           | <br>**Declares data:**                                                                                                                                                                                                                  |                   |
+| **[`account`]**           | Declares an account, for [checking](#check) all entries in all files, and its [display order](#account-display-order), and optionally its [type](#account-types) and [lotfulness].                                                      | N                 |
+| **[`commodity`]**         | Declares <br>1. a commodity symbol, for checking all amounts in all files <br>2. the commodity's display style <br>3. optional [commodity aliases] and [lotfulness], and <br>4. the decimal mark for parsing this commodity, until file end (overridden by `decimal-mark`). Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N <br>N <br>N <br>Y |
+| **[`payee`]**             | Declares a payee name, for checking all entries in all files.                                                                                                                                                                           | N                 |
+| **[`tag`]**               | Declares a tag name, for checking all entries in all files.                                                                                                                                                                             | N                 |
+| **[`P`]**                 | Declares the market price of a commodity on some date, for [value](#value-reporting) and [gain](#lot-reporting) reports.                                                                                                                |                   |
+|                           | <br>**Generates data:**                                                                                                                                                                                                                 |                   |
+| **[`=`]**                 | Declares an auto posting rule that generates extra postings with `--auto`, in current/parent/subfiles (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                        | partly            |
+| **[`~`]**                 | Declares a periodic transaction rule that generates <br>1. future transactions with `--forecast`, and <br>2. budget goals with `balance --budget`.                                                                                      | N                 |
+|                           | <br>**File reading (legacy/deprecated):**                                                                                                                                                                                               |                   |
+| [`apply account`]         | Prepends a common parent account to all account names, in following entries until `end apply account` or file end.                                                                                                                      | Y                 |
+| [`D`]                     | Sets a default commodity to use for no-symbol amounts in this file and subfiles;<br>and its parsing decimal mark and display style (overridden by `commodity` or `decimal-mark`).                                                       | Y, <br>Y, <br>N   |
+| [`Y`]                     | Sets a default year to use for any yearless dates, in following entries until file end.                                                                                                                                                 | Y                 |
+| [other][other-directives] | Other directives from Ledger are accepted but ignored.                                                                                                                                                                                  |                   |
 
 [`=`]:                       #auto-postings
 [`D`]:                       #d-directive
@@ -2202,16 +2179,17 @@ Here are all hledger's directives, with their effects and scope summarised - nin
 [`alias`]:                   #alias-directive
 [`--alias`]:                 #alias-directive
 [`apply account`]:           #apply-account-directive
-[`comment`]:                 #comments
+[`comment`]:                 #comment-directive
 [`commodity`]:               #commodity-directive
-[`decimal-mark`]:              #decimal-mark-directive
+[`decimal-mark`]:            #decimal-mark-directive
 [`end aliases`]:             #end-aliases-directive
+[`end comment`]:             #end-comment-directive
 [`include`]:                 #include-directive
 [`payee`]:                   #payee-directive
 [`tag`]:                     #tag-directive
 [`~`]:                       #periodic-transactions
-[Other Ledger directives]:   #other-ledger-directives
-
+[other-directives]:          #other-ledger-directives
+[lotfulness]:                #lotful-commodities-and-accounts
 
 
 ## `account` directive
@@ -2234,12 +2212,7 @@ They are written as the word `account` followed by a hledger-style [account name
 account assets:bank:checking
 ```
 
-Ledger-style indented subdirectives are also accepted, but ignored:
-
-```journal
-account assets:bank:checking
-  format subdirective  ; currently ignored
-```
+Any indented subdirectives are ignored.
 
 ### Account comments
 
@@ -2508,7 +2481,7 @@ In case of trouble, adding `--debug=6` to the command line will show which alias
 
 ### Aliases and multiple files
 
-As explained at [Directives and multiple files](#directives-and-multiple-files),
+As explained at [Directives](#directives),
 `alias` directives do not affect parent or sibling files. Eg in this command,
 ```cli
 hledger -f a.aliases -f b.journal
@@ -2607,6 +2580,15 @@ try troubleshooting with the accounts command, eg something like:
 $ hledger accounts --types -1 --alias assets=bassetts
 ```
 
+## `comment` directive
+
+A line containing just `comment` causes all following lines to be ignored,
+until an [end comment directive](#end-comment-directive) or file end.
+
+### `end comment` directive
+
+A line containing just `end comment` ends the effect of a preceding [comment directive](#comment-directive).
+
 ## `commodity` directive
 
 The `commodity` directive performs several functions:
@@ -2679,7 +2661,7 @@ commodity ""               ; the no-symbol commodity
 
 Commodity directives may also be written with an indented `format` subdirective, as in Ledger.
 The symbol is repeated and must be the same in both places.
-Other subdirectives are currently ignored:
+Other subdirectives are ignored:
 
 ```journal
 ; display indian rupees with currency name on the left,
@@ -2687,7 +2669,7 @@ Other subdirectives are currently ignored:
 ; period as decimal point, and two decimal places.
 commodity INR
   format INR 1,00,00,000.00
-  an unsupported subdirective  ; ignored by hledger
+  other subdirective  ; ignored
 ```
 
 ### Commodity tags
@@ -2840,19 +2822,21 @@ in another commodity. See [Value reporting](#value-reporting).
 
 This directive can be used to declare a limited set of payees which may appear in [transaction descriptions](#descriptions).
 The ["payees" check](#check) will report an error if any transaction refers to a payee that has not been declared.
+(This is quite a strict check, and not often used.)
+
 Eg:
 
 ```journal
 payee Whole Foods    ; a comment
 ```
-Payees do not have tags (tags in the comment will be ignored).
 
 To declare the empty payee name, use `""`.
 ```journal
 payee ""
 ```
 
-Ledger-style indented subdirectives, if any, are currently ignored.
+Payees do not support tags.
+Any indented subdirectives are ignored.
 
 ## `tag` directive
 
@@ -2864,7 +2848,7 @@ TAGNAME should be a valid tag name (no spaces). Eg:
 ```journal
 tag  item-id
 ```
-Any indented subdirectives are currently ignored.
+Any indented subdirectives are ignored.
 
 The ["tags" check](#check) will report an error if any undeclared tag name is used.
 It is quite easy to accidentally create a tag through normal use of colons in [comments](#comments);
