@@ -26,7 +26,7 @@ If not, see <https://www.gnu.org/licenses/>.
 module Hledger.UI.Main where
 
 import Control.Applicative ((<|>))
-import Control.Concurrent (threadDelay)
+import Control.Concurrent (threadDelay, newMVar, withMVar, modifyMVar_)
 import Control.Concurrent.Async (withAsync)
 #if MIN_VERSION_base(4,20,0)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
@@ -38,6 +38,7 @@ import Data.List (find)
 import Data.List.Extra (nubSort)
 import Data.Maybe (fromMaybe)
 import Data.Text qualified as T
+import Data.Time.Clock (UTCTime, getCurrentTime, diffUTCTime)
 import Graphics.Vty (Mode (Mouse), Vty (outputIface), Output (setMode))
 import Graphics.Vty.CrossPlatform (mkVty)
 import Lens.Micro ((^.))
@@ -290,19 +291,28 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
       -- run this small task asynchronously:
       (getCurrentDay >>= watchDate)
       -- until this main task terminates:
-      $ \_async ->
+      $ \\_async ->
       -- start one or more background threads reporting changes in the directories of our files
-      -- XXX many quick successive saves causes the problems listed in BUGS
-      -- with Debounce increased to 1s it easily gets stuck on an error or blank screen
-      -- until you press g, but it becomes responsive again quickly.
-      -- withManagerConf defaultConfig{confDebounce=Debounce 1} $ \mgr -> do
-      -- with Debounce at the default 1ms it clears transient errors itself
-      -- but gets tied up for ages
+      -- with a debouncing mechanism to prevent memory leaks from rapid successive file changes
+      -- (#1825: --watch causes gradually increasing CPU/RAM over time)
       withManager $ \mgr -> do
         files <- mapM (canonicalizePath . fst) $ jfiles j
         let directories = nubSort $ map takeDirectory files
         dbg1IO "files" files
         dbg1IO "directories to watch" directories
+
+        -- Debounce timer: only process one FileChange per 500ms to prevent event flooding
+        fileChangeTimer <- newMVar Nothing :: IO (MVar (Maybe UTCTime))
+        let
+          shouldProcessFileChange timerVar = do
+            now <- getCurrentTime
+            modifyMVar timerVar $ \lastTime -> do
+              case lastTime of
+                Just t | diffUTCTime now t < 0.5 -> return (lastTime, False)  -- within 500ms window, skip
+                _ -> return (Just now, True)  -- outside window, allow and update
+          waitAndProcess timerVar = do
+            allowed <- shouldProcessFileChange timerVar
+            when allowed $ writeChan eventChan FileChange
 
         forM_ directories $ \d -> watchDir
           mgr
@@ -316,11 +326,11 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
             -- clogging things up so let's ignore them
             _ -> False
             )
-          -- action: send event to app
+          -- action: send event to app (with debouncing)
           (\fev -> do
             -- return $ dbglog "fsnotify" $ showFSNEvent fev -- not working
             dbg1IO "fsnotify" $ show fev
-            writeChan eventChan FileChange
+            waitAndProcess fileChangeTimer
             )
 
         -- and start the app. Must be inside the withManager block. (XXX makevty too ?)
