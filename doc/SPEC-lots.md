@@ -592,10 +592,12 @@ the stages entirely.
 
 The `--lots` flag is a display toggle consumed in the report-loading layer
 (`journalTransform` in `Hledger.Cli.Utils`). When absent, `journalCollapseLotDetail`
-strips lot subaccount suffixes from account names and drops synthetic `_split-posting`
-and `_lot-parent-assertion` postings from each transaction. Posting amounts are left
-alone; `print` relies on its existing `transactionWithMostlyOriginalPostings` logic to
-revert to `poriginal` when displaying non-explicit output.
+strips lot subaccount suffixes from account names, drops synthetic
+`_lot-parent-assertion` postings, and merges runs of `_lotsplit-posting` fragments
+(per-lot dispose/transfer splits sharing the same `poriginal`) back to a single
+posting carrying the user's original amount. Posting amounts on other postings
+are left alone; `print` relies on `transactionWithMostlyOriginalPostings` to revert
+to `poriginal` when displaying non-explicit output.
 
 See SPEC-finalising for more details of the implementation.
 
@@ -645,6 +647,24 @@ The original user posting is preserved via `poriginal` on the transfer portion
   that the output round-trips correctly (preserving the capital gain that
   would otherwise be lost if the dispose portion were hidden). Other
   transactions still display in their mostly-original form.
+
+### Per-lot disposal/transfer splits
+
+A separate internal split happens when a single dispose or transfer posting
+spans multiple lots: `processDisposePosting` / `processTransferPair` emit one
+fragment per matched lot, each carrying its lot subaccount. Multi-fragment
+results are tagged `_lotsplit-posting` (single-lot results need no tag), and
+each fragment's `poriginal` points at the user's unmodified original posting.
+
+Display behaviour:
+
+- Plain `print` collapses the fragments via `journalCollapseLotDetail` and
+  reverts to `poriginal`, so the user sees their single original posting.
+- `print --lots` keeps the fragments visible and renders each with its lot
+  subaccount and per-lot quantity, but with the user's original cost basis
+  annotations (achieved by `transactionWithMostlyOriginalPostings` scaling
+  `poriginal`'s amount to the fragment's quantity).
+- `print -x` keeps the fully inferred form (no revert).
 
 ## Examples
 

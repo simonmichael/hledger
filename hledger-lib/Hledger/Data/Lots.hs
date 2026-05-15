@@ -125,7 +125,7 @@ import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
 import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
-import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
+import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, splitPostingTagName)
 import Hledger.Data.Transaction (transactionCommodityStyles, txnTieKnot)
 import Hledger.Data.Types
 import Hledger.Utils (dbg5, dbg5With)
@@ -1078,10 +1078,12 @@ journalCollapseLotDetail j
   | otherwise                                      = j
   where
     needsCollapse p = postingHasTag splitPostingTagName p
+                   || postingHasTag lotsplitPostingTagName p
                    || postingHasTag lotParentAssertionTagName p
                    || isJust (lotSubaccountName (paccount p))
 
-    collapseTransaction t = txnTieKnot t{tpostings = mapMaybe collapsePosting (tpostings t)}
+    collapseTransaction t =
+      txnTieKnot t{tpostings = mergeLotSplits (mapMaybe collapsePosting (tpostings t))}
 
     collapsePosting p
       | postingHasTag lotParentAssertionTagName p = Nothing
@@ -1098,6 +1100,25 @@ journalCollapseLotDetail j
         stripInferredBasis a
           | origHasBasis = a
           | otherwise    = a{acostbasis = Nothing}
+
+    -- Merge consecutive lotsplit-tagged postings that share the same original
+    -- (poriginal) into one. The survivor's pamount is taken from its
+    -- 'poriginal' (the user's full original amount); the lotsplit tag is
+    -- removed so the rest of the pipeline sees a normal single posting.
+    -- Sharing 'poriginal' identifies siblings from the same per-lot split,
+    -- distinguishing them from unrelated lotsplit postings (eg the from- and
+    -- to-side runs of a same-account transfer).
+    mergeLotSplits = go
+      where
+        go [] = []
+        go (p:ps)
+          | postingHasTag lotsplitPostingTagName p =
+              let sameRun q = postingHasTag lotsplitPostingTagName q && poriginal q == poriginal p
+                  (_run, rest) = span sameRun ps
+                  survivor    = (untagLotsplit p){pamount = pamount (originalPosting p)}
+              in survivor : go rest
+          | otherwise = p : go ps
+        untagLotsplit p = p{ptags = filter ((/= lotsplitPostingTagName) . fst) (ptags p)}
 
 -- Posting type predicates
 
@@ -1640,24 +1661,37 @@ processDisposePosting styles verbosetags j t lotState p = do
                   disposeAmt' | isNothing (acost lotAmt) = disposeAmt{acost = Nothing}
                               | isBare && length selected > 1 = disposeAmt{acost = amountNormalizeCostToUnit lotAmt}
                               | otherwise = disposeAmt
-                  -- poriginal preserves the user's original annotations, only updating quantity.
-                  origP  = originalPosting p
-                  origP' = origP{pamount = mapMixedAmount (amountSetQuantityOf commodity (negate consumedQty)) $ pamount origP}
               Right p{ paccount  = acctWithLot
                      , pamount   = mixedAmount disposeAmt'
-                     , poriginal = Just origP'
+                     , poriginal = Just (originalPosting p)
                      }
 
-        newPostings <- mapM mkPosting selected
+        newPostings0 <- mapM mkPosting selected
+        -- For multi-lot disposals, tag each fragment as a per-lot split so
+        -- journalCollapseLotDetail can merge them back to a single posting
+        -- (when --lots is off). Single-lot disposals need no tag — they
+        -- already represent the user's original posting.
+        -- See also [better lot splitting].
+        let taggedPostings = case newPostings0 of
+              [_] -> newPostings0
+              _   -> map (postingAddHiddenAndMaybeVisibleTag False verbosetags (lotsplitPostingTagName, "")) newPostings0
         let consumed  = [(lotId, qty) | (lotId, _, qty) <- selected]
             lotState' = reduceLotState scopeAcct commodity consumed lotState
 
         return $ lotDbg t ("disposed " ++ show posQty ++ " " ++ T.unpack commodity
                            ++ " from " ++ T.unpack scopeAcct
                            ++ " (" ++ show method ++ ", lots: " ++ showSelectedLots selected ++ ")")
-               (lotState', preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) newPostings)
+               (lotState', preserveParentAssertion verbosetags (paccount p) (pbalanceassertion p) taggedPostings)
   where
     showPos = txnErrPrefix t
+
+-- [better lot splitting]
+-- "If you want it bulletproof: the robust fix is a per-call group ID.
+-- In processDisposePosting / the transfer caller, mint a small unique tag value 
+-- (e.g. the source position string of p, or a counter, or T.pack (show (psourcepos p)))
+-- and store it on each fragment as (lotsplitPostingTagName, groupId).
+-- Then mergeLotSplits groups by tag value, not poriginal equality.
+-- That removes the "Eq Posting must include something distinguishing" invariant entirely.
 
 -- | Process a transfer pair: select lots from the source account (transfer-from)
 -- and recreate them under the destination account (transfer-to).
@@ -1717,10 +1751,17 @@ processTransferPair styles verbosetags j t lotState fromP toP = do
                  [(_, cb)] -> Just cb
                  _         -> Nothing
 
-    let isSingleLot = length transferLots == 1
-
     -- For each transfer lot, generate from and to postings
-    (transferFromPs, toPs) <- fmap unzip $ mapM (mkTransferPostings isSingleLot fromAmt toCb commodity) transferLots
+    (transferFromPs0, toPs0) <- fmap unzip $ mapM (mkTransferPostings fromAmt toCb commodity) transferLots
+
+    -- For multi-lot transfers, tag each fragment as a per-lot split so
+    -- journalCollapseLotDetail can merge them back to a single posting when
+    -- --lots is off. Single-lot transfers need no tag.
+    let tagIfMulti ps = case ps of
+          [_] -> ps
+          _   -> map (postingAddHiddenAndMaybeVisibleTag False verbosetags (lotsplitPostingTagName, "")) ps
+        transferFromPs = tagIfMulti transferFromPs0
+        toPs           = tagIfMulti toPs0
 
     -- For fee lots, generate from-only postings (lots consumed from source, no destination)
     feeFromPs <- mapM (mkFeeFromPosting fromAmt commodity) feeLots
@@ -1742,7 +1783,7 @@ processTransferPair styles verbosetags j t lotState fromP toP = do
   where
     showPos = txnErrPrefix t
 
-    mkTransferPostings isSingleLot fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
+    mkTransferPostings fromAmt toCb commodity (lotId, storedAmt, consumedQty) = do
         lotBasis <- case acostbasis storedAmt >>= cbCost of
           Just c  -> Right c
           Nothing -> Left $ showPos ++ "lot " ++ show lotId
@@ -1763,24 +1804,16 @@ processTransferPair styles verbosetags j t lotState fromP toP = do
 
         let fromAmt' = (amountSetQuantity (negate consumedQty) fromAmt){acostbasis = Just lotCb}
             toAmt'   = amountSetQuantity consumedQty fromAmt'
-            -- poriginal preserves the user's original annotations. For multi-lot
-            -- transfers we scale its quantity per-lot; for single-lot we leave it
-            -- alone, so any earlier poriginal (eg from auto-split) survives intact.
-            origFromP = originalPosting fromP
-            origFromP'
-              | isSingleLot = origFromP
-              | otherwise   = origFromP{pamount = mapMixedAmount (amountSetQuantityOf commodity (negate consumedQty)) (pamount origFromP)}
-            origToP = originalPosting toP
-            origToP'
-              | isSingleLot = origToP
-              | otherwise   = origToP{pamount = mapMixedAmount (amountSetQuantityOf commodity consumedQty) (pamount origToP)}
+            -- poriginal preserves the user's original annotations, unmodified.
+            -- Multi-lot fragments beyond the first get a lotsplitPostingTagName
+            -- tag added by the caller, so print's collapse path can drop them.
             fromP' = fromP{ paccount = fromAcct
                           , pamount  = mixedAmount fromAmt'
-                          , poriginal = Just origFromP'
+                          , poriginal = Just (originalPosting fromP)
                           }
             toP'   = toP{ paccount = toAcct
                         , pamount  = mixedAmount toAmt'
-                        , poriginal = Just origToP'
+                        , poriginal = Just (originalPosting toP)
                         }
         Right (fromP', toP')
 

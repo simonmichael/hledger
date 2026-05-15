@@ -224,6 +224,10 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
 -- current possibly rewritten account names, and the inferred values of any auto postings.
 -- Drops postings tagged 'splitPostingTagName' (synthetic fragments carved off other
 -- postings, eg by lot transfer auto-split), so the user sees their original entry.
+-- Postings tagged 'lotsplitPostingTagName' (per-lot dispose/transfer split fragments)
+-- are retained, keeping their fragment 'pamount' rather than reverting to 'poriginal' —
+-- so 'print --lots' shows the per-lot detail, while 'journalCollapseLotDetail' has
+-- already merged them down to one posting when --lots is off.
 -- This is mainly for showing transactions with the amounts in their original journal format.
 transactionWithMostlyOriginalPostings :: Transaction -> Transaction
 transactionWithMostlyOriginalPostings t =
@@ -232,8 +236,19 @@ transactionWithMostlyOriginalPostings t =
   where
     postingMostlyOriginal p = orig
         { paccount = paccount p
-        , pamount = pamount $ if hasTag generatedPostingTagName p then p else orig }
-      where orig = originalPosting p
+        , pamount = newAmt }
+      where
+        orig = originalPosting p
+        newAmt
+          | hasTag generatedPostingTagName p = pamount p
+          -- For per-lot dispose/transfer fragments, use the user's original
+          -- amount but with the fragment's quantity (so 'print --lots' shows
+          -- e.g. "-1 A {} @ $60" rather than the full inferred form).
+          | hasTag lotsplitPostingTagName p  = scaleToFragment (pamount orig) (pamount p)
+          | otherwise                        = pamount orig
+    scaleToFragment origAmt curAmt = case (amountsRaw origAmt, amountsRaw curAmt) of
+      ([oa], [ca]) -> mixedAmount oa{aquantity = aquantity ca}
+      _            -> curAmt
     hasTag name p = name `elem` map fst (ptags p)
 
 entriesReportAsTextHelper :: (Transaction -> T.Text) -> EntriesReport -> TL.Text

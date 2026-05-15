@@ -215,7 +215,55 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
-# ** 13. Bare negative lotful posting without selling price gets a lot subaccount
+# ** 13. Plain print (no --lots) on a multi-lot disposal collapses the per-lot
+# split back to the user's single original posting.
+<
+commodity AAPL  ; lots:
+2026-01-15 buy cheap
+    assets:stocks    10 AAPL {} @ $50
+    assets:checking
+
+2026-02-01 buy expensive
+    assets:stocks    10 AAPL {} @ $55
+    assets:checking
+
+2026-03-01 sell
+    assets:stocks   -15 AAPL @ $60
+    assets:cash
+
+$ hledger -f- print desc:sell
+2026-03-01 sell
+    assets:stocks                                -15 AAPL @ $60
+    assets:cash
+    revenues:gain                              $-125
+    equity:unrealised-gain                      $125
+
+>=
+
+# ** 14. print -x on the same disposal also collapses (cost basis annotations
+# stripped because the user didn't write one), but fills in inferred amounts.
+$ hledger -f- print -x desc:sell
+2026-03-01 sell
+    assets:stocks                                -15 AAPL @ $60
+    assets:cash                                 $900
+    revenues:gain                              $-125
+    equity:unrealised-gain                      $125
+
+>=
+
+# ** 15. print --lots on the same disposal shows the per-lot split with lot
+# subaccounts but keeps the user's amount form (no inferred cost basis details).
+$ hledger -f- print --lots desc:sell
+2026-03-01 sell
+    assets:stocks:{2026-01-15, $50}              -10 AAPL @ $60
+    assets:stocks:{2026-02-01, $55}               -5 AAPL @ $60
+    assets:cash
+    revenues:gain                              $-125
+    equity:unrealised-gain                      $125
+
+>=
+
+# ** 16. Bare negative lotful posting without selling price gets a lot subaccount
 # (dispose matches lot via FIFO, no gain posting since there's no selling price).
 <
 commodity AAPL  ; lots:
@@ -231,7 +279,7 @@ commodity AAPL  ; lots:
 $ hledger -f- bal assets:stocks --lots -N
               5 AAPL  assets:stocks:{2026-01-15, $50}
 
-# ** 14. Balance assertion on a multi-lot disposal is moved to a generated parent-account
+# ** 17. Balance assertion on a multi-lot disposal is moved to a generated parent-account
 # posting with subaccount-inclusive checking (=*), so the assertion still passes on re-read.
 
 <
@@ -258,7 +306,7 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
-# ** 15. A balance assertion on a dispose posting is moved to a generated parent-account
+# ** 18. A balance assertion on a dispose posting is moved to a generated parent-account
 # posting with subaccount-inclusive checking (=*).
 # Here after selling lot1, assets:stocks:{2026-01-15, $50} is 0 but assets:stocks:{2026-02-01, $60} is 10 AAPL.
 # The assertion = 10 AAPL, converted to =*, checks the inclusive balance of assets:stocks = 10 AAPL.
@@ -277,7 +325,7 @@ $ hledger -f- print --lots -x desc:sell
 
 $ hledger -f- --lots check assertions
 
-# ** 16. But if a lot subaccount is written explicitly, a balance assertion checks that subaccount's balance.
+# ** 19. But if a lot subaccount is written explicitly, a balance assertion checks that subaccount's balance.
 <
 2026-01-15 buy lot1
     assets:stocks:{2026-01-15, $50}    10 AAPL
@@ -293,7 +341,7 @@ $ hledger -f- --lots check assertions
 
 $ hledger -f- check assertions
 
-# ** 17. Round-trip: print --lots -x output can be re-read and balance assertions still pass.
+# ** 20. Round-trip: print --lots -x output can be re-read and balance assertions still pass.
 # A generated parent account posting with a =* assertion reproduces the original assertion's meaning.
 <
 2026-01-15 buy cheap
@@ -310,7 +358,7 @@ $ hledger -f- check assertions
 
 $ hledger -f- print --lots -x | hledger -f- check assertions
 
-# ** 18. Dispose with explicit lot subaccount infers cost basis from account name.
+# ** 21. Dispose with explicit lot subaccount infers cost basis from account name.
 <
 commodity AAPL  ; lots:
 2026-01-15 buy
@@ -330,7 +378,7 @@ $ hledger -f- print --lots -x desc:sell
 
 >=
 
-# ** 19. Insufficient lots error shows reduction method.
+# ** 22. Insufficient lots error shows reduction method.
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -344,7 +392,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /Using FIFO \(default\)/
 >=1
 
-# ** 20. Insufficient lots error shows review hint.
+# ** 23. Insufficient lots error shows review hint.
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -358,7 +406,7 @@ $ hledger -f- check
 >2 /need 15 but only 10 available/
 >=1
 
-# ** 21. No lots available error shows commodity tag as method source.
+# ** 24. No lots available error shows commodity tag as method source.
 <
 commodity AAPL  ; lots: LIFO
 
@@ -370,7 +418,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /Using LIFO \(from commodity tag on AAPL\)/
 >=1
 
-# ** 22. Error shows account tag as method source.
+# ** 25. Error shows account tag as method source.
 <
 account assets:stocks  ; lots: LIFO
 
@@ -382,7 +430,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /Using LIFO \(from account tag on assets:stocks\)/
 >=1
 
-# ** 23. Lot error highlights the posting line, not the transaction line.
+# ** 26. Lot error highlights the posting line, not the transaction line.
 <
 2026-01-15 buy
     assets:stocks    10 AAPL {$50}
@@ -396,7 +444,7 @@ $ hledger -f- bal assets:stocks --lots
 >2 /6 \|     assets:stocks/
 >=1
 
-# ** 24. Expense posting with cost basis does not get a lot subaccount.
+# ** 27. Expense posting with cost basis does not get a lot subaccount.
 <
 commodity AAPL  ; lots:
 2026-01-15 buy
@@ -416,7 +464,7 @@ $ hledger -f- bal --lots -N
             0.1 AAPL  expenses:fees
                 $-49  revenue:gains
 
-# ** 25. Sub-cent gain (issue #2575): a fractional-commodity disposal
+# ** 28. Sub-cent gain (issue #2575): a fractional-commodity disposal
 # produces a gain below 2-decimal display precision. The dispose entry has
 # no top-level $ amounts (only ETH), so entry-local $ precision is 0 dp;
 # the inferred gain is rounded to integer $ ($0 / $0) per the
@@ -445,7 +493,7 @@ $ hledger -f- print -x --lots desc:transfer
 
 >=
 
-# ** 26. Disposal balance check works with --infer-equity.
+# ** 29. Disposal balance check works with --infer-equity.
 # Equity conversion postings (from --infer-equity) should not disrupt the
 # disposal cost-basis balance check, and should not carry cost basis annotations.
 <
@@ -477,7 +525,7 @@ $ hledger -f- print --lots --infer-equity
 
 >=
 
-# ** 27. Equity conversion amounts are rounded to the transaction's local display precision.
+# ** 30. Equity conversion amounts are rounded to the transaction's local display precision.
 # 9.216 * 1801.215277778 = 16600.000000002, which should be rounded to 16600.00 (2dp from Rs-16600.00).
 <
 2017-04-09 buy
@@ -493,7 +541,7 @@ $ hledger -f- print --infer-equity
 
 >=
 
-# ** 28. Unbalanced disposal error shows per-posting cost-basis breakdown.
+# ** 31. Unbalanced disposal error shows per-posting cost-basis breakdown.
 <
 account income:capital  ; type:G
 commodity FUND  ; lots:
@@ -511,7 +559,7 @@ $ hledger -f- print --lots
 >2 /realised gain amount is wrong/
 >=1
 
-# ** 29. An imprecise per-unit cost basis produces sub-Rs0.005 noise in
+# ** 32. An imprecise per-unit cost basis produces sub-Rs0.005 noise in
 # calculated gain. The user-written rgain matches at the entry's local
 # Rs precision (2 dp), so it is accepted and the entry is balanced.
 # 9.216 × 1801.215277778 = 16600.000000002, off by 0.000000002 from the
@@ -541,7 +589,7 @@ $ hledger -f- print --lots
 
 >=
 
-# ** 30. TODO: {{ }} total cost basis syntax should let us work around test
+# ** 33. TODO: {{ }} total cost basis syntax should let us work around test
 # 25's imprecision issue. But currently hledger normalises {{ total }} to
 # { per-unit } internally, and this normalisation is flawed:
 #
