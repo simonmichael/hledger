@@ -103,7 +103,7 @@ esHandle ev = do
                 runEditor pos f
               esReloadIfFileChanged copts d j ui
 
-            VtyEvent (EvKey (KChar 'I') []) -> uiToggleBalanceAssertions d (popScreen ui)
+            VtyEvent (EvKey (KChar 'I') []) -> uiToggleBalanceAssertions d (popScreenAndRegenerate d ui)
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
@@ -121,7 +121,7 @@ esHandle ev = do
         case headMay $ aPrevScreens ui of
           Just (TS _) -> do
             -- check balance assertions, exit to register screen, enter transaction screen, reload once more
-            put' $ popScreen $ popScreen $ uiCheckBalanceAssertions d ui
+            put' $ popScreenAndRegenerate d $ popScreenAndRegenerate d $ uiCheckBalanceAssertions d ui
             sendVtyEvents [EvKey KEnter [], EvKey (KChar 'g') []]  -- XXX Might be disrupted if other events are queued ?
           _ -> uiReload copts d (popScreen ui) >>= put' . uiCheckBalanceAssertions d
 
@@ -174,7 +174,7 @@ uiReload copts d ui = liftIO $ do
   return $ case ej of
     Right j  ->
       -- dbg1 "uiReload after reload" (map tdescription $ jtxns j) $
-      regenerateScreens j d ui
+      regenerateCurrentScreen j d ui
     Left err ->
       case ui of
         UIState{aScreen=ES _} -> ui{aScreen=esNew err}
@@ -197,7 +197,7 @@ uiReloadIfFileChanged copts d j ui = do
     let copts1 = uiAdjustOpts (astartupopts ui) copts
     in runExceptT $ journalReloadIfChanged copts1 d j
   return $ case ej of
-    Right (j', _) -> regenerateScreens j' d ui
+    Right (j', _) -> regenerateCurrentScreen j' d ui
     Left err -> case aScreen ui of
         ES _ -> ui{aScreen=esNew err}
         _    -> pushScreen (esNew err) ui

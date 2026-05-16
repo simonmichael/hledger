@@ -228,9 +228,10 @@ data RegisterScreenState = RSS {
 
 data TransactionScreenState = TSS {
     -- screen parameters:
-   _tssAccount      :: AccountName                  -- ^ the account whose register we entered this screen from
-  ,_tssTransactions :: [NumberedTransaction]        -- ^ the transactions in that register, which we can step through
-  ,_tssTransaction  :: NumberedTransaction          -- ^ the currently displayed transaction, and its position in the list
+   _tssAccount        :: AccountName                -- ^ the account whose register we entered this screen from
+  ,_tssForceInclusive :: Bool                        -- ^ whether the parent register included subaccounts
+  ,_tssTransactions   :: [NumberedTransaction]      -- ^ the transactions in that register, which we can step through
+  ,_tssTransaction    :: NumberedTransaction        -- ^ the currently displayed transaction, and its position in the list
 } deriving (Show)
 
 data ErrorScreenState = ESS {
