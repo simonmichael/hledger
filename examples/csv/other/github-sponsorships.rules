@@ -7,19 +7,20 @@ skip 1
 date %transaction_date
 date-format %Y-%m-%d %H:%M:%S %z
 
-description anonymous
-if !%is_public true
- description anonymous %sponsor_profile_name (%sponsor_handle)
 if %is_public true && %sponsor_profile_name .
  description %sponsor_profile_name (%sponsor_handle)
 if %is_public true && !%sponsor_profile_name .
  description %sponsor_handle
 
+if !%is_public true
+ description anonymous %sponsor_profile_name (%sponsor_handle)
+#description anonymous
+
 comment country:%country
 comment country:%country, region:%region, tier:%tier_name
 
 account1 revenues:github
-account2 liabilities:sm
+account2 assets
 
 amount1 -%processed_amount
 
