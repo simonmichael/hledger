@@ -307,9 +307,8 @@ rsHandle ev = do
               case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount nts nt ui
               where clickeddate = maybe "" rsItemDate $ listElements _rssList !? y
 
-            -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
-            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ listName $ _rssList) 1
+            -- when selection is at the last item, do nothing
+            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> return ()
               where mnextelement = listSelectedElement $ listMoveDown _rssList
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,

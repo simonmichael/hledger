@@ -224,9 +224,8 @@ msHandle ev = do
                 -- clickedname = maybe "" msItemScreenName item
                 mclickedscr  = msItemScreen <$> item
 
-            -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
-            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ (_mssList sst)^.listNameL) 1
+            -- when selection is at the last item, do nothing
+            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> return ()
               where mnextelement = listSelectedElement $ listMoveDown (_mssList sst)
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
