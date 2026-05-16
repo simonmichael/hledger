@@ -381,9 +381,11 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [(attrName "border", attr
 --  setTop (viewportScroll vpname) 0
 
 -- | Scroll a list's viewport so that the selected item is centered in the
--- middle of the display area.
-scrollSelectionToMiddle :: Brick.Widgets.List.List Name item -> EventM Name UIState ()
-scrollSelectionToMiddle list = do
+-- middle of the display area. When the selected item is near the end of the
+-- list, the viewport is capped so that no blank padding is visible below the
+-- last real item. numitems is the number of non-blank items in the list.
+scrollSelectionToMiddle :: Int -> Brick.Widgets.List.List Name item -> EventM Name UIState ()
+scrollSelectionToMiddle numitems list = do
   case list^.listSelectedL of
     Nothing -> return ()
     Just selectedrow -> do
@@ -392,7 +394,9 @@ scrollSelectionToMiddle list = do
       let
         itemheight   = dbg4 "itemheight" $ list^.listItemHeightL
         itemsperpage = dbg4 "itemsperpage" $ pageheight `div` itemheight
-        toprow       = dbg4 "toprow" $ max 0 (selectedrow - (itemsperpage `div` 2)) -- assuming ViewportScroll's row offset is measured in list items not screen rows
+        centeredtop  = selectedrow - (itemsperpage `div` 2)
+        maxtop       = numitems - itemsperpage
+        toprow       = dbg4 "toprow" $ max 0 (min centeredtop maxtop) -- assuming ViewportScroll's row offset is measured in list items not screen rows
       setTop (viewportScroll $ list^.listNameL) toprow
 
 --                 arrow keys       vi keys               emacs keys                 enter key

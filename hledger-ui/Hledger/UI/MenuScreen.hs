@@ -198,7 +198,7 @@ msHandle ev = do
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
 
-            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_mssList sst) >> redraw
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (msListSize $ _mssList sst) (_mssList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
             -- RIGHT enters selected screen if there is one
@@ -241,7 +241,7 @@ msHandle ev = do
               if isBlankElement $ listSelectedElement l
               then do
                 let l' = listMoveTo lastnonblankidx l
-                scrollSelectionToMiddle l'
+                scrollSelectionToMiddle (msListSize l') l'
                 put' ui{aScreen=MS sst{_mssList=l'}}
               else
                 put' ui{aScreen=MS sst{_mssList=l}}

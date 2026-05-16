@@ -209,7 +209,7 @@ asHandleNormalMode (ALS scons ass) ev = do
   let
     l = _assList ass
     selacct = asSelectedAccount ass
-    centerSelection = scrollSelectionToMiddle l
+    centerSelection = scrollSelectionToMiddle (asListSize l) l
     clickedAcctAt y =
       case asItemAccountName <$> listElements l !? y of
         Just t | not $ T.null t -> Just t
@@ -323,7 +323,7 @@ asHandleNormalMode (ALS scons ass) ev = do
       if isBlankItem $ listSelectedElement l1
       then do
         let l2 = listMoveTo lastnonblankidx l1
-        scrollSelectionToMiddle l2
+        scrollSelectionToMiddle (asListSize l2) l2
         put' ui{aScreen=scons ass{_assList=l2}}
       else
         put' ui{aScreen=scons ass{_assList=l1}}
