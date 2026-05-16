@@ -284,7 +284,7 @@ rsHandle sst@RSS{..} ev = do
             VtyEvent (EvKey (KRight)    [MShift]) -> put' $ regenerateScreens d $ nextReportPeriod journalspan ui
             VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens d $ previousReportPeriod journalspan ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens d $ resetFilter ui)
-            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _rssList >> redraw
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (rsListSize _rssList) _rssList >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
             -- exit screen on LEFT
@@ -323,7 +323,7 @@ rsHandle sst@RSS{..} ev = do
               if isBlankElement $ listSelectedElement l
               then do
                 let l' = listMoveTo lastnonblankidx l
-                scrollSelectionToMiddle l'
+                scrollSelectionToMiddle (rsListSize l') l'
                 put' ui{aScreen=RS sst{_rssList=l'}}
               else
                 put' ui{aScreen=RS sst{_rssList=l}}
@@ -352,7 +352,7 @@ rsSetAccount _ _ st = st
 -- No effect on other screens.
 rsCenterSelection :: UIState -> EventM Name UIState UIState
 rsCenterSelection ui@UIState{aScreen=RS sst} = do
-  scrollSelectionToMiddle $ _rssList sst
+  scrollSelectionToMiddle (rsListSize $ _rssList sst) (_rssList sst)
   return ui  -- ui is unchanged, but this makes the function more chainable
 rsCenterSelection ui = return ui
 
