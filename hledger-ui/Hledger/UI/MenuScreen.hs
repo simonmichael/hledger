@@ -198,7 +198,7 @@ msHandle ev = do
             VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
 
-            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (_mssList sst) >> redraw
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (msListSize $ _mssList sst) (_mssList sst) >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
             -- RIGHT enters selected screen if there is one
@@ -224,9 +224,8 @@ msHandle ev = do
                 -- clickedname = maybe "" msItemScreenName item
                 mclickedscr  = msItemScreen <$> item
 
-            -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
-            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ (_mssList sst)^.listNameL) 1
+            -- when selection is at the last item, do nothing
+            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> return ()
               where mnextelement = listSelectedElement $ listMoveDown (_mssList sst)
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
@@ -242,7 +241,7 @@ msHandle ev = do
               if isBlankElement $ listSelectedElement l
               then do
                 let l' = listMoveTo lastnonblankidx l
-                scrollSelectionToMiddle l'
+                scrollSelectionToMiddle (msListSize l') l'
                 put' ui{aScreen=MS sst{_mssList=l'}}
               else
                 put' ui{aScreen=MS sst{_mssList=l}}
