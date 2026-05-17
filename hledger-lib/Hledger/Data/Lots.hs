@@ -1553,10 +1553,13 @@ processAcquirePosting styles needsLabels txnDate t lotState p = do
             hasExplicitLotAcct = baseAcct /= paccount p
             expectedAcct = baseAcct <> ":" <> lotName
 
-        -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
-        when (hasExplicitLotAcct && paccount p /= expectedAcct) $
-          Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
-                  ++ " does not match the resolved lot " ++ T.unpack expectedAcct
+        -- If the user wrote an explicit lot subaccount, check that its parsed
+        -- CostBasis is compatible with the resolved lot's (ignoring harmless style differences).
+        when hasExplicitLotAcct $
+          case mergeCostBasis cb fullCb of
+            Right _ -> Right ()
+            Left _  -> Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
+                              ++ " does not match the resolved lot " ++ T.unpack expectedAcct
 
         when (M.member lotId existingLots) $
           Left $ showPos ++ "duplicate lot id: " ++ T.unpack lotName
@@ -1647,10 +1650,13 @@ processDisposePosting styles verbosetags j t lotState p = do
                   dispCb = lotCb{cbCost = Just disposalBasis}
                   lotName = showLotName (styleLotCbCost styles lotCb)
                   expectedAcct = baseAcct <> ":" <> lotName
-              -- If the user wrote an explicit lot subaccount, check it matches the resolved lot.
-              when (hasExplicitLotAcct && paccount p /= expectedAcct) $
-                Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
-                        ++ " does not match the resolved lot " ++ T.unpack expectedAcct
+              -- If the user wrote an explicit lot subaccount, check that its
+              -- parsed CostBasis is compatible with the resolved lot's (ignoring style differences).
+              when hasExplicitLotAcct $
+                case mergeCostBasis cb lotCb of
+                  Right _ -> Right ()
+                  Left _  -> Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
+                                    ++ " does not match the resolved lot " ++ T.unpack expectedAcct
               let acctWithLot = expectedAcct
                   -- Build the dispose amount: negative consumed quantity,
                   -- keeping the original amount's commodity, style, cost, and cost basis.
