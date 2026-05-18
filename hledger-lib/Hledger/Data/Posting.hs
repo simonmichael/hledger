@@ -102,7 +102,7 @@ import Data.Foldable (asum)
 import Data.Function ((&))
 import Data.Map qualified as M
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
-import Data.List (sort, union)
+import Data.List (sort)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -759,9 +759,16 @@ postingCommodities :: Posting -> [CommoditySymbol]
 postingCommodities = map acommodity . filter (not . isMissingAmount) . amountsRaw . pamount
   where isMissingAmount a = acommodity a == "AUTO"
 
+-- | Keep all tags from the first list, plus only those tags from the
+-- second list whose tag name has not already been set.
+tagsWithInherited :: [Tag] -> [Tag] -> [Tag]
+tagsWithInherited tags inheritedtags =
+  tags ++ filter ((`notElem` setnames) . fst) inheritedtags
+  where setnames = map fst tags
+
 -- | Tags for this posting including any inherited from its parent transaction.
 postingAllTags :: Posting -> [Tag]
-postingAllTags p = ptags p ++ maybe [] ttags (ptransaction p)
+postingAllTags p = ptags p `tagsWithInherited` maybe [] ttags (ptransaction p)
 
 -- | Tags for this transaction including any from its postings (which includes any from the postings' accounts).
 transactionAllTags :: Transaction -> [Tag]
@@ -789,7 +796,7 @@ postingApplyAliases aliases p@Posting{paccount} =
 -- | Add tags to a posting, discarding any for which the posting already has a value.
 -- Note this does not add tags to the posting's comment.
 postingAddTags :: Posting -> [Tag] -> Posting
-postingAddTags p@Posting{ptags} tags = p{ptags=ptags `union` tags}
+postingAddTags p@Posting{ptags} tags = p{ptags=ptags `tagsWithInherited` tags}
 
 -- | Add the given hidden tag to a posting; and with a true argument,
 -- also add the equivalent visible tag to the posting's tags and comment fields.
