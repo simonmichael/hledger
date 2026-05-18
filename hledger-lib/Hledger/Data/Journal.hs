@@ -1499,7 +1499,7 @@ pivotComponent fieldortagname p
   | fieldortagname == "payee",       Just t <- ptransaction p = transactionPayee t
   | fieldortagname == "note",        Just t <- ptransaction p = transactionNote t
   | fieldortagname == "status",      Just t <- ptransaction p = T.pack . show . tstatus $ t
-  | fieldortagname == "acct"        = paccount p
+  | fieldortagname `elem` acctnames = paccount p
   | fieldortagname `elem` commnames = case map acommodity $ amounts $ pamount p of [s] -> s; _ -> unknown
   | fieldortagname == "amt"         = case amounts $ pamount p of [a] -> T.pack $ show $ aquantity a; _ -> unknown
   | fieldortagname == "cost"        = case amounts $ pamount p of [a@Amount{acost=Just _}] -> T.pack $ lstrip $ showAmountCost a; _ -> unknown
@@ -1510,6 +1510,7 @@ pivotComponent fieldortagname p
   | otherwise = unknown
   where
     descnames = ["desc", "description"]   -- allow "description" for hledger <=1.30 compat
+    acctnames = ["acct", "account"]       -- allow either; acct is the query prefix, account is more natural
     commnames = ["cur","comm"]            -- allow either; cur is the query prefix, comm is more consistent
     unknown   = ""
 

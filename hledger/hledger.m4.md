@@ -5975,7 +5975,7 @@ Normally, hledger groups amounts and displays their totals by account (name).
 With `--pivot PIVOTEXPR`, some other field's (or multiple fields') value is used as a synthetic account name, causing different grouping and display.
 PIVOTEXPR can be 
 
-- any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`, `payee`, `note`, `acct`, `comm`/`cur`, `amt`, `cost`
+- any of these standard transaction or posting fields (their value is substituted): `status`, `code`, `desc`/`description`, `payee`, `note`, `acct`/`account`, `comm`/`cur`, `amt`, `cost`
 - or a tag name
 - or any combination of these, colon-separated.
 
