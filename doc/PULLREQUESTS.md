@@ -1,6 +1,6 @@
 # Pull requests
 
-Shortcut urls:
+Shortcut urls for browsing PRs:
 
 - <http://prs.hledger.org>
 - <http://draftprs.hledger.org>
@@ -8,16 +8,15 @@ Shortcut urls:
 - <http://assignedprs.hledger.org>
 - <http://unassignedprs.hledger.org>
 
-<!--
-Misc. PR queries:
-
-- ...
--->
-
-
 Most contributed hledger code (and some of the project maintainer's code)
 is submitted and reviewed via Github pull requests.
 Here are some tips for contributing PRs to hledger.
+
+## AI assistance
+
+Before submitting an AI-assisted PR, please read the Rules in our [AI](AI.md) policy.
+Among other things, you'll need to disclose the provider(s) and an estimate of usage.
+Note that currently we prefer not to accept work done with OpenAI tools.
 
 ## Code review is important
 
@@ -89,6 +88,8 @@ We like to use some conventions in commit messages when it makes sense. These ar
 - prepend a semicolon (`;`) to indicate commits that 
   - need not trigger a CI workflows, reducing wasteful carbon emissions
   - and probably need not be mentioned in changelogs/release notes
+
+More detail: [COMMITS](COMMITS.md)
 
 ## The docs
 
