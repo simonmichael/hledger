@@ -53,19 +53,20 @@ Here are our current policies for AI use in hledger.
 
 4. We aim to increase quality and maintainability, not decrease them.
 
-5. The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
+5. The human committer is responsible for everything in their commits.
 
-6. The human committer is responsible for everything in their commits.
+6. The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
 
 7. PRs require human review; if they are hard to review, they don't get merged, as always.
 
 8. We want to use only the more principled/trustworthy/sustainable tools and providers.
-  Currently this means we try to use only Anthropic, Ecosia, local LLMs, and such.
-  We'll review/update the list periodically.
+  Currently this means we try to use only Anthropic, Ecosia, local LLMs, and such, and we avoid OpenAI.
+  We'll review/update the list when needed.
 
-9. We try to keep track of, optimise, and limit our AI resource usage (measured by output tokens, eg).
-  We ask contributors to note, eg in a commit message, a rough estimate of output tokens used or
-  time spent interacting with/running AI, and with which providers/models. See also "Measuring usage" below.
+9. We track, optimise, and limit our AI resource usage as a project.
+  When there is (non-trivial) AI usage, contributors should disclose, eg in a commit message,
+  which providers/models were used, and a rough estimate of the output tokens, or time spent interacting with/running AI.
+  See also "Measuring usage" below.
 
 10. We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
 
