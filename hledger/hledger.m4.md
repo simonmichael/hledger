@@ -2111,7 +2111,7 @@ For example, you could tag trip-related transactions with `trip: YEAR:PLACE`, wi
 
 ### Tag names
 
-What is allowed in a tag name ? Most non-whitespace characters. Eg `😀:` is a valid tag.
+What is allowed in a tag name ? Any sequence of non-whitespace non-newline characters. Eg `😀:` is a valid tag.
 
 For extra error checking, you can declare valid tag names with the [`tag` directive](#tag-directive),
 and then enforce these with the [`check` command](#check).
@@ -2142,6 +2142,13 @@ They are explained elsewhere, but here's a quick reference:
 The second group above (generated-transaction, etc.) are normally hidden, with a `_` prefix added.
 This means `print` doesn't show them by default; but you can still use them in queries.
 You can add the `--verbose-tags` flag to make them visible in `print` output, which can be useful for troubleshooting.
+
+### Tag values
+
+What is allowed in a tag value ? Any sequence of non-comma non-newline characters, with surrounding whitespace removed.
+
+Note a tag can have multiple values, if the tag is repeated.
+Eg `; foo:a, foo:b`.
 
 
 ## Directives
