@@ -210,6 +210,7 @@ Discussions
   - [The Closing of the Frontier](https://tanyaverma.sh/2026/04/10/closing-of-the-frontier.html) ([discussion](https://news.ycombinator.com/item?id=47742790))
   - [The Wonders of AI: We Are Retiring Our Bug Bounty Program](https://turso.tech/blog/the-wonders-of-ai) ([discussion](https://news.ycombinator.com/item?id=48148391))
   - https://news.ycombinator.com/item?id=48142553 Have a Coherent AI Policy
+  - https://github.com/rust-lang/rust-forge/pull/1040 Add an LLM policy for rust-lang/rust
 
 Policies
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
