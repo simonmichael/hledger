@@ -81,7 +81,7 @@ import Safe (atMay, headMay, lastMay, readMay)
 import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, removeFile)
 -- import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
 import System.Exit      (ExitCode(..))
-import System.FilePath (stripExtension, takeBaseName, takeDirectory, takeExtension, takeFileName, (<.>), (</>))
+import System.FilePath (stripExtension, takeBaseName, takeDirectory, takeExtension, (<.>), (</>))
 import System.IO       (Handle, hClose, hPutStrLn, stderr, hGetContents')
 import System.Process  (CreateProcess(..), StdStream(CreatePipe), shell, waitForProcess, withCreateProcess)
 import Data.Foldable (asum, toList)
@@ -110,8 +110,6 @@ reader = Reader
   ,rParser     = const $ fail "sorry, rules files can't be included yet"
   }
 
-isFileName f = takeFileName f == f
-
 getDownloadDir = do
   home <- getHomeDirectory
   return $ home </> "Downloads"  -- XXX
@@ -119,13 +117,17 @@ getDownloadDir = do
 -- | Read, parse and post-process a "Journal" from the given rules file, or give an error.
 -- This particular reader also provides some extra features like data cleaning/generating commands and data archiving.
 --
--- The provided input file handle, and the --rules option, are ignored by this reader.
--- Instead, a data file (or data-generating command) is usually specified by the @source@ rule.
--- If there's no source rule, the data file is assumed to be named like the rules file without .rules, in the same directory.
+-- Unlike CsvReader, this reader ignores the provided input file handle (and the --rules option).
+-- Instead, it reads a data file (or data-generating command) specified by the @source@ rule,
+-- or if there is no @source@ rule, it raises an error.
 --
--- The source rule supports ~ for home directory: @source ~/Downloads/foo.csv@.
--- If the argument is a bare filename, its directory is assumed to be ~/Downloads: @source foo.csv@.
--- Otherwise if it is a relative path, it is assumed to be relative to the rules file's directory: @source new/foo.csv@.
+-- The source rule supports ~ for home directory and absolute paths: @source ~/Downloads/foo.csv@, @source /abs/path/foo.csv@.
+-- Other paths (bare filenames or relative paths with a directory component) are
+-- looked for in the data directory first, otherwise in @~/Downloads@:
+-- eg @source foo.csv@, @source sub/foo.csv@.
+-- The data directory is the same one used by the @archive@ rule and the @gettxns@ command.
+-- By default it is @data/@ next to the main input file.
+-- When the input file's directory is unknown, eg when reading from stdin, the data directory is @data/@ next to the rules file.
 --
 -- The source rule can specify a glob pattern: @source foo*.csv@.
 -- If the glob pattern matches multiple files, the newest (last modified) file is used (with one exception, described below).
@@ -139,11 +141,11 @@ getDownloadDir = do
 -- In this case the command receives no input; it should output CSV data suitable for the conversion rules.
 --
 -- If the archive rule is present:
--- After successfully reading the data file or data command and converting to a journal, while doing a non-dry-run import:
--- the data will be archived in an auto-created data/ directory next to the rules file,
--- with a name based on the rules file and the data file's modification date and extension
--- (or for a data-generating command, the current date and the ".csv" extension).
--- And import will prefer the oldest file matched by a glob pattern (not the newest).
+-- 1. After successfully reading the data file or data command and converting to a journal, while doing a non-dry-run import:
+-- the data will be archived in the data directory (see above), auto-creating that directory if needed.
+-- The archive file name will be based on the rules file and the data file's modification date and extension
+-- (or when the source is a data-generating command: the current date and the ".csv" extension).
+-- 2. import will prefer the oldest file matched by a glob pattern (not the newest).
 --
 -- Balance assertions are not checked by this reader.
 --
@@ -160,7 +162,6 @@ parse iopts rulesfile h = do
     args     = progArgs
     import_  = dbg2 "import" $ any (`elem` args) ["import", "imp"]
     dryrun   = dbg2 "dryrun" $ any (`elem` args) ["--dry-run", "--dry"]
-    rulesdir = takeDirectory rulesfile
 
   -- 2. parse the source and archive rules
   --  needs: rules file
@@ -189,27 +190,36 @@ parse iopts rulesfile h = do
     archive = isJust (getDirective "archive" rules)
 
   -- 3. find the file to be read, if any
-  --  needs: file pattern, data command, import flag, archive flag, downloads dir
+  --  needs: file pattern, data command, import flag, archive flag, data dir, downloads dir
   --  gives: data file, data file description
+
+  -- The data/ directory lives next to the main journal file.
+  -- This is the same directory used by gettxns and by the archive rule below.
+  let
+    journaldir = fromMaybe (takeDirectory rulesfile) $ _journaldir iopts
+    datadir    = journaldir </> dataDirName
 
   (mdatafile, datafiledesc) <- dbg2 "data file found ?" <$> case (mpat, mcmd) of
     (Nothing, Nothing) -> error' $ "to make " ++ rulesfile ++ " readable,\n please add a 'source' rule with a non-empty file pattern or command"
     (Nothing, Just _) -> return (Nothing, "")
     (Just pat, _) -> do
-      dldir <- liftIO getDownloadDir  -- look here for the data file if it's specified without a directory
-      let
-        (startdir, dirdesc)
-          | isFileName pat = (dldir,    " in download directory")
-          | otherwise      = (rulesdir, "")
-      fs <- liftIO $
-        expandGlob startdir pat
-        >>= sortByModTime
-        <&> dbg2 ("matched files"<>dirdesc<>", oldest first")
+      dldir <- liftIO getDownloadDir
+      -- Relative paths are resolved under the data directory; absolute and ~-prefixed
+      -- paths are used as-is. Only relative paths get the ~/Downloads fallback.
+      let isrelativepat = case pat of ('/':_) -> False; ('~':_) -> False; _ -> True
+      (fs, dirdesc) <- liftIO $ do
+        datafs <- expandGlob datadir pat >>= sortByModTime
+        if not (null datafs) || not isrelativepat
+          then return (datafs, " in data directory")
+          else do
+            dlfs <- expandGlob dldir pat >>= sortByModTime
+            return (dlfs, " in download directory")
+      let fs' = dbg2 ("matched files"<>dirdesc<>", oldest first") fs
       return $
         if import_ && archive
-        then (headMay fs, " oldest file")
-        else (lastMay fs, " newest file")
-    
+        then (headMay fs', " oldest file")
+        else (lastMay fs', " newest file")
+
   -- 4. log which file we are reading/importing/cleaning/generating
   --  needs: data file, data file description, import flag
 
@@ -265,7 +275,7 @@ parse iopts rulesfile h = do
   --  needs: import/archive/dryrun flags, rules directory, rules file, data file if any, clean data
 
   when (not (T.null cleandata) && import_ && archive && not dryrun) $
-    liftIO $ saveToArchive (rulesdir </> "data") rulesfile mdatafile cleandata
+    liftIO $ saveToArchive datadir rulesfile mdatafile cleandata
 
   return j
 

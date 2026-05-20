@@ -33,7 +33,7 @@ where
 import Control.Monad.Except (ExceptT)
 import Control.Monad.IO.Class (liftIO)
 import Data.List
-import Data.List.NonEmpty qualified as NE (toList)
+import Data.List.NonEmpty qualified as NE (head, toList)
 import Data.Maybe
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -75,7 +75,8 @@ withJournal opts cmd = do
   -- it's stdin, or it doesn't exist and we are adding. We read it strictly
   -- to let the add command work.
   journalpaths <- journalFilePathFromOpts opts
-  j <- runExceptT $ journalTransform opts <$> readJournalFiles (inputopts_ opts) (NE.toList journalpaths)
+  let iopts = (inputopts_ opts){_journaldir = Just (takeDirectory (NE.head journalpaths))}
+  j <- runExceptT $ journalTransform opts <$> readJournalFiles iopts (NE.toList journalpaths)
   either error' cmd j  -- PARTIAL:
 
 {-# DEPRECATED withJournalDo "renamed, please use withJournal instead" #-}
@@ -91,7 +92,8 @@ withPossibleJournal opts cmd = do
   fs <- case journalpaths of
     Just paths -> return $ NE.toList paths
     Nothing -> (:[]) <$> defaultJournalPath
-  j <- runExceptT $ journalTransform opts <$> readPossibleJournalFiles (inputopts_ opts) fs
+  let iopts = (inputopts_ opts){_journaldir = takeDirectory <$> headMay fs}
+  j <- runExceptT $ journalTransform opts <$> readPossibleJournalFiles iopts fs
   either error' cmd j  -- PARTIAL:
 
 -- | Apply some journal transformations, if enabled by options, that should happen late.
@@ -209,7 +211,8 @@ journalReloadIfChanged opts _d j = do
 journalReload :: CliOpts -> ExceptT String IO Journal
 journalReload opts = do
   journalpaths <- liftIO $ dbg6 "reloading files" <$> journalFilePathFromOpts opts
-  journalTransform opts <$> readJournalFiles (inputopts_ opts) (NE.toList journalpaths)
+  let iopts = (inputopts_ opts){_journaldir = Just (takeDirectory (NE.head journalpaths))}
+  journalTransform opts <$> readJournalFiles iopts (NE.toList journalpaths)
 
 -- | Has the specified file changed since the journal was last read ?
 -- Typically this is one of the journal's journalFilePaths. These are

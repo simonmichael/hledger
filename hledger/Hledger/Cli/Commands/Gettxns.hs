@@ -40,9 +40,6 @@ gettxnsmode = hledgerCommandMode
 scriptName :: FilePath
 scriptName = "gettxns_"
 
-dataDirName :: FilePath
-dataDirName = "data"
-
 -- | Like 'warn' but throws away the trailing-action argument; for the common
 -- "log a warning, then continue" pattern.
 warn_ :: String -> IO ()

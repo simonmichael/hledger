@@ -45,6 +45,9 @@ data InputOpts = InputOpts {
     ,_defer             :: Bool                 -- ^ internal flag: postpone checks, because we are processing multiple files ?
     ,_ioDay             :: Day                  -- ^ today's date, for use with forecast transactions  XXX this duplicates _rsDay, and should eventually be removed when it's not needed anymore.
     ,_oldtimeclock      :: Bool                 -- ^ parse with the old timeclock pairing rules?
+    ,_journaldir        :: Maybe FilePath       -- ^ The journal's data directory (@data/@ next to the main input file). Used by the get command and csv source/archive rules, eg.
+                                                --   Set by the CLI entry points 'withJournal', 'withPossibleJournal', and 'journalReload'.
+                                                --   Library callers reading CSV via a rules file should set this explicitly to the main journal's directory, or the rules file's directory will be used.
  } deriving (Eq, Ord, Show)
 
 definputopts :: InputOpts
@@ -68,6 +71,7 @@ definputopts = InputOpts
     , _defer             = False
     , _ioDay             = nulldate
     , _oldtimeclock      = False
+    , _journaldir        = Nothing
     }
 
 -- | Get the Maybe the DateSpan to generate forecast options from.

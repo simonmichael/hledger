@@ -1,7 +1,7 @@
 # * CSV encoding tests
 
 # ** 1. The encoding rule works when reading the csv file as input.
-$ hledger -f t.iso8859-1.csv print
+$ hledger -f data/t.iso8859-1.csv print
 2025-01-01 éclair
     expenses:unknown                               1
     income:unknown                                -1
