@@ -69,6 +69,13 @@ unsupportedOutputFormatError fmt = "Sorry, output format \""++fmt++"\" is unreco
 -- | Parse the user's specified journal file(s) as a Journal, maybe apply some
 -- transformations according to options, and run a hledger command with it.
 -- Or, throw an error.
+--
+-- Sets 'InputOpts._journaldir' on the iopts used for this read, so CSV
+-- @source@/@archive@ rules find the journal's @data/@ directory. If the
+-- callback subsequently performs another 'readJournalFile' / 'readJournalFiles'
+-- call (eg in the @import@ command), it should apply 'inputOptsSetJournalDir'
+-- to those iopts using the loaded journal — the local @opts.inputopts_@ does
+-- not yet carry @_journaldir@ at the call site here.
 withJournal :: CliOpts -> (Journal -> IO a) -> IO a
 withJournal opts cmd = do
   -- We kludgily read the file before parsing to grab the full text, unless
@@ -86,6 +93,8 @@ withJournalDo = withJournal
 -- journal with that file path set. This is useful for commands like add and import
 -- that need to work with a potentially non-existent first journal file,
 -- while still reading all specified files (for completions, etc).
+--
+-- See 'withJournal' for the note about 'inputOptsSetJournalDir' and secondary reads.
 withPossibleJournal :: CliOpts -> (Journal -> IO a) -> IO a
 withPossibleJournal opts cmd = do
   journalpaths <- journalFilePathFromOptsNoDefault opts
@@ -208,6 +217,10 @@ journalReloadIfChanged opts _d j = do
 -- | Re-read the journal file(s) specified by options, applying any
 -- transformations specified by options. Or return an error string.
 -- Reads the full journal, without filtering.
+--
+-- Sets 'InputOpts._journaldir' on the iopts used for this read. Callers that
+-- subsequently do another 'readJournalFile' / 'readJournalFiles' call should
+-- apply 'inputOptsSetJournalDir' to those iopts (see 'withJournal').
 journalReload :: CliOpts -> ExceptT String IO Journal
 journalReload opts = do
   journalpaths <- liftIO $ dbg6 "reloading files" <$> journalFilePathFromOpts opts
