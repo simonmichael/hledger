@@ -18,10 +18,11 @@ or if there are no postings, "USD".
 
 Then for each other commodity in the journal, it fetches daily market prices in the base currency,
 from that commodity's earliest transaction until today.
-It uses a `getprices_` helper script in PATH (described below).
+It uses a `getprices_` helper script (described below),
+in a `prices/` directory next to the main journal file or in PATH.
 
 Then each commodity's prices are saved, merging them with previously saved prices if any.
-By default they are saved in `prices/<COMM>.prices` files next to the main journal file.
+By default they are saved in `prices/<COMM>.prices` files.
 Or with `-o FILE`, they are saved into a single file of your choice.
 Or with `-o -`, they are printed on stdout.
 
@@ -48,6 +49,8 @@ It may become optional in future, but for now it's required.
 
 You can find a [getprices_](https://github.com/simonmichael/hledger/blob/master/bin/getprices_) script 
 in the hledger repo's bin directory.
+You can install it on PATH, or place a (possibly customised) copy in a `prices/` directory next to your journal file;
+the local copy takes precedence.
 It uses the third party [pricehist](https://github.com/chrisberkhout/pricehist) tool, which you can install with eg `uv tool install pricehist`.
 You might also want to set up price provider API keys in your environment.
 Providers may limit the commodity pairs, history, or number of requests unless you have a paid API key.

@@ -89,18 +89,23 @@ getprices CliOpts{rawopts_=rawopts} j = do
     moutput = case stringopt "output" rawopts of
                 "" -> Nothing
                 s  -> Just s
+    dir         = takeDirectory (journalFilePath j)
+    localScript = dir </> "prices" </> scriptName
     notFound = error' $ unlines
-      [scriptName <> " was not found on PATH."
+      [scriptName <> " was not found in JOURNALDIR/prices/ or in PATH."
       ,"Please install bin/" <> scriptName <> " from the hledger source tree,"
-      ,"or your own script, in $PATH."
+      ,"or your own script, in your prices/ directory or in $PATH."
       ]
   script <- if dryRun
               then return scriptName
-              else findExecutable scriptName >>= maybe notFound return
+              else do
+                localExists <- doesFileExist localScript
+                if localExists
+                  then return localScript
+                  else findExecutable scriptName >>= maybe notFound return
   today <- getCurrentDay
   let
     base      = journalBaseCurrencyCode j
-    dir       = takeDirectory (journalFilePath j)
     -- Per-code (start, end) date span, computed in one pass over postings.
     commspans = commodityDateSpansByCode (journalPostings j)
     -- Normalise journal commodities to ISO codes / tickers, drop the base
