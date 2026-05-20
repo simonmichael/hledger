@@ -22,7 +22,7 @@ module Hledger.Cli.Commands.Get (
 ) where
 
 import Control.Exception (IOException, try)
-import Control.Monad (unless, (>=>))
+import Control.Monad (unless, when, (>=>))
 import Data.List (nub, sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
@@ -51,7 +51,9 @@ import Hledger.Cli.CliOptions
 -- | Command line options for this command.
 getmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Get.txt")
-  [flagNone ["dry-run"] (setboolopt "dry-run") "just print the commands that would be run"
+  [flagNone ["transactions","t"] (setboolopt "transactions") "fetch transactions"
+  ,flagNone ["prices","p"]       (setboolopt "prices")       "fetch prices"
+  ,flagNone ["dry-run"] (setboolopt "dry-run") "just print the commands that would be run"
   -- The -o/--output flag is disabled for now: it only meaningfully applies
   -- to the prices phase, which is awkward in the combined command.
   -- The supporting code paths below are preserved so this can be re-enabled
@@ -63,11 +65,16 @@ getmode = hledgerCommandMode
   hiddenflags
   ([], Nothing)
 
--- | The get command. Runs the data phase, then the prices phase.
+-- | The get command. By default runs both phases (data then prices);
+-- with -t/--transactions or -p/--prices, runs only the selected phase(s).
 get :: CliOpts -> Journal -> IO ()
-get opts j = do
-  fetchData opts j
-  fetchPrices opts j
+get opts@CliOpts{rawopts_=rawopts} j = do
+  let
+    txns    = boolopt "transactions" rawopts
+    prices  = boolopt "prices" rawopts
+    noflags = not txns && not prices
+  when (txns   || noflags) $ fetchData opts j
+  when (prices || noflags) $ fetchPrices opts j
 
 -- | Like 'warn' but throws away the trailing-action argument; for the common
 -- "log a warning, then continue" pattern.

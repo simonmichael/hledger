@@ -5,10 +5,14 @@ by running helper scripts in journal-relative `data/` and `prices/` directories.
 
 ```flags
 Flags:
+  -t --transactions         fetch transactions
+  -p --prices               fetch prices
      --dry-run              just print the commands that would be run
 ```
 
-This command runs two phases in order.
+By default, this command runs two phases in order: transactions, then prices.
+With `-t/--transactions` or `-p/--prices`, only the selected phase(s) run.
+(Pass both flags to explicitly request both, equivalent to the default.)
 
 ### Phase 1: transactions data
 
