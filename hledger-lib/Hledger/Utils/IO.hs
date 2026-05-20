@@ -36,6 +36,7 @@ module Hledger.Utils.IO (
 
   -- * Files
   dataDirName,
+  rulesDirName,
   getHomeSafe,
   embedFileRelative,
   expandHomePath,
@@ -431,6 +432,12 @@ expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHome
 -- and where the CSV archive rule saves imported files.
 dataDirName :: FilePath
 dataDirName = "data"
+
+-- | The name of the rules directory used by `hledger import`
+-- (located next to the main journal file).
+-- This is where import looks for .rules files when invoked with no arguments.
+rulesDirName :: FilePath
+rulesDirName = "rules"
 
 -- | Like @expandPath@, but treats the expanded path as a glob, and returns
 -- zero or more matched absolute file paths, alphabetically sorted.

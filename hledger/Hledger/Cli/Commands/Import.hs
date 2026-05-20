@@ -19,8 +19,9 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
 import Hledger.Cli.Commands.Print (layoutFlag, layoutFromRawOpts)
+import System.Directory (doesDirectoryExist, listDirectory)
 import System.IO (stderr)
-import System.FilePath (takeFileName)
+import System.FilePath (takeDirectory, takeFileName, (</>))
 
 importmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Import.txt")
@@ -35,8 +36,8 @@ importmode = hledgerCommandMode
 importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   -- XXX could be helpful to show the last-seen date, and number of old transactions, too
   let
-    inputfiles = listofstringopt "args" rawopts
-    inputstr = intercalate ", " $ map (quoteIfNeeded.takeFileName) inputfiles
+    argfiles = listofstringopt "args" rawopts
+    rulesdir = takeDirectory (journalFilePath j) </> rulesDirName
     catchup = boolopt "catchup" rawopts
     dryrun = boolopt "dry-run" rawopts
     postinglayout = layoutFromRawOpts rawopts
@@ -56,8 +57,15 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
       balancingopts_=defbalancingopts{commodity_styles_= combinedStyles}  -- use amount styles from both when balancing txns
       }
 
+  inputfiles <- case argfiles of
+    [] -> discoverRulesFiles rulesdir
+    fs -> return fs
+  let inputstr = intercalate ", " $ map (quoteIfNeeded.takeFileName) inputfiles
+
   case inputfiles of
-    [] -> error' "please provide one or more data files as arguments"  -- PARTIAL:
+    [] -> error' $  -- PARTIAL:
+      "please provide one or more data files as arguments, "
+      ++ "or add .rules files to " ++ rulesdir ++ "/"
     fs -> do
       enewjandlatestdatesforfiles <- runExceptT $ readJournalFilesAndLatestDates iopts' fs
       case enewjandlatestdatesforfiles of
@@ -102,3 +110,18 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
                 -- add the new transactions to the journal in memory and check the whole thing
                 strictChecks = either fail pure $ journalStrictChecks j'
                   where j' = foldl' (flip addTransaction) j newts
+
+-- | List the .rules files in the given directory, in alphabetical order,
+-- skipping files whose name begins with '.' (hidden) or '_'
+-- (disabled, or shared rules included by others).
+-- Returns an empty list if the directory does not exist.
+discoverRulesFiles :: FilePath -> IO [FilePath]
+discoverRulesFiles dir = do
+  exists <- doesDirectoryExist dir
+  if not exists
+    then return []
+    else do
+      names <- listDirectory dir
+      return $ sort [ dir </> n | n <- names
+                                , ".rules" `isSuffixOf` n
+                                , not (any (`isPrefixOf` n) [".", "_"]) ]
