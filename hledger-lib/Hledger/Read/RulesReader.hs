@@ -125,7 +125,7 @@ getDownloadDir = do
 -- Other paths (bare filenames or relative paths with a directory component) are
 -- looked for in the data directory first, otherwise in @~/Downloads@:
 -- eg @source foo.csv@, @source sub/foo.csv@.
--- The data directory is the same one used by the @archive@ rule and the @gettxns@ command.
+-- The data directory is the same one used by the @archive@ rule and the @get@ command.
 -- By default it is @data/@ next to the main input file.
 -- When the input file's directory is unknown, eg when reading from stdin, the data directory is @data/@ next to the rules file.
 --
@@ -194,7 +194,7 @@ parse iopts rulesfile h = do
   --  gives: data file, data file description
 
   -- The data/ directory lives next to the main journal file.
-  -- This is the same directory used by gettxns and by the archive rule below.
+  -- This is the same directory used by the get command and by the archive rule below.
   let
     journaldir = fromMaybe (takeDirectory rulesfile) $ _journaldir iopts
     datadir    = journaldir </> dataDirName

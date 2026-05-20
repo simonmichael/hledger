@@ -426,7 +426,7 @@ expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHome
 
 -- | The name of the data directory used by hledger commands and rules that
 -- read or write CSV files (located next to the main journal file).
--- This is where the gettxns command saves downloaded files,
+-- This is where the get command saves downloaded transactions data,
 -- where the CSV source rule looks for input files,
 -- and where the CSV archive rule saves imported files.
 dataDirName :: FilePath

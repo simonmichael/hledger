@@ -39,8 +39,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Demo
   ,module Hledger.Cli.Commands.Descriptions
   ,module Hledger.Cli.Commands.Diff
-  ,module Hledger.Cli.Commands.Getprices
-  ,module Hledger.Cli.Commands.Gettxns
+  ,module Hledger.Cli.Commands.Get
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
@@ -91,8 +90,7 @@ import Hledger.Cli.Commands.Demo
 import Hledger.Cli.Commands.Descriptions
 import Hledger.Cli.Commands.Diff
 import Hledger.Cli.Commands.Files
-import Hledger.Cli.Commands.Getprices
-import Hledger.Cli.Commands.Gettxns
+import Hledger.Cli.Commands.Get
 import Hledger.Cli.Commands.Help
 import Hledger.Cli.Commands.Import
 import Hledger.Cli.Commands.Incomestatement
@@ -132,8 +130,7 @@ builtinCommands = [
   ,(descriptionsmode       , descriptions)
   ,(diffmode               , diff)
   ,(filesmode              , files)
-  ,(getpricesmode          , getprices)
-  ,(gettxnsmode            , gettxns)
+  ,(getmode                , get)
   ,(helpmode               , help')
   ,(importmode             , importcmd)
   ,(incomestatementmode    , incomestatement)
@@ -288,8 +285,7 @@ commandsList progversion othercmds =
   ,bold' "GENERATING DATA (generate or download journal entries; less common)"
   ,"+autosync                 download/deduplicate/show OFX data as transactions"    -- ledger-autosync
   ," close                    generate transactions to zero/restore/assert balances"
-  ," getprices                fetch market prices for journal commodities"
-  ," gettxns                  fetch transaction data via a gettxns_ helper"
+  ," get                      fetch transactions then market prices via helper scripts"
   ,"+interest                 generate transactions transferring accrued interest"   -- hledger-interest
   ,"+lots sell                generate a lot-selling transaction"                    -- hledger-lots
   ,"+pricehist                download historical market prices"                     -- pricehist

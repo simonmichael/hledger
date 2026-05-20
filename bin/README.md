@@ -32,10 +32,16 @@ except possibly hledger-ui and hledger-web, which can be nice to have at the sta
 Here are some scripts which don't use hledger directly, but might be useful to hledger users.
 (For more, see also: [plaintextaccounting.org > Software](https://plaintextaccounting.org#software)).
 
-### getprices_
+### getdata
 
-[getprices_](https://github.com/simonmichael/hledger/blob/main/bin/getprices_)
-is a helper for hledger's getprices command. You can also run it yourself.
+[getdata](https://github.com/simonmichael/hledger/blob/main/bin/getdata)
+is a helper for hledger's `get` command's data phase. You can also run it yourself.
+Customise it to download bank/brokerage statements (CSV/OFX/etc.) into the working directory.
+
+### getprices
+
+[getprices](https://github.com/simonmichael/hledger/blob/main/bin/getprices)
+is a helper for hledger's `get` command's prices phase. You can also run it yourself.
 It is a simple, customisable front end for price-fetching tools like pricehist.
 
 ### ledgereval
