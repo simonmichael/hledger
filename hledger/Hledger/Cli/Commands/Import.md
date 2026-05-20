@@ -30,6 +30,30 @@ $ hledger import bank1-checking.csv bank1-savings.csv
 $ hledger import *.csv
 ```
 
+### Default rules directory
+
+If `import` is run with no file arguments, it looks in the journal's
+`rules/` directory (next to the main journal file) and imports from every
+`.rules` file found there, in alphabetical order.
+Files whose name begins with `.` or `_` are skipped:
+the `_` prefix is for rules files that are either disabled,
+or shared/common rules `include`d by other rules files and not meant to be read directly.
+
+So a typical setup might be:
+
+```
+~/finance/2026.journal
+~/finance/rules/bank1-checking.rules
+~/finance/rules/bank1-savings.rules
+~/finance/rules/_common.rules       # included by others, not read directly
+~/finance/rules/_brokerage.rules    # disabled
+```
+
+and `hledger import` reads `bank1-checking.rules` then `bank1-savings.rules`.
+
+If the `rules/` directory does not exist or contains no usable `.rules` files,
+import reports an error.
+
 ### Import dry run
 
 It's useful to preview the import by running first with `--dry-run`,
