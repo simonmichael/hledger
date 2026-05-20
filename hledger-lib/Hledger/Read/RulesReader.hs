@@ -147,7 +147,8 @@ getDownloadDir = do
 --
 -- If the archive rule is present:
 -- 1. After successfully reading the data file or data command and converting to a journal, while doing a non-dry-run import:
--- the data will be archived in the data directory (see above), auto-creating that directory if needed.
+-- the data will be archived in an @archive/@ subdirectory of the data directory (see above), auto-creating it if needed.
+-- (The subdirectory keeps archived files out of sight of the source rule's glob, which might otherwise re-match them.)
 -- The archive file name will be based on the rules file and the data file's modification date and extension
 -- (or when the source is a data-generating command: the current date and the ".csv" extension).
 -- 2. import will prefer the oldest file matched by a glob pattern (not the newest).
@@ -280,7 +281,7 @@ parse iopts rulesfile h = do
   --  needs: import/archive/dryrun flags, rules directory, rules file, data file if any, clean data
 
   when (not (T.null cleandata) && import_ && archive && not dryrun) $
-    liftIO $ saveToArchive datadir rulesfile mdatafile cleandata
+    liftIO $ saveToArchive (datadir </> "archive") rulesfile mdatafile cleandata
 
   return j
 
