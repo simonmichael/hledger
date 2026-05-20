@@ -1,9 +1,13 @@
 {-|
 
-The @getprices@ command fetches market prices for the commodities used in
-the journal, by calling the bin/getprices_ shell script (which dispatches
-to pricehist or similar tools) once per commodity. Output is saved to
-P<COMM>.prices files in the same directory as the main journal file.
+The @get@ command fetches data for the journal:
+
+1. Transactions, by running a @getdata@ helper script in the journal's
+   @data/@ directory (creating the directory if missing).
+2. Market prices, by running a @getprices@ helper script in the journal's
+   @prices/@ directory (creating the directory if missing).
+
+Each phase is skipped (with a notice) when its helper is not present.
 
 -}
 
@@ -12,9 +16,9 @@ P<COMM>.prices files in the same directory as the main journal file.
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell     #-}
 
-module Hledger.Cli.Commands.Getprices (
-  getpricesmode
- ,getprices
+module Hledger.Cli.Commands.Get (
+  getmode
+ ,get
 ) where
 
 import Control.Exception (IOException, try)
@@ -30,42 +34,101 @@ import Data.Text qualified as T
 import Data.Text.IO qualified as T
 import Data.Time.Calendar (Day)
 import System.Console.CmdArgs.Explicit
-import System.Directory (createDirectoryIfMissing, doesFileExist, findExecutable)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.Exit (ExitCode(..))
 import System.FilePath (takeDirectory, (</>))
 import System.IO (hPutStr, hPutStrLn, stderr)
-import System.Process (proc, readCreateProcessWithExitCode)
+import System.Process (cwd, proc, readCreateProcessWithExitCode)
 
 import Hledger
 import Hledger.Cli.CliOptions
 
 
+-- ====================================================================
+-- 1. Command entry point
+-- ====================================================================
+
 -- | Command line options for this command.
-getpricesmode = hledgerCommandMode
-  $(embedFileRelative "Hledger/Cli/Commands/Getprices.txt")
+getmode = hledgerCommandMode
+  $(embedFileRelative "Hledger/Cli/Commands/Get.txt")
   [flagNone ["dry-run"] (setboolopt "dry-run") "just print the commands that would be run"
-  ,flagReq  ["output","o"] (\s opts -> Right $ setopt "output" s opts) "FILE"
-     "write all prices to FILE (or - for stdout) instead of per-commodity P<COMM>.prices files"
+  -- The -o/--output flag is disabled for now: it only meaningfully applies
+  -- to the prices phase, which is awkward in the combined command.
+  -- The supporting code paths below are preserved so this can be re-enabled
+  -- easily later.
+  -- ,flagReq  ["output","o"] (\s opts -> Right $ setopt "output" s opts) "FILE"
+  --    "write all prices to FILE (or - for stdout) instead of per-commodity prices/<COMM>.prices files"
   ]
   cligeneralflagsgroups2
   hiddenflags
   ([], Nothing)
 
-scriptName :: FilePath
-scriptName = "getprices_"
-
--- | The path of the per-commodity prices file in 'dir' for the given code.
-pricesFileFor :: FilePath -> CurrencyCode -> FilePath
-pricesFileFor dir code = dir </> "prices" </> T.unpack code <> ".prices"
+-- | The get command. Runs the data phase, then the prices phase.
+get :: CliOpts -> Journal -> IO ()
+get opts j = do
+  fetchData opts j
+  fetchPrices opts j
 
 -- | Like 'warn' but throws away the trailing-action argument; for the common
 -- "log a warning, then continue" pattern.
 warn_ :: String -> IO ()
 warn_ msg = warn msg (return ())
 
+
+-- ====================================================================
+-- 2. Data fetching (transactions)
+-- ====================================================================
+
+dataScriptName :: FilePath
+dataScriptName = "getdata"
+
+-- | Run the data-fetching phase. Ensures the journal's data/ directory exists,
+-- then if data/getdata is present, runs it with cwd = data/, forwarding its
+-- stdout to ours and its stderr to ours. If the helper is missing, logs a
+-- skip notice and returns.
+fetchData :: CliOpts -> Journal -> IO ()
+fetchData CliOpts{rawopts_=rawopts} j = do
+  let
+    dryRun  = boolopt "dry-run" rawopts
+    jdir    = takeDirectory (journalFilePath j)
+    dataDir = jdir </> dataDirName
+    script  = dataDir </> dataScriptName
+  createDirectoryIfMissing True dataDir
+  exists <- doesFileExist script
+  if not exists
+    then hPutStrLn stderr $ "no " <> script <> " script, skipping data fetch"
+    else do
+      let cmdline = "cd " <> dataDir <> " && " <> dataScriptName
+      hPutStrLn stderr cmdline
+      unless dryRun $ do
+        eres <- try (readCreateProcessWithExitCode (proc script []){cwd = Just dataDir} "")
+                  :: IO (Either IOException (ExitCode, String, String))
+        case eres of
+          Left e ->
+            warn_ $ dataScriptName <> " failed: " <> show e
+          Right (ec, out, err) -> do
+            putStr out
+            hPutStr stderr err
+            case ec of
+              ExitFailure n -> warn_ $ dataScriptName <> " exited " <> show n
+              ExitSuccess   -> return ()
+
+
+-- ====================================================================
+-- 3. Prices fetching
+-- ====================================================================
+
+pricesScriptName :: FilePath
+pricesScriptName = "getprices"
+
+pricesDirName :: FilePath
+pricesDirName = "prices"
+
+-- | The path of the per-commodity prices file in 'dir' for the given code.
+pricesFileFor :: FilePath -> CurrencyCode -> FilePath
+pricesFileFor dir code = dir </> pricesDirName </> T.unpack code <> ".prices"
+
 -- | Parse a journal-format text blob and extract its P directives.
--- Uses the 'ExceptT'-returning 'readJournal' so parse errors come back
--- as 'Left', without exception-throwing.
 parsePrices :: T.Text -> IO (Either String [PriceDirective])
 parsePrices txt = do
   hdl <- textToHandle txt
@@ -81,57 +144,46 @@ redirSuffix :: Redirect -> String
 redirSuffix ToStdout    = ""
 redirSuffix (ToFile f)  = " >" <> f
 
--- | The getprices command.
-getprices :: CliOpts -> Journal -> IO ()
-getprices CliOpts{rawopts_=rawopts} j = do
+-- | Run the prices-fetching phase. Ensures the journal's prices/ directory
+-- exists, then if prices/getprices is present, iterates over journal commodities
+-- and invokes the helper once per commodity, merging results into
+-- prices/<COMM>.prices files. If the helper is missing, logs a skip notice
+-- and returns.
+fetchPrices :: CliOpts -> Journal -> IO ()
+fetchPrices CliOpts{rawopts_=rawopts} j = do
   let
     dryRun  = boolopt "dry-run" rawopts
     moutput = case stringopt "output" rawopts of
                 "" -> Nothing
                 s  -> Just s
-    dir         = takeDirectory (journalFilePath j)
-    localScript = dir </> "prices" </> scriptName
-    notFound = error' $ unlines
-      [scriptName <> " was not found in JOURNALDIR/prices/ or in PATH."
-      ,"Please install bin/" <> scriptName <> " from the hledger source tree,"
-      ,"or your own script, in your prices/ directory or in $PATH."
-      ]
-  script <- if dryRun
-              then return scriptName
-              else do
-                localExists <- doesFileExist localScript
-                if localExists
-                  then return localScript
-                  else findExecutable scriptName >>= maybe notFound return
-  today <- getCurrentDay
-  let
-    base      = journalBaseCurrencyCode j
-    -- Per-code (start, end) date span, computed in one pass over postings.
-    commspans = commodityDateSpansByCode (journalPostings j)
-    -- Normalise journal commodities to ISO codes / tickers, drop the base
-    -- currency, deduplicate. Multiple raw symbols can map to one code
-    -- (eg "$" and "USD"); we fetch once per code.
-    codes   = nub . filter (/= base) . map toCurrencyCode $ journalCommoditiesUsed j
-    runFor  = runFetch script base commspans today dryRun
-  case moutput of
-    -- Combined output to stdout; just print each commodity's output.
-    -- No file is read or written, so the merge logic doesn't apply.
-    Just "-" ->
-      mapM_ (\code -> runFor ToStdout code >>= maybe (return ()) T.putStr) codes
-    -- Combined output to a single file. Collect each commodity's output,
-    -- then merge once with whatever's already at outfile.
-    Just outfile -> do
-      outs <- mapM (runFor (ToFile outfile)) codes
-      let combined = T.concat (catMaybes outs)
-      unless (T.null combined) $
-        mergeAndWritePrices outfile combined >>= reportOutcome outfile
-    -- One file per commodity, merged with that file's existing prices.
-    Nothing ->
-      mapM_ (\code -> do
-              let outfile = pricesFileFor dir code
-              mout <- runFor (ToFile outfile) code
-              maybe (return ()) (mergeAndWritePrices outfile >=> reportOutcome outfile) mout)
-            codes
+    jdir     = takeDirectory (journalFilePath j)
+    pricesDir = jdir </> pricesDirName
+    script    = pricesDir </> pricesScriptName
+  createDirectoryIfMissing True pricesDir
+  exists <- doesFileExist script
+  if not exists
+    then hPutStrLn stderr $ "no " <> script <> " script, skipping prices fetch"
+    else do
+      today <- getCurrentDay
+      let
+        base      = journalBaseCurrencyCode j
+        commspans = commodityDateSpansByCode (journalPostings j)
+        codes     = nub . filter (/= base) . map toCurrencyCode $ journalCommoditiesUsed j
+        runFor    = runFetch script base commspans today dryRun
+      case moutput of
+        Just "-" ->
+          mapM_ (\code -> runFor ToStdout code >>= maybe (return ()) T.putStr) codes
+        Just outfile -> do
+          outs <- mapM (runFor (ToFile outfile)) codes
+          let combined = T.concat (catMaybes outs)
+          unless (T.null combined) $
+            mergeAndWritePrices outfile combined >>= reportOutcome outfile
+        Nothing ->
+          mapM_ (\code -> do
+                  let outfile = pricesFileFor jdir code
+                  mout <- runFor (ToFile outfile) code
+                  maybe (return ()) (mergeAndWritePrices outfile >=> reportOutcome outfile) mout)
+                codes
 
 -- | Fetch prices for one commodity. Logs the command line to stderr (always),
 -- runs the script (unless dry-run), and forwards its stderr.
@@ -146,7 +198,7 @@ runFetch script base commspans today dryRun redir code =
     Just (start, _end) -> do
       let code'   = T.unpack code
           args    = [T.unpack base, code', show start, show today]
-          cmdline = unwords (scriptName : args) <> redirSuffix redir
+          cmdline = unwords (pricesScriptName : args) <> redirSuffix redir
       hPutStrLn stderr cmdline
       if dryRun
         then return Nothing
@@ -155,13 +207,13 @@ runFetch script base commspans today dryRun redir code =
                     :: IO (Either IOException (ExitCode, String, String))
           case eres of
             Left e -> do
-              warn_ $ scriptName <> " failed for " <> code' <> ": " <> show e
+              warn_ $ pricesScriptName <> " failed for " <> code' <> ": " <> show e
               return Nothing
             Right (ec, out, err) -> do
               hPutStr stderr err
               case ec of
                 ExitFailure n -> do
-                  warn_ $ scriptName <> " exited " <> show n <> " for " <> code'
+                  warn_ $ pricesScriptName <> " exited " <> show n <> " for " <> code'
                   return Nothing
                 ExitSuccess ->
                   return $ if null out then Nothing else Just (T.pack out)
@@ -178,8 +230,6 @@ data MergeOutcome
   | PriceParseError String      -- ^ couldn't parse a prices blob
 
 -- | Quick textual safeguard: file contains only P directives and blank lines.
--- Comments, transactions, account or other directives all disqualify the
--- file because re-rendering through hledger would lose them.
 isPurePricesFile :: T.Text -> Bool
 isPurePricesFile =
   all (\line -> let l = T.strip line in T.null l || "P" `T.isPrefixOf` l)
@@ -201,7 +251,7 @@ loadExistingPrices f = do
 
 -- | Merge new prices into a destination file (creating if needed).
 -- 'newcontent' is the raw text we'd otherwise write — a journal-format
--- blob produced by getprices_. Existing prices win on key conflicts;
+-- blob produced by the helper. Existing prices win on key conflicts;
 -- new prices on unseen keys are added. The merged set is written sorted
 -- ascending by (date, from, to). If nothing new would be added, the file
 -- is left untouched.

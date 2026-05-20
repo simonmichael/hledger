@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# getprices_ is a helper for hledger's getprices command. You can also run it yourself.
+# getprices is a helper for hledger's `get` command (prices phase). You can also run it yourself.
 # It is a simple, customisable front end for price-fetching tools like pricehist.
 # It attempts to hide the variability between tools, price sources, and commodities,
 # and allow for customisation, without hardcoding too much into hledger.
@@ -13,7 +13,7 @@
 
 usage() {
     cat <<EOF
-getprices_ [-v] BASECUR COMM START [END]
+getprices [-v] BASECUR COMM START [END]
 
 Fetch daily historical prices for one commodity over a date range,
 as hledger P directives, using pricehist by default.
@@ -26,9 +26,9 @@ Arguments:
 
 Examples:
 
-\$ getprices_ USD EUR 2026-01-01
-\$ getprices_ USD EUR 2026-01-01 2026-12-31
-\$ getprices_ -v USD BTC 2026-01-01
+\$ getprices USD EUR 2026-01-01
+\$ getprices USD EUR 2026-01-01 2026-12-31
+\$ getprices -v USD BTC 2026-01-01
 
 EOF
 }

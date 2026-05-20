@@ -2699,7 +2699,7 @@ An `alias:` tag on a commodity directive declares one or more alternative symbol
 which should be treated as equivalent to it for valuation purposes.
 This is useful when your journal uses a familiar symbol like `$` while market
 prices are recorded against the canonical ISO code like `USD` (eg as written by
-`hledger getprices`):
+`hledger get`):
 
 ```journal
 commodity 1.00 USD  ; alias: $
@@ -3503,7 +3503,7 @@ If the file does not exist, it is just considered empty, without raising an erro
 
 If you specify a bare file name (`source Checking1.csv`) or a relative path (`source bank/Checking1.csv`),
 hledger will look for it first in a `data/` directory next to the main journal file
-(the same directory used by the [`archive`](#archive) rule and the [`gettxns`](#gettxns) command),
+(the same directory used by the [`archive`](#archive) rule and the [`get`](#get) command),
 then in your `~/Downloads` folder.
 
 Absolute paths and `~`-prefixed paths are used as-is.
@@ -3577,7 +3577,7 @@ If the command fails, hledger will fail and show the error output in the error m
 
 With `archive` added to a rules file, the `import` command
 will archive each successfully processed data file or data command output in a `data/` directory next to the main journal file
-(the same directory used by the [`source`](#source) rule and the [`gettxns`](#gettxns) command).
+(the same directory used by the [`source`](#source) rule and the [`get`](#get) command).
 The archive file name will be based on the rules file and the data file's modification date and extension
 (or for a data-generating command, the current date and the ".csv" extension).
 The original data file, if any, will be removed.

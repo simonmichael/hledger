@@ -1,0 +1,73 @@
+## get
+
+Fetch data for the journal: first transactions, then market prices,
+by running helper scripts in journal-relative `data/` and `prices/` directories.
+
+```flags
+Flags:
+     --dry-run              just print the commands that would be run
+```
+
+This command runs two phases in order.
+
+### Phase 1: transactions data
+
+1. Creates a `data/` directory next to the main journal file, if it does not exist.
+2. If a `data/getdata` script exists, runs it with `data/` as its working directory,
+   so it can save downloaded files (CSV/TSV/JSON/OFX/etc.) there.
+   The script's stdout is forwarded to hledger's stdout, and its stderr to hledger's stderr.
+3. If `data/getdata` is not present, this phase is skipped with a notice on stderr.
+
+### Phase 2: prices
+
+1. Creates a `prices/` directory next to the main journal file, if it does not exist.
+2. If a `prices/getprices` script exists, hledger first guesses the journal's base currency
+   (the commodity most used as the target in P price directives;
+   or if there are no P directives, the commodity most used in postings;
+   or if there are no postings, "USD").
+   Then for each other commodity in the journal, it fetches daily market prices in the base currency,
+   from that commodity's earliest transaction until today,
+   by running `prices/getprices BASECUR COMM START END`.
+   Each commodity's prices are merged into `prices/<COMM>.prices`.
+3. If `prices/getprices` is not present, this phase is skipped with a notice on stderr.
+
+Commands being run, and files being updated, are logged to stderr.
+With `--dry-run`, you can preview the commands without running them.
+
+### Merging new prices
+
+Complete historical price data can be hard to get, so the prices phase is careful to preserve older prices.
+If prices files already exist, the newly fetched prices will be merged as follows:
+
+- Prices files will be updated only if they contain nothing but P directives (or blank lines).
+- New prices for dates already seen are discarded. (So if you want to replace old prices, you must delete them before running `get`.)
+- If no new prices remain to be added, the prices file is left as-is.
+- Otherwise, the old prices plus the new prices are saved to the file, ordered by: date, from commodity, to commodity.
+
+### The getdata helper
+
+The `get` command's data phase runs a `getdata` helper script.
+You can make your own `getdata` script (a shell script, executable, or anything PATH can run).
+A typical script downloads bank/brokerage statements as CSV or OFX files into the working directory,
+and optionally converts them to journal format.
+
+A sample `getdata` script may be available in the [hledger repo's bin directory](https://github.com/simonmichael/hledger/tree/master/bin).
+Place a (possibly customised) copy in a `data/` directory next to your journal file.
+
+### The getprices helper
+
+The `get` command's prices phase runs a `getprices` helper script once per commodity.
+This allows customisation and avoids hardcoding too much into hledger.
+
+A sample `getprices` script is available in the [hledger repo's bin directory](https://github.com/simonmichael/hledger/tree/master/bin).
+Place a (possibly customised) copy in a `prices/` directory next to your journal file.
+It uses the third party [pricehist](https://github.com/chrisberkhout/pricehist) tool, which you can install with eg `uv tool install pricehist`.
+You might also want to set up price provider API keys in your environment.
+Providers may limit the commodity pairs, history, or number of requests unless you have a paid API key.
+
+Or, you can make your own `getprices` script. It should accept 3-4 arguments:
+
+- ISO code for base currency
+- ISO code for commodity to be priced
+- ISO start date
+- optional inclusive ISO end date (default: today)
