@@ -50,7 +50,11 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
           Nothing -> Just inferredStyles
           Just inputStyles -> Just $ inputStyles <> inferredStyles
 
-    iopts' = iopts{
+    -- Note: inputOptsSetJournalDir is needed here because this is a secondary
+    -- read after the main journal has been loaded; without it the CSV rules
+    -- reader would fall back to the rules file's directory for source/archive
+    -- lookups instead of the main journal's data/ directory.
+    iopts' = inputOptsSetJournalDir j $ iopts{
       new_=True,  -- read only new transactions since last time
       new_save_=False,  -- defer saving .latest files until the end
       strict_=False,  -- defer strict checks until the end

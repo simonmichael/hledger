@@ -129,6 +129,11 @@ getDownloadDir = do
 -- By default it is @data/@ next to the main input file.
 -- When the input file's directory is unknown, eg when reading from stdin, the data directory is @data/@ next to the rules file.
 --
+-- The directory comes from 'InputOpts._journaldir', set by the CLI entry points
+-- ('withJournal', 'withPossibleJournal', 'journalReload'). Library callers doing a
+-- secondary read after a journal has been loaded (the pattern used by the @import@
+-- command) should apply 'inputOptsSetJournalDir' to their iopts.
+--
 -- The source rule can specify a glob pattern: @source foo*.csv@.
 -- If the glob pattern matches multiple files, the newest (last modified) file is used (with one exception, described below).
 --

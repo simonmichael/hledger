@@ -11,14 +11,16 @@ module Hledger.Read.InputOptions (
   InputOpts(..)
 , HasInputOpts(..)
 , definputopts
+, inputOptsSetJournalDir
 , forecastPeriod
 ) where
 
 import Control.Applicative ((<|>))
 import Data.Time (Day, addDays)
+import System.FilePath (takeDirectory)
 
 import Hledger.Data.Types
-import Hledger.Data.Journal (journalEndDate)
+import Hledger.Data.Journal (journalEndDate, journalFilePath)
 import Hledger.Data.Dates (nulldate, nulldatespan)
 import Hledger.Data.Balancing (BalancingOpts(..), HasBalancingOpts(..), defbalancingopts)
 import Hledger.Utils (dbg2, makeHledgerClassyLenses)
@@ -45,9 +47,13 @@ data InputOpts = InputOpts {
     ,_defer             :: Bool                 -- ^ internal flag: postpone checks, because we are processing multiple files ?
     ,_ioDay             :: Day                  -- ^ today's date, for use with forecast transactions  XXX this duplicates _rsDay, and should eventually be removed when it's not needed anymore.
     ,_oldtimeclock      :: Bool                 -- ^ parse with the old timeclock pairing rules?
-    ,_journaldir        :: Maybe FilePath       -- ^ The journal's data directory (@data/@ next to the main input file). Used by the get command and csv source/archive rules, eg.
-                                                --   Set by the CLI entry points 'withJournal', 'withPossibleJournal', and 'journalReload'.
-                                                --   Library callers reading CSV via a rules file should set this explicitly to the main journal's directory, or the rules file's directory will be used.
+    ,_journaldir        :: Maybe FilePath       -- ^ The main journal file's directory. Used eg by the CSV rules reader to locate the
+                                                --   journal's @data/@ directory. Set by the CLI entry points 'withJournal',
+                                                --   'withPossibleJournal', and 'journalReload'.
+                                                --   If you do a further 'readJournalFile' / 'readJournalFiles' call after a
+                                                --   journal has been loaded (eg as @import@ does), apply 'inputOptsSetJournalDir'
+                                                --   to its 'InputOpts' so the CSV rules reader can find the right @data/@.
+                                                --   Otherwise, the CSV rules reader falls back to the rules file's own directory.
  } deriving (Eq, Ord, Show)
 
 definputopts :: InputOpts
@@ -73,6 +79,22 @@ definputopts = InputOpts
     , _oldtimeclock      = False
     , _journaldir        = Nothing
     }
+
+-- | Set 'InputOpts._journaldir' from a parsed 'Journal' (using @takeDirectory . journalFilePath@).
+--
+-- Use this when you want to do a further @readJournalFile@ / @readJournalFiles@ call
+-- after a journal has been loaded — eg the @hledger import@ command reads the user's rules
+-- files in a second pass — so the CSV rules reader can find the journal's @data/@ directory
+-- for @source@ lookups and @archive@ saves. Otherwise it will fall back to using the rules
+-- file's own directory, which is no longer the preferred place.
+--
+-- Usage:
+--
+-- @
+-- iopts' = inputOptsSetJournalDir j $ iopts { ...other tweaks... }
+-- @
+inputOptsSetJournalDir :: Journal -> InputOpts -> InputOpts
+inputOptsSetJournalDir j iopts = iopts{_journaldir = Just (takeDirectory (journalFilePath j))}
 
 -- | Get the Maybe the DateSpan to generate forecast options from.
 -- This begins on:
