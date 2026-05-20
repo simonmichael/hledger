@@ -3501,11 +3501,12 @@ source ./Checking1.csv
 
 If the file does not exist, it is just considered empty, without raising an error.
 
-If you specify just a file name with no path, hledger will look for it in the `~/Downloads` folder:
+If you specify a bare file name (`source Checking1.csv`) or a relative path (`source bank/Checking1.csv`),
+hledger will look for it first in a `data/` directory next to the main journal file
+(the same directory used by the [`archive`](#archive) rule and the [`gettxns`](#gettxns) command),
+then in your `~/Downloads` folder.
 
-```rules
-source Checking1.csv
-```
+Absolute paths and `~`-prefixed paths are used as-is.
 
 You can use a glob pattern, to avoid specifying the file name exactly:
 
@@ -3521,11 +3522,9 @@ All this enables a convenient workflow where can you just download CSV files, th
 See also ["Working with CSV > Reading files specified by rule"](#reading-files-specified-by-rule).
 
 <!--
-The source rule supports ~ for home directory: `source ~/Downloads/foo.csv`.
+The source rule supports ~ for home directory and absolute paths: `source ~/Downloads/foo.csv`, `source /abs/foo.csv`.
 
-If the argument is a bare filename, its directory is assumed to be ~/Downloads: `source foo.csv`.
-
-Otherwise if it is a relative path, it is assumed to be relative to the rules file's directory: `source new/foo.csv`.
+Bare filenames and relative paths are looked for in a `data/` directory next to the main journal file first, then in `~/Downloads`: `source foo.csv`, `source sub/foo.csv`.
 
 The source rule can specify a glob pattern: `source foo*.csv`.
 
@@ -3577,7 +3576,8 @@ If the command fails, hledger will fail and show the error output in the error m
 ## `archive`
 
 With `archive` added to a rules file, the `import` command
-will archive each successfully processed data file or data command output in a nearby `data/` directory.
+will archive each successfully processed data file or data command output in a `data/` directory next to the main journal file
+(the same directory used by the [`source`](#source) rule and the [`gettxns`](#gettxns) command).
 The archive file name will be based on the rules file and the data file's modification date and extension
 (or for a data-generating command, the current date and the ".csv" extension).
 The original data file, if any, will be removed.

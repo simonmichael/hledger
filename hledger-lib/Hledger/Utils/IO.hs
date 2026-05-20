@@ -35,6 +35,7 @@ module Hledger.Utils.IO (
   getCurrentZonedTime,
 
   -- * Files
+  dataDirName,
   getHomeSafe,
   embedFileRelative,
   expandHomePath,
@@ -422,6 +423,14 @@ expandHomePath = \case
 expandPath :: FilePath -> FilePath -> IO FilePath -- general type sig for use in reader parsers
 expandPath _ "-" = return "-"
 expandPath curdir p = (if isRelative p then (curdir </>) else id) <$> expandHomePath p  -- PARTIAL:
+
+-- | The name of the data directory used by hledger commands and rules that
+-- read or write CSV files (located next to the main journal file).
+-- This is where the gettxns command saves downloaded files,
+-- where the CSV source rule looks for input files,
+-- and where the CSV archive rule saves imported files.
+dataDirName :: FilePath
+dataDirName = "data"
 
 -- | Like @expandPath@, but treats the expanded path as a glob, and returns
 -- zero or more matched absolute file paths, alphabetically sorted.
