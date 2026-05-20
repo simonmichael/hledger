@@ -151,7 +151,7 @@ import Data.Char (toUpper, isDigit)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
 import Data.Function ((&))
-import Data.List (find, intercalate, minimumBy, nub, partition, sort, sortBy, union, (\\))
+import Data.List (find, intercalate, minimumBy, nub, partition, sort, sortBy, (\\))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -571,7 +571,7 @@ journalAccountTags Journal{jdeclaredaccounttags} a = M.findWithDefault [] a jdec
 -- | Which tags are in effect for this account, including tags inherited from parent accounts ?
 journalInheritedAccountTags :: Journal -> AccountName -> [Tag]
 journalInheritedAccountTags j a =
-  foldl' (\ts a' -> ts `union` journalAccountTags j a') [] as
+  foldl' (\ts a' -> ts `tagsWithInherited` journalAccountTags j a') [] as
   where
     as = a : parentAccountNames a
 -- PERF: cache in journal ?
