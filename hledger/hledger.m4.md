@@ -2093,6 +2093,13 @@ account expenses:food           ; atag:
 | expenses:food   posting | p2tag, atag, ttag        | p2tag: in comment, atag from account, ttag from transaction
 | groceries   transaction | ttag, p1tag, p2tag, atag | ttag:  in comment, p1tag from first posting, p2tag and atag from second posting
 
+When a tag is inherited downward and a child item declares a tag with the same name,
+the child item's value overrides the inherited value for that child.
+This means a subaccount's tag overrides its parent account's tag,
+and a posting's tag overrides same-named tags inherited from its account or transaction.
+Transactions acquire the effective tags of their postings, after these overrides have been applied.
+Multiple values for the same tag written on the same item are still preserved.
+
 ### Displaying tags
 
 You can use the [`tags` command](#tags-1) to list tag names or values.

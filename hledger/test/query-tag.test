@@ -216,3 +216,60 @@ $ hledger -f- bal -N tag:type=a
 # ** 21.
 $ hledger -f- reg -w80 tag:type=a
 2022-01-01                      (a:aa)                           1             1
+
+# ** 22. Child account tag values override inherited parent account tag values.
+<
+account expenses          ; area:home
+account expenses:travel   ; area:away
+
+2026-01-01
+  expenses:travel    1
+  equity            -1
+
+$ hledger -f- accounts tag:area=home
+expenses
+
+$ hledger -f- accounts tag:area=away
+expenses:travel
+
+$ hledger -f- reg -w80 tag:area=home
+
+$ hledger -f- reg -w80 tag:area=away
+2026-01-01                      expenses:travel                  1             1
+>=
+
+# ** 23. Posting tag values override inherited transaction tag values.
+<
+2022-11-17 Aldi
+    ; concerns: me
+    assets             -30
+    expenses:food       20
+    loaned              10  ; concerns: you
+
+$ hledger -f- reg -w80 loaned tag:concerns=me
+
+$ hledger -f- reg -w80 loaned tag:concerns=you
+2022-11-17 Aldi                 loaned                          10            10
+>=
+
+# ** 24. Posting tag values override account tags and are acquired by transactions.
+<
+account expenses:travel  ; tax:7
+
+2023-01-07 Bus
+    expenses:travel        119  ; tax:19
+    assets:bank           -119
+
+$ hledger -f- reg -w80 expenses:travel tag:tax=7
+
+$ hledger -f- reg -w80 expenses:travel tag:tax=19
+2023-01-07 Bus                  expenses:travel                119           119
+
+$ hledger -f- print tag:tax=7
+
+$ hledger -f- print tag:tax=19
+2023-01-07 Bus
+    expenses:travel                              119  ; tax:19
+    assets:bank                                 -119
+
+>=
