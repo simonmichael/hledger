@@ -88,6 +88,7 @@ library
       Hledger.Read.CsvReader
       Hledger.Read.InputOptions
       Hledger.Read.JournalReader
+      Hledger.Read.LatestDates
       Hledger.Read.RulesReader
       Hledger.Read.TimeclockReader
       Hledger.Read.TimedotReader
