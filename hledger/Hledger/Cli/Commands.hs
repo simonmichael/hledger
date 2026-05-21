@@ -130,7 +130,7 @@ builtinCommands = [
   ,(descriptionsmode       , descriptions)
   ,(diffmode               , diff)
   ,(filesmode              , files)
-  ,(getmode                , get)
+  ,(getmode                , getcmd)
   ,(helpmode               , help')
   ,(importmode             , importcmd)
   ,(incomestatementmode    , incomestatement)
