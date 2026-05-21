@@ -33,7 +33,7 @@ importmode = hledgerCommandMode
   ]
   cligeneralflagsgroups1
   hiddenflags
-  ([], Just $ argsFlag "[-f JOURNALFILE] DATAFILES...")
+  ([], Just $ argsFlag "[-f JOURNALFILE] [DATAFILES]")
 
 importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   -- With -g/--get, run the get command first to fetch new data before importing.
