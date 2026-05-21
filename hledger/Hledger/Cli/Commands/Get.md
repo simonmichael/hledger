@@ -5,13 +5,13 @@ by running helper scripts in journal-relative `data/` and `prices/` directories.
 
 ```flags
 Flags:
-  -t --transactions         fetch transactions
-  -p --prices               fetch prices
+     --transactions         fetch transactions
+     --prices               fetch prices
      --dry-run              just print the commands that would be run
 ```
 
 By default, this command fetches both transactions and prices.
-With `-t/--transactions` or `-p/--prices`, only the selected phase(s) run.
+With `--transactions` or `--prices`, only the selected phase(s) run.
 
 ### Phase 1: transactions data
 
