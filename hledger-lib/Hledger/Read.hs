@@ -118,8 +118,6 @@ module Hledger.Read (
   orDieTrying,
 
   -- * Misc
-  saveLatestDates,
-  saveLatestDatesForFiles,
   isWindowsUnsafeDotPath,
 
   -- * Re-exported
@@ -129,6 +127,7 @@ module Hledger.Read (
   runJournalParser,
   module Hledger.Read.Common,
   module Hledger.Read.InputOptions,
+  module Hledger.Read.LatestDates,
 
   -- * Tests
   tests_Read,
@@ -137,35 +136,31 @@ module Hledger.Read (
 
 --- ** imports
 import Control.Exception qualified as C
-import Control.Monad (unless, when, forM, (>=>))
+import Control.Monad (unless, when, (>=>))
 import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftEither)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
 import Data.Foldable (asum)
-import Data.List (group, sort, sortBy)
 import Data.List.NonEmpty (nonEmpty, NonEmpty((:|)))
 import Data.Maybe (catMaybes, fromMaybe)
-import Data.Ord (comparing)
 import Data.Semigroup (sconcat)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
-import Data.Time (Day)
-import Safe (headDef)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.Environment (getEnv)
-import System.FilePath ((<.>), (</>), splitDirectories, splitFileName, takeDirectory, takeFileName)
+import System.FilePath ((</>), splitDirectories, takeDirectory, takeFileName)
 import System.Info (os)
 import System.IO (Handle, hPutStrLn, stderr)
-import Text.Printf (printf)
 
-import Hledger.Data.Dates (getCurrentDay, parsedate, showDate)
+import Hledger.Data.Dates (getCurrentDay)
 import Hledger.Data.Journal (journalNumberTransactions, nulljournal)
 import Hledger.Data.JournalChecks (journalStrictChecks)
 import Hledger.Data.Types
 import Hledger.Read.Common
 import Hledger.Read.InputOptions
 import Hledger.Read.JournalReader as JournalReader
+import Hledger.Read.LatestDates
 import Hledger.Read.CsvReader (tests_CsvReader)
 import Hledger.Read.RulesReader (tests_RulesReader)
 import Hledger.Utils
@@ -465,74 +460,6 @@ newJournalContent :: IO Text
 newJournalContent = do
   d <- getCurrentDay
   return $ "; journal created " <> T.pack (show d) <> " by hledger\n"
-
--- A "LatestDates" is zero or more copies of the same date,
--- representing the latest transaction date read from a file,
--- and how many transactions there were on that date.
-type LatestDates = [Day]
-
--- The path of an input file, and its current "LatestDates".
-data LatestDatesForFile = LatestDatesForFile FilePath LatestDates
-  deriving Show
-
--- | Get all instances of the latest date in an unsorted list of dates.
--- Ie, if the latest date appears once, return it in a one-element list,
--- if it appears three times (anywhere), return three of it.
-latestDates :: [Day] -> LatestDates
-latestDates = {-# HLINT ignore "Avoid reverse" #-}
-  headDef [] . take 1 . group . reverse . sort
-
--- | Save the given latest date(s) seen in the given data FILE,
--- in a hidden file named .latest.FILE, creating it if needed.
--- Unless no latest dates are provided, in which case do nothing.
-saveLatestDates :: LatestDates -> FilePath -> IO ()
-saveLatestDates dates f = when (not $ null dates) $
-  T.writeFile (latestDatesFileFor f) $ T.unlines $ map showDate dates
-
--- | Save each file's latest dates.
-saveLatestDatesForFiles :: [LatestDatesForFile] -> IO ()
-saveLatestDatesForFiles = mapM_ (\(LatestDatesForFile f ds) -> saveLatestDates ds f)
-
--- | What were the latest transaction dates seen the last time this
--- journal file was read ? If there were multiple transactions on the
--- latest date, that number of dates is returned, otherwise just one.
--- Or none if no transactions were read, or if latest dates info is not
--- available for this file.
-previousLatestDates :: FilePath -> IO LatestDates
-previousLatestDates f = do
-  let latestfile = latestDatesFileFor f
-  exists <- doesFileExist latestfile
-  t <- if exists then readFileStrictly latestfile else return T.empty
-  let nls = zip [1::Int ..] $ T.lines t
-  fmap catMaybes $ forM nls $ \(n,l) -> do
-    let s = T.unpack $ T.strip l
-    case (s, parsedate s) of
-      ("", _)       -> return Nothing
-      (_,  Nothing) -> error' (printf "%s:%d: invalid date: \"%s\"" latestfile n s)
-      (_,  Just d)  -> return $ Just d
-
--- | Where to save latest transaction dates for the given file path.
--- (.latest.FILE)
-latestDatesFileFor :: FilePath -> FilePath
-latestDatesFileFor f = dir </> ".latest" <.> fname
-  where
-    (dir, fname) = splitFileName f
-
--- | Given zero or more latest dates (all the same, representing the
--- latest previously seen transaction date, and how many transactions
--- were seen on that date), remove transactions with earlier dates
--- from the journal, and the same number of transactions on the
--- latest date, if any, leaving only transactions that we can assume
--- are newer. Also returns the new latest dates of the new journal.
-journalFilterSinceLatestDates :: LatestDates -> Journal -> (Journal, LatestDates)
-journalFilterSinceLatestDates [] j       = (j,  latestDates $ map tdate $ jtxns j)
-journalFilterSinceLatestDates ds@(d:_) j = (j', ds')
-  where
-    samedateorlaterts     = filter ((>= d).tdate) $ jtxns j
-    (samedatets, laterts) = span ((== d).tdate) $ sortBy (comparing tdate) samedateorlaterts
-    newsamedatets         = drop (length ds) samedatets
-    j'                    = j{jtxns=newsamedatets++laterts}
-    ds'                   = latestDates $ map tdate $ samedatets++laterts
 
 --- ** tests
 

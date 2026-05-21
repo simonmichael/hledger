@@ -20,7 +20,6 @@ Most of the code for reading rules files and csv files is in this module.
 {-# LANGUAGE RecordWildCards      #-}
 {-# LANGUAGE ScopedTypeVariables  #-}
 {-# LANGUAGE ViewPatterns         #-}
-{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TupleSections #-}
 
@@ -92,6 +91,7 @@ import Text.Printf (printf)
 import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp )
+import Hledger.Read.LatestDates (previousLatestDates, journalFilterSinceLatestDates)
 import Hledger.Write.Csv
 
 --- ** doctest setup
@@ -280,8 +280,15 @@ parse iopts rulesfile h = do
   -- 7. if non-empty, successfully read and converted, and we're doing a non-dry-run archiving import: archive the data
   --  needs: import/archive/dryrun flags, rules directory, rules file, data file if any, clean data
 
-  when (not (T.null cleandata) && import_ && archive && not dryrun) $
-    liftIO $ saveToArchive (datadir </> "archive") rulesfile mdatafile cleandata
+  -- Skip archiving if there is no new content to import (per the .latest file
+  -- recorded next to the rules file by previous imports). Otherwise this would
+  -- archive the same data on every run, especially in the data-generating-command
+  -- form of source where there is no input file to consume.
+  when (not (T.null cleandata) && import_ && archive && not dryrun) $ do
+    prevds <- liftIO $ previousLatestDates rulesfile
+    let (newj, _) = journalFilterSinceLatestDates prevds j
+    when (not (null (jtxns newj))) $
+      liftIO $ saveToArchive (datadir </> "archive") rulesfile mdatafile cleandata
 
   return j
 
