@@ -3501,12 +3501,15 @@ source ./Checking1.csv
 
 If the file does not exist, it is just considered empty, without raising an error.
 
-If you specify a bare file name (`source Checking1.csv`) or a relative path (`source bank/Checking1.csv`),
-hledger will look for it first in a `data/` directory next to the main journal file
-(the same directory used by the [`archive`](#archive) rule and the [`get`](#get) command),
-then in your `~/Downloads` folder.
+The file path is resolved this way:
 
-Absolute paths and `~`-prefixed paths are used as-is.
+- Absolute paths and `~`-prefixed paths are used as-is.
+- A path beginning with `./` or `../` (`source ./Checking1.csv`)
+  is anchored relative to the rules file's directory (as in hledger 1).
+- Any other relative path (`source bank/Checking1.csv`), or a bare file name (`source Checking1.csv`),
+  is searched for first in a `data/` directory next to the main journal file
+  (also used by the [`archive`](#archive) rule and the [`get`](#get) command),
+  then in your `~/Downloads` folder.
 
 You can use a glob pattern, to avoid specifying the file name exactly:
 
@@ -3525,6 +3528,8 @@ See also ["Working with CSV > Reading files specified by rule"](#reading-files-s
 The source rule supports ~ for home directory and absolute paths: `source ~/Downloads/foo.csv`, `source /abs/foo.csv`.
 
 Bare filenames and relative paths are looked for in a `data/` directory next to the main journal file first, then in `~/Downloads`: `source foo.csv`, `source sub/foo.csv`.
+
+Paths beginning with `./` or `../` are anchored relative to the rules file's directory (no `data/` re-anchoring, no `~/Downloads` fallback): `source ./foo.csv`.
 
 The source rule can specify a glob pattern: `source foo*.csv`.
 

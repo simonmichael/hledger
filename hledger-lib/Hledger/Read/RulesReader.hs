@@ -76,11 +76,11 @@ import Data.Text.Encoding qualified as T
 import Data.Text.IO qualified as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
-import Safe (atMay, headMay, lastMay, readMay)
+import Safe (atMay, headDef, headMay, lastMay, readMay)
 import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, removeFile)
 -- import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
 import System.Exit      (ExitCode(..))
-import System.FilePath (stripExtension, takeBaseName, takeDirectory, takeExtension, (<.>), (</>))
+import System.FilePath (isAbsolute, splitDirectories, stripExtension, takeBaseName, takeDirectory, takeExtension, (<.>), (</>))
 import System.IO       (Handle, hClose, hPutStrLn, stderr, hGetContents')
 import System.Process  (CreateProcess(..), StdStream(CreatePipe), shell, waitForProcess, withCreateProcess)
 import Data.Foldable (asum, toList)
@@ -121,10 +121,13 @@ getDownloadDir = do
 -- Instead, it reads a data file (or data-generating command) specified by the @source@ rule,
 -- or if there is no @source@ rule, it raises an error.
 --
--- The source rule supports ~ for home directory and absolute paths: @source ~/Downloads/foo.csv@, @source /abs/path/foo.csv@.
--- Other paths (bare filenames or relative paths with a directory component) are
--- looked for in the data directory first, otherwise in @~/Downloads@:
--- eg @source foo.csv@, @source sub/foo.csv@.
+-- The source rule's path is resolved as follows:
+--
+-- * @~/foo.csv@ or @/abs/foo.csv@ - used as-is (home is expanded).
+-- * @./foo.csv@ or @../foo.csv@ - anchored relative to the rules file's directory (no fallback).
+-- * bare filename (@foo.csv@) or other relative path (@sub/foo.csv@) - looked for in
+--   the journal's data directory first, otherwise in @~/Downloads@.
+--
 -- The data directory is the same one used by the @archive@ rule and the @get@ command.
 -- By default it is @data/@ next to the main input file.
 -- When the input file's directory is unknown, eg when reading from stdin, the data directory is @data/@ next to the rules file.
@@ -210,13 +213,22 @@ parse iopts rulesfile h = do
     (Nothing, Just _) -> return (Nothing, "")
     (Just pat, _) -> do
       dldir <- liftIO getDownloadDir
-      -- Relative paths are resolved under the data directory; absolute and ~-prefixed
-      -- paths are used as-is. Only relative paths get the ~/Downloads fallback.
-      let isrelativepat = case pat of ('/':_) -> False; ('~':_) -> False; _ -> True
+      -- Source-rule path resolution (platform-independent):
+      --  ./foo or ../foo  -> anchored relative to the rules file's directory (no fallback)
+      --  /abs or ~/foo    -> used as-is (no fallback)
+      --  bare or sub/foo  -> looked for under the data directory, then ~/Downloads
+      let firstSeg = headDef "" $ splitDirectories pat
+          anchoredToRulesDir = firstSeg `elem` [".", ".."]
+          -- ~ isn't a real path concept; only special as a leading literal segment.
+          isAbsoluteOrTilde = isAbsolute pat || firstSeg == "~"
+          plainRelative = not anchoredToRulesDir && not isAbsoluteOrTilde
+          primarydir = if anchoredToRulesDir then takeDirectory rulesfile else datadir
+          primarydesc | anchoredToRulesDir = " relative to rules file"
+                      | otherwise          = " in data directory"
       (fs, dirdesc) <- liftIO $ do
-        datafs <- expandGlob datadir pat >>= sortByModTime
-        if not (null datafs) || not isrelativepat
-          then return (datafs, " in data directory")
+        primaryfs <- expandGlob primarydir pat >>= sortByModTime
+        if not (null primaryfs) || not plainRelative
+          then return (primaryfs, primarydesc)
           else do
             dlfs <- expandGlob dldir pat >>= sortByModTime
             return (dlfs, " in download directory")
