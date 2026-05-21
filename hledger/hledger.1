@@ -695,10 +695,10 @@ Some other queries:
 .IP
 .EX
 desc:\(aqamazon|amzn|audible\(aq  Amazon transactions
-cur:EUR              amounts with commodity symbol containing EUR
-cur:\(aq\(rs$\(aq             amounts with commodity symbol containing $
-cur:\(aq\(ha\(rs$$\(aq           only $ amounts, not eg AU$ or CA$
-cur:....?            amounts with 4\-or\-more\-character symbols
+cur:EUR              amounts with commodity symbol EUR (or any of its declared aliases)
+cur:\(rs\(rs$              amounts with commodity symbol $ (or any of its aliases)
+cur:....?            amounts with 3\- or 4\-character symbols (or any of their aliases)
+exactcur:EUR         amounts whose commodity is EUR (ignoring aliases)
 tag:.=202[1\-3]       things with any tag whose value contains 2021, 2022 or 2023
 .EE
 .PP
@@ -1223,6 +1223,11 @@ borders.
 Btw.
 you can still extract CSV from FODS/ODS using various utilities like
 \f[CR]libreoffice \-\-headless\f[R] or ods2csv.
+.PP
+For digit group marks, ODS has not as many options as hledger.
+It only supports thousands separators in the respective locale.
+Thus FODS export enables thousands separators if your commodity style
+contains any digit groups.
 .SS Ledger output
 This is a Ledger\-specific journal format supported by the
 \f[CR]print\f[R] command.
@@ -1606,7 +1611,7 @@ Lines in the journal will be ignored if they begin with a hash
 (\f[CR]#\f[R]) or a semicolon (\f[CR];\f[R]).
 (See also Other syntax.)
 hledger will also ignore regions beginning with a \f[CR]comment\f[R]
-line and ending with an \f[CR]end comment\f[R] line (or file end).
+line, and ending with an \f[CR]end comment\f[R] line or file end.
 Here\(aqs a suggestion for choosing between them:
 .IP \(bu 2
 \f[CR]#\f[R] for top\-level notes
@@ -2277,6 +2282,9 @@ enclosing characters:
 .EX
 10 AAPL {$50} [2026\-01\-15] (12:05)
 .EE
+.PP
+If a Ledger\-style label annotation contains double quotes, they will be
+stripped (\f[CR](\(dqfoo\(dq)\f[R] is read as label \f[CR]foo\f[R]).
 .SS Balance assertions
 hledger supports Ledger\-style balance assertions in journal files.
 These look like, for example, \f[CR]= EXPECTEDBALANCE\f[R] following a
@@ -2687,7 +2695,7 @@ For example, you could tag trip\-related transactions with
 categories.
 .SS Tag names
 What is allowed in a tag name ?
-Most non\-whitespace characters.
+Any sequence of non\-whitespace non\-newline characters.
 Eg \f[CR]😀:\f[R] is a valid tag.
 .PP
 For extra error checking, you can declare valid tag names with the
@@ -2725,119 +2733,32 @@ This means \f[CR]print\f[R] doesn\(aqt show them by default; but you can
 still use them in queries.
 You can add the \f[CR]\-\-verbose\-tags\f[R] flag to make them visible
 in \f[CR]print\f[R] output, which can be useful for troubleshooting.
+.SS Tag values
+What is allowed in a tag value ?
+Any sequence of non\-comma non\-newline characters, with surrounding
+whitespace removed.
+.PP
+Note a tag can have multiple values, if the tag is repeated.
+Eg \f[CR]; foo:a, foo:b\f[R].
 .SS Directives
-Besides transactions, there is something else you can put in a
-\f[CR]journal\f[R] file: directives.
-These are declarations, beginning with a keyword, that modify
-hledger\(aqs behaviour.
-Some directives can have more specific subdirectives, indented below
-them.
-hledger\(aqs directives are similar to Ledger\(aqs in many cases, but
-there are also many differences.
-Directives are not required, but can be useful.
-Here are the main directives:
+You can add directives to a \f[CR]journal\f[R] file, to add error
+checking, improve parsing, et cetera.
+hledger\(aqs directives are broadly similar to Ledger\(aqs, though with
+many differences.
+Directives begin with a keyword, not a date.
+Some of them can have indented subdirectives.
+.PP
+\f[B]Some directives affect only the subsequent entries, and any
+included subfiles, until the end of the current file.\f[R] This makes
+reports stable and deterministic, regardless of the order of \-f options
+or the positions of include directives.
+This is sometimes inconvenient, but there are usually workarounds.
+Eg, to have \f[CR]alias\f[R] directives affect all of your files, put
+them at the start of the main file, before any \f[CR]include\f[R]s.
 .PP
 .TS
 tab(@);
-lw(39.7n) lw(30.3n).
-T{
-purpose
-T}@T{
-directive
-T}
-_
-T{
-\f[B]READING DATA:\f[R]
-T}@T{
-T}
-T{
-Rewrite account names
-T}@T{
-\f[CR]alias\f[R]
-T}
-T{
-Comment out sections of the file
-T}@T{
-\f[CR]comment\f[R]
-T}
-T{
-Declare file\(aqs decimal mark, to help parse amounts accurately
-T}@T{
-\f[CR]decimal\-mark\f[R]
-T}
-T{
-Include other data files
-T}@T{
-\f[CR]include\f[R]
-T}
-T{
-\f[B]GENERATING DATA:\f[R]
-T}@T{
-T}
-T{
-Generate recurring transactions or budget goals
-T}@T{
-\f[CR]\(ti\f[R]
-T}
-T{
-Generate extra postings on existing transactions
-T}@T{
-\f[CR]=\f[R]
-T}
-T{
-\f[B]CHECKING FOR ERRORS:\f[R]
-T}@T{
-T}
-T{
-Define valid entities to provide more error checking
-T}@T{
-\f[CR]account\f[R], \f[CR]commodity\f[R], \f[CR]payee\f[R],
-\f[CR]tag\f[R]
-T}
-T{
-\f[B]REPORTING:\f[R]
-T}@T{
-T}
-T{
-Declare accounts\(aq type and display order
-T}@T{
-\f[CR]account\f[R]
-T}
-T{
-Declare commodity display styles
-T}@T{
-\f[CR]commodity\f[R]
-T}
-T{
-Declare market prices
-T}@T{
-\f[CR]P\f[R]
-T}
-.TE
-.SS Directives and multiple files
-Directives vary in their scope, ie which journal entries and which input
-files they affect.
-Most often, a directive will affect the following entries and included
-files if any, until the end of the current file \- and no further.
-You might find this inconvenient!
-For example, \f[CR]alias\f[R] directives do not affect parent or sibling
-files.
-But there are usually workarounds; for example, put \f[CR]alias\f[R]
-directives in your top\-most file, before including other files.
-.PP
-The restriction, though it may be annoying at first, is in a good cause;
-it allows reports to be stable and deterministic, independent of the
-order of input.
-Without it, reports could show different numbers depending on the order
-of \-f options, or the positions of include directives in your files.
-.SS Directive effects
-Here are all hledger\(aqs directives, with their effects and scope
-summarised \- nine main directives, plus four others which we consider
-non\-essential:
-.PP
-.TS
-tab(@);
-lw(3.5n) lw(64.1n) lw(2.4n).
+lw(6.8n) lw(58.5n) lw(4.8n).
 T{
 directive
 T}@T{
@@ -2847,19 +2768,15 @@ ends at file end?
 T}
 _
 T{
-\f[B]\f[CB]account\f[B]\f[R]
 T}@T{
-Declares an account, for checking all entries in all files; and its
-display order and type.
-Subdirectives: any text, ignored.
+\f[B]Affects file reading:\f[R]
 T}@T{
-N
 T}
 T{
 \f[B]\f[CB]alias\f[B]\f[R]
 T}@T{
-Rewrites account names, in following entries until end of current file
-or \f[CR]end aliases\f[R].
+Rewrites account names, in following entries until
+\f[CR]end aliases\f[R] or file end.
 Command line equivalent: \f[CR]\-\-alias\f[R]
 T}@T{
 Y
@@ -2867,47 +2784,51 @@ T}
 T{
 \f[B]\f[CB]comment\f[B]\f[R]
 T}@T{
-Ignores part of the journal file, until end of current file or
-\f[CR]end comment\f[R].
+Ignores following entries, until \f[CR]end comment\f[R] or file end.
 T}@T{
 Y
-T}
-T{
-\f[B]\f[CB]commodity\f[B]\f[R]
-T}@T{
-Declares up to four things: 1.
-a commodity symbol, for checking all amounts in all files 2.
-the display style for all amounts of this commodity 3.
-the decimal mark for parsing amounts of this commodity, in the rest of
-this file and its children, if there is no \f[CR]decimal\-mark\f[R]
-directive 4.
-the precision to use for balanced\-transaction checking in this
-commodity, in this file and its children.
-\ Takes precedence over \f[CR]D\f[R].
-Subdirectives: \f[CR]format\f[R] (ignored).
-Command line equivalent: \f[CR]\-c/\-\-commodity\-style\f[R]
-T}@T{
-N,N,Y,Y
 T}
 T{
 \f[B]\f[CB]decimal\-mark\f[B]\f[R]
 T}@T{
 Declares the decimal mark, for parsing amounts of all commodities in
-following entries until next \f[CR]decimal\-mark\f[R] or end of current
-file.
-Included files can override.
-Takes precedence over \f[CR]commodity\f[R] and \f[CR]D\f[R].
+following entries until next \f[CR]decimal\-mark\f[R] or file end.
+Subfiles can override.
 T}@T{
 Y
 T}
 T{
 \f[B]\f[CB]include\f[B]\f[R]
 T}@T{
-Includes entries and directives from another file, as if they were
-written inline.
+Includes entries from another file, as if they were written inline.
 Command line alternative: multiple \f[CR]\-f/\-\-file\f[R]
 T}@T{
+T}
+T{
+T}@T{
+\f[B]Declares data:\f[R]
+T}@T{
+T}
+T{
+\f[B]\f[CB]account\f[B]\f[R]
+T}@T{
+Declares an account, for checking all entries in all files, and its
+display order, and optionally its type and lotfulness.
+T}@T{
 N
+T}
+T{
+\f[B]\f[CB]commodity\f[B]\f[R]
+T}@T{
+Declares 1.
+a commodity symbol, for checking all amounts in all files 2.
+the commodity\(aqs display style 3.
+optional commodity aliases and lotfulness, and 4.
+the decimal mark for parsing this commodity, until file end (overridden
+by \f[CR]decimal\-mark\f[R]).
+Command line equivalent: \f[CR]\-c/\-\-commodity\-style\f[R]
+T}@T{
+N N N Y
 T}
 T{
 \f[B]\f[CB]payee\f[B]\f[R]
@@ -2917,65 +2838,77 @@ T}@T{
 N
 T}
 T{
+\f[B]\f[CB]tag\f[B]\f[R]
+T}@T{
+Declares a tag name, for checking all entries in all files.
+T}@T{
+N
+T}
+T{
 \f[B]\f[CB]P\f[B]\f[R]
 T}@T{
-Declares the market price of a commodity on some date, for value
+Declares a commodity\(aqs market price on some date, for value and gain
 reports.
 T}@T{
-N
 T}
 T{
-\f[B]\f[CB]\(ti\f[B]\f[R] (tilde)
 T}@T{
-Declares a periodic transaction rule that generates future transactions
-with \f[CR]\-\-forecast\f[R] and budget goals with
-\f[CR]balance \-\-budget\f[R].
-T}@T{
-N
-T}
-T{
-Other syntax:
-T}@T{
+\f[B]Generates data:\f[R]
 T}@T{
 T}
 T{
-\f[B]\f[CB]apply account\f[B]\f[R]
+\f[B]\f[CB]=\f[B]\f[R]
 T}@T{
-Prepends a common parent account to all account names, in following
-entries until end of current file or \f[CR]end apply account\f[R].
-T}@T{
-Y
-T}
-T{
-\f[B]\f[CB]D\f[B]\f[R]
-T}@T{
-Sets a default commodity to use for no\-symbol amounts;and, if there is
-no \f[CR]commodity\f[R] directive for this commodity: its decimal mark,
-balancing precision, and display style, as above.
-T}@T{
-Y,Y,N,N
-T}
-T{
-\f[B]\f[CB]Y\f[B]\f[R]
-T}@T{
-Sets a default year to use for any yearless dates, in following entries
-until end of current file.
-T}@T{
-Y
-T}
-T{
-\f[B]\f[CB]=\f[B]\f[R] (equals)
-T}@T{
-Declares an auto posting rule that generates extra postings on matched
-transactions with \f[CR]\-\-auto\f[R], in current, parent, and child
-files (but not sibling files, see #1212).
+Declares an auto posting rule that generates extra postings with
+\f[CR]\-\-auto\f[R], in current/parent/subfiles (but not sibling files,
+see #1212).
 T}@T{
 partly
 T}
 T{
-\f[B]Other Ledger directives\f[R]
+\f[B]\f[CB]\(ti\f[B]\f[R]
 T}@T{
-Other directives from Ledger\(aqs file format are accepted but ignored.
+Declares a periodic transaction rule that generates 1.
+future transactions with \f[CR]\-\-forecast\f[R], and 2.
+budget goals with \f[CR]balance \-\-budget\f[R].
+T}@T{
+N
+T}
+T{
+T}@T{
+\f[B]File reading (legacy/deprecated):\f[R]
+T}@T{
+T}
+T{
+\f[CR]apply account\f[R]
+T}@T{
+Prepends a common parent account to all account names, in following
+entries until \f[CR]end apply account\f[R] or file end.
+T}@T{
+Y
+T}
+T{
+\f[CR]D\f[R]
+T}@T{
+Sets 1.a default commodity to use for no\-symbol amounts in this file
+and subfiles, and 2.
+its parsing decimal mark and display style (overridden by
+\f[CR]commodity\f[R] or \f[CR]decimal\-mark\f[R]).
+T}@T{
+Y, Y, N
+T}
+T{
+\f[CR]Y\f[R]
+T}@T{
+Sets a default year to use for any yearless dates, in following entries
+until file end.
+T}@T{
+Y
+T}
+T{
+other
+T}@T{
+These other Ledger directives are accepted but ignored.
 T}@T{
 T}
 .TE
@@ -3011,12 +2944,7 @@ Eg:
 account assets:bank:checking
 .EE
 .PP
-Ledger\-style indented subdirectives are also accepted, but ignored:
-.IP
-.EX
-account assets:bank:checking
-  format subdirective  ; currently ignored
-.EE
+Any indented subdirectives are ignored.
 .SS Account comments
 Text following \f[B]two or more spaces\f[R] and \f[CR];\f[R] at the end
 of an account directive line, and/or following \f[CR];\f[R] on indented
@@ -3200,10 +3128,8 @@ accumulated unrealised capital gains (subtype of Equity)
 T}
 .TE
 .PP
-As a convenience, hledger will detect most of these types automatically
-from english account names.
-(All except Gain and UnrealisedGain.
-For more about them, see Gain postings.)
+As a convenience, hledger will detect these types automatically from
+english account names.
 But it\(aqs better to declare them explicitly by adding a
 \f[CR]type:\f[R] tag in the account directives.
 The tag\(aqs value can be any of the types or one\-letter abbreviations
@@ -3225,7 +3151,7 @@ account assets:cash        ; type: C
 account equity:conversion       ; type: V
 account equity:unrealised\-gain  ; type: U
 
-account revenues:capital        ; type: G
+account revenues:gain           ; type: G
 .EE
 .PP
 This enables the easy balancesheet, balancesheetequity, cashflow and
@@ -3262,7 +3188,9 @@ If account\(aqs name contains this case insensitive regular expression | its typ
 \(haassets?(:|$)                                                       | Asset
 \(ha(debts?|liabilit(y|ies))(:|$)                                      | Liability
 \(haequity:(trad(e|ing)|conversion)s?(:|$)                             | Conversion
+\(haequity:unreali[sz]ed([\- ](capital[\- ])?gains?)?(:|$)               | UnrealisedGain
 \(haequity(:|$)                                                        | Equity
+\(ha(income|revenue)s?:(capital[\- ]?)?(gains?|loss(es)?)(:|$)          | Gain
 \(ha(income|revenue)s?(:|$)                                            | Revenue
 \(haexpenses?(:|$)                                                     | Expense
 .EE
@@ -3408,8 +3336,8 @@ independent of which files are being read and in which order.
 In case of trouble, adding \f[CR]\-\-debug=6\f[R] to the command line
 will show which aliases are being applied when.
 .SS Aliases and multiple files
-As explained at Directives and multiple files, \f[CR]alias\f[R]
-directives do not affect parent or sibling files.
+As explained at Directives, \f[CR]alias\f[R] directives do not affect
+parent or sibling files.
 Eg in this command,
 .IP
 .EX
@@ -3499,6 +3427,12 @@ command, eg something like:
 .EX
 $ hledger accounts \-\-types \-1 \-\-alias assets=bassetts
 .EE
+.SS \f[CR]comment\f[R] directive
+A line containing just \f[CR]comment\f[R] causes all following lines to
+be ignored, until an end comment directive or file end.
+.SS \f[CR]end comment\f[R] directive
+A line containing just \f[CR]end comment\f[R] ends the effect of a
+preceding comment directive.
 .SS \f[CR]commodity\f[R] directive
 The \f[CR]commodity\f[R] directive performs several functions:
 .IP "1." 3
@@ -3580,7 +3514,7 @@ commodity \(dq\(dq               ; the no\-symbol commodity
 Commodity directives may also be written with an indented
 \f[CR]format\f[R] subdirective, as in Ledger.
 The symbol is repeated and must be the same in both places.
-Other subdirectives are currently ignored:
+Other subdirectives are ignored:
 .IP
 .EX
 ; display indian rupees with currency name on the left,
@@ -3588,7 +3522,7 @@ Other subdirectives are currently ignored:
 ; period as decimal point, and two decimal places.
 commodity INR
   format INR 1,00,00,000.00
-  an unsupported subdirective  ; ignored by hledger
+  other subdirective  ; ignored
 .EE
 .SS Commodity tags
 A commodity directive\(aqs comment may contain tags.
@@ -3603,8 +3537,7 @@ alternative symbols which should be treated as equivalent to it for
 valuation purposes.
 This is useful when your journal uses a familiar symbol like
 \f[CR]$\f[R] while market prices are recorded against the canonical ISO
-code like \f[CR]USD\f[R] (eg as written by
-\f[CR]hledger getprices\f[R]):
+code like \f[CR]USD\f[R] (eg as written by \f[CR]hledger get\f[R]):
 .IP
 .EX
 commodity 1.00 USD  ; alias: $
@@ -3612,8 +3545,8 @@ commodity 1.00 USD  ; alias: $
 P 2024\-01\-01 EUR 1.10 USD
 .EE
 .PP
-For each alias actually used in the journal, hledger injects a synthetic
-1:1 price directive (eg \f[CR]$ → USD\f[R]), so reports like
+For each declared alias, hledger injects a synthetic 1:1 price directive
+(eg \f[CR]$ → USD\f[R]), dated \f[CR]0000\-01\-01\f[R], so reports like
 \f[CR]bal \-X EUR\f[R] can convert amounts via the alias\(aqs canonical
 form.
 .PP
@@ -3753,13 +3686,13 @@ This directive can be used to declare a limited set of payees which may
 appear in transaction descriptions.
 The \(dqpayees\(dq check will report an error if any transaction refers
 to a payee that has not been declared.
+(This is quite a strict check, and not often used.)
+.PP
 Eg:
 .IP
 .EX
 payee Whole Foods    ; a comment
 .EE
-.PP
-Payees do not have tags (tags in the comment will be ignored).
 .PP
 To declare the empty payee name, use \f[CR]\(dq\(dq\f[R].
 .IP
@@ -3767,7 +3700,8 @@ To declare the empty payee name, use \f[CR]\(dq\(dq\f[R].
 payee \(dq\(dq
 .EE
 .PP
-Ledger\-style indented subdirectives, if any, are currently ignored.
+Payees do not support tags.
+Any indented subdirectives are ignored.
 .SS \f[CR]tag\f[R] directive
 \f[CR]tag TAGNAME\f[R]
 .PP
@@ -3780,7 +3714,7 @@ Eg:
 tag  item\-id
 .EE
 .PP
-Any indented subdirectives are currently ignored.
+Any indented subdirectives are ignored.
 .PP
 The \(dqtags\(dq check will report an error if any undeclared tag name
 is used.
@@ -3793,9 +3727,8 @@ generates temporary extra transactions, usually recurring at some
 interval, when hledger is run with the \f[CR]\-\-forecast\f[R] flag.
 These \(dqforecast transactions\(dq are useful for forecasting future
 activity.
-They exist only for the duration of the report, and only when
-\f[CR]\-\-forecast\f[R] is used; they are not saved in the journal file
-by hledger.
+They exist only at report time, when \f[CR]\-\-forecast\f[R] is used;
+they are not saved in the journal file.
 .PP
 Periodic rules also have a second use: with the \f[CR]\-\-budget\f[R]
 flag they set budget goals for budgeting.
@@ -3803,8 +3736,8 @@ flag they set budget goals for budgeting.
 Periodic rules can be a little tricky, so before you use them, read this
 whole section, or at least the following tips:
 .IP "1." 3
-Two spaces accidentally added or omitted will cause you trouble \- read
-about this below.
+Two spaces accidentally added or omitted in the rule will cause you
+trouble \- see below.
 .IP "2." 3
 For troubleshooting, show the generated transactions with
 \f[CR]hledger print \-\-forecast tag:generated\f[R] or
@@ -4579,12 +4512,19 @@ source ./Checking1.csv
 If the file does not exist, it is just considered empty, without raising
 an error.
 .PP
-If you specify just a file name with no path, hledger will look for it
-in the \f[CR]\(ti/Downloads\f[R] folder:
-.IP
-.EX
-source Checking1.csv
-.EE
+The file path is resolved this way:
+.IP \(bu 2
+Absolute paths and \f[CR]\(ti\f[R]\-prefixed paths are used as\-is.
+.IP \(bu 2
+A path beginning with \f[CR]./\f[R] or \f[CR]../\f[R]
+(\f[CR]source ./Checking1.csv\f[R]) is anchored relative to the rules
+file\(aqs directory (as in hledger 1).
+.IP \(bu 2
+Any other relative path (\f[CR]source bank/Checking1.csv\f[R]), or a
+bare file name (\f[CR]source Checking1.csv\f[R]), is searched for first
+in a \f[CR]data/\f[R] directory next to the main journal file (also used
+by the \f[CR]archive\f[R] rule and the \f[CR]get\f[R] command), then in
+your \f[CR]\(ti/Downloads\f[R] folder.
 .PP
 You can use a glob pattern, to avoid specifying the file name exactly:
 .IP
@@ -4648,7 +4588,11 @@ error message.
 .SS \f[CR]archive\f[R]
 With \f[CR]archive\f[R] added to a rules file, the \f[CR]import\f[R]
 command will archive each successfully processed data file or data
-command output in a nearby \f[CR]data/\f[R] directory.
+command output in an \f[CR]archive/\f[R] subdirectory of the
+\f[CR]data/\f[R] directory next to the main journal file.
+(\f[CR]archive/\f[R] keeps archived files out of sight of the
+\f[CR]source\f[R] rule\(aqs glob pattern, which might otherwise
+re\-match them.)
 The archive file name will be based on the rules file and the data
 file\(aqs modification date and extension (or for a data\-generating
 command, the current date and the \(dq.csv\(dq extension).
@@ -7338,7 +7282,7 @@ balances.
 .PD
 Match by transaction code (eg check number).
 .SS cur: query
-\f[B]\f[CB]cur:REGEX\f[B]\f[R]
+\f[B]\f[CB]cur:FULLREGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
@@ -7346,12 +7290,36 @@ Match postings or transactions including any amounts whose
 currency/commodity symbol is fully matched by REGEX.
 (Contrary to hledger\(aqs usual infix matching.
 To do infix matching, write \f[CR].*REGEX.*\f[R].)
-Note, to match special characters which are regex\-significant, you need
-to escape them with \f[CR]\(rs\f[R].
-And for characters which are significant to your shell you will usually
-need one more level of escaping.
-Eg to match the dollar sign: \f[CR]cur:\(rs\(rs$\f[R] or
-\f[CR]cur:\(aq\(rs$\(aq\f[R]
+.PP
+To match special characters which are regex\-significant, escape them
+with \f[CR]\(rs\f[R].
+And at the command line, characters which are shell\-significant need
+one more level of escaping \- eg to match the dollar sign, write
+\f[CR]cur:\(rs\(rs$\f[R] or \f[CR]cur:\(aq\(rs$\(aq\f[R].
+.PP
+When commodity aliases have been declared, via an \f[CR]alias:\f[R] tag
+on a commodity directive), \f[CR]cur:\f[R] will match the canonical
+commodity or any of its aliases.
+So if \f[CR]commodity $1000.00  ; alias: USD U\f[R] is declared, the
+queries \f[CR]cur:\(rs\(rs$\f[R], \f[CR]cur:USD\f[R], \f[CR]cur:U\f[R]
+and \f[CR]cur:U.+\f[R] will all match amounts like \f[CR]$1\f[R] or
+\f[CR]1 USD\f[R] or \f[CR]1 U\f[R].
+.PD 0
+.P
+.PD
+\f[I](experimental)\f[R]
+.SS exactcur: query
+\f[B]\f[CB]exactcur:FULLREGEX\f[B]\f[R]
+.PD 0
+.P
+.PD
+This is like \f[CR]cur:\f[R], but ignores commodity aliases.
+So in the example above, \f[CR]exactcur:USD\f[R] would match
+\f[CR]1 USD\f[R] but not \f[CR]$1\f[R] or \f[CR]1 U\f[R].
+.PD 0
+.P
+.PD
+\f[I](experimental)\f[R]
 .SS desc: query
 \f[B]\f[CB]desc:REGEX\f[B]\f[R]
 .PD 0
@@ -7607,8 +7575,9 @@ grouping and display.
 PIVOTEXPR can be
 .IP \(bu 2
 any of these standard transaction or posting fields (their value is
-substituted): \f[CR]status\f[R], \f[CR]code\f[R], \f[CR]desc\f[R],
-\f[CR]payee\f[R], \f[CR]note\f[R], \f[CR]acct\f[R],
+substituted): \f[CR]status\f[R], \f[CR]code\f[R],
+\f[CR]desc\f[R]/\f[CR]description\f[R], \f[CR]payee\f[R],
+\f[CR]note\f[R], \f[CR]acct\f[R]/\f[CR]account\f[R],
 \f[CR]comm\f[R]/\f[CR]cur\f[R], \f[CR]amt\f[R], \f[CR]cost\f[R]
 .IP \(bu 2
 or a tag name
@@ -9194,70 +9163,123 @@ All this can be very hard to keep track of by hand, so usually it is
 done by an investment broker, cryptocurrency exchange, or specialised
 tax software.
 Now, you can also do it yourself with hledger.
-.SS hledger\(aqs lot tracking
+.PP
 hledger\(aqs lot tracking builds on the design first shipped in Ledger,
 then improved in Beancount.
 hledger understands several kinds of notation describing lots.
-You can record all details explicitly, or use more convenient
+You can record all details explicitly; or use more convenient
 low\-boilerplate entries, and it will infer the missing parts.
-It can track and infer all lot movements, and calculate capital gains
-when they are sold.
+hledger checks lot entries, tracks and infers lot movements (reporting
+any problems, such as disposal of nonexistent lots), and calculates
+capital gains when lots are sold.
 .PP
-hledger also checks that all lot entries are valid, and will raise an
-error if there\(aqs a problem (such as disposal of nonexistent lots).
-You may want to turn this off if you are working with incomplete
-journals, eg if you are piping hledger print output into another hledger
-command.
-In that case, use \f[CR]\-\-ignore\-lots\f[R] or \f[CR]\-I\f[R], which
-disables lot and gain calculations entirely.
+Note, this is currently available in experimental preview releases of
+hledger 2.0.
+Your testing and feedback are important for making it better.
 .PP
-Note, this is an experimental preview of hledger 2.0, which I hope to
-release around june 2026, and things may change.
-Your testing is very helpful.
-Here are some current issues to be aware of:
-.IP \(bu 2
-hledger 2 normally handles hledger 1 journals just as hledger 1 did.
-But if you have {} cost basis annotations in your journal for some
-reason (ignored by hledger 1), you will probably need to fix them for
-hledger 2.
-.IP \(bu 2
-Once you start recording lot disposals, you will probably need to
-declare a Gain account and an UnrealisedGain account, which hledger will
-use for capital gains postings.
-These are subtypes of Revenue and Equity respectively.
-So eg you could declare:
-.RS 2
-.IP
-.EX
-account revenues:gain            ; type:G
-account equity:unrealised\-gain   ; type:U
-.EE
-.RE
-.IP \(bu 2
-Not every possible lot\-related journal entry can be detected correctly
-by hledger.
-For example, entries with a total cost basis which can\(aqt be converted
-to exact unit cost basis.
-Use \f[CR]hledger print \-a\f[R] to see how a lot entry has been
-analysed, and if it\(aqs not correct, try to rewrite it until hledger
-analyses it correctly.
-.PP
-For more technical details, see SPEC\-lots.
-.SS How to enable lot tracking
-Any of three things in your journal will activate hledger\(aqs
-lots/gains processing:
+For a more technical version of what\(aqs in this manual, see
+SPEC\-lots.
+.SS How to enable or disable lot tracking
+hledger will enable lots/gains tracking if it sees any of these three
+things, described below:
 .IP \(bu 2
 Amounts with cost basis annotations.
 .IP \(bu 2
-Account names ending with a lot subaccount.
-.IP \(bu 2
 Postings involving a lotful commodity or account.
+.IP \(bu 2
+Account names ending with a lot subaccount.
 .PP
-These are described below.
 A posting with any of these is called a lot posting.
-.SS Lots and cost basis
-Each acquisition of an investment creates a lot with its own cost basis.
-In hledger, lots are named by their cost basis, which has 2\-3 parts:
+.PP
+Sometimes you may want to disable lots/gains calculations, and silence
+lot\-related errors.
+Eg if you are working with incomplete journals, as when piping hledger
+print output into another hledger command.
+For this, use the \f[CR]\-\-ignore\-lots\f[R] flag, or just
+\f[CR]\-I\f[R].
+.SS First lots example
+To get a feel for what lot tracking looks like, here is a minimal buy
+and sell using a lotful commodity (the lowest\-boilerplate style):
+.IP
+.EX
+commodity AAPL  ; lots:
+
+2026\-01\-15 buy
+    assets:stocks      10 AAPL \(at $50
+    assets:cash     \-$500
+
+2026\-02\-01 sell some at a gain
+    assets:stocks      \-5 AAPL \(at $70
+    assets:cash      $350
+.EE
+.PP
+hledger automatically records each acquisition as a lot, picks lots at
+disposal using FIFO by default, calculates the resulting capital gain,
+and adds gain postings (using default account names in this example):
+.IP
+.EX
+$ hledger print
+2026\-01\-15 buy
+    assets:stocks                                 10 AAPL \(at $50
+    assets:cash                                $\-500
+
+2026\-02\-01 sell some at a gain
+    assets:stocks                                 \-5 AAPL \(at $70
+    assets:cash                                 $350
+    revenues:gain                              $\-100
+    equity:unrealised\-gain                      $100
+.EE
+.PP
+Adding the \f[CR]\-\-lots\f[R] flag makes the individual lots visible as
+subaccounts:
+.IP
+.EX
+$ hledger print \-\-lots
+2026\-01\-15 buy
+    assets:stocks:{2026\-01\-15, $50}               10 AAPL \(at $50
+    assets:cash                                $\-500
+
+2026\-02\-01 sell some at a gain
+    assets:stocks:{2026\-01\-15, $50}               \-5 AAPL \(at $70
+    assets:cash                                 $350
+    revenues:gain                              $\-100
+    equity:unrealised\-gain                      $100
+.EE
+.IP
+.EX
+$ hledger bal assets:stocks \-\-lots \-N
+              5 AAPL  assets:stocks:{2026\-01\-15, $50}
+.EE
+.PP
+Or use \f[CR]print \-a\f[R] to see maximum detail on how hledger has
+analysed your entries \- lot subaccounts, inferred annotations, and
+posting types:
+.IP
+.EX
+$ hledger print \-a
+2026\-01\-15 buy
+    assets:stocks:{2026\-01\-15, $50}               10 AAPL {$50} \(at $50  ; ptype: acquire
+    assets:cash                                $\-500
+
+2026\-02\-01 sell some at a gain
+    assets:stocks:{2026\-01\-15, $50}               \-5 AAPL {2026\-01\-15, $50} \(at $70  ; ptype: dispose
+    assets:cash                                 $350
+    revenues:gain                              $\-100  ; ptype: rgain, generated\-posting:
+    equity:unrealised\-gain                      $100  ; ptype: ugain, generated\-posting:
+.EE
+.PP
+Until you are familiar with hledger\(aqs lot tracking, it\(aqs worth
+checking your entries with \f[CR]print \-a\f[R].
+Not every possible lot\-related entry can be analysed correctly; if
+anything looks wrong, rewrite the entry.
+.PP
+Lot reporting example below shows this same scenario recorded with other
+notation styles.
+.SS Lot concepts
+.SS Cost basis annotations
+Each acquisition of an investment creates a \f[I]lot\f[R], with a
+\f[I]cost basis\f[R].
+In hledger, a lot\(aqs cost basis has 2\-3 parts:
 .IP "1." 3
 The nominal acquisition date (required).
 Usually this is the date you acquired the lot.
@@ -9268,88 +9290,40 @@ This can be used to distinguish lots acquired on the same date.
 The nominal acquisition cost (required).
 Usually this is what you paid for it.
 .PP
-For more background on cost basis, see
-https://en.wikipedia.org/wiki/Cost_basis.
-.SS Cost basis annotations
-In the journal, we sometimes write cost basis annotations ({} syntax)
-after an amount.
-Often these mention only part of the cost basis, for convenience \-
+In the journal, we can write \f[I]cost basis annotations\f[R], enclosed
+in {} after an amount.
+The syntax is described in Cost basis.
+These cost basis annotations often mention only part of the cost basis,
 typically the cost.
-They are described in Cost basis.
-As a reminder, here are some examples:
+Here are some examples:
 .IP
 .EX
-{2026\-01\-15, \(dq12:05\(dq, $50}
-{2026\-01\-15, $50}
-{1.000.000,33 EUR}
 {$50}
+{1.000.000,33 EUR}
+{2026\-01\-15, $50}
+{2026\-01\-15, \(dq12:05\(dq, $50}
 {}
 .EE
-.SS Cost basis and transacted cost
-In acquisition transactions, hledger allows the cost basis
-(\f[CR]{}\f[R]) and transacted cost (\f[CR]\(at\f[R]) to be different,
-for compatibility with other plain text accounting apps.
-But the preferred style is to keep these the same; typically we write
-just one of them and let the other be inferred.
-You can enforce this by running \f[CR]hledger check basis\f[R].
-This prevents typos in cost basis annotations silently causing incorrect
-gain to be calculated at disposal time.
+.SS Lotful commodities and accounts
+A more convenient way to record lot transactions, is to declare
+commodities or accounts as \f[I]lotful\f[R], by adding a \f[CR]lots\f[R]
+tag in their declaration.
+Eg:
+.IP
+.EX
+commodity AAPL          ; lots:
+account assets:funds    ; lots:
+.EE
 .PP
-Even in real\-world cases where the cost basis differs from the
-asset\(aqs current fair market value, the preferred style can be
-applied:
-.IP \(bu 2
-Gifts \(em the recipient inherits the donor\(aqs original cost basis
-(carryover basis), not the fair market value at the time of the gift.
-.IP \(bu 2
-Inheritance \(em inherited assets get a \(dqstepped\-up\(dq basis to
-fair market value at the date of death.
-.IP \(bu 2
-Employee stock options (NSOs) \(em the bargain element (FMV minus
-exercise price) is taxed as ordinary income, and cost basis becomes the
-FMV at exercise, not the price paid.
-.IP \(bu 2
-Incentive stock options (ISOs) \(em cost basis is the exercise price for
-regular tax, but FMV at exercise for AMT, so the same lot can have two
-different bases depending on tax context.
-.IP \(bu 2
-RSUs \(em cost basis is FMV at vesting; the recipient paid nothing.
-.IP \(bu 2
-ESPPs \(em shares bought at a discount; basis treatment depends on
-qualifying vs disqualifying disposition.
-.IP \(bu 2
-Wash sales \(em disallowed loss from a prior sale is added to the cost
-basis of the replacement shares.
-.IP \(bu 2
-Corporate actions \(em spin\-offs, mergers, and stock splits cause cost
-basis to be allocated or adjusted in ways unrelated to any payment.
-.PP
-In each case, fund any difference between basis and price paid via a
-separate income, equity, or asset posting, rather than expressing the
-difference as \f[CR]{B} \(at T\f[R] with \f[CR]B ≠ T\f[R] on the asset
-itself.
-The Acquire section below shows an example.
-.SS Lot ids
-A lot\(aqs id is the date and label (if any) from the cost basis, with a
-space between them.
-It must be unique (within the commodity), so that we can always select
-specific lots.
-It is also used as a sort key, so that we always know the order in which
-lots were acquired.
-It does not include the cost.
-.PP
-So when multiple lots of a commodity are acquired on the same day, the
-label is used to distinguish them.
-If you leave it empty, hledger will add sequentially numbered labels to
-ensure uniqueness.
-Or you could record times there, in a sortable format like HH:MM.
+This tells hledger that postings involving these commodities or accounts
+always involve lots, so it will infer cost basis annotations
+automatically, and you won\(aqt need to write them in the journal.
 .SS Lot subaccounts
-Internally, each lot is tracked as a subaccount, named like the cost
+Internally, hledger tracks each lot in a subaccount, named like the cost
 basis.
 You don\(aqt need to write these subaccounts in the journal; hledger
 infers them automatically.
-But they are hidden from reports by default, since there can be many of
-them.
+They are hidden from reports by default, since there can be many lots.
 To show them, just add the \f[CR]\-\-lots\f[R] flag to any report.
 Eg:
 .IP
@@ -9372,7 +9346,7 @@ $ hledger print \-\-lots
 .EE
 .PP
 If you do write a lot subaccount in the journal, it is equivalent to
-writing a cost basis annotation after the amount:
+writing a cost basis annotation on the amount:
 .IP
 .EX
 2026\-01\-15 buy
@@ -9388,26 +9362,60 @@ $ hledger print
 .EE
 .PP
 Unlike cost basis annotations, lot subaccount names must be complete,
-including all of the cost basis \- date, label if any, and cost.
+including all cost basis parts \- date, label if any, and cost.
 .PP
 When strictly checking account names, lot subaccounts are ignored \- you
 only need to declare the base account (eg \f[CR]assets:stocks\f[R]), not
 the lot subaccounts.
-.SS Lotful commodities and accounts
-The most convenient way to record lot transactions, is to declare a
-commodity or account as lotful, by adding a \f[CR]lots\f[R] tag in its
-declaration:
+.SS Lot ids
+A lot id is a unique identifier for that lot, used internally by
+hledger.
+It is the cost basis date, followed by the label if any, with a space
+between them.
+.PP
+Lot ids also record the order in which lots were acquired.
+So if multiple lots of a commodity are acquired on the same date, they
+must have distinct, sortable labels.
+Eg the time of the event, in \f[CR]HH:MM\f[R] format, could be used.
+Or if no labels are provided, hledger will add sequentially numbered
+labels starting from \f[CR]0001\f[R].
+.PP
+Acquisitions with these cost basis annotations would produce those lot
+ids:
 .IP
 .EX
-commodity AAPL          ; lots:
-account assets:funds    ; lots:
+{2026\-01\-01, $50}           ; → \(dq2026\-01\-01\(dq
+{2026\-01\-02, \(dq12:30\(dq, $50}  ; → \(dq2026\-01\-02 12:30\(dq
+{2026\-01\-03, $50}           ; → \(dq2026\-01\-03 0001\(dq
+{2026\-01\-03, $50}           ; → \(dq2026\-01\-04 0002\(dq
 .EE
+.SS Cost basis vs transacted cost
+In acquisition transactions, hledger allows the cost basis
+(\f[CR]{}\f[R], call it \f[CR]B\f[R]) and transacted cost
+(\f[CR]\(at\f[R], call it \f[CR]T\f[R]) to be different, for
+compatibility with other plain text accounting apps.
+But the preferred style is to keep these the same; typically we write
+just one of them and let the other be inferred.
 .PP
-This tells hledger that postings involving these commodities or accounts
-always involve lots, so you won\(aqt need to write any cost basis
-annotations.
-.SS Lot operations
-hledger understands three kinds of lot operation.
+You can check that \f[CR]B\f[R] == \f[CR]T\f[R] everywhere by running
+\f[CR]hledger check basis\f[R].
+This catches {}/\(at mismatches which would silently miscalculate
+capital gains.
+.PP
+Some real\-world situations can produce a cost basis that differs from
+what was paid \- gifts (carryover basis), inheritance (stepped\-up
+basis), stock options (NSOs, ISOs, ESPPs, RSUs), wash sales, corporate
+actions, and so on.
+For more background, see https://en.wikipedia.org/wiki/Cost_basis.
+.PP
+However, in these cases the preferred style can still be used: record
+\f[CR]B = T\f[R] on the asset posting, and fund any difference via a
+separate income, equity, or asset posting \- rather than expressing the
+difference as \f[CR]{B} \(at T\f[R] with \f[CR]B ≠ T\f[R] on the asset
+itself.
+The Acquire section below shows an example.
+.SS Lot movements
+hledger understands three kinds of event involving lots.
 Other real\-world lot events can usually be modelled using combinations
 of these.
 .SS Acquire
@@ -9426,25 +9434,15 @@ On lotful commodities/accounts, even a bare positive posting (no
 \f[CR]{}\f[R] or \f[CR]\(at\f[R]) can be detected as an acquire, with
 cost inferred from the transaction\(aqs other postings.
 .PP
-An acquire posting can carry an explicit cost basis
-(\f[CR]{}\f[R]/\f[CR]{{}}\f[R]), an explicit transacted cost
-(\f[CR]\(at\f[R]/\f[CR]\(at\(at\f[R]), or both.
-hledger accepts entries where these differ, mainly for compatibility
-with Ledger, Beancount, hledger 1, etc.
-But we recommend always acquiring with the per\-unit basis cost equal to
-the per\-unit transacted cost.
-You can enforce this by running \f[CR]hledger check basis\f[R] This
-prevents typos in the cost basis, which could silently cause wrong gain
-to be calculated at disposal time.
+Acquire postings may carry a per\-unit (\f[CR]{}\f[R]) or total
+(\f[CR]{{}}\f[R]) cost basis annotation, and a per\-unit
+(\f[CR]\(at\f[R]) or total (\f[CR]\(at\(at\f[R]) transacted cost.
+See Cost basis vs transacted cost for the recommended style.
 .PP
-Also, it encourages preferred journal entry style: \(dqbasis =
-transacted, with any real world difference funded by a separate
-posting\(dq.
-Here is an acquisition where the cost basis differs from the
-commodity\(aqs current market price.
+Here is a worked example: an acquisition where the cost basis differs
+from the commodity\(aqs current market price.
 With GOLD currently priced at $5000, you receive a gift carrying its
-original cost basis of $3000/oz.
-It can be recorded like this:
+original cost basis of $3000/oz:
 .IP
 .EX
 P 2026\-05\-01 GOLD $5000
@@ -9460,7 +9458,7 @@ value is $10000, but remember when you dispose you\(aqll have to declare
 $2000/oz more capital gain, $4000 more in total).
 .SS Transfer
 A matching pair of negative/positive lotful postings moves one or more
-existing lots between accounts, preserving its cost basis.
+existing lots between accounts, preserving their cost basis.
 .IP
 .EX
 2026\-05\-01 transfer to another broker
@@ -9486,7 +9484,7 @@ A negative lot posting sells from one or more existing lots.
 2026\-08\-01 sell at a gain
     assets:broker2     \-10 ETSY {$50} \(at $90   ; selecting the lot by specific identification
     assets:cash       $900
-    revenue:gains    $\-400                    ; gain can be recorded explicitly or left implicit
+    revenues:gain    $\-400                    ; gain can be recorded explicitly or left implicit
 .EE
 .PP
 The disposal posting must have a transacted price (the selling price),
@@ -9494,19 +9492,20 @@ either explicit or inferred: $90 here.
 .PP
 When the gain postings are inferred (not written explicitly), hledger
 sizes them from the disposal side only: the sum of
-\f[CR]aquantity × (B − T)\f[R] over the entry\(aqs dispose postings.
+\f[CR]quantity × (B − T)\f[R] over the entry\(aqs dispose postings.
 Acquire postings in the same entry don\(aqt contribute to the inferred
 gain (any acquire\-side \f[CR]B ≠ T\f[R] would be rejected at load time
 anyway, see Acquire above).
 .SS Cost basis methods
-When a disposal or transfer doesn\(aqt specifically identify a lot (eg:
-the amount is like \f[CR]\-5 AAPL {}\f[R], or just \f[CR]\-5 AAPL\f[R]),
-hledger selects lot(s) automatically using a \f[I]cost basis method\f[R]
-(AKA disposal method, reduction method, booking method).
+If a lot transfer or a lot disposal doesn\(aqt specifically identify the
+lot(s) involved, hledger selects from the available lots automatically,
+using a \f[I]cost basis method\f[R] (AKA disposal method / reduction
+method / booking method).
 .PP
-The default method is FIFO; you can override this with a commodity or
-account\(aqs \f[CR]lots:\f[R] tag.
-(Account tags override commodity tags.)
+The default method is FIFO (first in, first out).
+You can override this with a \f[CR]lots\f[R] tag on the commodity or
+account.
+(An account tag will take precedence.)
 Eg:
 .IP
 .EX
@@ -9518,7 +9517,7 @@ These methods are supported:
 .PP
 .TS
 tab(@);
-lw(9.1n) lw(9.1n) lw(12.3n) lw(39.5n).
+lw(8.2n) lw(14.3n) lw(11.9n) lw(35.6n).
 T{
 Method
 T}@T{
@@ -9568,16 +9567,16 @@ T}
 T{
 \f[B]AVERAGE\f[R]
 T}@T{
-oldest first
+oldest first (all accounts)
 T}@T{
-weighted average cost
+average cost
 T}@T{
 \(dq
 T}
 T{
 \f[B]FIFOALL\f[R]
 T}@T{
-oldest first
+oldest first (all accounts)
 T}@T{
 each lot\(aqs cost
 T}@T{
@@ -9587,7 +9586,7 @@ T}
 T{
 \f[B]LIFOALL\f[R]
 T}@T{
-newest first
+newest first (all accounts)
 T}@T{
 each lot\(aqs cost
 T}@T{
@@ -9596,7 +9595,7 @@ T}
 T{
 \f[B]HIFOALL\f[R]
 T}@T{
-highest cost first
+highest cost first (all accounts)
 T}@T{
 each lot\(aqs cost
 T}@T{
@@ -9605,11 +9604,11 @@ T}
 T{
 \f[B]AVERAGEALL\f[R]
 T}@T{
-oldest first
+oldest first (all accounts)
 T}@T{
-global weighted avg cost
+average cost (all accounts)
 T}@T{
-\(dq
+Sufficient lot(s) exist across all accounts.
 T}
 .TE
 .PP
@@ -9627,25 +9626,187 @@ Dispose of the youngest lot first.
 \f[B]HIFO\f[R] (highest\-in\-first\-out) selects the lot with the
 highest per\-unit cost first, which can be useful for tax optimization.
 .PP
-\f[B]AVERAGE\f[R] consumes lots in FIFO order, but uses the weighted
-average per\-unit cost, within the specified account, as the disposal
-cost basis, rather than each lot\(aqs individual cost.
-This is required in some jurisdictions (eg Canada\(aqs Adjusted Cost
-Base, France\(aqs PMPA, UK\(aqs S104 pools).
+\f[B]AVERAGE\f[R] maintains an average per\-unit cost shared by every
+lot in the per\-account pool.
+Each new acquisition recalculates this average cost and applies it to
+every lot in the pool.
+Disposals use this average cost, and consume lots in FIFO order (so
+acquisition dates remain meaningful for calculating
+short\-term/long\-term holding\-period).
+Under AVERAGE, the lot subaccount name omits the cost component
+(\f[CR]{2026\-01\-15}\f[R] rather than \f[CR]{2026\-01\-15, $50}\f[R])
+so it stays stable across acquisitions.
+The average cost can best be seen with \f[CR]print \-x\f[R], currently;
+in disposal postings it is visible in the cost basis annotations and
+inferred gain amounts.
+(\f[CR]print \-x\f[R] shows acquire postings with their acquisition cost
+basis, not the average.)
 .PP
 All of these methods select lots from the account mentioned in the
 posting.
-But the \f[B]*ALL\f[R] variants (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL)
-additionally validate that these lots are the ones that would be chosen
-if considering the global pool (all accounts holding that commodity).
+But the \f[B]*ALL\f[R] variants (FIFOALL, LIFOALL, HIFOALL) additionally
+validate that these lots are the ones that would be chosen if
+considering the global pool (all accounts holding that commodity).
 So if there is a more appropriate lot in another account (eg an older
 lot when using FIFOALL), they will raise an error showing which account
 holds it.
 This is useful if you need to enforce a global disposal order across all
 accounts (brokers, exchanges, wallets etc).
 .PP
-\f[B]AVERAGEALL\f[R] computes the weighted average cost across the
-global pool.
+\f[B]AVERAGEALL\f[R] is to AVERAGE what FIFOALL is to FIFO: the pool
+spans all accounts holding the commodity, so the running cost is a
+single global value and an acquisition in one account updates the cost
+basis on lots in every other account too.
+.SS Gain postings
+Each disposal transaction will have a balanced pair of postings
+recording the capital gain (or loss):
+.IP \(bu 2
+\f[B]realised gain\f[R] (rgain) on a Gain\-type account \- the
+gain/loss, negated
+.IP \(bu 2
+\f[B]unrealised gain\f[R] (ugain) on an UnrealisedGain\-type account \-
+same amount, opposite sign
+.PP
+Conceptually, the market value of a lot fluctuates from acquisition
+onward, accumulating unrealised gain or loss.
+At disposal, that accumulated unrealised gain is reclassified as
+realised gain.
+.PP
+Gain postings can be left implicit (and hledger will infer them); or
+they can be written explicitly in the journal.
+Recording gains below shows examples of both.
+.PP
+In inferred gain postings, the gain amount will be rounded to the
+entry\(aqs local precision for the gain commodity (or if the local
+precision is zero, two decimal digits will be shown \- except when both
+of those digits are zero).
+More decimals can be seen by increasing the display precision (eg
+\f[CR]hledger print \-\-round=soft \-c \(aq$1.0000\(aq\f[R]).
+.PP
+In explicit gain postings, the amount must also be written.
+(Usually hledger fills in missing amounts, but not in gain postings.)
+.SS Gain and UnrealisedGain accounts
+The \f[B]\f[CB]Gain\f[B]\f[R] (\f[B]\f[CB]G\f[B]\f[R]) and
+\f[B]\f[CB]UnrealisedGain\f[B]\f[R] (\f[B]\f[CB]U\f[B]\f[R]) account
+types are subtypes of Revenue and Equity respectively.
+Declaring an account with the G type (and optionally one with the U
+type) serves three purposes:
+.IP "1." 3
+\f[B]Recognising gain postings\f[R] \- explicit gain postings which use
+the G account will be detected reliably by account type, and error
+messages may be clearer.
+.IP "2." 3
+\f[B]Customising account names\f[R] \- inferred gain postings will use
+the first\-declared G and U accounts, rather than the defaults
+(\f[CR]revenues:gain\f[R] and \f[CR]equity:unrealised\-gain\f[R]).
+.IP "3." 3
+\f[B]Categorising\f[R] \- when reporting, you can match on the G (or U)
+account type specifically.
+.PP
+G and U are inferred from conventional English account names (eg
+\f[CR]revenues:gain\f[R], \f[CR]income:capital\-gains\f[R],
+\f[CR]equity:unrealised\-gain\f[R], \f[CR]equity:unrealized gains\f[R];
+see the regex table under Account types).
+You can also declare them explicitly:
+.IP
+.EX
+account revenues:capital gain   ; type: G
+account equity:unrealised gain  ; type: U
+.EE
+.PP
+Why do we post both gains and losses to a revenue account ?
+It\(aqs more convenient than using separate revenue and expense
+accounts, and the sign keeps things correct.
+.SS Recording gains
+In the journal, you can write disposal transactions in four main styles,
+with different tradeoffs between brevity, error checking, and
+robustness.
+From least to most explicit, they are:
+.IP \(bu 2
+\f[B]Style 1:\f[R] Don\(aqt write gain postings (let hledger infer them)
+.IP \(bu 2
+\f[B]Style 2:\f[R] Write the rgain posting, using a non\-G account
+(undeclared gain posting)
+.IP \(bu 2
+\f[B]Style 3:\f[R] Write the rgain posting, using a G account (declared
+gain posting, more reliable)
+.IP \(bu 2
+\f[B]Style 4:\f[R] Write both rgain and ugain postings, using G/U
+accounts (most explicit)
+.PP
+Style 1 just calculates the gain.
+Styles 2\-4 calculate the gain and compare it with what you wrote,
+potentially catching more errors.
+.PP
+\f[B]TLDR:\f[R] use Style 1 for brevity and to avoid most problems, or
+Style 3 for best error checking while still being concise.
+.SS Style 1: No gain postings
+.IP
+.EX
+2026\-02\-01 sell
+    assets:stocks   \-1 AAPL {$50} \(at $60
+    assets:cash     $60
+.EE
+.SS Style 2: rgain posting, non\-G account
+.IP
+.EX
+2026\-02\-01 sell
+    assets:stocks     \-1 AAPL {$50} \(at $60
+    assets:cash      $60
+    gains           $\-10
+.EE
+.PP
+Another example, this time with multiple gain postings:
+.IP
+.EX
+2026\-02\-01 sell from two lots
+    assets:stocks     \-5 AAPL {$50} \(at $60
+    assets:stocks     \-3 AAPL {$55} \(at $60
+    assets:cash     $480
+    gains           $\-50          ; gain on first lot
+    gains           $\-15          ; gain on second lot
+.EE
+.PP
+hledger identifies these \(dqundeclared\(dq gain postings by their
+characteristics: postings whose account type is not Asset, Liability, or
+Equity (or a subtype); and which have not been classified as lot
+postings (acquire, transfer, dispose); and without which the remaining
+postings in the entry balance to zero.
+.PP
+So above, the \f[CR]gains\f[R] postings are detected, their amounts are
+checked against the calculated value, and an unrealised gain posting is
+added to balance them.
+Any other imbalance \- eg a typo in non\-gain postings \(em is reported
+as a standard balance error, not silently absorbed as gain.
+.PP
+This heuristic detection of gain postings can fail (eg when the entry
+has an undeclared gain posting and also a fee posting like
+\f[CR]expenses:fees\f[R]).
+You can check it with \f[CR]hledger print \-a\f[R].
+It is just a convenience so that you don\(aqt have to always declare a
+type G account, for simple entries.
+.SS Style 3: rgain posting, G account
+.IP
+.EX
+account revenues:gain  ; type:G
+
+2026\-02\-01 sell
+    assets:stocks     \-1 AAPL {$50} \(at $60
+    assets:cash      $60
+    revenues:gain   $\-10
+.EE
+.SS Style 4: rgain and ugain postings, G and U accounts
+.IP
+.EX
+account revenues:gain           ; type:G
+account equity:unrealised\-gain  ; type:U
+
+2026\-02\-01 sell
+    assets:stocks            \-1 AAPL {$50} \(at $60
+    assets:cash              $60
+    revenues:gain           $\-10
+    equity:unrealised\-gain   $10
+.EE
 .SS Lot postings and balance assertions
 On a dispose or transfer posting without an explicit lot subaccount, a
 balance assertion always refers to the parent account\(aqs balance.
@@ -9665,183 +9826,6 @@ subaccount\-inclusive).
 (So eg
 \f[CR]hledger \-f\- print \-\-lots \-x | hledger \-f\- check assertions\f[R]
 will still pass.)
-.SS Gain postings
-In hledger 2, each disposal transaction ends up with a balanced pair of
-postings recording the capital gain:
-.IP \(bu 2
-a \f[B]realised gain\f[R] posting (rgain) \(em often on a Gain\-type
-account (default \f[CR]revenues:gain\f[R]), with the gain or loss as a
-negated amount
-.IP \(bu 2
-a balancing \f[B]unrealised gain\f[R] posting (ugain) \(em usually on an
-UnrealisedGain\-type account (default
-\f[CR]equity:unrealised\-gain\f[R]), with the same amount and opposite
-sign.
-.PP
-Conceptually, from the moment you acquire a lot, its market price
-fluctuates, and you are incurring a corresponding hidden (unrealised)
-gain or loss.
-In a disposal, hledger reclassifies that accumulated unrealised gain as
-realised gain.
-(And leaves a trace of all accumulated capital gains as an equity
-balance.)
-.SS Recording disposals
-Disposal transactions can be written in five styles.
-We use the same scenario throughout: 1 AAPL acquired at basis $50, sold
-at $60, $10 gain.
-.SS Style 1: No gain postings (recommended for brevity)
-Write only the dispose posting and the proceeds; hledger infers both
-gain postings after lot matching.
-.IP
-.EX
-2026\-02\-01 sell
-    assets:stocks   \-1 AAPL {$50} \(at $60
-    assets:cash     $60
-.EE
-.SS Style 2: Both gain postings written, on type:G and type:U accounts
-All explicit.
-hledger validates the gain amount against the calculated gain.
-.IP
-.EX
-account revenues:gain           ; type:G
-account equity:unrealised\-gain  ; type:U
-
-2026\-02\-01 sell
-    assets:stocks            \-1 AAPL {$50} \(at $60
-    assets:cash              $60
-    revenues:gain           $\-10
-    equity:unrealised\-gain   $10
-.EE
-.SS Style 3: Only rgain written, on a type:G account (recommended for error checking)
-hledger identifies the rgain by the declared type:G account, infers the
-balancing ugain posting, and checks the gain amount.
-.IP
-.EX
-account revenues:gain  ; type:G
-
-2026\-02\-01 sell
-    assets:stocks     \-1 AAPL {$50} \(at $60
-    assets:cash      $60
-    revenues:gain   $\-10
-.EE
-.SS Style 4: Only rgain written, no type:G declaration
-hledger identifies gain posting(s) in the entry by their
-characteristics: postings whose account type is not Asset, Liability, or
-Equity (or any subtype), and which have not been classified as lot
-movements, and without which the remaining postings in the entry balance
-to zero.
-If gain postings are detected, hledger infers a single balancing ugain
-posting, and checks the recorded gain against the calculated gain after
-lot matching.
-.IP
-.EX
-2026\-02\-01 sell
-    assets:stocks     \-1 AAPL {$50} \(at $60
-    assets:cash      $60
-    revenues:gain   $\-10
-.EE
-.PP
-A multi\-lot example, where the user records each lot\(aqs gain
-separately:
-.IP
-.EX
-2026\-02\-01 sell some of each lot
-    assets:stocks   \-5 AAPL {$50} \(at $60
-    assets:stocks   \-3 AAPL {$55} \(at $60
-    assets:cash    $480
-    revenues:gain  $\-50          ; gain on first lot
-    revenues:gain  $\-15          ; gain on second lot
-.EE
-.SS Style 5: Only rgain written, no type:G, no \(at on dispose
-Same identification as style 4, applied when the dispose posting lacks
-an \f[CR]\(at\f[R] price.
-The standard balancer\(aqs cost inference infers a balancing
-\f[CR]\(at\f[R] from the entry; the user\(aqs gain is still validated
-post\-match.
-.IP
-.EX
-2026\-02\-01 sell
-    assets:stocks   \-1 AAPL {$50}
-    assets:cash     $60
-    revenues:gain   $\-10
-.EE
-.SS Notes
-.IP \(bu 2
-Style 1 always succeeds (nothing to validate).
-.IP \(bu 2
-Styles 2\-5 raise an error if the written and calculated gain do not
-match.
-.IP \(bu 2
-Style 4 detects gain postings only when the entry has at least one
-candidate posting, and the rest of the entry is balanced (or has a
-multi\-commodity imbalance \(em case 5).
-Otherwise hledger leaves the entry alone and reports any imbalance as a
-standard balance error.
-So a typo in cash, or in any other posting, won\(aqt be silently
-absorbed as gain.
-.IP \(bu 2
-If a transaction has both a fee posting like \f[CR]expenses:fees\f[R],
-and a gain posting to an undeclared account, both could be detected as
-gain postings, incorrectly.
-Workarounds: declare the gain account unambiguously with type:G, or fold
-the fee into cash, or omit the gain posting and let hledger infer it.
-.IP \(bu 2
-When you write a gain posting on a type:G or type:U account, you must
-write its amount; amountless stubs aren\(aqt supported.
-.IP \(bu 2
-Inferred gain posting amounts are rounded to the entry\(aqs local
-precision the gain commodity (or if the local precision is zero, and
-gain is a non\-integer, to 2 decimal places).
-And gain checking is performed at the same precision, so that smaller
-disagreements between recorded and calculated gain is tolerated.
-.PP
-\f[B]TLDR:\f[R] use style 1 for brevity, or style 3 for best error
-checking while still being concise.
-.SS Gain/UnrealisedGain account types
-The \f[CR]Gain\f[R] (\f[CR]type:G\f[R]) and \f[CR]UnrealisedGain\f[R]
-(\f[CR]type:U\f[R]) account types are optional refinements of Revenue
-and Equity respectively.
-Declaring them is not strictly required, but it serves three purposes:
-.IP "1." 3
-\f[B]Default destinations for generated gain postings.\f[R] hledger uses
-the first declared \f[CR]type:G\f[R] and \f[CR]type:U\f[R] account for
-inferred gain postings, otherwise \f[CR]revenues:gain\f[R] and
-\f[CR]equity:unrealised\-gain\f[R].
-.IP "2." 3
-\f[B]Recognising your explicit gain postings (sharper error
-checking).\f[R] When declared, they let hledger identify gain postings
-by account type (style 2 or 3 above), enabling validation of the
-user\-written amount against the calculated gain.
-Without the declaration, hledger falls back to detecting an imbalance as
-gain (style 4 or 5).
-.IP "3." 3
-\f[B]Report classification.\f[R] Gain is a subtype of Revenue, so it
-appears on the income statement; UnrealisedGain is a subtype of Equity,
-so it appears on the balance sheet.
-.PP
-Unlike most account types, G and U are not inferred from account names
-\(em they must be declared explicitly when you want their semantics:
-.IP
-.EX
-account revenues:gain           ; type: G
-account equity:unrealised\-gain  ; type: U
-.EE
-.PP
-This is to avoid unintended breakage when upgrading from hledger 1 to
-hledger 2.
-hledger 2 supports
-.IP "1." 3
-hledger 1\-style lot entries, where cost basis and lots are tracked
-manually and gains are calculated/checked by normal transaction
-balancing.
-.IP "2." 3
-hledger 2 style lot entries, where cost basis, lots and gains are
-tracked automatically.
-.PP
-So these can coexist in the same journal if needed \- but they should
-not use the same gain accounts.
-The hledger 1 entries should use an ordinary revenue account (type R),
-and the hledger 2 entries will use G and U accounts.
 .SS Lot reporting example
 A simple scenario: two acquisitions and a disposal.
 .PP
@@ -9922,8 +9906,8 @@ $ hledger print desc:sell \-x \-\-lots
 .EE
 .PP
 Use \f[CR]\-a\f[R]/\f[CR]\-\-all\f[R] (short for
-\f[CR]\-x \-\-lots \-\-verbose\-tags\f[R]) to also see the lot posting
-classifications (ptype tags), useful for troubleshooting:
+\f[CR]\-\-explicit \-\-lots \-\-verbose\-tags\f[R]) to also see the lot
+posting classifications (ptype tags), useful for troubleshooting:
 .IP
 .EX
 $ hledger print desc:sell \-a
@@ -10338,6 +10322,10 @@ Add new transactions to a journal file, with interactive prompting.
 .EX
 Flags:
      \-\-no\-new\-accounts      don\(aqt allow creating new accounts
+     \-\-layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 \- right\-align amounts, as in hledger 1
+                            COL      \- align decimal marks at column COL
+                            (default: 53)
 .EE
 .PP
 Many hledger users edit their journals directly with a text editor, or
@@ -10444,11 +10432,17 @@ You can allow it by disabling balance assertion checking with
 \f[CR]\-I\f[R].
 .SS import
 Import new transactions from one or more data files to the main journal.
+Or with no arguments, import from the rules files in \f[CR]rules/\f[R].
 .IP
 .EX
 Flags:
+  \-g \-\-get                  fetch new data first by running the get command
      \-\-catchup              just mark all transactions as already imported
      \-\-dry\-run              just show the transactions to be imported
+     \-\-layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 \- right\-align amounts, as in hledger 1
+                            COL      \- align decimal marks at column COL
+                            (default: 53)
 .EE
 .PP
 This command detects new transactions in one or more data files
@@ -10472,6 +10466,38 @@ $ hledger import bank1\-checking.csv bank1\-savings.csv
 .EX
 $ hledger import *.csv
 .EE
+.SS Default import sources
+If \f[CR]import\f[R] is run with no file arguments, it looks in the
+journal\(aqs \f[CR]rules/\f[R] directory (next to the main journal file)
+and imports from every \f[CR].rules\f[R] file found there, in
+alphabetical order.
+Files whose name begins with \f[CR].\f[R] or \f[CR]_\f[R] are skipped:
+the \f[CR]_\f[R] prefix is for rules files that are either disabled, or
+shared/common rules \f[CR]include\f[R]d by other rules files and not
+meant to be read directly.
+.PP
+So a typical setup might be:
+.IP
+.EX
+\(ti/finance/2026.journal
+\(ti/finance/rules/bank1\-checking.rules
+\(ti/finance/rules/bank1\-savings.rules
+\(ti/finance/rules/_common.rules       # included by others, not read directly
+\(ti/finance/rules/_brokerage.rules    # disabled
+.EE
+.PP
+and \f[CR]hledger import\f[R] reads \f[CR]bank1\-checking.rules\f[R]
+then \f[CR]bank1\-savings.rules\f[R].
+.PP
+If the \f[CR]rules/\f[R] directory does not exist or contains no usable
+\f[CR].rules\f[R] files, import reports an error.
+.SS Fetching new data first
+With \f[CR]\-g/\-\-get\f[R], \f[CR]import\f[R] runs the \f[CR]get\f[R]
+command first, which runs your \f[CR]data/getdata\f[R] and
+\f[CR]prices/getprices\f[R] scripts (if any) to download new transaction
+and price data.
+The import then proceeds normally, with the new transaction data (if
+any) readable by your rules files\(aq \f[CR]source\f[R] rules.
 .SS Import dry run
 It\(aqs useful to preview the import by running first with
 \f[CR]\-\-dry\-run\f[R], to sanity check the range of dates being
@@ -10828,23 +10854,84 @@ List the commodity symbols used or declared in the journal.
 .IP
 .EX
 Flags:
-     \-\-used                 list commodities used
-     \-\-declared             list commodities declared
-     \-\-undeclared           list commodities used but not declared
-     \-\-unused               list commodities declared but not used
+     \-\-used                 list commodities used in transactions
+     \-\-priced               list commodities appearing in P directives
+     \-\-declared             list commodities declared by commodity directives
+     \-\-undeclared           list commodities used or priced but not declared
+     \-\-unused               list commodities declared but not used or priced
      \-\-find                 list the first commodity matched by the first
                             argument (a case\-insensitive infix regexp)
 .EE
 .PP
-This command lists commodity symbols/names \- all of them by default, or
-just the ones which have been used in transactions or \f[CR]P\f[R]
-directives, or declared with \f[CR]commodity\f[R] directives, or used
-but not declared, or declared but not used, or just the first one
-matched by a pattern (with \f[CR]\-\-find\f[R], returning a non\-zero
-exit code if it fails).
+Most of these flags can be combined.
+Some kinds of query argument are supported: \f[CR]cur:\f[R],
+\f[CR]tag:\f[R], and \f[CR]date:\f[R] (also
+\f[CR]\-b\f[R]/\f[CR]\-e\f[R]/\f[CR]\-p\f[R] report period options).
 .PP
-You can add query arguments to further limit the commodities; at least
-\f[CR]cur:\f[R] and \f[CR]tag:\f[R] are supported.
+Providing a date query will affect which commodities are reported, as
+follows:
+.PP
+.TS
+tab(@);
+lw(10.5n) lw(28.1n) lw(31.4n).
+T{
+Flag
+T}@T{
+No date query
+T}@T{
+With a date query
+T}
+_
+T{
+(none)
+T}@T{
+declared ∪ transacted ∪ priced
+T}@T{
+(transacted ∪ priced) in the period
+T}
+T{
+\f[CR]\-\-used\f[R]
+T}@T{
+transacted in the journal
+T}@T{
+transacted in the period
+T}
+T{
+\f[CR]\-\-priced\f[R]
+T}@T{
+appearing in any P directive
+T}@T{
+appearing in a P directive in the period
+T}
+T{
+\f[CR]\-\-declared\f[R]
+T}@T{
+declared with a \f[CR]commodity\f[R] directive
+T}@T{
+same
+T}
+T{
+\f[CR]\-\-undeclared\f[R]
+T}@T{
+(transacted ∪ priced) ∖ declared
+T}@T{
+(transacted ∪ priced in the period) ∖ declared
+T}
+T{
+\f[CR]\-\-unused\f[R]
+T}@T{
+declared ∖ (transacted ∪ priced)
+T}@T{
+same
+T}
+T{
+\f[CR]\-\-find\f[R]
+T}@T{
+the first commodity matching the argument
+T}@T{
+same
+T}
+.TE
 .SS descriptions
 List the unique descriptions used in transactions.
 .IP
@@ -10941,7 +11028,15 @@ Flags:
                             prices
      \-\-summary              summarise declared prices per commodity instead
                             of listing them
+     \-\-locations            also show where prices where declared
 .EE
+.PP
+With \f[CR]\-\-locations\f[R], each price line gets a trailing
+\f[CR]; location: FILE:LINE\f[R] comment showing where it came from.
+Declared prices point at their P directive; prices inferred from costs
+point at the parent transaction\(aqs first line.
+Reversed prices keep the source position of the directive they were
+derived from.
 .PP
 Price amounts are always displayed with their full precision, except for
 reverse prices which are limited to 8 decimal digits.
@@ -11197,15 +11292,8 @@ If you want to change the default, put something like this in
 \-\-layout=hledger1
 .EE
 .PP
-Other print\-like commands (close, import, rewrite, add..)
-use print\(aqs default layout.
-But they don\(aqt have a \-\-layout option for customisation, currently.
-If you need that, you could pipe them through print.
-Eg:
-.IP
-.EX
-hledger import *.rules \-\-dry | hledger \-I \-f\- print \-\-layout 40
-.EE
+Other print\-like commands (close, import, rewrite, add) also accept
+\f[CR]\-\-layout\f[R].
 .SS print amount style
 Amounts will be displayed mostly in their commodity\(aqs display style,
 with standardised symbol placement, decimal mark, and digit group marks.
@@ -12408,7 +12496,9 @@ characters, total padded to 20 characters, with multiple commodities
 rendered on one line
 .IP \(bu 2
 \f[CR]%20(total)  %2(depth_spacer)%\-(account)\f[R] \- the default
-format for the single\-column balance report
+format for the single\-column balance report.
+The total field keeps this 20\-character width as a minimum, but widens
+automatically when displayed amounts need more room.
 .SS Filtered balance report
 You can show fewer accounts, a different time period, totals from
 cleared transactions only, etc.
@@ -12815,8 +12905,8 @@ DATE\-value of change from journal start to period end
 T}
 .TE
 .SS Budget report
-The \f[CR]\-\-budget\f[R] report is like a regular balance report, but
-with two main differences:
+The \f[CR]balance \-\-budget\f[R] report is like a regular balance
+report, but with two main differences:
 .IP \(bu 2
 Budget goals and performance percentages are also shown, in brackets
 .IP \(bu 2
@@ -13576,6 +13666,10 @@ Flags:
                                    (can unbalance transactions)
                             all  \- also round cost amounts to precision
                                    (can unbalance transactions)
+     \-\-layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 \- right\-align amounts, as in hledger 1
+                            COL      \- align decimal marks at column COL
+                            (default: 53)
 .EE
 .PP
 \f[CR]close\f[R] has six modes, selected by choosing one of the mode
@@ -13814,84 +13908,6 @@ $ hledger bs \-Y \-f 2023.j                     # unclosed file, no query needed
 .EE
 .SS More detailed close examples
 See examples/multi\-year.
-.SS getprices
-Fetch market prices for the commodities used in the journal, up to
-today\(aqs date, where possible, and add them to per\-commodity prices
-files.
-.IP
-.EX
-Flags:
-     \-\-dry\-run              just print the commands that would be run
-  \-o \-\-output=FILE          write all prices to FILE (or \- for stdout)
-                            instead of per\-commodity P<COMM>.prices files
-.EE
-.PP
-This command first guesses the journal\(aqs base currency.
-That is, the commodity most used as the target in P price directives; or
-if there are no P directives, the commodity most used in postings; or if
-there are no postings, \(dqUSD\(dq.
-(You can check this with the \f[CR]stats\f[R] command.)
-.PP
-Then for each other commodity in the journal, it fetches daily market
-prices in the base currency, from that commodity\(aqs earliest
-transaction until today.
-It uses a \f[CR]getprices_\f[R] helper script in PATH (described below).
-.PP
-Then each commodity\(aqs prices are saved, merging them with previously
-saved prices if any.
-By default they are saved in separate \f[CR]P<COMM>.prices\f[R] files
-next to the main journal file.
-Or with \f[CR]\-o FILE\f[R], they are saved into a single file of your
-choice.
-Or with \f[CR]\-o \-\f[R], they are printed on stdout.
-.PP
-Commands being run, and files being updated, are logged to stderr.
-With \f[CR]\-\-dry\-run\f[R], you can preview the commands without
-running them.
-The standard \f[CR]getprices_\f[R] script will also log
-\f[CR]pricehist\f[R] commands as they are run.
-You can run any of these commands yourself, for troubleshooting.
-.SS Merging new prices
-Complete historical price data can be hard to get, so getprices is
-careful to preserve older prices.
-If prices files already exist, the newly fetched prices will be merged
-as follows:
-.IP \(bu 2
-Prices files will be updated only if they contain nothing but P
-directives (or blank lines).
-.IP \(bu 2
-New prices for dates already seen are discarded.
-(So if you want to replace old prices, you must delete them before
-running getprices.)
-.IP \(bu 2
-If no new prices remain to be added, the prices file is left as\-is.
-.IP \(bu 2
-Otherwise, the old prices plus the new prices are saved to the file,
-ordered by: date, from commodity, to commodity.
-.SS The getprices_ helper
-The \f[CR]getprices\f[R] command runs a \f[CR]getprices_\f[R] helper
-program to fetch each commodity\(aqs prices.
-This allows customisation and avoids hardcoding too much into hledger.
-It may become optional in future, but for now it\(aqs required.
-.PP
-You can find a getprices_ script in the hledger repo\(aqs bin directory.
-It uses the third party pricehist tool, which you can install with eg
-\f[CR]uv tool install pricehist\f[R].
-You might also want to set up price provider API keys in your
-environment.
-Providers may limit the commodity pairs, history, or number of requests
-unless you have a paid API key.
-.PP
-Or, you can make your own \f[CR]getprices_\f[R] script.
-It should accept 3\-4 arguments:
-.IP \(bu 2
-ISO code for base currency
-.IP \(bu 2
-ISO code for commodity to be priced
-.IP \(bu 2
-ISO start date
-.IP \(bu 2
-optional inclusive ISO end date (default: today)
 .SS rewrite
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print
@@ -13909,6 +13925,11 @@ Flags:
                                     patch tool
      \-\-verbose\-tags                 add tags indicating generated/modified
                                     data
+     \-\-layout=hledger1|COL          how should posting amounts be aligned ?
+                                    hledger1 \- right\-align amounts, as in
+                                    hledger 1
+                                    COL      \- align decimal marks at column
+                                    COL (default: 53)
 .EE
 .PP
 This is a start at a generic rewriter of transaction entries.
