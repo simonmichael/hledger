@@ -1,13 +1,14 @@
 ## import
 
 Import new transactions from one or more data files to the main journal.
+Or with no arguments, import from the rules files in `rules/`.
 
 ```flags
 Flags:
   -g --get                  fetch transactions first by running the get
                             command
      --catchup              just mark all transactions as already imported
-     --dry-run              just show the transactions to be imported
+     --dry-run              just show the commands to be run / transactions to be imported
      --layout=hledger1|COL  how should posting amounts be aligned ?
                             hledger1 - right-align amounts, as in hledger 1
                             COL      - align decimal marks at column COL
@@ -32,7 +33,7 @@ $ hledger import bank1-checking.csv bank1-savings.csv
 $ hledger import *.csv
 ```
 
-### Default rules directory
+### Default import sources
 
 If `import` is run with no file arguments, it looks in the journal's
 `rules/` directory (next to the main journal file) and imports from every
