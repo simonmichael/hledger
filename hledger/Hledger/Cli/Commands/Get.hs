@@ -51,8 +51,8 @@ import Hledger.Cli.CliOptions
 -- | Command line options for this command.
 getmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Get.txt")
-  [flagNone ["transactions","t"] (setboolopt "transactions") "fetch transactions"
-  ,flagNone ["prices","p"]       (setboolopt "prices")       "fetch prices"
+  [flagNone ["transactions"] (setboolopt "transactions") "fetch transactions"
+  ,flagNone ["prices"]       (setboolopt "prices")       "fetch prices"
   ,flagNone ["dry-run"] (setboolopt "dry-run") "just print the commands that would be run"
   -- The -o/--output flag is disabled for now: it only meaningfully applies
   -- to the prices phase, which is awkward in the combined command.
