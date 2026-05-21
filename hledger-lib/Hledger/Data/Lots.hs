@@ -202,6 +202,24 @@ showLotName CostBasis{cbDate, cbLabel, cbCost} =
 styleLotCbCost :: M.Map CommoditySymbol AmountStyle -> CostBasis -> CostBasis
 styleLotCbCost styles cb = cb{cbCost = styleAmounts styles <$> cbCost cb}
 
+-- | Render a lot subaccount name, dropping the cost component under AVERAGE/AVERAGEALL.
+-- AVERAGE pools share a single running per-unit cost that changes on every
+-- acquisition; embedding it in the subaccount name would make the subaccount
+-- unstable across acquisitions. The running cost remains on each lot's
+-- @acostbasis@ for use by reports and @print --lots@.
+showLotNameForMethod :: ReductionMethod -> CostBasis -> T.Text
+showLotNameForMethod method cb
+  | methodIsAverage method = showLotName cb{cbCost = Nothing}
+  | otherwise              = showLotName cb
+
+-- | Like 'mergeCostBasis', but under AVERAGE/AVERAGEALL the cost field is
+-- ignored: the pool's running cost legitimately differs from what the user
+-- wrote on any specific acquire posting.
+mergeCostBasisForMethod :: ReductionMethod -> CostBasis -> CostBasis -> Either String CostBasis
+mergeCostBasisForMethod method a b
+  | methodIsAverage method = mergeCostBasis a{cbCost = Nothing} b{cbCost = Nothing}
+  | otherwise              = mergeCostBasis a b
+
 -- | Extract the lot subaccount name (the @{...}@ component) from an account name,
 -- or @Nothing@ if there is none.
 -- E.g., @\"assets:broker:{2026-01-15, $50}\"@ returns @Just \"{2026-01-15, $50}\"@.
@@ -1334,7 +1352,7 @@ processTransaction styles verbosetags j needsLabels (ls, acc) t = do
         -- Build map of processed transfer-to postings, then reconstruct in original order.
         let indexedTos = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferToPosting p]
         (ls', toMap) <- foldM (\(st, m) (i, p) -> do
-            (st', p') <- processAcquirePosting styles needsLabels txnDate t st p
+            (st', p') <- processAcquirePosting styles j needsLabels txnDate t st p
             return (st', M.insert i p' m)
           ) (ls, M.empty) indexedTos
         let allPs = [maybe p id (M.lookup i toMap) | (i, p) <- zip [0..] (tpostings t)]
@@ -1365,7 +1383,7 @@ processTransaction styles verbosetags j needsLabels (ls, acc) t = do
       | Just expanded <- M.lookup i tmap =
           foldMPostings st (reverse expanded ++ acc') ps tmap
       | isAcquirePosting p = do
-          (st', p') <- processAcquirePosting styles needsLabels txnDate t st p
+          (st', p') <- processAcquirePosting styles j needsLabels txnDate t st p
           foldMPostings st' (p':acc') ps tmap
       | isDisposePosting p = do
           (st', newPs) <- processDisposePosting styles verbosetags j t st p
@@ -1487,9 +1505,9 @@ amountSetQuantityOf c q a
 -- Per-type posting processing
 
 -- | Process a single acquire posting: generate a lot name and append it as a subaccount.
-processAcquirePosting :: M.Map CommoditySymbol AmountStyle -> S.Set (CommoditySymbol, Day) -> Day -> Transaction -> LotState -> Posting
+processAcquirePosting :: M.Map CommoditySymbol AmountStyle -> Journal -> S.Set (CommoditySymbol, Day) -> Day -> Transaction -> LotState -> Posting
                       -> Either String (LotState, Posting)
-processAcquirePosting styles needsLabels txnDate t lotState p = do
+processAcquirePosting styles j needsLabels txnDate t lotState p = do
     let lotAmts = [(a, cb) | a <- amountsRaw (pamount p), Just cb <- [acostbasis a]]
     (lotAmt, cb, isBare) <- case lotAmts of
       [x] -> Right (fst x, snd x, False)
@@ -1537,26 +1555,41 @@ processAcquirePosting styles needsLabels txnDate t lotState p = do
                 = let l = generateLabel commodity date lotState
                   in (LotId date (Just l), Just l)
               | otherwise = (lotId0, lotLabel')
-            fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel'', cbCost = Just lotBasis}
-            lotName    = showLotName (styleLotCbCost styles fullCb)
+            baseAcct = lotBaseAccount (paccount p)
+            (method, _methodSource) = resolveReductionMethodWithSource j p commodity
+
+        -- Under AVERAGE/AVERAGEALL, merge this acquisition into the running pool
+        -- (returns the new shared per-unit cost and an updated LotState where
+        -- every existing pool lot's cbCost has been rewritten to that new cost).
+        (lotBasisStored, lotState0) <-
+          if methodIsAverage method
+          then updatePoolOnAcquire showPos (methodIsGlobal method)
+                 baseAcct commodity (aquantity lotAmt) lotBasis lotState
+          else Right (lotBasis, lotState)
+
+        let fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel'', cbCost = Just lotBasisStored}
+            lotName    = showLotNameForMethod method (styleLotCbCost styles fullCb)
             -- When cost basis was inferred, fill it in on the user's original cb
             -- so that print shows {$50} not {}.
             filledCb   = cb{cbCost = Just lotBasis}
-            -- The lot state always stores the full cost basis (with date/label/cost)
-            -- so that disposal selectors like {2026-01-15, $50} can match.
+            -- The lot state stores the full cost basis (date/label/cost).
+            -- Under AVERAGE this is the running pool cost; under other methods
+            -- it is the original per-acquisition cost.
             lotStateAmt = lotAmt{acostbasis = Just fullCb}
-            -- The posting amount preserves the user's original cost basis fields
-            -- (only filling in cost when inferred) for print output fidelity.
+            -- The displayed posting amount preserves the user's literal cost
+            -- annotation (filling in only when they wrote `{}`). Under AVERAGE
+            -- the running pool cost is a derived state — surfaced via bal -B
+            -- and visible on disposal postings (where the user wrote `{}`
+            -- and the system fills in the lot's stored cost).
             postingAmt  = if cbInferred then lotAmt{acostbasis = Just filledCb} else lotAmt
 
-        let baseAcct = lotBaseAccount (paccount p)
-            hasExplicitLotAcct = baseAcct /= paccount p
+        let hasExplicitLotAcct = baseAcct /= paccount p
             expectedAcct = baseAcct <> ":" <> lotName
 
         -- If the user wrote an explicit lot subaccount, check that its parsed
-        -- CostBasis is compatible with the resolved lot's (ignoring harmless style differences).
+        -- CostBasis is compatible with the resolved lot's.
         when hasExplicitLotAcct $
-          case mergeCostBasis cb fullCb of
+          case mergeCostBasisForMethod method cb fullCb of
             Right _ -> Right ()
             Left _  -> Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
                               ++ " does not match the resolved lot " ++ T.unpack expectedAcct
@@ -1568,7 +1601,7 @@ processAcquirePosting styles needsLabels txnDate t lotState p = do
         let p' = p{paccount = expectedAcct
                    ,pamount  = mixedAmount postingAmt
                    ,poriginal = Just (originalPosting p)}
-        let lotState' = addLotState commodity lotId baseAcct lotStateAmt lotState
+        let lotState' = addLotState commodity lotId baseAcct lotStateAmt lotState0
         return $ lotDbg t ("acquired " ++ show (aquantity lotAmt) ++ " "
                            ++ T.unpack commodity ++ " " ++ T.unpack lotName
                            ++ " on " ++ T.unpack baseAcct)
@@ -1617,50 +1650,36 @@ processDisposePosting styles verbosetags j t lotState p = do
         selected <- first (enrichLotError method methodSource)
                   $ selectLots method (postingErrPrefix p) scopeAcct commodity posQty cb lotState
 
-        -- For AVERAGE methods, compute the weighted average cost across the pool.
-        -- AVERAGEALL uses the global pool (all accounts); AVERAGE uses per-account scope.
-        mavgCost <- if methodIsAverage method
-          then do
-            let allLots = M.findWithDefault M.empty commodity lotState
-                flatLots = if methodIsGlobal method
-                           then flattenAllAccountLots allLots
-                           else M.mapMaybe (M.lookup scopeAcct) allLots
-            fmap Just $ poolWeightedAvgCost showPos flatLots
-          else Right Nothing
-
         let baseAcct = lotBaseAccount (paccount p)
             hasExplicitLotAcct = baseAcct /= paccount p
             mkPosting (lotId, storedAmt, consumedQty) = do
-              -- The original lot's cost basis is always needed for the lot subaccount name.
+              -- Under AVERAGE/AVERAGEALL the stored cost is already the running
+              -- pool cost (maintained in lock-step on each acquisition); for
+              -- other methods it's the per-acquisition cost. Either way, just
+              -- read it from the stored lot.
               origBasis <- case acostbasis storedAmt >>= cbCost of
                 Just c  -> Right c
                 Nothing -> Left $ showPos ++ "lot " ++ T.unpack (T.pack (show lotId))
                                     ++ " for commodity " ++ T.unpack commodity
                                     ++ " has no cost basis (internal error)"
-              -- For AVERAGE methods, use the weighted average cost for the disposal amount.
-              -- For all other methods, use the original lot's cost.
-              let disposalBasis = fromMaybe origBasis mavgCost
-                  -- Lot name uses the original cost (so the subaccount matches the acquisition).
-                  lotCb = CostBasis
+              let lotCb = CostBasis
                     { cbDate  = Just (lotDate lotId)
                     , cbLabel = lotLabel lotId
                     , cbCost  = Just origBasis
                     }
-                  -- Disposal cost basis uses average cost when applicable.
-                  dispCb = lotCb{cbCost = Just disposalBasis}
-                  lotName = showLotName (styleLotCbCost styles lotCb)
+                  lotName = showLotNameForMethod method (styleLotCbCost styles lotCb)
                   expectedAcct = baseAcct <> ":" <> lotName
               -- If the user wrote an explicit lot subaccount, check that its
-              -- parsed CostBasis is compatible with the resolved lot's (ignoring style differences).
+              -- parsed CostBasis is compatible with the resolved lot's.
               when hasExplicitLotAcct $
-                case mergeCostBasis cb lotCb of
+                case mergeCostBasisForMethod method cb lotCb of
                   Right _ -> Right ()
                   Left _  -> Left $ showPos ++ "lot subaccount " ++ T.unpack (paccount p)
                                     ++ " does not match the resolved lot " ++ T.unpack expectedAcct
               let acctWithLot = expectedAcct
                   -- Build the dispose amount: negative consumed quantity,
                   -- keeping the original amount's commodity, style, cost, and cost basis.
-                  disposeAmt = (amountSetQuantity (negate consumedQty) lotAmt){acostbasis = Just dispCb}
+                  disposeAmt = (amountSetQuantity (negate consumedQty) lotAmt){acostbasis = Just lotCb}
               let -- For bare disposes without a price (e.g. fee deductions), keep no cost.
                   -- When splitting across multiple lots, normalize TotalCost to UnitCost
                   -- (since TotalCost would be wrong for the split quantity).
@@ -2073,23 +2092,52 @@ validateGlobalCompliance method posStr account commodity qty selector lotState s
       | otherwise = [(lotId, lotAmt, remaining)]
     fst3 (x, _, _) = x
 
--- | Compute the weighted average per-unit cost across all lots in a pool.
--- All lots must have cost basis in the same commodity.
--- Returns a representative cost Amount with the weighted average quantity.
-poolWeightedAvgCost :: String -> M.Map LotId Amount -> Either String Amount
-poolWeightedAvgCost posStr lots = do
-    let costs = [(aquantity a, c) | a <- M.elems lots, Just cb <- [acostbasis a], Just c <- [cbCost cb]]
-    case costs of
-      [] -> Left $ posStr ++ "no lots with cost basis available for averaging"
-      ((_, firstCost):rest)
-        | any (\(_, c) -> acommodity c /= acommodity firstCost) rest ->
-            Left $ posStr ++ "cannot average lots with different cost commodities"
-        | otherwise ->
-            let totalQty  = sum [q | (q, _) <- costs]
-                totalCost = sum [q * aquantity c | (q, c) <- costs]
-            in if totalQty == 0
-               then Left $ posStr ++ "cannot average lots with zero total quantity"
-               else Right firstCost{aquantity = totalCost / totalQty}
+-- | Under AVERAGE / AVERAGEALL: integrate a new acquisition into the running
+-- pool and return (new shared per-unit cost, lot state with every existing
+-- pool lot's stored cbCost updated to that new cost).
+--
+-- @globalPool@ = True for AVERAGEALL — the pool spans all accounts holding
+-- this commodity. False for AVERAGE — the pool is restricted to lots living
+-- under @scopeAcct@; lots under other accounts have their own independent pools.
+updatePoolOnAcquire
+  :: String           -- ^ error-message position prefix
+  -> Bool             -- ^ globalPool (AVERAGEALL if True)
+  -> AccountName      -- ^ scopeAcct (used when not globalPool)
+  -> CommoditySymbol
+  -> Quantity         -- ^ this acquisition's quantity
+  -> Amount           -- ^ this acquisition's per-unit cost
+  -> LotState
+  -> Either String (Amount, LotState)
+updatePoolOnAcquire posStr globalPool scopeAcct commodity acqQty acqCost lotState = do
+    let commLots = M.findWithDefault M.empty commodity lotState
+        -- The per-LotId Amounts belonging to the pool: all accounts if global,
+        -- otherwise just the one under scopeAcct.
+        poolAmts accts
+          | globalPool = M.elems accts
+          | otherwise  = maybe [] pure (M.lookup scopeAcct accts)
+        existingEntries = [(aquantity a, c) | accts <- M.elems commLots
+                                            , a     <- poolAmts accts
+                                            , Just cb <- [acostbasis a]
+                                            , Just c  <- [cbCost cb]]
+    -- All pool entries (including this acquisition) must agree on cost commodity.
+    case listToMaybe existingEntries of
+      Just (_, firstCost) | acommodity firstCost /= acommodity acqCost ->
+        Left $ posStr ++ "cannot average lots with different cost commodities"
+      _ -> Right ()
+    let totalQty  = acqQty + sum [q | (q, _) <- existingEntries]
+        totalCost = acqQty * aquantity acqCost
+                  + sum [q * aquantity c | (q, c) <- existingEntries]
+    when (totalQty == 0) $
+      Left $ posStr ++ "cannot average lots with zero total quantity"
+    let newAvg = acqCost{aquantity = totalCost / totalQty}
+        rewriteAmt a = case acostbasis a of
+          Nothing -> a
+          Just cb -> a{acostbasis = Just cb{cbCost = Just newAvg}}
+        rewriteAccts accts
+          | globalPool = M.map rewriteAmt accts
+          | otherwise  = M.adjust rewriteAmt scopeAcct accts
+        lotState' = M.insert commodity (M.map rewriteAccts commLots) lotState
+    return (newAvg, lotState')
 
 -- | Is this an all-Nothing (wildcard) lot selector, i.e. from @{}@?
 isWildcardSelector :: CostBasis -> Bool

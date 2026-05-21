@@ -7347,10 +7347,8 @@ These methods are supported:
 | **FIFOALL**        | oldest first       | each lot's cost           | Sufficient lot(s) exist in the account, and are highest priority across all accounts.
 | **LIFOALL**        | newest first       | each lot's cost           | "
 | **HIFOALL**        | highest cost first | each lot's cost           | "
-<!-- XXX Not working yet
-| **AVERAGE**        | oldest first       | weighted average cost     | "
-| **AVERAGEALL**     | oldest first       | global weighted avg cost  | "
--->
+| **AVERAGE**        | oldest first       | shared running pool cost  | Sufficient lot(s) exist in the account.
+| **AVERAGEALL**     | oldest first       | shared global running cost| Sufficient lot(s) exist (pool spans all accounts).
 
 **SPECID** (specific identification) is what you're using when the journal entry contains 
 explicit lot selectors like `{2026-01-15, $50}` or `{$50}`,
@@ -7363,14 +7361,17 @@ or an explicit lot subaccount like `assets:broker:{2026-01-15, $50}`.
 **HIFO** (highest-in-first-out) selects the lot with the highest per-unit cost first,
 which can be useful for tax optimization.
 
-(**AVERAGE**/**AVERAGEALL** are also understood, but not quite working yet.)
-
-<!-- XXX Not working yet
-**AVERAGE** consumes lots in FIFO order,
-but uses the weighted average per-unit cost, within the specified account,
-as the disposal cost basis, rather than each lot's individual cost.
-This is required in some jurisdictions (eg Canada's Adjusted Cost Base, France's PMPA, UK's S104 pools).
--->
+**AVERAGE** maintains an average per-unit cost shared by every lot in
+the per-account pool. Each new acquisition recalculates this average cost
+and applies it to every lot in the pool.
+Disposals use this average cost, and consume lots in FIFO order
+(so acquisition dates remain meaningful for calculating short-term/long-term holding-period).
+Under AVERAGE, the lot subaccount name omits the cost component
+(`{2026-01-15}` rather than `{2026-01-15, $50}`) so it stays stable
+across acquisitions. 
+The average cost can best be seen with `print -x`, currently;
+in disposal postings it is visible in the cost basis annotations and inferred gain amounts.
+(`print -x` shows acquire postings with their acquisition cost basis, not the average.)
 
 All of these methods select lots from the account mentioned in the posting.
 But the **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL) additionally validate
@@ -7379,9 +7380,10 @@ So if there is a more appropriate lot in another account (eg an older lot when u
 they will raise an error showing which account holds it.
 This is useful if you need to enforce a global disposal order across all accounts (brokers, exchanges, wallets etc).
 
-<!-- XXX Not working yet
-**AVERAGEALL** computes the weighted average cost across the global pool.
--->
+**AVERAGEALL** is to AVERAGE what FIFOALL is to FIFO: the pool spans all
+accounts holding the commodity, so the running cost is a single global value
+and an acquisition in one account updates the cost basis on lots in every
+other account too.
 
 ## Gain postings
 

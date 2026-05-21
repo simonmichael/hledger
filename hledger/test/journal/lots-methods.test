@@ -238,7 +238,10 @@ $ hledger -f- bal assets:broker --lots -N
 
 # ** 12. AVERAGE disposal: weighted average cost basis.
 # Two lots at different costs; disposal uses the weighted average cost ($50).
-# Lot subaccounts retain original acquisition costs in their names.
+# Under AVERAGE the lot subaccount name omits the cost (the running pool cost
+# is shared by all pool lots and changes on every acquisition; embedding it in
+# the subaccount would make the subaccount unstable). The current per-lot
+# running cost still appears in --lots cost-basis output.
 # The gain posting ($-25) confirms average cost is used: 5 * ($55 - $50) = $25.
 # With FIFO (non-average), the gain would be 5 * ($55 - $40) = $75.
 <
@@ -257,8 +260,8 @@ commodity AAPL  ; lots: AVERAGE
     revenue:gains    $-25
 
 $ hledger -f- bal assets:stocks --lots -N
-              5 AAPL  assets:stocks:{2026-01-15, $40}
-             10 AAPL  assets:stocks:{2026-02-01, $60}
+              5 AAPL  assets:stocks:{2026-01-15}
+             10 AAPL  assets:stocks:{2026-02-01}
 
 # ** 13. AVERAGE disposal with multiple accounts: per-account weighted average cost basis.
 # Each account has its own average. broker1 avg = (10*40 + 10*60)/20 = $50.
@@ -283,9 +286,9 @@ commodity AAPL  ; lots: AVERAGE
     revenue:gains     $-25
 
 $ hledger -f- bal assets:broker --lots -N
-              5 AAPL  assets:broker1:{2026-01-15, $40}
-             10 AAPL  assets:broker1:{2026-02-01, $60}
-             10 AAPL  assets:broker2:{2026-03-01, $80}
+              5 AAPL  assets:broker1:{2026-01-15}
+             10 AAPL  assets:broker1:{2026-02-01}
+             10 AAPL  assets:broker2:{2026-03-01}
 
 # ** 14. AVERAGE with partial disposal: average is of the entire pool.
 # Pool avg = (10*30 + 20*60)/30 = $50. Only 3 units consumed from first lot.
@@ -306,8 +309,8 @@ commodity AAPL  ; lots: AVERAGE
     revenue:gains    $-15
 
 $ hledger -f- bal assets:stocks --lots -N
-              7 AAPL  assets:stocks:{2026-01-15, $30}
-             20 AAPL  assets:stocks:{2026-02-01, $60}
+              7 AAPL  assets:stocks:{2026-01-15}
+             20 AAPL  assets:stocks:{2026-02-01}
 
 # * Global reduction methods (FIFOALL, LIFOALL, HIFOALL, AVERAGEALL)
 
@@ -411,5 +414,140 @@ commodity AAPL  ; lots: AVERAGEALL
     revenue:gains     $-25
 
 $ hledger -f- bal assets:broker --lots -N
-              5 AAPL  assets:broker1:{2026-01-15, $40}
-             10 AAPL  assets:broker2:{2026-02-01, $80}
+              5 AAPL  assets:broker1:{2026-01-15}
+             10 AAPL  assets:broker2:{2026-02-01}
+
+# ** 20. AVERAGE: two acquisitions form a $50 pool; two disposals consume it.
+# The {date, $50} cost annotation on each disposal posting, and the inferred
+# revenues:gain / equity:unrealised-gain postings, all reflect the shared
+# pool cost. Acquires keep the user's literal per-acquisition cost.
+<
+commodity AAPL  ; lots: AVERAGE
+2026-05-01 buy lot 1
+    assets:stocks    10 AAPL {$40}
+    assets:checking
+
+2026-05-02 buy lot 2
+    assets:stocks    10 AAPL {$60}
+    assets:checking
+
+2026-05-03 first sale
+    assets:stocks    -10 AAPL {} @ $100
+    assets:cash       $1000
+
+2026-05-04 second sale
+    assets:stocks    -10 AAPL {} @ $100
+    assets:cash       $1000
+
+$ hledger -f- print --lots -x
+2026-05-01 buy lot 1
+    assets:stocks:{2026-05-01}                    10 AAPL {$40} @ $40
+    assets:checking                            $-400
+
+2026-05-02 buy lot 2
+    assets:stocks:{2026-05-02}                    10 AAPL {$60} @ $60
+    assets:checking                            $-600
+
+2026-05-03 first sale
+    assets:stocks:{2026-05-01}                   -10 AAPL {2026-05-01, $50} @ $100
+    assets:cash                                $1000
+    revenues:gain                              $-500
+    equity:unrealised-gain                      $500
+
+2026-05-04 second sale
+    assets:stocks:{2026-05-02}                   -10 AAPL {2026-05-02, $50} @ $100
+    assets:cash                                $1000
+    revenues:gain                              $-500
+    equity:unrealised-gain                      $500
+
+>=
+
+# ** 21. AVERAGEALL: pool spans accounts; both disposals show the global
+# $60 pool cost, regardless of which account they came from.
+<
+commodity AAPL  ; lots: AVERAGEALL
+2026-01-15 buy in broker1
+    assets:broker1   10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy in broker2
+    assets:broker2   10 AAPL {$80}
+    assets:checking
+
+2026-03-01 sell from broker1
+    assets:broker1   -10 AAPL {} @ $100
+    assets:cash        $1000
+
+2026-04-01 sell from broker2
+    assets:broker2   -10 AAPL {} @ $100
+    assets:cash        $1000
+
+$ hledger -f- print --lots -x
+2026-01-15 buy in broker1
+    assets:broker1:{2026-01-15}                   10 AAPL {$40} @ $40
+    assets:checking                            $-400
+
+2026-02-01 buy in broker2
+    assets:broker2:{2026-02-01}                   10 AAPL {$80} @ $80
+    assets:checking                            $-800
+
+2026-03-01 sell from broker1
+    assets:broker1:{2026-01-15}                  -10 AAPL {2026-01-15, $60} @ $100
+    assets:cash                                $1000
+    revenues:gain                              $-400
+    equity:unrealised-gain                      $400
+
+2026-04-01 sell from broker2
+    assets:broker2:{2026-02-01}                  -10 AAPL {2026-02-01, $60} @ $100
+    assets:cash                                $1000
+    revenues:gain                              $-400
+    equity:unrealised-gain                      $400
+
+>=
+
+# ** 22. AVERAGE: acquire-dispose-acquire uses the post-disposal pool quantity
+# when integrating the next acquisition. After buy 10@$40, sell 5, buy 10@$70,
+# the running pool cost = (5*40 + 10*70)/15 = $60 (visible on the second
+# disposal annotation). The first disposal uses $40 — the pool cost at that
+# moment, before the second acquisition.
+<
+commodity AAPL  ; lots: AVERAGE
+2026-01-15 buy 1
+    assets:stocks    10 AAPL {$40}
+    assets:checking
+
+2026-02-01 sell some
+    assets:stocks    -5 AAPL {} @ $50
+    assets:cash       $250
+
+2026-03-01 buy 2
+    assets:stocks    10 AAPL {$70}
+    assets:checking
+
+2026-04-01 sell at the new avg
+    assets:stocks    -5 AAPL {} @ $80
+    assets:cash       $400
+
+$ hledger -f- print --lots -x
+2026-01-15 buy 1
+    assets:stocks:{2026-01-15}                    10 AAPL {$40} @ $40
+    assets:checking                            $-400
+
+2026-02-01 sell some
+    assets:stocks:{2026-01-15}                    -5 AAPL {2026-01-15, $40} @ $50
+    assets:cash                                 $250
+    revenues:gain                               $-50
+    equity:unrealised-gain                       $50
+
+2026-03-01 buy 2
+    assets:stocks:{2026-03-01}                    10 AAPL {$70} @ $70
+    assets:checking                            $-700
+
+2026-04-01 sell at the new avg
+    assets:stocks:{2026-01-15}                    -5 AAPL {2026-01-15, $60} @ $80
+    assets:cash                                 $400
+    revenues:gain                              $-100
+    equity:unrealised-gain                      $100
+
+>=
+

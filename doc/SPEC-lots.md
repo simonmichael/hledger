@@ -405,7 +405,29 @@ These select lots within the posting's account, but they also validate that the 
 would be the ones chosen if all accounts' lots were merged into a single pool.
 If not, an error is raised showing which lots on other accounts have higher priority.
 
-AVERAGE/AVERAGEALL reduce lots in FIFO order, but use the pool's weighted average per-unit cost as the cost basis for disposal.
+AVERAGE/AVERAGEALL maintain a single running per-unit cost shared by every
+lot in the pool. The running cost is updated on each acquisition by the
+weighted-average formula
+`((poolQty × poolCost) + (acqQty × acqCost)) / (poolQty + acqQty)`,
+and every existing pool lot's stored cost basis is rewritten to the new
+running cost. Disposal does not change the running cost: it just consumes
+quantity from one or more pool lots at the shared cost. Lots are still
+selected in FIFO order so the per-acquisition dates remain meaningful for
+holding-period reporting (the disposal posting fragments preserve their
+original acquisition dates).
+
+The scope of a pool is per-account for AVERAGE and global (across all
+accounts holding the commodity) for AVERAGEALL.
+
+Under AVERAGE methods the lot subaccount name omits the cost component
+(`{2026-01-15}` rather than `{2026-01-15, $50}`): the running cost would
+otherwise change on every acquisition, making the subaccount unstable
+across acquisitions.
+
+`print` preserves the user-written cost annotation on acquire postings.
+The pool's running cost is surfaced on disposal postings (where the user
+wrote `{}` and the system fills in the lot's stored cost) and on
+realised-gain calculations (e.g. via `bal -B`).
 
 ## Lot transactions
 
