@@ -7348,7 +7348,7 @@ These methods are supported:
 | **FIFOALL**        | oldest first (all accounts)       | each lot's cost             | Sufficient lot(s) exist in the account, and are highest priority across all accounts.
 | **LIFOALL**        | newest first (all accounts)       | each lot's cost             | "
 | **HIFOALL**        | highest cost first (all accounts) | each lot's cost             | "
-| **AVERAGEALL**     | oldest first (all accounts)       | average cost (all accounts) | Sufficient lot(s) exist (pool spans all accounts).
+| **AVERAGEALL**     | oldest first (all accounts)       | average cost (all accounts) | Sufficient lot(s) exist across all accounts.
 
 **SPECID** (specific identification) is what you're using when the journal entry contains 
 explicit lot selectors like `{2026-01-15, $50}` or `{$50}`,
