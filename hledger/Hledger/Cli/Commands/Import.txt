@@ -1,10 +1,16 @@
 import
 
 Import new transactions from one or more data files to the main journal.
+Or with no arguments, import from the rules files in rules/.
 
 Flags:
+  -g --get                  fetch new data first by running the get command
      --catchup              just mark all transactions as already imported
      --dry-run              just show the transactions to be imported
+     --layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 - right-align amounts, as in hledger 1
+                            COL      - align decimal marks at column COL
+                            (default: 53)
 
 This command detects new transactions in one or more data files
 specified as arguments, and appends them to the main journal.
@@ -22,6 +28,36 @@ Examples:
 $ hledger import bank1-checking.csv bank1-savings.csv
 
 $ hledger import *.csv
+
+Default import sources
+
+If import is run with no file arguments, it looks in the journal's
+rules/ directory (next to the main journal file) and imports from every
+.rules file found there, in alphabetical order. Files whose name begins
+with . or _ are skipped: the _ prefix is for rules files that are either
+disabled, or shared/common rules included by other rules files and not
+meant to be read directly.
+
+So a typical setup might be:
+
+~/finance/2026.journal
+~/finance/rules/bank1-checking.rules
+~/finance/rules/bank1-savings.rules
+~/finance/rules/_common.rules       # included by others, not read directly
+~/finance/rules/_brokerage.rules    # disabled
+
+and hledger import reads bank1-checking.rules then bank1-savings.rules.
+
+If the rules/ directory does not exist or contains no usable .rules
+files, import reports an error.
+
+Fetching new data first
+
+With -g/--get, import runs the get command first, which runs your
+data/getdata and prices/getprices scripts (if any) to download new
+transaction and price data. The import then proceeds normally, with the
+new transaction data (if any) readable by your rules files' source
+rules.
 
 Import dry run
 

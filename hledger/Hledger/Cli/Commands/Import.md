@@ -5,10 +5,9 @@ Or with no arguments, import from the rules files in `rules/`.
 
 ```flags
 Flags:
-  -g --get                  fetch transactions first by running the get
-                            command
+  -g --get                  fetch new data first by running the get command
      --catchup              just mark all transactions as already imported
-     --dry-run              just show the commands to be run / transactions to be imported
+     --dry-run              just show the transactions to be imported
      --layout=hledger1|COL  how should posting amounts be aligned ?
                             hledger1 - right-align amounts, as in hledger 1
                             COL      - align decimal marks at column COL
