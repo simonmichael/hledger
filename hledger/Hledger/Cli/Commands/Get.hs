@@ -18,7 +18,7 @@ Each phase is skipped (with a notice) when its helper is not present.
 
 module Hledger.Cli.Commands.Get (
   getmode
- ,get
+ ,getcmd
 ) where
 
 import Control.Exception (IOException, try)
@@ -67,8 +67,8 @@ getmode = hledgerCommandMode
 
 -- | The get command. By default runs both phases (data then prices);
 -- with -t/--transactions or -p/--prices, runs only the selected phase(s).
-get :: CliOpts -> Journal -> IO ()
-get opts@CliOpts{rawopts_=rawopts} j = do
+getcmd :: CliOpts -> Journal -> IO ()
+getcmd opts@CliOpts{rawopts_=rawopts} j = do
   let
     txns    = boolopt "transactions" rawopts
     prices  = boolopt "prices" rawopts

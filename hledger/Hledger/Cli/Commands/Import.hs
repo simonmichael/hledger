@@ -18,7 +18,7 @@ import Text.Printf
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Add (journalAddTransaction)
-import Hledger.Cli.Commands.Get (get)
+import Hledger.Cli.Commands.Get (getcmd)
 import Hledger.Cli.Commands.Print (layoutFlag, layoutFromRawOpts)
 import System.Directory (doesDirectoryExist, listDirectory)
 import System.IO (stderr)
@@ -37,7 +37,7 @@ importmode = hledgerCommandMode
 
 importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
   -- With -g/--get, run the get command first to fetch new data before importing.
-  when (boolopt "get" rawopts) $ get opts j
+  when (boolopt "get" rawopts) $ getcmd opts j
   -- XXX could be helpful to show the last-seen date, and number of old transactions, too
   let
     argfiles = listofstringopt "args" rawopts
