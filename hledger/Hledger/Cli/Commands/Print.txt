@@ -105,11 +105,8 @@ If you want to change the default, put something like this in
 [print]
 --layout=hledger1
 
-Other print-like commands (close, import, rewrite, add..) use print's
-default layout. But they don't have a --layout option for customisation,
-currently. If you need that, you could pipe them through print. Eg:
-
-hledger import *.rules --dry | hledger -I -f- print --layout 40
+Other print-like commands (close, import, rewrite, add) also accept
+--layout.
 
 print amount style
 

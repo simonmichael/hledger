@@ -4,6 +4,10 @@ Add new transactions to a journal file, with interactive prompting.
 
 Flags:
      --no-new-accounts      don't allow creating new accounts
+     --layout=hledger1|COL  how should posting amounts be aligned ?
+                            hledger1 - right-align amounts, as in hledger 1
+                            COL      - align decimal marks at column COL
+                            (default: 53)
 
 Many hledger users edit their journals directly with a text editor, or
 generate them from CSV. For more interactive data entry, there is the
