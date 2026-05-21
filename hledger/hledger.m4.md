@@ -7338,13 +7338,13 @@ account assets:stocks:from2025  ; lots: FIFO
 
 These methods are supported:
 
-| Method             | Lots selected      | Disposal cost basis       | Error checking
-|--------------------|--------------------|---------------------------|---------------------------------------------------------------------------------------
-| **SPECID**         | one specific lot   | specified lot's cost      | A matching lot, with sufficient balance, exists in the account.
-| **FIFO**           | oldest first       | each lot's cost           | Sufficient lot(s) exist in the account.
-| **LIFO**           | newest first       | each lot's cost           | "
-| **HIFO**           | highest cost first | each lot's cost           | "
-| **AVERAGE**        | oldest first (all accounts)       | average cost                | Sufficient lot(s) exist in the account.
+| Method             | Lots selected                     | Disposal cost basis         | Error checking
+|--------------------|-----------------------------------|-----------------------------|---------------------------------------------------------------------------------------
+| **SPECID**         | one specific lot                  | specified lot's cost        | A matching lot, with sufficient balance, exists in the account.
+| **FIFO**           | oldest first                      | each lot's cost             | Sufficient lot(s) exist in the account.
+| **LIFO**           | newest first                      | each lot's cost             | "
+| **HIFO**           | highest cost first                | each lot's cost             | "
+| **AVERAGE**        | oldest first (all accounts)       | average cost                | "
 | **FIFOALL**        | oldest first (all accounts)       | each lot's cost             | Sufficient lot(s) exist in the account, and are highest priority across all accounts.
 | **LIFOALL**        | newest first (all accounts)       | each lot's cost             | "
 | **HIFOALL**        | highest cost first (all accounts) | each lot's cost             | "
