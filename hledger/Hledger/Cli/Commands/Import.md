@@ -4,6 +4,8 @@ Import new transactions from one or more data files to the main journal.
 
 ```flags
 Flags:
+  -g --get                  fetch transactions first by running the get
+                            command
      --catchup              just mark all transactions as already imported
      --dry-run              just show the transactions to be imported
      --layout=hledger1|COL  how should posting amounts be aligned ?
@@ -53,6 +55,14 @@ and `hledger import` reads `bank1-checking.rules` then `bank1-savings.rules`.
 
 If the `rules/` directory does not exist or contains no usable `.rules` files,
 import reports an error.
+
+### Fetching new data first
+
+With `-g/--get`, `import` runs the [`get`](#get) command first,
+which runs your `data/getdata` and `prices/getprices` scripts (if any) 
+to download new transaction and price data.
+The import then proceeds normally, with the new transaction data (if any)
+readable by your rules files' `source` rules.
 
 ### Import dry run
 
