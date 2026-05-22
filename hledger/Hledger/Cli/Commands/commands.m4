@@ -64,7 +64,7 @@ _command_({{Activity}})
 # Data generation commands
 
 _command_({{Close}})
-_command_({{Getprices}})
+_command_({{Get}})
 _command_({{Rewrite}})
 
 # Maintenance commands

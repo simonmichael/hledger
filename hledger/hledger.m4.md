@@ -7691,6 +7691,7 @@ You can list all of a command's options by running `hledger CMD -h`.
 **[Data generation commands](#data-generation-commands)**
 
 - [close](#close)                                  - generate balance-zeroing/restoring transactions
+- [get](#get)                                      - fetch new transactions and market price data
 - [rewrite](#rewrite)                              - generate auto postings, like print --auto
 
 **[Maintenance commands](#maintenance-commands)**
