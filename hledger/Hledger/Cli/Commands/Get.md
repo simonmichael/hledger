@@ -5,13 +5,12 @@ by running helper scripts in journal-relative `data/` and `prices/` directories.
 
 ```flags
 Flags:
-     --transactions         fetch transactions
-     --prices               fetch prices
+     --transactions         fetch transactions only
+     --prices               fetch prices only
      --dry-run              just print the commands that would be run
 ```
 
 By default, this command fetches both transactions and prices.
-With `--transactions` or `--prices`, only the selected phase(s) run.
 
 ### Phase 1: transactions data
 
@@ -45,9 +44,9 @@ If prices files already exist, the newly fetched prices will be merged as follow
 - If no new prices remain to be added, the prices file is left as-is.
 - Otherwise, the old prices plus the new prices are saved to the file, ordered by: date, from commodity, to commodity.
 
-### get helper scripts
+### get's helper scripts
 
-How to fetch data varies for everyone, and needs to be easily customisable, so it is done via helper scripts:
+Data downloading varies for everyone, and needs to be easily customisable, so it is done via helper scripts:
 
 #### getdata
 
