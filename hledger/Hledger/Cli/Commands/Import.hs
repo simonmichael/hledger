@@ -72,8 +72,8 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
 
   case inputfiles of
     [] -> error' $  -- PARTIAL:
-      "please provide one or more data files as arguments, "
-      ++ "or add .rules files to " ++ rulesdir ++ "/"
+      "please specify one or more data files to import from,\n"
+      ++ "or add .rules files in a rules/ directory next to the journal."
     fs -> do
       enewjandlatestdatesforfiles <- runExceptT $ readJournalFilesAndLatestDates iopts' fs
       case enewjandlatestdatesforfiles of
