@@ -499,11 +499,40 @@ argsToCliOpts args addons = do
 -- (useful when cmdargsParse is called more than once).
 -- If parsing fails, exit the program with an informative error message.
 cmdargsParse :: String -> Mode RawOpts -> [String] -> RawOpts
-cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal args0)
+cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal (checkReqValFlagArgsHaveValues args0))
   & either
     (\e -> error' $ e <> "\n* while parsing the following args, " <> desc <> ":\n*  " <> unwords (map quoteIfNeeded args0))
     (dbgMsg verboseDebugLevel ("cmdargs: parsing " <> desc <> ": " <> show args0))
   -- XXX better error message when cmdargs fails (eg spaced/quoted/malformed flag values) ?
+
+-- | Check that each known required-value flag in the arg list is followed by a value, not another
+-- known flag. If a required-value flag is at the end of the args, or is followed by something that
+-- looks like a known hledger flag, abort with a usage error naming the offending flag. Returns the
+-- args unchanged.
+--
+-- Joined forms like -fFILE or --file=FILE are single tokens, so they bypass the check.
+-- A bare "-" (commonly used to mean stdin), and prefixed forms like "csv:-", are allowed as values.
+-- Values that start with "-" but are not known flags (eg "-date" as a register --sort key) are also
+-- allowed, so we don't break legitimate dash-prefixed value syntax.
+checkReqValFlagArgsHaveValues :: [String] -> [String]
+checkReqValFlagArgsHaveValues = go
+  where
+    -- --debug is declared as flagReq but treated as optional-value via ensureDebugFlagHasVal,
+    -- so don't validate it here.
+    checkable a = a `elem` reqValFlagArgs && a /= "--debug"
+    knownFlags = noValFlagArgs `union` reqValFlagArgs `union` optValFlagArgs
+    looksLikeKnownFlag b =
+         b `elem` knownFlags
+      || any (`isPrefixOf` b) longReqValFlagArgs_
+      || any (`isPrefixOf` b) longOptValFlagArgs_
+    go [] = []
+    go [a]
+      | checkable a = usageError $ a <> " needs a value, none provided"
+      | otherwise = [a]
+    go (a:b:rest)
+      | checkable a, looksLikeKnownFlag b =
+          usageError $ a <> " needs a value, but the next argument is another flag: " <> b
+      | otherwise = a : go (b:rest)
 
 -- | cmdargs does not allow options to appear before the subcommand argument.
 -- We prefer to hide this restriction from the user, providing a more forgiving CLI.
