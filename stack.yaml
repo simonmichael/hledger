@@ -12,4 +12,8 @@ compiler: ghc-9.14
 # notify-if-ghc-untested:   false
 # notify-if-cabal-untested: false
 notify-if-no-run-tests:   false
-#extra-deps:
+# for hledger-web and https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
+extra-deps:
+- aeson-2.3.0.0
+- text-iso8601-0.2.0.0
+allow-newer: true

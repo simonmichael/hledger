@@ -6,7 +6,7 @@ packages:
 - hledger-lib
 - hledger
 - hledger-ui
-- hledger-web
+#- hledger-web  # see below
 
 extra-deps:
 - encoding-0.10
@@ -14,6 +14,11 @@ extra-deps:
 - vty-windows-0.2.0.1
 # for #2410, #2512:
 - haskeline-0.8.4.1
+# build plan for hledger-web and https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html, needs more work
+# - aeson-2.3.0.0
+# - text-iso8601-0.2.0.0
+# - character-ps-0.1
+# allow-newer: true
 
 nix:
   pure: false

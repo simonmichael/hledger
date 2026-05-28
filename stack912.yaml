@@ -13,6 +13,12 @@ packages:
 
 resolver: nightly-2026-04-17
 
+# for hledger-web and https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
+extra-deps:
+- aeson-2.3.0.0
+- text-iso8601-0.2.0.0
+allow-newer: true
+
 nix:
   pure: false
   packages: [perl gmp ncurses zlib]
