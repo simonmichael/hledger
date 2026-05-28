@@ -69,7 +69,6 @@ import Data.List (foldl')
 import Data.List.Extra (groupOn)
 import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.MemoUgly (memo)
-import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
@@ -261,7 +260,7 @@ parse iopts rulesfile h = do
 
     -- file found, and maybe a data cleaning command
     (_, Just f,  mc) -> do  -- trace "file found" $
-      mencoding <- rulesEncoding rules
+      mencoding <- rulesEncoding rulesfile rules
       liftIO $ do
         raw <- openFileOrStdin f >>= hGetContentsPortably mencoding
         maybe (return raw) (\c -> runCommandAsFilter rulesfile (dbg0Msg ("running: "++c) c) raw) mc
@@ -279,7 +278,7 @@ parse iopts rulesfile h = do
   --  gives: journal
 
   j <- do
-    readJournalFromCsv rules (fromMaybe "(cmd)" mdatafile) cleandata Nothing
+    readJournalFromCsv rulesfile rules (fromMaybe "(cmd)" mdatafile) cleandata Nothing
     -- apply any command line account aliases. Can fail with a bad replacement pattern.
     >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
         -- journalFinalise assumes the journal's items are
@@ -446,12 +445,12 @@ readRules f =
 
 -- | Read the encoding specified by the @encoding@ rule, if any.
 -- Or throw an error if an unrecognised encoding is specified.
-rulesEncoding :: CsvRules -> ExceptT String IO (Maybe DynEncoding)
-rulesEncoding rules = do
+rulesEncoding :: FilePath -> CsvRules -> ExceptT String IO (Maybe DynEncoding)
+rulesEncoding rulesfile rules = do
   case T.unpack <$> getDirective "encoding" rules of
     Nothing     -> return Nothing
     Just encstr -> case encodingFromStringExplicit $ dbg4 "encoding name" encstr of
-      Nothing  -> throwError $ "Invalid encoding: " <> encstr
+      Nothing  -> throwError $ rulesfile <> ": Invalid encoding: " <> encstr
       Just enc -> return . Just $ dbg4 "encoding" enc
 
 -- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
@@ -500,11 +499,7 @@ parseAndValidateCsvRules :: FilePath -> T.Text -> Either String CsvRules
 parseAndValidateCsvRules rulesfile s =
   case parseCsvRules rulesfile s of
     Left err    -> Left $ customErrorBundlePretty err
-    Right rules -> first makeFancyParseError $ validateCsvRules rules
-  where
-    makeFancyParseError :: String -> String
-    makeFancyParseError errorString =
-      parseErrorPretty (FancyError 0 (S.singleton $ ErrorFail errorString) :: ParseError Text String)
+    Right rules -> first ((rulesfile <> ":\n") <>) $ validateCsvRules rules
 
 instance ShowErrorComponent String where
   showErrorComponent = id
@@ -1234,8 +1229,8 @@ _CSV_READING__________________________________________ = undefined
 --
 -- 4. Return the transactions as a Journal.
 --
-readJournalFromCsv :: CsvRules -> FilePath -> Text -> Maybe SepFormat -> ExceptT String IO Journal
-readJournalFromCsv rules csvfile csvtext sep = do
+readJournalFromCsv :: FilePath -> CsvRules -> FilePath -> Text -> Maybe SepFormat -> ExceptT String IO Journal
+readJournalFromCsv rulesfile rules csvfile csvtext sep = do
     -- for now, correctness is the priority here, efficiency not so much
 
     dbg6IO "csv rules" rules
@@ -1247,7 +1242,7 @@ readJournalFromCsv rules csvfile csvtext sep = do
     skiplines <- case getDirective "skip" rules of
                       Nothing -> return 0
                       Just "" -> return 1
-                      Just s  -> maybe (throwError $ "could not parse skip value: " ++ T.unpack s) return . readMay $ T.unpack s
+                      Just s  -> maybe (throwError $ rulesfile <> ": could not parse skip value: " ++ T.unpack s) return . readMay $ T.unpack s
     let csvlines2 = dbg9 "csvlines2" $ drop skiplines csvlines1
 
     -- convert back to text and parse as csv records
@@ -1285,7 +1280,7 @@ readJournalFromCsv rules csvfile csvtext sep = do
     mtzin <- case getDirective "timezone" rules of
               Nothing -> return Nothing
               Just s  ->
-                maybe (throwError $ "could not parse time zone: " ++ T.unpack s) (return.Just) $
+                maybe (throwError $ rulesfile <> ": could not parse time zone: " ++ T.unpack s) (return.Just) $
                 parseTimeM False defaultTimeLocale "%Z" $ T.unpack s
     let
       -- convert CSV records to transactions, saving the CSV line numbers for error positions

@@ -61,10 +61,11 @@ reader sep = Reader
 -- This does not check balance assertions.
 parse :: SepFormat -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
 parse sep iopts f h = do
-  rules <- readRules $ getRulesFile f (mrules_file_ iopts)
-  mencoding <- rulesEncoding rules
+  let rulesfile = getRulesFile f (mrules_file_ iopts)
+  rules <- readRules rulesfile
+  mencoding <- rulesEncoding rulesfile rules
   csvtext <- lift $ hGetContentsPortably mencoding h
-  readJournalFromCsv rules f csvtext (Just sep)
+  readJournalFromCsv rulesfile rules f csvtext (Just sep)
   -- apply any command line account aliases. Can fail with a bad replacement pattern.
   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
       -- journalFinalise assumes the journal's items are

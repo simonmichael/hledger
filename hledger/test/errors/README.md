@@ -443,7 +443,7 @@ for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y
 
 ### csvdaterule
 ```
-hledger: Error: offset=0:
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/csvdaterule.csv.rules:
 Please specify (at top level) the date field. Eg: date %1
 ```
 
@@ -509,7 +509,7 @@ sorry, CSV files can't be included yet
 
 ### csvskipvalue
 ```
-hledger: Error: could not parse skip value: badval
+hledger: Error: /Users/simon/src/hledger/hledger/test/errors/csvskipvalue.csv.rules: could not parse skip value: badval
 ```
 
 
