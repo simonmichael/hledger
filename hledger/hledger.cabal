@@ -155,7 +155,7 @@ library
   build-depends:
       Decimal >=0.5.1
     , Diff >=0.2
-    , aeson >=1 && <2.3
+    , aeson ==2.3.*
     , ansi-terminal >=0.9
     , base >=4.18 && <4.23
     , bytestring
@@ -211,7 +211,7 @@ executable hledger
   cpp-options: -DVERSION="1.52.99"
   build-depends:
       Decimal >=0.5.1
-    , aeson >=1 && <2.3
+    , aeson ==2.3.*
     , ansi-terminal >=0.9
     , base >=4.18 && <4.23
     , bytestring
@@ -262,7 +262,7 @@ test-suite unittest
   cpp-options: -DVERSION="1.52.99"
   build-depends:
       Decimal >=0.5.1
-    , aeson >=1 && <2.3
+    , aeson ==2.3.*
     , ansi-terminal >=0.9
     , base >=4.18 && <4.23
     , bytestring
@@ -313,7 +313,7 @@ benchmark bench
   cpp-options: -DVERSION="1.52.99"
   build-depends:
       Decimal >=0.5.1
-    , aeson >=1 && <2.3
+    , aeson ==2.3.*
     , ansi-terminal >=0.9
     , base >=4.18 && <4.23
     , bytestring
