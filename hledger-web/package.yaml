@@ -105,7 +105,7 @@ library:
   dependencies:
   - hledger-lib >=1.52.99 && <1.53
   - hledger >=1.52.99 && <1.53
-  - aeson >=1 && <2.3
+  - aeson >=2.3 && <2.4
   - base64
   - blaze-html
   - blaze-markup

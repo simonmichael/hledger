@@ -103,7 +103,7 @@ flags:
 dependencies:
 - base >=4.18 && <4.23
 - hledger-lib >=1.52.99 && <1.53
-- aeson >=1 && <2.3
+- aeson >=2.3 && <2.4
 - ansi-terminal >=0.9
 - bytestring
 - cmdargs >=0.10
