@@ -216,3 +216,79 @@ $ hledger -f- bal -N tag:type=a
 # ** 21.
 $ hledger -f- reg -w80 tag:type=a
 2022-01-01                      (a:aa)                           1             1
+
+# ** 22. posting tag overrides transaction tag of the same name (issue #1950, $20 bounty)
+<
+2024/01/01  ; concerns:me
+  (a)     1  ; concerns:you
+  (b)    -1
+$ hledger -f- print tag:concerns=you
+2024-01-01  ; concerns:me
+    (a)                                            1  ; concerns:you
+    (b)                                           -1
+
+# ** 23. transaction tag overrides posting tag (transaction-level query) (issue #1950)
+<
+2024/01/01  ; concerns:me
+  (a)     1  ; concerns:you
+  (b)    -1
+$ hledger -f- print tag:concerns=me
+2024-01-01  ; concerns:me
+    (a)                                            1
+    (b)                                           -1
+
+# ** 24. different-named tags from posting and transaction are combined (issue #1950)
+<
+2024/01/01  ; location:home
+  (a)     1  ; concerns:you
+  (b)    -1
+$ hledger -f- print tag:concerns=you
+2024-01-01  ; location:home
+    (a)                                            1  ; concerns:you
+    (b)                                           -1
+
+# ** 25. posting tag override in register output (issue #1950)
+<
+2024/01/01  ; concerns:me
+  (a)     1  ; concerns:you
+  (b)    -1
+$ hledger -f- register -w80 tag:concerns=you
+2024-01-01                      (a)                              1             1
+
+# ** 26. posting tag override in balance output (issue #1950)
+<
+2024/01/01  ; concerns:me
+  (a)     1  ; concerns:you
+  (b)    -1
+$ hledger -f- bal -N tag:concerns=you
+                   1  a
+
+# ** 27. account tag + transaction tag + posting tag full precedence chain (issue #1950)
+<
+account a  ; source:account
+commodity $  ; source:commodity
+
+2024/01/01  ; source:transaction
+  (a)    $1  ; source:posting
+  (b)   $-1
+$ hledger -f- register -w80 tag:source=posting
+2024-01-01                      (a)                            $1            $1
+
+# ** 28. account tag inheritance still works alongside posting override (issue #1950)
+<
+account expenses:travel  ; tax:7%
+commodity $  ; source:commodity
+
+2024/01/01
+  expenses:travel   $107
+  assets:bank      $-107
+
+2024/01/01
+  expenses:travel   $119  ; tax:19%
+  assets:bank      $-119
+$ hledger -f- bal -N tag:tax=7%
+                 107  expenses:travel
+$ hledger -f- bal -N tag:tax=19%
+                 119  expenses:travel
+$ hledger -f- bal -N not:tag:tax
+                   0

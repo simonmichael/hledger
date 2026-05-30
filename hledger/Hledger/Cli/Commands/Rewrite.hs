@@ -134,17 +134,26 @@ diffTxn postinglayout j t t' = case tsourcepos t of
         --       suffix .ledger (generated). I.e. move transaction from one file to another.
         diffs :: [DiffLine Text]
         diffs = concatMap (traverse showPostingLines . mapDiff) $ D.getDiff (tpostings t) (tpostings t')
-    (pos1@(SourcePos fp line _), SourcePos _ line' _) -> (pos1, diffs) where
-        -- We do diff for original lines vs generated ones. Often leads
-        -- to big diff because of re-format effect.
+    (pos1@(SourcePos fp line _), SourcePos _ line' _) -> (adjustedPos, diffs) where
+        context = 3
+        fileLines = case lookup fp $ jfiles j of
+            Just contents -> T.lines contents
+            Nothing       -> []
+        fileLen = length fileLines
+        preStart = max 0 (unPos line - 1 - context)
+        preContext = drop preStart (take (unPos line - 1) fileLines)
+        postEnd = min fileLen (unPos line' - 1 + context)
+        postContext = drop (unPos line' - 1) (take postEnd fileLines)
+        txnLines = drop (unPos line - 1) (take (unPos line' - 1) fileLines)
+        source = preContext ++ txnLines ++ postContext
+        adjustedPos = SourcePos fp (mkPos (preStart + 1)) (mkPos 1)
         diffs :: [DiffLine Text]
-        diffs = map mapDiff $ D.getDiff source changed'
-        source | Just contents <- lookup fp $ jfiles j = drop (unPos line-1) . take (unPos line' - 1) $ T.lines contents
-               | otherwise = []
+        diffs = map mapDiff $ D.getDiff source fullChanged
         changed = T.lines $ showTransactionWithLayout postinglayout t'
         changed' | null changed = changed
                  | T.null $ last changed = init changed
                  | otherwise = changed
+        fullChanged = preContext ++ changed' ++ postContext
 
 data DiffLine a = Del a | Add a | Ctx a
     deriving (Show, Functor, Foldable, Traversable)
