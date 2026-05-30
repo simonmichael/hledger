@@ -914,7 +914,8 @@ assignmentseparatorp = do
 fieldvalp :: CsvRulesParser Text
 fieldvalp = do
   lift $ dbgparse 8 "trying fieldvalp"
-  T.pack <$> anySingle `manyTill` lift eolof
+  v <- T.pack <$> anySingle `manyTill` lift eolof
+  return $ T.takeWhile (/= '#') v
 
 -- A conditional block: one or more matchers, one per line, followed by one or more indented rules.
 conditionalblockp :: CsvRulesParser ConditionalBlock
@@ -1035,7 +1036,7 @@ regexp end = do
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anySingle `manyTill` (double_ampersand <|> end)
-  case toRegexCI . T.strip . T.pack $ c:cs of
+  case toRegexCI . T.strip . T.takeWhile (/= '#') . T.pack $ c:cs of
        Left x -> Fail.fail $ "CSV parser: " ++ x
        Right x -> return x
   where
