@@ -89,37 +89,37 @@ run defaultJournalOverride findBuiltinCommand addons cliopts@CliOpts{rawopts_=ra
       let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
       if journalFromStdin
       then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
-      else runREPL jpaths findBuiltinCommand addons
+      else runREPL jpaths findBuiltinCommand addons rawopts
     else do
       -- Check if arguments start with "--".
       -- If not, assume that they are files with commands
         case args of
-          "--":_ -> runFromArgs  jpaths findBuiltinCommand addons args
-          _      -> runFromFiles jpaths findBuiltinCommand addons args
+          "--":_ -> runFromArgs  jpaths findBuiltinCommand addons args rawopts
+          _      -> runFromFiles jpaths findBuiltinCommand addons args rawopts
 
 -- | The actual repl command.
 repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> CliOpts -> IO ()
 repl findBuiltinCommand addons cliopts = do
   jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault Nothing cliopts
-  runREPL jpaths findBuiltinCommand addons
+  runREPL jpaths findBuiltinCommand addons (rawopts_ cliopts)
 
 -- | Run commands from files given to "run".
-runFromFiles :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [String] -> IO ()
-runFromFiles defaultJournalOverride findBuiltinCommand addons inputfiles = do
+runFromFiles :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [String] -> RawOpts -> IO ()
+runFromFiles defaultJournalOverride findBuiltinCommand addons inputfiles parentRawOpts = do
   dbg1IO "inputfiles" inputfiles
   -- read commands from all the inputfiles
   commands <- (flip concatMapM) inputfiles $ \f -> do
     dbg1IO "reading commands" f
     lines . T.unpack <$> T.readFile f
 
-  forM_ commands (runCommand defaultJournalOverride findBuiltinCommand addons . parseCommand)
+  forM_ commands (\c -> runCommand defaultJournalOverride findBuiltinCommand addons (parseCommand c) parentRawOpts)
 
 -- | Run commands from command line arguments given to "run".
-runFromArgs :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [String] -> IO ()
-runFromArgs defaultJournalOverride findBuiltinCommand addons args = do
+runFromArgs :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [String] -> RawOpts -> IO ()
+runFromArgs defaultJournalOverride findBuiltinCommand addons args parentRawOpts = do
   -- read commands from all the inputfiles
   let commands = dbg1 "commands from args" $ splitAtElement "--" args
-  forM_ commands (runCommand defaultJournalOverride findBuiltinCommand addons)
+  forM_ commands (\c -> runCommand defaultJournalOverride findBuiltinCommand addons c parentRawOpts)
 
 -- When commands are passed on the command line, shell will parse them for us
 -- When commands are read from file, we need to split the line into command and arguments
@@ -129,8 +129,8 @@ parseCommand line =
   takeWhile (not. ((Just '#')==) . headMay) $  words' (strip line)
 
 -- | Take a single command line (from file, or REPL, or "--"-surrounded block of the args), and run it.
-runCommand :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [String] -> IO ()
-runCommand defaultJournalOverride findBuiltinCommand addons cmdline = do
+runCommand :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [String] -> RawOpts -> IO ()
+runCommand defaultJournalOverride findBuiltinCommand addons cmdline parentRawOpts = do
   dbg1IO "runCommand for" cmdline
   case cmdline of
     "echo":args -> putStrLn $ unwords $ args
@@ -143,7 +143,8 @@ runCommand defaultJournalOverride findBuiltinCommand addons cmdline = do
               dbg1IO "runCommand final args" (cmdname,args')
               opts <- getHledgerCliOpts' cmdmode args'
               let
-                rawopts      = rawopts_ opts
+                opts' = inheritParentRawOpts opts parentRawOpts
+                rawopts      = rawopts_ opts'
                 mmodecmdname = headMay $ modeNames cmdmode
                 helpFlag     = boolopt "help"    rawopts
                 tldrFlag     = boolopt "tldr"    rawopts
@@ -155,19 +156,32 @@ runCommand defaultJournalOverride findBuiltinCommand addons cmdline = do
                 | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
                 | manFlag   -> runManForTopic "hledger"  mmodecmdname
                 | otherwise -> do
-                  withJournalCached (Just defaultJournalOverride) opts $ \(j,jpaths) -> do
+                  withJournalCached (Just defaultJournalOverride) opts' $ \(j,jpaths) -> do
                     if cmdname == "run" -- allow "run" to call "run"
-                      then run (Just jpaths) findBuiltinCommand addons opts
-                      else cmdaction opts j
+                      then run (Just jpaths) findBuiltinCommand addons opts'
+                      else cmdaction opts' j
         Nothing | cmdname `elem` addons ->
           system (printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine args)) >>= exitWith
         Nothing ->
           error' $ "Unrecognized command: " ++ unwords (cmdname:args)
     [] -> return ()
 
+-- | Inherit certain general flags from the parent command's raw opts,
+-- so that flags like --pretty set at the top level (or in config) are
+-- also applied to subcommands run within the repl/run command.
+inheritParentRawOpts :: CliOpts -> RawOpts -> CliOpts
+inheritParentRawOpts opts parentRawOpts =
+  let childRawOpts = rawopts_ opts
+      childRawOpts' = case maybestringopt "pretty" childRawOpts of
+        Nothing -> case maybestringopt "pretty" parentRawOpts of
+          Just v  -> setopt "pretty" v childRawOpts
+          Nothing -> childRawOpts
+        Just _  -> childRawOpts
+  in opts { rawopts_ = childRawOpts' }
+
 -- | Run an interactive REPL.
-runREPL :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> IO ()
-runREPL defaultJournalOverride findBuiltinCommand addons = do
+runREPL :: DefaultRunJournal -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> RawOpts -> IO ()
+runREPL defaultJournalOverride findBuiltinCommand addons parentRawOpts = do
   isTerminal <- isStdinTerminal
   if not isTerminal
     then runInputT defaultSettings (loop False "")
@@ -183,7 +197,7 @@ runREPL defaultJournalOverride findBuiltinCommand addons = do
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        let cmd = runCommand defaultJournalOverride findBuiltinCommand addons $ argsAddDoubleDash $ parseCommand input
+        let cmd = runCommand defaultJournalOverride findBuiltinCommand addons (argsAddDoubleDash $ parseCommand input) parentRawOpts
         liftIO $ if interactive
           then cmd `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)

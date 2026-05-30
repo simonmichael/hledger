@@ -437,11 +437,57 @@ getRulesFile csvfile mrulesfile =
 -- | An exception-throwing IO action that reads and validates
 -- the specified CSV rules file (which may include other rules files).
 readRules :: FilePath -> ExceptT String IO CsvRules
-readRules f =
-  liftIO (do
+readRules f = do
+  content <- liftIO $ do
     dbg6IO "using conversion rules file" f
-    readFilePortably f >>= expandIncludes (takeDirectory f)
-  ) >>= either throwError return . parseAndValidateCsvRules f
+    readFilePortably f
+  let dir = takeDirectory f
+  combinedParsed <- processIncludes dir content
+  either throwError return $ first ((f <> ":\n") <>) $ validateCsvRules $ mkrules combinedParsed
+
+-- | Recursively process a CSV rules file and all its includes,
+-- parsing each file independently with correct file name tracking.
+-- Returns the merged CsvRulesParsed from all files.
+processIncludes :: FilePath -> Text -> ExceptT String IO CsvRulesParsed
+processIncludes dir0 content = do
+  results <- go dir0 (T.lines content)
+  return $ foldl' mergeCsvRulesParsed defrules results
+  where
+    go dir lines' = case break isInclude lines' of
+      (segment, incLine : rest) -> do
+        segResult <- parseSegment dir segment
+        incResults <- case T.stripPrefix "include " incLine of
+          Just p  -> do
+            let incFile = dir </> T.unpack (T.dropWhile isSpace p)
+            incContent <- liftIO $ readFilePortably incFile
+            result <- processIncludes (takeDirectory incFile) incContent
+            return [result]
+          Nothing -> return []
+        restResults <- go dir rest
+        return $ segResult : incResults ++ restResults
+      (segment, []) -> do
+        segResult <- parseSegment dir segment
+        return [segResult]
+
+    isInclude l = isJust $ T.stripPrefix "include " l
+
+    parseSegment _dir [] = return defrules
+    parseSegment dir segLines = either throwError return $ parseCsvRulesParsed dir (T.unlines segLines)
+
+-- | Merge two CsvRulesParsed values, concatenating their component lists in order.
+mergeCsvRulesParsed :: CsvRulesParsed -> CsvRulesParsed -> CsvRulesParsed
+mergeCsvRulesParsed r1 r2 = CsvRules'
+  { rdirectives = rdirectives r1 <> rdirectives r2
+  , rcsvfieldindexes = rcsvfieldindexes r1 <> rcsvfieldindexes r2
+  , rassignments = rassignments r1 <> rassignments r2
+  , rconditionalblocks = rconditionalblocks r1 <> rconditionalblocks r2
+  , rblocksassigning = ()
+  }
+
+-- | Parse rules text as CsvRulesParsed (before mkrules and validation).
+-- The file path is used for error messages.
+parseCsvRulesParsed :: FilePath -> Text -> Either HledgerParseErrors CsvRulesParsed
+parseCsvRulesParsed = runParser (evalStateT segmentsp defrules)
 
 -- | Read the encoding specified by the @encoding@ rule, if any.
 -- Or throw an error if an unrecognised encoding is specified.
@@ -452,21 +498,6 @@ rulesEncoding rulesfile rules = do
     Just encstr -> case encodingFromStringExplicit $ dbg4 "encoding name" encstr of
       Nothing  -> throwError $ rulesfile <> ": Invalid encoding: " <> encstr
       Just enc -> return . Just $ dbg4 "encoding" enc
-
--- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
--- Included file paths may be relative to the directory of the provided file path.
--- Unlike with journal files, this is done as a pre-parse step to simplify the CSV rules parser.
--- Unfortunately this means that the parser won't see accurate file paths and positions with included files.
-expandIncludes :: FilePath -> Text -> IO Text
-expandIncludes dir0 content = mapM (expandLine dir0) (T.lines content) <&> T.unlines
-  where
-    expandLine dir1 line =
-      case line of
-        (T.stripPrefix "include " -> Just f) -> expandIncludes dir2 =<< T.readFile f'
-          where
-            f' = dir1 </> T.unpack (T.dropWhile isSpace f)
-            dir2 = takeDirectory f'
-        _ -> return line
 
 -- defaultRulesText :: FilePath -> Text
 -- defaultRulesText _csvfile = T.pack $ unlines
@@ -492,14 +523,6 @@ expandIncludes dir0 content = mapM (expandLine dir0) (T.lines content) <&> T.unl
 --   ,"if (TO|FROM) SAVINGS"
 --   ," account2 assets:bank:savings\n"
 --   ]
-
--- | An error-throwing IO action that parses this text as CSV conversion rules
--- and runs some extra validation checks. The file path is used in error messages.
-parseAndValidateCsvRules :: FilePath -> T.Text -> Either String CsvRules
-parseAndValidateCsvRules rulesfile s =
-  case parseCsvRules rulesfile s of
-    Left err    -> Left $ customErrorBundlePretty err
-    Right rules -> first ((rulesfile <> ":\n") <>) $ validateCsvRules rules
 
 instance ShowErrorComponent String where
   showErrorComponent = id
@@ -753,8 +776,8 @@ addConditionalBlock b r = r{rconditionalblocks=b:rconditionalblocks r}
 addConditionalBlocks :: [ConditionalBlock] -> CsvRulesParsed -> CsvRulesParsed
 addConditionalBlocks bs r = r{rconditionalblocks=bs++rconditionalblocks r}
 
-rulesp :: CsvRulesParser CsvRules
-rulesp = do
+segmentsp :: CsvRulesParser CsvRulesParsed
+segmentsp = do
   _ <- many $ choice
     [blankorcommentlinep                                                <?> "blank or comment line"
     ,(directivep        >>= modify' . addDirective)                     <?> "directive"
@@ -766,7 +789,10 @@ rulesp = do
     ,(conditionaltablep >>= modify' . addConditionalBlocks . reverse)   <?> "conditional table"
     ]
   eof
-  mkrules <$> get
+  get
+
+rulesp :: CsvRulesParser CsvRules
+rulesp = mkrules <$> segmentsp
 
 blankorcommentlinep :: CsvRulesParser ()
 blankorcommentlinep = lift (dbgparse 8 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
@@ -888,7 +914,8 @@ assignmentseparatorp = do
 fieldvalp :: CsvRulesParser Text
 fieldvalp = do
   lift $ dbgparse 8 "trying fieldvalp"
-  T.pack <$> anySingle `manyTill` lift eolof
+  v <- T.pack <$> anySingle `manyTill` lift eolof
+  return $ T.takeWhile (/= '#') v
 
 -- A conditional block: one or more matchers, one per line, followed by one or more indented rules.
 conditionalblockp :: CsvRulesParser ConditionalBlock
@@ -1009,7 +1036,7 @@ regexp end = do
   -- notFollowedBy matchoperatorp
   c <- lift nonspace
   cs <- anySingle `manyTill` (double_ampersand <|> end)
-  case toRegexCI . T.strip . T.pack $ c:cs of
+  case toRegexCI . T.strip . T.takeWhile (/= '#') . T.pack $ c:cs of
        Left x -> Fail.fail $ "CSV parser: " ++ x
        Right x -> return x
   where
@@ -1421,7 +1448,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
     mdateformat = rule "date-format"
     parseDate = parseDateWithCustomOrDefaultFormats timesarezoned mtzin tzout mdateformat
-    mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines
+    mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines $
       ["could not parse \""<>datevalue<>"\" as a date using date format "
         <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat'
       ,showRecord record
@@ -1432,9 +1459,13 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
         <>maybe "add a" (const "change your") mdateformat'<>" date-format rule, "
         <>"or "<>maybe "add a" (const "change your") mskip<>" skip rule"
       ,"for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y"
-      ]
+      ] ++ headerhint datevalue
       where
         mskip = rule "skip"
+        headerhint dv
+          | T.all (not . isDigit) dv
+          = ["if \""<>dv<>"\" looks like a CSV column header, you probably need to add: skip 1"]
+          | otherwise = []
 
     ----------------------------------------------------------------------
     -- 2. Gather values needed for the transaction itself, by evaluating the
@@ -1456,7 +1487,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
               ,"the parse error is:      "<>T.pack (customErrorBundlePretty err)
               ]
     code        = maybe "" singleline' $ fieldval "code"
-    description = maybe "" singleline' $ fieldval "description"
+    description = maybe "" (validateDescription . singleline') $ fieldval "description"
     comment     = maybe "" unescapeNewlines $ fieldval "comment"
 
     -- Convert some parsed comment text back into following comment syntax,
@@ -1469,6 +1500,14 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
 
     singleline' = T.unwords . filter (not . T.null) . map T.strip . T.lines
     unescapeNewlines = T.intercalate "\n" . T.splitOn "\\n"
+    validateDescription t
+      | T.any (\c -> c == ';' || c == '\r' || c == '\0' || (c < ' ' && c /= '\t')) t =
+          error' $ T.unpack $ T.unlines
+            [ "invalid characters in CSV description: " <> show t
+            , "descriptions cannot contain semicolons (;), newlines, or control characters"
+            , showRecord record
+            ]
+      | otherwise = t
 
     ----------------------------------------------------------------------
     -- 3. Generate the postings for which an account has been assigned
