@@ -181,6 +181,11 @@ ul {
     font-size:large;
 }
 
+#flotTip {
+    max-width: calc(100vw - 40px);
+    word-wrap: break-word;
+}
+
 @media screen and (max-width: 768px) {
     .row-offcanvas {
         position: relative;

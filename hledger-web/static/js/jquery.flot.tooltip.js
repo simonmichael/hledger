@@ -187,8 +187,14 @@ if (!Array.prototype.indexOf) {
         if ((pos.x - $(window).scrollLeft()) > ($(window).innerWidth() - totalTipWidth)) {
             pos.x -= totalTipWidth;
         }
+        if ((pos.x - $(window).scrollLeft()) < 0) {
+            pos.x = $(window).scrollLeft();
+        }
         if ((pos.y - $(window).scrollTop()) > ($(window).innerHeight() - totalTipHeight)) {
             pos.y -= totalTipHeight;
+        }
+        if ((pos.y - $(window).scrollTop()) < 0) {
+            pos.y = $(window).scrollTop();
         }
         this.tipPosition.x = pos.x;
         this.tipPosition.y = pos.y;
