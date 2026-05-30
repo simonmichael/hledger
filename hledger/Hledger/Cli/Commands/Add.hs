@@ -506,8 +506,9 @@ balanceTransactionInJournal t j bopts = do
     (lastMay ts)
 
 postingsAreBalanced :: Journal -> [Posting] -> Bool
-postingsAreBalanced j ps = isRight $ balanceSingleTransaction bopts nulltransaction{tpostings = ps}
-  where bopts = defbalancingopts{account_types_ = jaccounttypes j}
+postingsAreBalanced j ps =
+  let t = nulltransaction{tpostings = ps}
+  in isRight $ balanceTransactionInJournal t j defbalancingopts{account_types_ = jaccounttypes j}
 
 -- | Append this transaction to the journal's file and transaction list.
 journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
