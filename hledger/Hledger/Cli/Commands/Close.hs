@@ -127,7 +127,9 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     q3 = And [q2, Not $ Acct $ accountNameToAccountOnlyRegex closeacct]
     -- the balances to close
     rspec3 = rspec1{_rsQuery=q3}
-    (acctbals',_) = balanceReport rspec3 j
+    (acctbals',_) = if null (jtxns j)
+      then ([], nullmixedamt)
+      else balanceReport rspec3 j
     acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripCosts b)) acctbals'
     totalamt = maSum $ map snd acctbals
 

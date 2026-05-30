@@ -299,6 +299,10 @@ $ hledger close -f- -e 2017 --retain
 
 >=0
 
+# ** 22. close handles empty journal without crashing (issue #2409).
+$ hledger close -f /dev/null -e today
+>=
+
 # ** 21. close supports --layout, like print.
 <
 2020-01-01
