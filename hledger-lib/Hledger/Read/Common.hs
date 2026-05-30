@@ -964,10 +964,18 @@ simpleamountp mult =
     -> TextParser m (Quantity, AmountPrecision, Maybe Char, Maybe DigitGroupStyle)
   interpretNumber posRegion msuggestedStyle ambiguousNum mExp =
     let rawNum = either (disambiguateNumber msuggestedStyle) id ambiguousNum
-    in  case fromRawNumber rawNum mExp of
-          Left errMsg -> customFailure $
-                           uncurry parseErrorAtRegion posRegion errMsg
-          Right (q,p,d,g) -> pure (q, Precision p, d, g)
+    in  case rawNum of
+          (WithSeparators sep groups Nothing)
+            | isDecimalMark sep
+            , length groups > 2
+            , Just (AmountStyle{asdecimalmark = Just decmark}) <- msuggestedStyle
+            , sep == decmark
+            -> customFailure $ uncurry parseErrorAtRegion posRegion
+                 "invalid number (doubled decimal mark)"
+          _ -> case fromRawNumber rawNum mExp of
+                 Left errMsg -> customFailure $
+                                  uncurry parseErrorAtRegion posRegion errMsg
+                 Right (q,p,d,g) -> pure (q, Precision p, d, g)
 
 -- | Try to parse a single-commodity amount from a string
 parseamount :: String -> Either HledgerParseErrors Amount
