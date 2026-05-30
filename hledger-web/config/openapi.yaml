@@ -279,7 +279,6 @@ paths:
               schema:
                 items:
                   required:
-                  - aboring
                   - adata
                   - adeclarationinfo
                   - aname
@@ -294,7 +293,6 @@ paths:
                       items: {}
                     asubs:
                       items: {}
-                    aboring: {}
                     adata:
                       required:
                       - pdpre
