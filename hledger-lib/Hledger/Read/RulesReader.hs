@@ -1483,7 +1483,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
               ,"the parse error is:      "<>T.pack (customErrorBundlePretty err)
               ]
     code        = maybe "" singleline' $ fieldval "code"
-    description = maybe "" singleline' $ fieldval "description"
+    description = maybe "" (validateDescription . singleline') $ fieldval "description"
     comment     = maybe "" unescapeNewlines $ fieldval "comment"
 
     -- Convert some parsed comment text back into following comment syntax,
@@ -1496,6 +1496,14 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
 
     singleline' = T.unwords . filter (not . T.null) . map T.strip . T.lines
     unescapeNewlines = T.intercalate "\n" . T.splitOn "\\n"
+    validateDescription t
+      | T.any (\c -> c == ';' || c == '\r' || c == '\0' || (c < ' ' && c /= '\t')) t =
+          error' $ T.unpack $ T.unlines
+            [ "invalid characters in CSV description: " <> show t
+            , "descriptions cannot contain semicolons (;), newlines, or control characters"
+            , showRecord record
+            ]
+      | otherwise = t
 
     ----------------------------------------------------------------------
     -- 3. Generate the postings for which an account has been assigned
