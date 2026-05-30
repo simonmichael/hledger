@@ -791,7 +791,7 @@ postingApplyAliases aliases p@Posting{paccount} =
 -- | Add tags to a posting, discarding any for which the posting already has a value.
 -- Note this does not add tags to the posting's comment.
 postingAddTags :: Posting -> [Tag] -> Posting
-postingAddTags p@Posting{ptags} tags = p{ptags=ptags `union` tags}
+postingAddTags p@Posting{ptags} tags = p{ptags=ptags ++ filter (\(n,_) -> n `notElem` map fst ptags) tags}
 
 -- | Add the given hidden tag to a posting; and with a true argument,
 -- also add the equivalent visible tag to the posting's tags and comment fields.
