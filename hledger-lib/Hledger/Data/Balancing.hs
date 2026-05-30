@@ -478,6 +478,13 @@ setRunningBalanceB acc amt = withRunningBalance $ \BalancingState{bsBalances} ->
   H.insert bsBalances acc amt
   return $ maMinus amt old
 
+-- | Get this account's current inclusive running balance (the sum of
+-- exclusive running balances of this account and any subaccounts).
+getInclusiveRunningBalanceB :: AccountName -> Balancing s MixedAmount
+getInclusiveRunningBalanceB acc = withRunningBalance $ \BalancingState{bsBalances} -> do
+  allebals <- H.toList bsBalances
+  return $ maSum . map snd $ filter ((acc `isAccountNamePrefixOf`).fst) allebals
+
 -- | Set this account's exclusive running balance to whatever amount
 -- makes its *inclusive* running balance (the sum of exclusive running
 -- balances of this account and any subaccounts) be the given amount.
@@ -623,7 +630,10 @@ addOrAssignAmountAndCheckAssertionB (i,p@Posting{paccount=acc, pamount=amt, pbal
                    then return $ mixedAmount baamount
                    -- a partial balance assignment (=, one commodity)
                    else do
-                     oldbalothercommodities <- filterMixedAmount ((acommodity baamount /=) . acommodity) <$> getRunningBalanceB acc
+                     curbal <- if bainclusive
+                                 then getInclusiveRunningBalanceB acc
+                                 else getRunningBalanceB acc
+                     let oldbalothercommodities = filterMixedAmount ((acommodity baamount /=) . acommodity) curbal
                      return $ maAddAmount oldbalothercommodities baamount
       diff <- (if bainclusive then setInclusiveRunningBalanceB else setRunningBalanceB) acc newbal
       let p' = p{pamount=filterMixedAmount (not . amountIsZero) diff, poriginal=Just $ originalPosting p}
@@ -1093,6 +1103,42 @@ tests_Balancing =
               ]
               ,transaction (fromGregorian 2019 01 01) [ post' "a" (num 0)     (balassert (num 1)) ]
             ]}
+
+    ,testCase "inclusive-balance-assignment-with-subaccounts-2093" $ do
+      let ej = journalBalanceTransactions defbalancingopts $
+            -- 2023-10-01 Add EUR
+            --   equity   -10eur
+            --   assets:cash  10eur
+            -- 2023-10-01 Add USD
+            --   equity   -12usd
+            --   assets:cash  12usd
+            -- 2023-10-02 Assign
+            --   assets  =* 20usd
+            --   equity
+            nulljournal{ jtxns = [
+               transaction (fromGregorian 2023 10 01) [
+                  vpost' "equity" (eur (-10)) Nothing
+                 ,vpost' "assets:cash" (eur 10) Nothing
+               ]
+              ,transaction (fromGregorian 2023 10 01) [
+                  vpost' "equity" (usd (-12)) Nothing
+                 ,vpost' "assets:cash" (usd 12) Nothing
+               ]
+              ,transaction (fromGregorian 2023 10 02) [
+                  post' "assets" missingamt (balassertParInc (usd 20))
+                 ,post' "equity" missingamt Nothing
+               ]
+             ]}
+      case ej of
+        Right j -> do
+          let t = headErr $ drop 2 $ jtxns j
+              ps = tpostings t
+              assetsPosting = headErr ps
+              assignedAmt = pamount assetsPosting
+              -- Should only have USD (8usd to reach 20usd), not EUR
+          assertBool "should have exactly 1 commodity in assigned posting" (length (amountsRaw assignedAmt) == 1)
+          assertBool "assigned amount should be 8usd" (amountsRaw assignedAmt == [usd 8])
+        Left _ -> assertFailure "journal balancing should succeed"
 
     ,testCase "out-of-order" $ do
       assertRight $ journalBalanceTransactions defbalancingopts $
