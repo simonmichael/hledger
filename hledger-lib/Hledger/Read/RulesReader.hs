@@ -1448,7 +1448,7 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
     fieldval = hledgerFieldValue rules record :: HledgerFieldName -> Maybe Text
     mdateformat = rule "date-format"
     parseDate = parseDateWithCustomOrDefaultFormats timesarezoned mtzin tzout mdateformat
-    mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines
+    mkdateerror datefield datevalue mdateformat' = T.unpack $ T.unlines $
       ["could not parse \""<>datevalue<>"\" as a date using date format "
         <>maybe "\"YYYY/M/D\", \"YYYY-M-D\" or \"YYYY.M.D\"" (T.pack . show) mdateformat'
       ,showRecord record
@@ -1459,9 +1459,13 @@ transactionFromCsvRecord timesarezoned mtzin tzout sourcepos rules record =
         <>maybe "add a" (const "change your") mdateformat'<>" date-format rule, "
         <>"or "<>maybe "add a" (const "change your") mskip<>" skip rule"
       ,"for m/d/y or d/m/y dates, use date-format %-m/%-d/%Y or date-format %-d/%-m/%Y"
-      ]
+      ] ++ headerhint datevalue
       where
         mskip = rule "skip"
+        headerhint dv
+          | T.all (not . isDigit) dv
+          = ["if \""<>dv<>"\" looks like a CSV column header, you probably need to add: skip 1"]
+          | otherwise = []
 
     ----------------------------------------------------------------------
     -- 2. Gather values needed for the transaction itself, by evaluating the
