@@ -556,7 +556,7 @@ bareLayoutBalanceReportAsText opts (items, total) =
         , Cell TopLeft (replicate (length damts - 1) mempty ++ [wbFromText dispname]) ]
       where dopts = oneLineNoCostFmt{displayCommodity=layout_ opts /= LayoutBare, displayCommodityOrder=Just cs, displayColour=color_ opts}
             cs    = if mixedAmountLooksZero amt then [""] else S.toList $ maCommodities amt
-            dispname = T.replicate ((dep - 1) * 2) " " <> acctname
+            dispname = T.replicate (dep * 2) " " <> acctname
             damts = showMixedAmountLinesB dopts amt
     ls = fmap render items
     totalline = render ("", "", 0, total)
