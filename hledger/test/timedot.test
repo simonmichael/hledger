@@ -90,3 +90,40 @@ e
 
 $ hledger -ftimedot:- accounts
 e
+
+# ** 6. An org heading prefix on a date line is ignored.
+<
+* 2024 work
+** Q1
+*** 2024-02-29
+yoga  .
+
+$ hledger -ftimedot:- print
+2024-02-29 *
+    (yoga)                                         0.25
+
+>=
+
+# ** 7. After the first date line, an org heading prefix is stripped and the rest
+# is parsed as an entry (so a heading like "**** DONE" becomes a zero-time posting).
+<
+2024-01-01
+**** DONE
+yoga  .
+
+$ hledger -ftimedot:- print
+2024-01-01 *
+    (DONE)                                         0.00
+    (yoga)                                         0.25
+
+>=
+
+# ** 8. A line that looks like a date but isn't valid causes a clear error
+# (rather than being silently treated as a comment or entry).
+<
+*** 2023-02-29
+yoga  ....
+
+$ hledger -ftimedot:- print
+>2 /This is not a valid date/
+>=1

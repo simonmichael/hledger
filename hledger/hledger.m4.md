@@ -5149,66 +5149,72 @@ per:admin:finance               ; no time spent yet
 ```
 
 hledger reads this as a transaction on this day with three
-(unbalanced) postings, where each dot represents "0.25".
-No commodity symbol is assumed, but we typically interpret it as hours.
+(unbalanced) postings, where each dot represents 0.25 (of an hour, we usually assume).
 
 ```cli
 $ hledger -f a.timedot print   # .timedot file extension (or timedot: prefix) is required
 2023-05-01 *
-    (hom:errands)                    2.00  ; two hours
-    (fos:hledger:timedot)            0.50  ; half an hour
-    (per:admin:finance)                 0
+    (hom:errands)                                  2.00  ; two hours; the space is ignored
+    (fos:hledger:timedot)                          0.50  ; half an hour
+    (per:admin:finance)                            0.00  ; no time spent yet
 ```
 
-A timedot file contains a series of transactions (usually one per day).
-Each begins with a **[simple date](#simple-dates)** (Y-M-D, Y/M/D, or Y.M.D),
-optionally be followed on the same line by a transaction description,
-and/or a transaction comment following a semicolon.
+A timedot file specifies a series of transactions, usually one per day.
+(Unlike in a journal file, these "transactions" don't need to balance;
+time logs use "single entry accounting".)
 
-After the date line are zero or more time postings, consisting of:
+Each transaction begins with a **date line**: a line whose first word looks like a [simple date](#simple-dates),
+ie three groups of digits separated by `-`, `/`, or `.`
+(if these cannot be parsed as a valid date, an error is raised).
+After the date, on the same line, there can optionally be a transaction description,
+and after `;`, a [transaction comment](#transaction-comments) (possibly containing tags).
 
-- **An account name** - any hledger-style [account name](#account-names), optionally indented.
+After the date line are zero or more **posting lines**. 
+A timedot posting line begins with a hledger-style [account name](#account-names), optionally indented.
+After the account name there are **two or more spaces** and then a **timedot amount**.
+(Or nothing, which is equivalent to a zero amount.)
 
-- **Two or more spaces** - required if there is an amount (as in journal format).
+Timedot amounts can be written in several ways:
 
-- **A timedot amount**, which can be
+  - One or more **dots** (`.`) \
+    Each dot represents a quarter hour.
+    (There's no commodity symbol, but usually we assume hours.)
+    Spaces can optionally be used for aligning or grouping dots,
+    eg `.... .... ..` is easy to read as 2.5 hours.
 
-  - empty (representing zero)
+  - A **bare number** (integer or decimal) \
+    This can be more precise or more convenient, eg for large durations.
 
-  - a number, optionally followed by a unit `s`, `m`, `h`, `d`, `w`, `mo`, or `y`,
-    representing a precise number of seconds, minutes, hours, days weeks, months or years
-    (hours is assumed by default), which will be converted to hours according to
+  - A **number followed by a time unit** (`s`, `m`, `h`, `d`, `w`, `mo`, or `y`) \
+    representing seconds, minutes, hours, days, weeks, months or years,
+    which will be converted to hours using these ratios:
     60s  = 1m,
     60m  = 1h,
     24h  = 1d,
     7d   = 1w,
     30d  = 1mo,
     365d = 1y.
+    This allows use of more convenient time units.
   
-  - one or more dots (period characters), each representing 0.25.
-    These are the dots in "timedot".
-    Spaces are ignored and can be used for grouping/alignment.
+  - One or more **timedot letters** *(since 1.32)* \
+    These work like dots,
+    except they also generate a posting tag `t:` (short for "type") with the letter as its value,
+    and a separate posting for each of the letter values.
+    This adds a second dimension of categorisation - in addition to account name,
+    you'll have the `t` tag's value, which can be shown in reports with `--pivot t`, `--pivot acct:t`, etc.
 
-  - *Added in 1.32* one or more letters. These are like dots but they also generate
-    a tag `t:` (short for "type") with the letter as its value,
-    and a separate posting for each of the values.
-    This provides a second dimension of categorisation,
-    viewable in reports with `--pivot t`.
+Posting lines can end with a hledger-style [posting comment](#posting-comments) (text after `;`), optionally containing tags.
 
-- **An optional comment** following a semicolon (a hledger-style [posting comment](#posting-comments)).
+Lines beginning with `#` or `;` are **comment lines**, and ignored. Blank lines are also ignored.
 
-There is some flexibility to help with keeping time log data and notes in the same file:
+There is some additional support for users of Emacs org mode:
 
-- Blank lines and lines beginning with `#` or `;` are ignored.
+- Before the first date line, lines beginning with `*` are also treated as comments,
+  and ignored. This allows top-level org headings in a timedot file.
 
-- After the first date line, lines which do not contain a double space 
-  are parsed as postings with zero amount.
-  (hledger's register reports will show these if you add -E).
-
-- Before the first date line, lines beginning with `*` (eg org headings) are ignored.
-  And from the first date line onward, Emacs org mode heading prefixes at the start of lines
-  (one or more `*`'s followed by a space) will be ignored.
-  This means the time log can also be a org outline.
+- From the first date line onward, org heading prefixes (one or more `*`'s followed by a space)
+  are ignored, with the rest of the line being parsed normally.
+  This allows timedot date or posting lines to also be org outline headings.
 
 Timedot files don't support directives like journal files.
 So a common pattern is to have a main journal file (eg `time.journal`)
@@ -5242,26 +5248,20 @@ biz:research  .
 ```cli
 $ hledger -f a.timedot print date:2016/2/2
 2016-02-02 *
-    (inc:client1)          2.00
-
-2016-02-02 *
-    (biz:research)          0.25
+    (inc:client1)                                  2.00
+    (biz:research)                                 0.25
 ```
 ```cli
-$ hledger -f a.timedot bal --daily --tree
-Balance changes in 2016-02-01-2016-02-03:
+$ hledger -f a.timedot bal --daily
+Balance changes in 2016-02-01..2016-02-02:
 
-            ||  2016-02-01d  2016-02-02d  2016-02-03d 
-============++========================================
- biz        ||         0.25         0.25         1.00 
-   research ||         0.25         0.25         1.00 
- fos        ||         1.50            0         3.00 
-   haskell  ||         1.50            0            0 
-   hledger  ||            0            0         3.00 
- inc        ||         6.00         2.00         4.00 
-   client1  ||         6.00         2.00         4.00 
-------------++----------------------------------------
-            ||         7.75         2.25         8.00 
+              || 2016-02-01  2016-02-02 
+==============++========================
+ biz:research ||       0.25        0.25 
+ fos:haskell  ||       1.50           0 
+ inc:client1  ||       6.00        2.00 
+--------------++------------------------
+              ||       7.75        2.25 
 ```
 
 Letters:
@@ -5278,11 +5278,10 @@ work:adm  ccecces
 ```
 ```cli
 $ hledger -f a.timedot print
-2023-11-01
-    (work:adm)  1     ; t:c
-    (work:adm)  0.5   ; t:e
-    (work:adm)  0.25  ; t:s
-
+2023-11-01 *
+    (work:adm)                                     1.00  ; t:c
+    (work:adm)                                     0.50  ; t:e
+    (work:adm)                                     0.25  ; t:s
 ```
 ```cli
 $ hledger -f a.timedot bal
@@ -5304,10 +5303,9 @@ Org:
 ```timedot
 * 2023 Work Diary
 ** Q1
-*** 2023-02-29
+*** 2023-02-28
 **** DONE
-0700 yoga
-**** UNPLANNED
+yoga  ....
 **** BEGUN
 hom:chores
  cleaning  ...
@@ -5315,9 +5313,8 @@ hom:chores
   outdoor - one full watering can
   indoor - light watering
 **** TODO
-adm:planning: trip
+adm:planning:trip
 *** LATER
-
 ```
 
 Using `.` as account name separator:
@@ -5333,7 +5330,7 @@ $ hledger -f a.timedot --alias '/\./=:' bal -t
                 4.00    hledger:timedot
                 0.50    ledger
 --------------------
-                4.50
+                4.50  
 ```
 
 # PART 3: REPORTING CONCEPTS
