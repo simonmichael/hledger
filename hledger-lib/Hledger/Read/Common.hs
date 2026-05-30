@@ -964,10 +964,29 @@ simpleamountp mult =
     -> TextParser m (Quantity, AmountPrecision, Maybe Char, Maybe DigitGroupStyle)
   interpretNumber posRegion msuggestedStyle ambiguousNum mExp =
     let rawNum = either (disambiguateNumber msuggestedStyle) id ambiguousNum
-    in  case fromRawNumber rawNum mExp of
-          Left errMsg -> customFailure $
-                           uncurry parseErrorAtRegion posRegion errMsg
-          Right (q,p,d,g) -> pure (q, Precision p, d, g)
+    in  case rawNum of
+          (WithSeparators sep groups Nothing)
+            | isDecimalMark sep
+            , length groups > 2
+            , Just (AmountStyle{asdecimalmark = Just decmark}) <- msuggestedStyle
+            , sep == decmark
+            -> customFailure $ uncurry parseErrorAtRegion posRegion
+                 "invalid number (doubled decimal mark)"
+          (WithSeparators sep groups@(_:_:_:_) Nothing)
+            | isDecimalMark sep
+            , digitGroupLength (last groups) < 3
+            , not $ hasDeclaredDecimalMark msuggestedStyle
+            -> customFailure $ uncurry parseErrorAtRegion posRegion
+                 "invalid number (doubled decimal mark)"
+          _ -> case fromRawNumber rawNum mExp of
+                 Left errMsg -> customFailure $
+                                 uncurry parseErrorAtRegion posRegion errMsg
+                 Right (q,p,d,g) -> pure (q, Precision p, d, g)
+    where
+      hasDeclaredDecimalMark :: Maybe AmountStyle -> Bool
+      hasDeclaredDecimalMark = \case
+        Just (AmountStyle{asdecimalmark = Just _}) -> True
+        _                                          -> False
 
 -- | Try to parse a single-commodity amount from a string
 parseamount :: String -> Either HledgerParseErrors Amount
@@ -1799,6 +1818,11 @@ tests_Common = testGroup "Common" [
         }
    ,testCase "unit price, parenthesised" $ assertParse amountp "$10 (@) €0.5"
    ,testCase "total price, parenthesised" $ assertParse amountp "$10 (@@) €0.5"
+   ,testCase "doubled decimal mark rejected" $
+       assertParseError amountp "$10.999.99" "invalid number (doubled decimal mark)"
+   ,testCase "thousands separator with comma is accepted" $
+       assertParseEq amountp "$1,000,000"
+         nullamt{acommodity="$", aquantity=1000000, astyle=amountstyle{asprecision=Precision 0, asdigitgroups=Just $ DigitGroups ',' [3,3]}}
    ]
 
   ,let p = lift (numberp Nothing) :: JournalParser IO (Quantity, Word8, Maybe Char, Maybe DigitGroupStyle) in
