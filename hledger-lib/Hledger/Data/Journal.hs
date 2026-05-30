@@ -571,7 +571,7 @@ journalAccountTags Journal{jdeclaredaccounttags} a = M.findWithDefault [] a jdec
 -- | Which tags are in effect for this account, including tags inherited from parent accounts ?
 journalInheritedAccountTags :: Journal -> AccountName -> [Tag]
 journalInheritedAccountTags j a =
-  foldl' (\ts a' -> ts `union` journalAccountTags j a') [] as
+  foldl' (\ts a' -> ts ++ filter (\(n,_) -> n `notElem` map fst ts) (journalAccountTags j a')) [] as
   where
     as = a : parentAccountNames a
 -- PERF: cache in journal ?
