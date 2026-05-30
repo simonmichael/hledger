@@ -314,7 +314,8 @@ main = handleExit $ withGhcDebug' $ do
 
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $
-    error' $ "command "++clicmdarg++" is not recognized. Run with no command to see a list."
+    error' $ "command \""++cmdarg++"\" is not recognized. Run with no command to see a list.\n" ++
+      "The invalid command was " ++ (if null confcmdarg then "from the command line" else "from the config file's [general] section") ++ "."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
