@@ -238,8 +238,11 @@ accountNameApplyAliasesMemo aliases = memo (accountNameApplyAliases aliases)
 
 aliasReplace :: AccountAlias -> AccountName -> Either RegexError AccountName
 aliasReplace (BasicAlias old new) a
-  | old `isAccountNamePrefixOf` a || old == a =
-      Right $ new <> T.drop (T.length old) a
+  | old == a = Right new
+  | T.isPrefixOf old a
+    , let rest = T.drop (T.length old) a
+    , not (T.null rest)
+    , T.head rest `elem` [':', '.'] = Right $ new <> rest
   | otherwise = Right a
 aliasReplace (RegexAlias re repl) a =
   fmap T.pack . regexReplace re repl $ T.unpack a -- XXX

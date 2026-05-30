@@ -397,7 +397,7 @@ transactionTagCostsAndEquityAndMaybeInferCosts verbosetags1 addcosts conversiona
           -- delete it from the list of costful postings in the state, delete the
           -- first matching costless posting from the list of costless postings
           -- in the state, and return the transformation function with the new state.
-          | [(np, costp)] <- matchingCostfulPs
+          | (np, costp):_ <- matchingCostfulPs
           , Just newcostps <- deleteIdx np costps
               -> Right (postingAddCostAndOrTag np costp, (if addcosts' then newcostps else costps, otherps))
 

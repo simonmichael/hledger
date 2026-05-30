@@ -469,6 +469,8 @@ SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=40'
 
 # build hledger warning-free and run functional tests, with any shelltest OPTS.
 @functest *STOPTS:
+    #!/usr/bin/env bash
+    command -v time &>/dev/null || { echo "Error: 'time' (/usr/bin/time) is required. Install it with: apt install time (debian/ubuntu) or brew install time (mac)"; exit 1; }
     {{ STACK }} build --ghc-options=-Werror --test --no-run-tests hledger
     time (({{ SHELLTEST }} --exclude=/_ --hide {{ if STOPTS == '' { '' } else { STOPTS } }} \
         hledger/test/ bin/ \
