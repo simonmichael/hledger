@@ -217,12 +217,11 @@ reader = Reader
 -- | Parse and post-process a "Journal" from hledger's journal file
 -- format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
-parse iopts f = parseAndFinaliseJournal journalp' iopts f
-  where
-    journalp' = do
-      -- reverse parsed aliases to ensure that they are applied in order given on commandline
-      mapM_ addAccountAlias (reverse $ aliasesFromOpts iopts)
-      journalp iopts
+parse iopts f = do
+  j <- parseAndFinaliseJournal (journalp iopts) iopts f
+  -- apply any command line account aliases after finalisation so that
+  -- balance assertions are checked against the original account names (#2121)
+  liftEither $ journalApplyAliases (aliasesFromOpts iopts) j
 
 --- ** parsers
 --- *** journal

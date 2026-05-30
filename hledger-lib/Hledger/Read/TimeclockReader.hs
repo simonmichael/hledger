@@ -172,8 +172,8 @@ reader = Reader
 -- error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts fp t = initialiseAndParseJournal (timeclockfilep iopts) iopts fp t
-                   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
                    >>= journalFinalise iopts fp t
+                   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
 
 --- ** parsers
 
