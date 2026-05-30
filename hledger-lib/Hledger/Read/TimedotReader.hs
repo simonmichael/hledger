@@ -75,8 +75,8 @@ reader = Reader
 -- | Parse and post-process a "Journal" from the timedot format, or give an error.
 parse :: InputOpts -> FilePath -> Text -> ExceptT String IO Journal
 parse iopts fp t = initialiseAndParseJournal (timedotp iopts) iopts fp t
-                   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
                    >>= journalFinalise iopts fp t
+                   >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
 
 --- ** utilities
 

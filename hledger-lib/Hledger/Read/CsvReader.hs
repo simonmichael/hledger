@@ -65,15 +65,15 @@ parse sep iopts f h = do
   rules <- readRules rulesfile
   mencoding <- rulesEncoding rulesfile rules
   csvtext <- lift $ hGetContentsPortably mencoding h
-  readJournalFromCsv rulesfile rules f csvtext (Just sep)
-  -- apply any command line account aliases. Can fail with a bad replacement pattern.
-  >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
-      -- journalFinalise assumes the journal's items are
-      -- reversed, as produced by JournalReader's parser.
-      -- But here they are already properly ordered. So we'd
-      -- better preemptively reverse them once more. XXX inefficient
-      . journalReverse
-  >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f ""
+  j <- readJournalFromCsv rulesfile rules f csvtext (Just sep)
+  -- journalFinalise assumes the journal's items are
+  -- reversed, as produced by JournalReader's parser.
+  -- But here they are already properly ordered. So we'd
+  -- better preemptively reverse them once more. XXX inefficient
+  j' <- journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} f "" (journalReverse j)
+  -- apply any command line account aliases after finalisation so that
+  -- balance assertions are checked against the original account names (#2121)
+  liftEither $ journalApplyAliases (aliasesFromOpts iopts) j'
 
 --- ** tests
 

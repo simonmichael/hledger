@@ -278,15 +278,15 @@ parse iopts rulesfile h = do
   --  gives: journal
 
   j <- do
-    readJournalFromCsv rulesfile rules (fromMaybe "(cmd)" mdatafile) cleandata Nothing
-    -- apply any command line account aliases. Can fail with a bad replacement pattern.
-    >>= liftEither . journalApplyAliases (aliasesFromOpts iopts)
-        -- journalFinalise assumes the journal's items are
-        -- reversed, as produced by JournalReader's parser.
-        -- But here they are already properly ordered. So we'd
-        -- better preemptively reverse them once more. XXX inefficient
-        . journalReverse
-    >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} rulesfile ""
+    jraw <- readJournalFromCsv rulesfile rules (fromMaybe "(cmd)" mdatafile) cleandata Nothing
+    -- journalFinalise assumes the journal's items are
+    -- reversed, as produced by JournalReader's parser.
+    -- But here they are already properly ordered. So we'd
+    -- better preemptively reverse them once more. XXX inefficient
+    journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} rulesfile "" (journalReverse jraw)
+  -- apply any command line account aliases after finalisation so that
+  -- balance assertions are checked against the original account names (#2121)
+  liftEither $ journalApplyAliases (aliasesFromOpts iopts) j
 
   -- 7. if non-empty, successfully read and converted, and we're doing a non-dry-run archiving import: archive the data
   --  needs: import/archive/dryrun flags, rules directory, rules file, data file if any, clean data
