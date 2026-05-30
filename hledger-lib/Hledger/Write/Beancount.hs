@@ -149,7 +149,7 @@ isBeancountMetadataNameChar c = (isLetter c && islowercase c) || isDigit c || c 
 toBeancountMetadataNameChar :: Char -> Text
 toBeancountMetadataNameChar c
   | isBeancountMetadataNameChar c = T.singleton c
-  | isLetter c = T.singleton $ toLower c
+  | isLetter c = if isAscii c then T.singleton $ toLower c else T.pack $ printf "c%x" c
   | isSpace c = "-"
   | otherwise = T.pack $ printf "c%x" c
 
