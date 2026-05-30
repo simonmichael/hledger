@@ -314,7 +314,11 @@ main = handleExit $ withGhcDebug' $ do
 
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $
-    error' $ "command "++clicmdarg++" is not recognized. Run with no command to see a list."
+    let badArg = if null cmdarg then headDef "" (dropWhile isFlagArg confallgenargs) else cmdarg
+        commandSource = if null confcmdarg then "from the command line" else "from the config file's [general] section"
+    in error' $ "command \"" ++ badArg ++ "\" is not recognized." ++
+      "\n" ++ "The invalid command was " ++ commandSource ++ "." ++
+      "\n" ++ "Run with no command to see a list of available commands."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
