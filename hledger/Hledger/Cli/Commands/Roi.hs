@@ -6,7 +6,7 @@
 {-# LANGUAGE ViewPatterns #-}
 {-|
 
-The @roi@ command prints internal rate of return and time-weighted rate of return for and investment.
+The @roi@ command prints internal rate of return and time-weighted rate of return for an investment.
 
 -}
 
@@ -19,14 +19,12 @@ import Control.Monad
 import Data.Time.Calendar
 import Text.Printf
 import Data.Bifunctor (second)
-import Data.Function (on)
 import Data.List
 import Numeric.RootFinding
 import Data.Decimal
 import Data.Set qualified as S
 import Data.Text qualified as T
 import Data.Text.Lazy.IO qualified as TL
-import Safe (headDef)
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular.AsciiWide as Tab
@@ -57,7 +55,6 @@ data OneSpan = OneSpan
   [(Day,MixedAmount)] -- all deposits and withdrawals (but not changes of value) in the DateSpan [spanBegin_,spanEnd_)
   [(Day,MixedAmount)] -- all PnL changes of the value of investment in the DateSpan [spanBegin_,spanEnd_)
  deriving (Show)
-
 
 roi ::  CliOpts -> Journal -> IO ()
 roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}}} j = do
@@ -146,8 +143,12 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
         when (S.size spanCommodities > 1) $
           multiCommodityError $ "Period " ++ show (b,e) ++ " has multiple commodities: " ++ (T.unpack $ T.intercalate ", " $ map showCommoditySymbol (S.toList spanCommodities))
 
+        let pDirectiveDates =
+              sort . nub . map pddate $
+              filter (\pd -> pddate pd >= b && pddate pd < e) $
+              jpricedirectives j
         irr <- internalRateOfReturn styles showCashFlow prettyTables thisSpan
-        (periodTwr, annualizedTwr) <- timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue thisSpan
+        (periodTwr, annualizedTwr) <- timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue pDirectiveDates thisSpan
         let cashFlowAmt = maNegate . maSum $ map snd cashFlow
         let smallIsZero x = if abs x < 0.01 then 0.0 else x
         return [ showDate b
@@ -190,95 +191,54 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
 
   TL.putStrLn $ Tab.render prettyTables id id id table
 
--- Entry for TWR computation, capturing all cashflows that are potentially accompanied by pnl change on the same day (if not, it is zero)
-data TwrPeriod = TwrPeriod { twrStartDate :: Day, twrEndDate :: Day, twrStartValue :: Decimal, twrValueBeforeCashflow :: Decimal, twrPnl :: Decimal, twrCashflow :: Decimal, twrValueAfterCashflow :: Decimal } deriving (Eq, Show)
 
-timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue (OneSpan begin end valueBeforeAmt valueAfterAmt cashflows pnls) = do
-  let datedCashflows =
-        -- Aggregate all entries for a single day, assuming that intraday interest is negligible
-        dbg3 "datedCashflows"
-        $ sort
-        $ map (\datecashes -> let (dates, cash) = unzip datecashes in (headDef (error' "Roi.hs: datecashes was null, please report a bug") dates, maSum cash))
-        $ groupBy ((==) `on` fst)
-        $ sortOn fst
-        $ map (second maNegate)
-        $ cashflows
+-- One window of the TWR algorithm,
+data ActivityWindow = ActivityWindow
+  { awStart     :: Day  -- start date
+  , awEnd       :: Day  -- end date
+  , awVStart    :: Decimal -- value of investment at the start date
+  , awVEnd      :: Decimal -- value of investment at the end date
+  , awCashFlows :: [(Day, Decimal)]  -- cash flows in (awStart, awEnd]: strictly after start, up to and including end
+  } deriving (Show)
 
-      valueBefore = dbg3 ("value at the start of the interval, "++show begin) $ unMix valueBeforeAmt
-      valueAfter = dbg3 ("value at the end of the interval, "++show end) $ unMix valueAfterAmt
-
-      investmentPostings = concatMap (filter (matchesPosting investmentsQuery) . realPostings) trans
+timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue pDirectiveDates (OneSpan begin end _valueBeforeAmt _valueAfterAmt cashflows pnls) = do
+  let investmentPostings = concatMap (filter (matchesPosting investmentsQuery) . realPostings) trans
 
       totalInvestmentPostingsTill date = sumPostings $ filter (matchesPosting (Date (DateSpan Nothing (Just $ Exact date)))) investmentPostings
 
       -- filter span is (-infinity, date+1), which gives us effectively (-infinity, date]
       valueAfterDate date = unMix $ mixedAmountValue end date $ totalInvestmentPostingsTill (addDays 1 date)
 
-      pnlOn date = unMix $ maNegate $ sum $ map snd $ filter ((==date).fst) pnls
-
-  -- We are dividing the period [begin, end) into subperiods on each cashflow, and then compute
-  -- the rate of return for each subperiod. For this we need to know the value of the investment
-  -- at the beginning and end of each subperiod, adjusted for cashflow.
-  --
-  -- Subperiods are going to be [valueBefore ... (c_0,v_0)][... (c_1, v_1)][... (c_2,v_2)] ... [... (c_n,v_n)][... valueAfter]
-  -- , where v_i is the value of investment computed immediately after cashflow c_i
-  --
-  -- Calculate interest for each subperiod, adjusting the value at the start of the period by the cashflow
-  -- For subperiods [valueBefore ... (c_0,v_0)][... (c_1, v_1)][... (c_2,v_2)] ... [... (c_n,v_n)][... valueAfter], the computation is going to be
-  -- 1 + twr = (v_0 - c_0)/valueBefore + (v_1 - c_1) / v_0 +  ... + valueAfter/v_n
-  -- See https://en.wikipedia.org/wiki/Time-weighted_return#Time-weighted_return_compensating_for_external_flows
-  let calculateSubPeriods (startDate,startValue) [] =
-        let subPeriodReturn =
-              if startValue == 0 || valueAfter == 0
-              then 0
-              else valueAfter/startValue - 1
-        in
-        [(subPeriodReturn, TwrPeriod startDate end startValue valueAfter 0 0 valueAfter)]
-      calculateSubPeriods (startDate,startValue) ((date,cashflow):rest) =
-        let (valueBeforeCashflow, valueAfterCashflow, pnl) =
-              let valueAfterPrevDay = valueAfterDate (addDays (-1) date)
-                  pnlOnDay = pnlOn date
-              in
-                -- If value was zero at the start of the period, then any PnL on cashflow date would accrue after it, not before.
-                -- If there was some value already, we can assume that PnL contributes to this period's rate
-                if startValue == 0
-                then (valueAfterPrevDay, valueAfterDate date - pnlOnDay, 0)
-                else (valueAfterPrevDay + pnl, valueAfterDate date, pnlOnDay)
-            subPeriodReturn =
-              if valueBeforeCashflow == 0 || startValue == 0
-              then 0
-              else (valueBeforeCashflow / startValue) - 1
-        in
-        (subPeriodReturn, (TwrPeriod startDate date startValue valueBeforeCashflow pnl (unMix cashflow) valueAfterCashflow)) : calculateSubPeriods (date,valueAfterCashflow) rest
-
-  let subPeriods = dbg3 "subPeriods" $ calculateSubPeriods (begin,valueBefore) datedCashflows
-
-  -- Compute overall time-weighted rate of return
-  let twr =
-        dbg3 "twr" $
-        if subPeriods == []
-        then if valueBefore == 0 then 0 else (valueAfter - valueBefore)/valueBefore
-        else foldl (\acc periodRate -> (1+acc)*(1+periodRate)-1) 0 (map fst subPeriods)
-      (startYear, _, _) = toGregorian begin
-      years = fromIntegral (diffDays end begin) / (if isLeapYear startYear then 366 else 365) :: Double
-      periodTWR = roundTo 2 $ 100 * twr
-      annualizedTWR = 100*((1+(realToFrac twr))**(1/years)-1) :: Double
+  let pnlDates            = map fst pnls
+      sortedValDates      = sort . nub $ [begin, addDays (-1) end] ++ pDirectiveDates ++ pnlDates
+      cashFlowsForWindows = sortOn fst [(d, -(unMix ma)) | (d, ma) <- cashflows]
+      windows             = dbg3 "activityWindows" $
+                            segmentIntoWindows sortedValDates cashFlowsForWindows valueAfterDate
+      windowRets          = map computeWindowReturn windows
+      twr                 = dbg3 "twr" $
+                            foldl' (\acc r -> (1+acc)*(1+r)-1) 0 windowRets
+      years = fromIntegral (diffDays end begin) / 365.25 :: Double
+      periodTWR     = roundTo 2 (100 * realToFrac twr :: Decimal)
+      annualizedTWR = 100 * ((1 + twr) ** (1 / years) - 1) :: Double
 
   when showCashFlow $ do
-    printf "\nTWR cash flow entries and subperiod rates for period %s - %s\n" (showDate begin) (showDate (addDays (-1) end))
+    printf "\nTWR activity windows for period %s - %s\n"
+      (showDate begin) (showDate (addDays (-1) end))
     let showDecimalT = T.pack . showDecimal
     TL.putStr $ Tab.render prettyTables T.pack id id
       (Table
-       (Tab.Group Tab.NoLine [ Header (show n) | n <-[1..length subPeriods]])
-       (Tab.Group DoubleLine [ Tab.Group Tab.SingleLine [Tab.Header "Subperiod start", Tab.Header "Cashflow date"]
-                             , Tab.Group Tab.SingleLine [Tab.Header "Value at start", Tab.Header "Value before cashflow (inc PnL)", Tab.Header "PnL on day", Tab.Header "Cashflow",  Tab.Header "Value after cashflow"]
-                             , Tab.Group Tab.SingleLine [Tab.Header "Subperiod rate, %"]])
-       [ [ showDate (twrStartDate sp), showDate (twrEndDate sp)
-         , showDecimalT (twrStartValue sp), showDecimalT (twrValueBeforeCashflow sp), showDecimalT (twrPnl sp), showDecimalT (twrCashflow sp), showDecimalT (twrValueAfterCashflow sp)
-         , showDecimalT (roundTo 2 (100*rate)) ]
-       | (rate, sp) <-  subPeriods
-       ])
-
+       (Tab.Group Tab.NoLine [Header (show n) | n <- [1..length windows]])
+       (Tab.Group DoubleLine
+         [ Tab.Group Tab.SingleLine [Tab.Header "Begin", Tab.Header "End"]
+         , Tab.Group Tab.SingleLine [Tab.Header "Value (begin)",   Tab.Header "Value (end)"]
+         , Tab.Group Tab.SingleLine [Tab.Header "# flows"]
+         , Tab.Group Tab.SingleLine [Tab.Header "Return, %"]])
+       [ [ showDate (awStart w), showDate (awEnd w)
+         , showDecimalT (roundTo 8 (awVStart w))
+         , showDecimalT (roundTo 8 (awVEnd w))
+         , T.pack (show (length (awCashFlows w)))
+         , showDecimalT (roundTo 2 (realToFrac rate * 100)) ]
+       | (w, rate) <- zip windows windowRets ])
     printf "Total period TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
       (showDecimal periodTWR) years annualizedTWR
 
@@ -303,21 +263,28 @@ internalRateOfReturn styles showCashFlow prettyTables (OneSpan begin end valueBe
   -- 0% is always a solution, so require at least something here
   case totalCF of
     [] -> return 0
-    _ -> case ridders (RiddersParam 100 (AbsTol 0.00001))
-                      (0.000000000001,10000)
-                      (interestSum end totalCF) of
-        Root rate    -> return ((rate-1)*100)
-        NotBracketed -> error' $ "Equation for Internal Rate of Return (IRR) can not be solved.\n"
-                        ++       "  Possible causes: IRR is huge (>1000000%), balance of investment becomes negative at some point in time."
-        SearchFailed -> error' $ "Equation for Internal Rate of Return (IRR) can not be solved.\n"
-                        ++       "  Either search does not converge to a solution, or converges too slowly."
+    _  -> return $
+            (solveIRR (interestSum end totalCF)
+              "Equation for Internal Rate of Return (IRR) can not be solved.\n\
+              \  Possible causes: IRR is huge (>1000000%), balance of investment becomes negative at some point in time."
+              "Equation for Internal Rate of Return (IRR) can not be solved.\n\
+              \  Either search does not converge to a solution, or converges too slowly."
+            - 1) * 100
 
 type CashFlow = [(Day, MixedAmount)]
 
 interestSum :: Day -> CashFlow -> Double -> Double
 interestSum referenceDay cf rate = sum $ map go cf
-  where go (t,m) = realToFrac (unMix m) * rate ** (fromIntegral (referenceDay `diffDays` t) / 365)
+  where go (t,m) = realToFrac (unMix m) * rate ** (fromIntegral (referenceDay `diffDays` t) / 365.25)
 
+solveIRR :: (Double -> Double) -> String -> String -> Double
+solveIRR npv errNotBracketed errSearchFailed =
+  case ridders (RiddersParam 100 (AbsTol 0.00001))
+               (0.000000000001, 10000)
+               npv of
+    Root s       -> s
+    NotBracketed -> error' errNotBracketed
+    SearchFailed -> error' errSearchFailed
 
 calculateCashFlow :: WhichDate -> [Transaction] -> Query -> CashFlow
 calculateCashFlow wd trans query =
@@ -341,3 +308,68 @@ showDecimal :: Decimal -> String
 showDecimal d = if d == rounded then show d else show rounded
   where
     rounded = roundTo 2 d
+
+-- segmentIntoWindows valueDates cashflows valueFunc will split cashflows into a set of
+-- ActivityWindows, bracketed by some dates from valueDates. In theory, every interval
+-- between valueDates should define ActivityWindow, but for performance reasons we merge
+-- adjacent windows together if they don't contain any cashflows.
+-- Precondition: valueDates must be strictly increasing (no duplicates); duplicate dates
+-- produce zero-length windows and a divide-by-zero in windowNPV.
+segmentIntoWindows :: [Day] -> [(Day, Decimal)] -> (Day -> Decimal) -> [ActivityWindow]
+segmentIntoWindows []         _   _       = []
+segmentIntoWindows [_]        _   _       = []
+segmentIntoWindows (startDate:rest) cashflows valueAt = go startDate rest cashflows
+  where
+    go _  []     _    = []
+    go s  [d]    cfs_ =
+      let (here, _) = span (\(cd,_) -> cd <= d) cfs_
+          -- cd > s: CFs on s are already in awVStart (valueAfterDate s); including
+          -- them here would double-count. They earn zero return as end-boundary CFs
+          -- in the preceding window.
+          inside    = filter (\(cd,_) -> cd > s) here
+      in [ActivityWindow s d (valueAt s) (valueAt d) inside]
+    go s  (d:ds) cfs_ =
+      let (here, later) = span (\(cd,_) -> cd <= d) cfs_
+          -- cd > s: same reasoning as above
+          inside        = filter (\(cd,_) -> cd > s) here
+      in if null inside
+         then case ds of
+                (d2:ds2) ->
+                  let (here2, later2) = span (\(cd,_) -> cd <= d2) later
+                      inside2         = filter (\(cd,_) -> cd > d) here2
+                  in if null inside2
+                     then go s (d2:ds2) later   -- next window does not have cash flows: compress (skip d)
+                     else ActivityWindow s d (valueAt s) (valueAt d) []
+                          : ActivityWindow d d2 (valueAt d) (valueAt d2) inside2
+                          : go d2 ds2 later2
+         else ActivityWindow s d (valueAt s) (valueAt d) inside
+              : go d ds later
+
+-- Compute Net Present Value of the ActivityWindow given discount rate r
+windowNPV :: ActivityWindow -> Double -> Double
+windowNPV w r =
+  let d       = fromIntegral (awEnd w `diffDays` awStart w)
+      vsTerm  = -(realToFrac (awVStart w)) * r
+      cfTerms = sum [ -(realToFrac cf)
+                      * r ** (fromIntegral (awEnd w `diffDays` t) / d)
+                    | (t, cf) <- awCashFlows w ]
+      veTerm  = realToFrac (awVEnd w)
+  in vsTerm + cfTerms + veTerm
+
+windowIRR :: ActivityWindow -> Double
+windowIRR w =
+  solveIRR (windowNPV w)
+    ("Cannot compute window IRR for "
+     ++ T.unpack (showDate (awStart w)) ++ " - " ++ T.unpack (showDate (awEnd w)) ++ ".\n"
+     ++ "  Possible cause: investment balance becomes negative within this window.")
+    ("Window IRR search did not converge for "
+     ++ T.unpack (showDate (awStart w)) ++ " - " ++ T.unpack (showDate (awEnd w)) ++ ".")
+  - 1
+
+computeWindowReturn :: ActivityWindow -> Double
+computeWindowReturn w
+  | null (awCashFlows w) =
+      if awVStart w == 0 then 0
+      else realToFrac (awVEnd w / awVStart w) - 1
+  | awVStart w == 0, all ((== awEnd w) . fst) (awCashFlows w) = 0  -- zero starting value and all flows on the end date: 0% return, IRR is undefined
+  | otherwise = windowIRR w
