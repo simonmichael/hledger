@@ -1028,7 +1028,9 @@ regexp end = do
 _RULES_LOOKUP__________________________________________ = undefined
 
 getDirective :: DirectiveName -> CsvRules -> Maybe FieldTemplate
-getDirective directivename = lookup directivename . rdirectives
+getDirective "skip" = lookup "skip" . rdirectives
+getDirective "end"  = lookup "end"  . rdirectives
+getDirective name   = fmap snd . lastMay . filter ((==name).fst) . rdirectives
 
 -- | Look up the value (template) of a csv rule by rule keyword.
 csvRule :: CsvRules -> DirectiveName -> Maybe FieldTemplate
