@@ -24,6 +24,7 @@ module Hledger.Data.Journal (
   addTransaction,
   journalDbg,
   journalInferMarketPricesFromTransactions,
+  journalInferMarketPricesFromPostings,
   journalInferAliasPrices,
   commodityAliases,
   commoditiesAndAliases,
@@ -1187,10 +1188,15 @@ journalInferMarketPricesFromTransactions :: Journal -> Journal
 journalInferMarketPricesFromTransactions j =
   j{jinferredmarketprices =
        dbg4With (("jinferredmarketprices:\n"<>) . showMarketPrices) $
-       map priceDirectiveToMarketPrice .
-       concatMap postingPriceDirectivesFromCost $
-       journalPostings j
+       journalInferMarketPricesFromPostings $ journalPostings j
    }
+
+-- | Infer market prices from a specific list of postings, without modifying a journal.
+-- Useful when you need to limit price inference to only those postings matching a query.
+journalInferMarketPricesFromPostings :: [Posting] -> [MarketPrice]
+journalInferMarketPricesFromPostings =
+       map priceDirectiveToMarketPrice .
+       concatMap postingPriceDirectivesFromCost
 
 -- | Aliases declared on a commodity directive via one or more @alias:@
 -- tags. Each tag's value is split on whitespace, with double- or
