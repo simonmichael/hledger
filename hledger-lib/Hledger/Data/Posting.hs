@@ -760,12 +760,14 @@ postingCommodities = map acommodity . filter (not . isMissingAmount) . amountsRa
   where isMissingAmount a = acommodity a == "AUTO"
 
 -- | Tags for this posting including any inherited from its parent transaction.
+-- Posting-level tags take precedence over transaction-level tags with the same name.
 postingAllTags :: Posting -> [Tag]
-postingAllTags p = ptags p ++ maybe [] ttags (ptransaction p)
+postingAllTags p = ptags p ++ filter (\(n,_) -> n `notElem` map fst (ptags p)) (maybe [] ttags (ptransaction p))
 
 -- | Tags for this transaction including any from its postings (which includes any from the postings' accounts).
+-- Transaction-level tags take precedence over posting-level tags with the same name.
 transactionAllTags :: Transaction -> [Tag]
-transactionAllTags t = ttags t ++ concatMap ptags (tpostings t)
+transactionAllTags t = ttags t ++ filter (\(n,_) -> n `notElem` map fst (ttags t)) (concatMap ptags (tpostings t))
 
 -- Get the other postings from this posting's transaction.
 relatedPostings :: Posting -> [Posting]
@@ -942,6 +944,29 @@ tests_Posting = testGroup "Posting" [
  ,testCase "commentAddTagNextLine" $ do
     commentAddTagNextLine "" ("a","") @?= "\na: "
     commentAddTagNextLine "[1/2]" ("a","") @?= "[1/2]\na: "
+
+ ,testCase "postingAllTags-inherits-transaction-tags" $ do
+    let t = nulltransaction{ttags=[("concerns","me")]}
+        p = nullposting{ptransaction=Just t}
+    postingAllTags p @?= [("concerns","me")]
+
+ ,testCase "postingAllTags-posting-overrides-transaction" $ do
+    let t = nulltransaction{ttags=[("concerns","me")]}
+        p = nullposting{ptags=[("concerns","you")], ptransaction=Just t}
+    postingAllTags p @?= [("concerns","you")]
+
+ ,testCase "postingAllTags-posting-and-transaction-unique" $ do
+    let t = nulltransaction{ttags=[("env","prod")]}
+        p = nullposting{ptags=[("concerns","you")], ptransaction=Just t}
+    postingAllTags p @?= [("concerns","you"), ("env","prod")]
+
+ ,testCase "transactionAllTags-transaction-overrides-posting" $ do
+    let t = nulltransaction{ttags=[("concerns","me")], tpostings=[nullposting{ptags=[("concerns","you")]}]}
+    transactionAllTags t @?= [("concerns","me")]
+
+ ,testCase "transactionAllTags-transaction-and-posting-unique" $ do
+    let t = nulltransaction{ttags=[("env","prod")], tpostings=[nullposting{ptags=[("concerns","you")]}]}
+    transactionAllTags t @?= [("env","prod"), ("concerns","you")]
 
  ]
 
