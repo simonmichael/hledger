@@ -45,7 +45,7 @@ import System.Console.Haskeline.Completion (CompletionFunc, completeWord, isFini
 import System.Console.Wizard (Wizard, defaultTo, line, output, outputLn, retryMsg, linePrewritten, nonEmpty, parser, run)
 import System.Console.Wizard.Haskeline
 import System.FilePath (takeDirectory)
-import System.IO (hPutStr, hPutStrLn, stderr)
+import System.IO (hPutStr, hPutStrLn, stderr, withFile, AppendMode, hFlush)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 import Text.Printf
@@ -544,7 +544,9 @@ appendToJournalFileOrStdout f s
         , "This can happen eg with FAT/exFAT and Android shared-storage / FUSE mounts."
         , "Please move the journal file to a reliable filesystem and try again."
         ]
-      appendFile f $ T.unpack s'
+      withFile f AppendMode $ \h -> do
+        hPutStr h $ T.unpack s'
+        hFlush h
   where s' = "\n" <> ensureOneNewlineTerminated s
 
 -- | Replace a string's 0 or more terminating newlines with exactly one.
