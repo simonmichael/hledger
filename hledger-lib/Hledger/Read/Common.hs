@@ -1204,6 +1204,8 @@ fromRawNumber raw mExp = do
   where
     toQuantity :: Integer -> DigitGrp -> DigitGrp -> Either String (Quantity, Word8)
     toQuantity e preDecimalGrp postDecimalGrp
+      | precision < 0 && (-precision) > 999999999
+                       = Left "invalid number: exponent too large, would overflow"
       | precision < 0   = Right (Decimal 0 (digitGrpNum * 10^(-precision)), 0)
       | precision < 256 = Right (Decimal precision8 digitGrpNum, precision8)
       | otherwise = Left "invalid number: numbers with more than 255 decimal places are currently not supported"
