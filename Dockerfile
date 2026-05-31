@@ -1,3 +1,17 @@
+# Docker build instructions for hledger developers:
+#
+# Development image (with full build chain, good for testing):
+#   docker build --target dev -t hledger-dev .
+#   docker run --rm -it hledger-dev hledger --version
+#
+# Minimal production image (smaller, runtime-only):
+#   docker build -t hledger .
+#   docker run --rm -v /path/to/journal:/data hledger hledger -f /data/hledger.journal bal
+#
+# The dev stage compiles hledger with stack; the final slim stage copies only
+# the binaries and runtime deps (libtinfo6, libgmp10).  Ports 5000
+# (hledger-web) and 5001 are exposed; /data is the default VOLUME.
+
 FROM haskell:9.12.2 AS dev
 
 RUN mkdir /root/hledger

@@ -255,8 +255,8 @@ entryFromTimeclockInOut requiretimeordered i o
       -- Generate an hours amount. Unusually, we also round the internal Decimal value,
       -- since otherwise it will often have large recurring decimal parts which (since 1.21)
       -- print would display all 255 digits of. timeclock amounts have one second resolution,
-      -- so two decimal places is precise enough (#1527).
-      amt = case mixedAmount $ setAmountInternalPrecision 2 $ hrs hours of
+      -- so six decimal places preserves second-level precision (#2062, #1527).
+      amt = case mixedAmount $ setAmountInternalPrecision 6 $ hrs hours of
         a | not $ a < 0 -> a
         _ -> error' $ printf
           "%s%s:\nThis clockout is earlier than the clockin."
