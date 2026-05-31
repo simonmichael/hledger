@@ -386,7 +386,11 @@ balancemode = hledgerCommandMode
 
 -- | The balance command, prints a balance report.
 balance :: CliOpts -> Journal -> IO ()
-balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
+balance opts@CliOpts{reportspec_=rspec} j = do
+  when (tree_ ropts && transpose_ ropts) $
+    IO.hPutStrLn IO.stderr "Warning: --transpose is not meaningful with --tree; ignoring --tree.\n\
+                           \See https://github.com/simonmichael/hledger/issues/1941"
+  case balancecalc_ ropts of
     CalcBudget -> do  -- single or multi period budget report
       let rspan = fst $ reportSpan j rspec
           budgetreport = styleAmounts styles $ budgetReport rspec (balancingopts_ $ inputopts_ opts) rspan j
@@ -434,6 +438,8 @@ balance opts@CliOpts{reportspec_=rspec} j = case balancecalc_ ropts of
         ropts0 {
             -- tidy csv is defined externally and must not include totals or averages
             no_total_ = no_total_ ropts0 || layout_ ropts0 == LayoutTidy
+            -- --tree is not meaningful with --transpose; disable it
+          , tree_ = if transpose_ ropts0 then False else tree_ ropts0
         }
     -- Tidy csv/tsv should be consistent between single period and multiperiod reports.
     multiperiod = interval_ ropts /= NoInterval || (layout_ ropts == LayoutTidy && delimited)
