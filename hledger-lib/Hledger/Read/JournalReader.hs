@@ -636,6 +636,18 @@ commoditydirectiveonelinep = do
     amt <- amountp
     pure $ (off, pos, amt)
   lift skipNonNewlineSpaces
+  -- If there is unexpected content after the parsed amount, it's likely because
+  -- the commodity symbol contains non-letter characters needing double quotes.
+  next <- lift $ optional $ lookAhead anySingle
+  case next of
+    Just ';' -> pure ()
+    Just '\n' -> pure ()
+    Just '\r' -> pure ()
+    Nothing -> pure ()
+    _ -> customFailure $ parseErrorAt off $ unlines [
+           "This commodity symbol may contain non-letter characters and need double quotes."
+          ,"If so, enclose it in double quotes."
+          ]
   (comment, tags) <- lift transactioncommentp
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle, ccomment=comment, ctags=tags, csourcepos=pos}
   if isNothing $ asdecimalmark astyle
