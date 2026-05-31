@@ -28,6 +28,7 @@ import Safe (minimumDef)
 
 import Hledger.Data
 import Hledger.Utils
+import Hledger.Query (filterQuery, queryIsStatus)
 import Hledger.Reports.ReportOptions
 import Hledger.Reports.ReportTypes
 import Hledger.Reports.MultiBalanceReport
@@ -92,7 +93,9 @@ budgetReport rspec bopts reportspan j = dbg4 "sortedbudgetreport" budgetreport
         (_, Just bspan) -> unionDayPartitions bspan =<< actualspans
 
     actualps = dbg5 "actualps" $ getPostings rspec actualj priceoracle reportspan
-    budgetps = dbg5 "budgetps" $ getPostings rspec budgetj priceoracle reportspan
+    budgetps = dbg5 "budgetps" $ getPostings rspecWithoutStatus budgetj priceoracle reportspan
+      where
+        rspecWithoutStatus = rspec{_rsQuery = filterQuery (not . queryIsStatus) (_rsQuery rspec)}
 
     actualAcct = dbg5 "actualAcct" $ generateMultiBalanceAccount rspec actualj priceoracle actualspans actualps
     budgetAcct = dbg5 "budgetAcct" $ generateMultiBalanceAccount rspec budgetj priceoracle budgetspans budgetps
