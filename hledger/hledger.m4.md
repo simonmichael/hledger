@@ -4661,7 +4661,7 @@ If you get a confusing error while reading a CSV file, it may help to try to und
 
 2. Top level rules (`date-format`, `fields`, `newest-first`, `skip` etc) are read, top to bottom.
    "Top level rules" means non-conditional rules.
-   If a rule occurs more than once, the last one wins;
+   If a rule occurs more than once, the first one wins;
    except for `skip`/`end` rules, where the first one wins.
 
 3. The CSV file is read as text.
