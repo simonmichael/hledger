@@ -87,8 +87,15 @@ type MultiBalanceReportRow = PeriodicReportRow DisplayName MixedAmount
 -- by the balance command (in multiperiod mode) and (via compoundBalanceReport)
 -- by the bs/cf/is commands.
 multiBalanceReport :: ReportSpec -> Journal -> MultiBalanceReport
-multiBalanceReport rspec j = multiBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_prices_ $ _rsReportOpts rspec
+multiBalanceReport rspec j = multiBalanceReportWith rspec j' (journalPriceOracle infer j')
+  where
+    infer = infer_prices_ $ _rsReportOpts rspec
+    j' | not infer = j
+       | otherwise = j{jinferredmarketprices = inferredFromFilteredPostings}
+    (reportspan, _) = reportSpan j rspec
+    rspec' = makeReportQuery rspec reportspan
+    ps = getPostings rspec' j (journalPriceOracle infer j) reportspan
+    inferredFromFilteredPostings = journalInferMarketPricesFromPostings ps
 
 -- | A helper for multiBalanceReport. This one takes some extra arguments,
 -- a 'PriceOracle' to be used for looking up market prices, and a set of
@@ -117,8 +124,15 @@ multiBalanceReportWith rspec' j priceoracle = report
 -- shares postings between the subreports.
 compoundBalanceReport :: ReportSpec -> Journal -> [CBCSubreportSpec a]
                       -> CompoundPeriodicReport a MixedAmount
-compoundBalanceReport rspec j = compoundBalanceReportWith rspec j (journalPriceOracle infer j)
-  where infer = infer_prices_ $ _rsReportOpts rspec
+compoundBalanceReport rspec j = compoundBalanceReportWith rspec j' (journalPriceOracle infer j')
+  where
+    infer = infer_prices_ $ _rsReportOpts rspec
+    j' | not infer = j
+       | otherwise = j{jinferredmarketprices = inferredFromFilteredPostings}
+    (reportspan, _) = reportSpan j rspec
+    rspec' = makeReportQuery rspec reportspan
+    ps = getPostings rspec' j (journalPriceOracle infer j) reportspan
+    inferredFromFilteredPostings = journalInferMarketPricesFromPostings ps
 
 -- | A helper for compoundBalanceReport, similar to multiBalanceReportWith.
 compoundBalanceReportWith :: ReportSpec -> Journal -> PriceOracle
