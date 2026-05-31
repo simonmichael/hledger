@@ -610,7 +610,15 @@ type NumberedPosting = (Integer, Posting)
 -- Then test the balance assertion if any.
 addOrAssignAmountAndCheckAssertionB :: NumberedPosting -> Balancing s NumberedPosting
 addOrAssignAmountAndCheckAssertionB (i,p@Posting{paccount=acc, pamount=amt, pbalanceassertion=mba})
-  -- an explicit posting amount
+  -- a posting with an explicit amount and a balance assertion, where the
+  -- original posting had no amount (ie it was a balance assignment whose
+  -- amount was already computed by a previous balancing pass).
+  -- Clear the computed amount so it gets properly recomputed from the
+  -- balance assignment, accounting for any new preceding transactions.
+  | hasAmount p, Just _ <- mba, not (hasAmount (originalPosting p))
+  = addOrAssignAmountAndCheckAssertionB (i, p{pamount=missingmixedamt})
+
+  -- an explicit posting amount (not originally a balance assignment)
   | hasAmount p = do
       newbal <- addToRunningBalanceB acc amt
       whenM (R.reader bsAssrt) $ checkBalanceAssertionB p newbal

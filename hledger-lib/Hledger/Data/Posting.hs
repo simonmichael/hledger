@@ -695,7 +695,7 @@ hasAmount :: Posting -> Bool
 hasAmount = not . isMissingMixedAmount . pamount
 
 hasBalanceAssignment :: Posting -> Bool
-hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
+hasBalanceAssignment p = not (hasAmount (originalPosting p)) && isJust (pbalanceassertion p)
 
 -- | Sorted unique account names referenced by these postings.
 accountNamesFromPostings :: [Posting] -> [AccountName]
