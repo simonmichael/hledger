@@ -5214,11 +5214,10 @@ There is some additional support for users of Emacs org mode:
 
 - From the first date line onward, org heading prefixes (one or more `*`'s followed by a space)
   are ignored, with the rest of the line being parsed normally.
-  This allows timedot date or posting lines to also be org outline headings.
+  This allows timedot date or posting lines to also be org headings.
 
 Timedot files don't support directives like journal files.
-So a common pattern is to have a main journal file (eg `time.journal`)
-that contains any needed directives,
+So a common pattern is to have a main journal file that contains any needed directives,
 and then [includes](#include-directive) the timedot file (`include time.timedot`).
 
 ## Timedot examples
