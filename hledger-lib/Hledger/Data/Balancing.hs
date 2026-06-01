@@ -726,7 +726,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
       )
       diffstr  -- their difference
       (acct ++ if isinclusive then "" else "$")  -- query matching the account(s) postings
-      (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack assertedcomm)))  -- query matching the commodity(ies)
+      (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack (regexEscape (assertedcomm)))))  -- query matching the commodity(ies)
 
       where
         acct = T.unpack $ paccount p
