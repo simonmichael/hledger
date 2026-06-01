@@ -105,7 +105,7 @@ jobs:
           --constraint 'haskeline>=0.8.4.1' \
           --allow-newer=aeson,containers,text-iso8601 \
           || (echo "ERROR: building hledger failed"; false)
-          # https://github.com/haskell/haskeline/issues/130
+          # https://github.com/haskell/haskeline/issues/130 (see hledger/package.yaml)
           # https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 
         cabal build --enable-executable-static --ghc-options=-Werror hledger-ui \

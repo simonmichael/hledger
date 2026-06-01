@@ -115,9 +115,12 @@ dependencies:
 - extra >=1.7.11
 - filepath
 - githash >=0.1.6.2
-# haskeline 0.8.4.0 fixes https://github.com/haskell/haskeline/issues/130 and https://github.com/simonmichael/hledger/issues/2410,
-# but isn't yet shipped with GHC. Dev and release builds can require it,
-# but for hledger in stackage we must allow older haskeline and live with #2410 for now.
+# https://github.com/simonmichael/hledger/issues/2410
+# haskeline 0.8.4.0+ is needed to fix ANSI display by add on MS Windows (https://github.com/haskell/haskeline/issues/130).
+# But most stackage snapshots have an older haskeline, that can't be upgraded because it's a GHC core lib.
+# Dev builds and the github release builds force the newer haskeline (by using a recent stackage snapshot, or cabal), so are free of the bug.
+# But for older (or older-GHC) stackage snapshots, we must still allow builds with older haskeline,
+# even though they will have the add display bug on Windows. I think this is the best we can do for now.
 - haskeline >=0.6
 - http-client
 - http-types
