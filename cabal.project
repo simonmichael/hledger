@@ -3,12 +3,23 @@ packages: hledger-lib
           hledger-ui
           hledger-web
 
--- workarounds
+-- workarounds for
+-- https://github.com/simonmichael/hledger/issues/2410 / https://github.com/haskell/haskeline/issues/130, see hledger/package.yaml
+-- https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
+-- https://github.com/jtdaugherty/brick/issues/539
 -- https://github.com/yesodweb/yesod/issues/1917 , affecting yesod-static 1.6.1.2        
--- https://github.com/simonmichael/hledger/issues/2410 , see hledger/package.yaml
+
 constraints:
+  brick >= 2.10,
+  haskeline >= 0.8.4,
   ram < 0,             
-  text-iso8601 >= 0.2
+  text-iso8601 >= 0.2,
+
+allow-newer:
+  aeson,
+  containers,
+  text-iso8601,
+
 
 -- cabal config suitable for working with ghc 9.14, for haskell-debugger
 -- with-compiler: ghc-9.14
