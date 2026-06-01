@@ -3,6 +3,9 @@ packages: hledger-lib
           hledger-ui
           hledger-web
 
+-- workaround for https://github.com/yesodweb/yesod/issues/1917 , affecting yesod-static 1.6.1.2
+constraints: ram < 0
+
 -- cabal config suitable for working with ghc 9.14, for haskell-debugger
 -- with-compiler: ghc-9.14
 -- allow-newer: base,containers,ghc,ghc-bignum,template-haskell,time
@@ -23,3 +26,4 @@ write-ghc-environment-files: always
 -- package *
 --     -- Speeds up a bit
 --     library-vanilla: False
+
