@@ -101,13 +101,24 @@ jobs:
 
     - name: Build with cabal
       run: |
-        cabal build --enable-executable-static --ghc-options=-Werror hledger --constraint 'haskeline>=0.8.4.1' --allow-newer=aeson,containers,text-iso8601 || (echo "ERROR: building hledger failed"; false)
-          # https://github.com/haskell/haskeline/issues/130, https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
+        cabal build --enable-executable-static --ghc-options=-Werror hledger \
+          --constraint 'haskeline>=0.8.4.1' \
+          --allow-newer=aeson,containers,text-iso8601 \
+          || (echo "ERROR: building hledger failed"; false)
+          # https://github.com/haskell/haskeline/issues/130
+          # https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 
-        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui --constraint 'brick>=2.10' || (echo "ERROR: building hledger-ui failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger-ui \
+          --constraint 'brick>=2.10' \
+          --allow-newer=aeson,containers,text-iso8601 \
+          || (echo "ERROR: building hledger-ui failed"; false)
           # https://github.com/jtdaugherty/brick/issues/539
+          # https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 
-        cabal build --enable-executable-static --ghc-options=-Werror hledger-web || (echo "ERROR: building hledger-web failed"; false)
+        cabal build --enable-executable-static --ghc-options=-Werror hledger-web \
+          --allow-newer=aeson,containers,text-iso8601 \
+          || (echo "ERROR: building hledger-web failed"; false)
+          # https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 
     - name: Gather binaries
       run: |
