@@ -658,11 +658,15 @@ runHledger args = do
 -- Uses platform-specific commands to detect the OS version.
 getOSVersion :: IO (Maybe String)
 getOSVersion = case os of
-  "darwin"  -> tryCommand "sw_vers" ["-productVersion"]
-  "mingw32" -> tryCommand "cmd" ["/c", "ver"]
-  "linux"   -> tryCommand "uname" ["-r"]
+  "darwin"  -> tryProc "sw_vers" ["-productVersion"]
+  -- Use shell mode so process composes the cmd.exe command line itself,
+  -- avoiding cmd /c's quirky argument-quote parsing.
+  "mingw32" -> tryShell "ver"
+  "linux"   -> tryProc "uname" ["-r"]
   _         -> return Nothing
   where
-    tryCommand cmd args =
-      (Just . strip <$> readProcess cmd args "")
+    tryProc cmd args = tryRead $ readProcess cmd args ""
+    tryShell cmd    = tryRead $ readCreateProcess (shell cmd) ""
+    tryRead action =
+      (Just . strip <$> action)
       `catch` (\(_ :: SomeException) -> return Nothing)
