@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
-{- stack --resolver=nightly-2026-04-17 script --compile --verbosity=error
+{- stack --resolver=nightly-2026-06-01 script --compile --verbosity=error
    --package "bytestring cassava gogol gogol-core gogol-sheets lens pretty-show text"
 -}
 -- or

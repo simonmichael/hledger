@@ -11,7 +11,7 @@ packages:
 - hledger-ui
 - hledger-web
 
-resolver: nightly-2026-04-17
+resolver: nightly-2026-06-01
 
 # for hledger-web and https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 extra-deps:

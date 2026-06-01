@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack script --resolver nightly-2026-04-17
+-- stack script --resolver nightly-2026-06-01
 {-
 generatetimeclock.hs NUMENTRIES
 
