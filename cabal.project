@@ -4,9 +4,11 @@ packages: hledger-lib
           hledger-web
 
 -- workarounds
+-- https://github.com/yesodweb/yesod/issues/1917 , affecting yesod-static 1.6.1.2        
+-- https://github.com/simonmichael/hledger/issues/2410 , see hledger/package.yaml
 constraints:
-  ram < 0,             -- https://github.com/yesodweb/yesod/issues/1917 , affecting yesod-static 1.6.1.2
-  text-iso8601 >= 0.2  -- https://github.com/simonmichael/hledger/issues/2410 , see hledger/package.yaml
+  ram < 0,             
+  text-iso8601 >= 0.2
 
 -- cabal config suitable for working with ghc 9.14, for haskell-debugger
 -- with-compiler: ghc-9.14
