@@ -295,15 +295,10 @@ transactionInferBalancingAmount styles _atypes t@Transaction{tpostings=ps}
               -- Also ensure the new amount has the standard style for its commodity
               -- (since the main amount styling pass happened before this balancing pass);
               a' = maNegate a
-                -- & dbg9With (lbl "balancing amount".showMixedAmountOneLine)
                 & mixedAmountCost
-                -- & dbg9With (lbl "balancing amount converted to cost".showMixedAmountOneLine)
-                & styleAmounts (styles
-                                -- Needed until we switch to locally-inferred balancing precisions: XXX #2402
-                                -- these had hard rounding set to help with balanced-checking;
-                                -- set no rounding now to avoid excessive display precision in output
-                                & amountStylesSetRounding NoRounding
-                                & dbg9With (lbl "balancing amount styles".show))
+                -- Apply global commodity styles for formatting, but keep the precision unchanged.
+                -- This inferred amount's precision won't influence local or global precisions.
+                & styleAmounts (styles & amountStylesSetRounding NoRounding)
                 & dbg9With (lbl "balancing amount styled".showMixedAmountOneLine)
 
 -- | Infer costs for this transaction's posting amounts, if needed to make

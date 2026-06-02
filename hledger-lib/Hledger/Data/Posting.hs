@@ -33,6 +33,7 @@ module Hledger.Data.Posting (
   isEmptyPosting,
   hasBalanceAssignment,
   hasAmount,
+  isExplicitAmount,
   postingAllTags,
   transactionAllTags,
   relatedPostings,
@@ -693,6 +694,15 @@ isBalancedVirtual p = preal p == BalancedVirtualPosting
 
 hasAmount :: Posting -> Bool
 hasAmount = not . isMissingMixedAmount . pamount
+
+-- | Was this posting's amount explicitly written by the user, rather than
+-- inferred by hledger ? Amounts inferred from a balance assignment are
+-- also counted as explicit, since they are the same as what the user wrote.
+-- Inferred postings are recognised by their preserved original posting having a missing amount.
+isExplicitAmount :: Posting -> Bool
+isExplicitAmount p =
+  let orig = originalPosting p
+  in not (isMissingMixedAmount (pamount orig)) || isJust (pbalanceassertion orig)
 
 hasBalanceAssignment :: Posting -> Bool
 hasBalanceAssignment p = not (hasAmount p) && isJust (pbalanceassertion p)
