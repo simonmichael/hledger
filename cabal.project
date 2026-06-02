@@ -4,10 +4,10 @@ packages: hledger-lib
           hledger-web
 
 -- workarounds for
--- https://github.com/simonmichael/hledger/issues/2410 / https://github.com/haskell/haskeline/issues/130, see hledger/package.yaml
--- https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
+-- https://github.com/haskell/haskeline/issues/130 / hledger #2410, see hledger/package.yaml
 -- https://github.com/jtdaugherty/brick/issues/539
--- https://github.com/yesodweb/yesod/issues/1917 , affecting yesod-static 1.6.1.2        
+-- https://github.com/yesodweb/yesod/issues/1917
+-- https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 
 constraints:
   brick >= 2.10,
