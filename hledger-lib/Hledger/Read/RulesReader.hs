@@ -180,14 +180,13 @@ parse iopts rulesfile h = do
   let
     msourcearg = getDirective "source" rules
       -- Nothing -> error' $ rulesfile ++ " source rule must specify a file pattern or a command"
-    -- Surrounding whitespace is removed from the whole source argument and from each part of it.
-    -- A # before | makes the rest of line a comment.
-    -- A # after | is left for the shell to interpret; it could be part of the command or the start of a comment.
-    stripspaces = T.strip
-    stripcommentandspaces = stripspaces . T.takeWhile (/= '#')
-    mpatandcmd = T.breakOn "|" . stripspaces <$> msourcearg
+    -- A # anywhere starts a same-line comment, stripped from the whole source value.
+    -- Surrounding whitespace is then removed from the whole source argument and from each part of it.
+    stripcomment = T.takeWhile (/= '#')
+    stripspaces  = T.strip
+    mpatandcmd = T.breakOn "|" . stripspaces . stripcomment <$> msourcearg
     mpat = dbg2 "file pattern" $  -- a non-empty file pattern, or nothing
-      case T.unpack . stripcommentandspaces . fst <$> mpatandcmd of
+      case T.unpack . stripspaces . fst <$> mpatandcmd of
         Just s | not $ null s -> Just s
         _ -> Nothing
     mcmd = dbg2 "data command" $  -- a non-empty command, or nothing
