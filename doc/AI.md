@@ -211,9 +211,12 @@ Discussions
   - [The Wonders of AI: We Are Retiring Our Bug Bounty Program](https://turso.tech/blog/the-wonders-of-ai) ([discussion](https://news.ycombinator.com/item?id=48148391))
   - https://news.ycombinator.com/item?id=48142553 Have a Coherent AI Policy
   - https://github.com/rust-lang/rust-forge/pull/1040 Add an LLM policy for rust-lang/rust
+  - [Pope Leo XIV: Magnifica Humanitas: On Safeguarding The Human Person In The Time Of Artificial Intelligence](https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html)
+    ([summary](https://www.theregister.com/ai-ml/2026/05/26/pope-leo-warns-ai-boom-can-give-big-tech-and-the-people-who-run-it-too-much-power/5245883))
 
 Policies
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
+- <https://github.com/stanford-cs336/assignment1-basics/blob/main/CLAUDE.md>
 
 Law
 - <https://www.congress.gov/crs-product/LSB10922>
