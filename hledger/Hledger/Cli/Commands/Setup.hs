@@ -341,7 +341,7 @@ setupTerminal meconf = do
   pdesc "box-drawing chars are used by default ?"
   if isJust $ conflookup ("--pretty"==)
   then p Y ""
-  else i N "you can use --pretty to enable them"
+  else i N "you can add --pretty to enable them"
 
   -- pdesc "bash shell completions are installed ?" >> p U ""
   -- pdesc "zsh shell completions are installed ?" >> p U ""
@@ -474,19 +474,19 @@ setupJournal meconf = do
       pdesc "accounts of all types exist ?"
       if null typesnotfound
       then p Y (concatMap show accttypes <> " accounts detected")
-      else p N ("no " <> concatMap show typesnotfound <> " accounts found; some features may not work")
+      else i N ("no " <> concatMap show typesnotfound <> " accounts found")
 
       pdesc "strict checks are run by default ?"
       let strict = isJust $ conflookup (\a -> any (==a) ["-s", "--strict"])
       if strict
       then i Y "commodities and accounts must be declared"
-      else i N "you can use -s to run them"
+      else i N "you can add -s to run them"
 
       pdesc "balance assertions checked by default ?"
       let ignoreassertions = isJust $ conflookup (\a -> any (==a) ["-I", "--ignore-assertions"])
       if 
-        | ignoreassertions && not strict -> i N "you can use -s to check them"
-        | not strict -> i Y "you can use -I to ignore them"
+        | ignoreassertions && not strict -> i N "you can add -s to check them"
+        | not strict -> i Y "you can add -I to ignore them"
         | otherwise -> i Y "and can't be ignored, because strict checks are enabled"
 
       let
