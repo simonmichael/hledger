@@ -256,7 +256,9 @@ type BeancountAccountNameComponent = AccountName
 -- It replaces spaces with dashes and other non-supported characters with C<HEXBYTES>;
 -- prepends the letter A to any part which doesn't begin with a letter or number;
 -- adds a second :A part if there is only one part;
--- and capitalises each part.
+-- and capitalises each part (also capitalising each underscore-separated
+-- subpart within a part and joining them, so e.g. "wells_fargo" becomes
+-- "WellsFargo").
 -- It also checks that the first part is one of the required english
 -- account names Assets, Liabilities, Equity, Income, or Expenses, and if not
 -- raises an informative error.
@@ -289,12 +291,9 @@ accountNameToBeancount a = b
 accountNameComponentToBeancount :: AccountName -> BeancountAccountNameComponent
 accountNameComponentToBeancount acctpart =
   prependStartCharIfNeeded $
-  case T.uncons acctpart of
-    Nothing -> ""
-    Just (c,cs) ->
-      textCapitalise $
-      T.concatMap (\d -> if isBeancountAccountChar d then (T.singleton d) else T.pack $ charToBeancount d) $ T.cons c cs
+  T.concat $ map (textCapitalise . encodeChars) $ T.split (=='_') acctpart
   where
+    encodeChars = T.concatMap (\d -> if isBeancountAccountChar d then T.singleton d else T.pack $ charToBeancount d)
     prependStartCharIfNeeded t =
       case T.uncons t of
         Just (c,_) | not $ isBeancountAccountStartChar c -> T.cons beancountAccountDummyStartChar t
