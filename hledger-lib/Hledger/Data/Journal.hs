@@ -1155,10 +1155,26 @@ journalCommodityStylesWith r = amountStylesSetRounding r . journalCommodityStyle
 -- P directive amounts, posting amounts but not cost amounts, and maybe the last D amount, in that commodity.
 -- Can return an error message eg if inconsistent number formats are found.
 journalInferCommodityStyles :: Journal -> Either String Journal
-journalInferCommodityStyles j =
-  case commodityStylesFromAmounts $ journalStyleInfluencingAmounts False j of
-    Left e   -> Left e
-    Right cs -> Right j{jinferredcommoditystyles = dbg7 "journalInferCommodityStyles" cs}
+journalInferCommodityStyles j = do
+  -- Infer styles in two passes: from all amounts (for formatting like symbol
+  -- placement, decimal mark, digit groups), and from explicitly-written amounts
+  -- only (for precision). Inferred balancing amounts must not raise the
+  -- journal-wide display precision and surprise the user.
+  allStyles  <- commodityStylesFromAmounts $ styleInfluencingAmts id
+  explStyles <- commodityStylesFromAmounts $ styleInfluencingAmts (filter isExplicitAmount)
+  let withExplicitPrecision sym s =
+        maybe s (\s' -> s{asprecision = asprecision s'}) $ M.lookup sym explStyles
+  return j{jinferredcommoditystyles =
+             dbg7 "journalInferCommodityStyles" $
+             M.mapWithKey withExplicitPrecision allStyles}
+  where
+    -- Default commodity (D) amount + price directive amounts + posting amounts
+    -- selected by the given filter. Costs are not included.
+    styleInfluencingAmts pfilter =
+      catMaybes (mdefaultcommodityamt : map (Just . pdamount) (jpricedirectives j))
+      ++ concatMap (amountsRaw . pamount) (pfilter (journalPostings j))
+    mdefaultcommodityamt =
+      (\(sym,style) -> nullamt{acommodity=sym, astyle=style}) <$> jparsedefaultcommodity j
 
 -- -- | Apply this journal's historical price records to unpriced amounts where possible.
 -- journalApplyPriceDirectives :: Journal -> Journal

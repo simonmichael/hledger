@@ -207,7 +207,10 @@ $ hledger -f - bal -N
 811.210000000000000000000000000 CNY
                         -113.50 USD  a
 
-# ** 15. And inferred posting amounts can also influence display precision.
+# ** 15. Inferred balancing amounts don't influence display precision, 
+# so CNY's display precision here is 2 not 27.
+# And z's 1.8e-26 CNY amount is too small to show at precision 2,
+# so it is displayed as 0 (with no commodity symbol in this case..)
 <
 2025-01-01
   a            -113.50 USD @ 7.147224669603524229074889868 CNY
@@ -215,9 +218,9 @@ $ hledger -f - bal -N
   z
 
 $ hledger -f - bal -N
-811.210000000000000000000000000 CNY
-                        -113.50 USD  a
-  0.000000000000000000000000018 CNY  z
+          811.21 CNY
+         -113.50 USD  a
+                   0  z
 
 # ** 16. Before hledger 1.50, an inexactly balanced entry like this could be accepted,
 # because of a commodity directive reducing the display/balance-checking precision.
@@ -258,14 +261,3 @@ $ hledger -f - check balanced
 # ** 19. --txn-balancing=old can be used to restore the pre-1.50 behaviour. (#2402)
 $ hledger -f - check --txn-balancing=old
 
-# ** 20. A cost amount can affect display precision, by affecting an implicit posting amount.
-# Here the z posting amount is inferred as -2.000 USD, so USD's display precision is inferred as 3.
-<
-2025-01-01
-    a   1.00 USD
-    b   1 AAA @ 1.000 USD
-    z
-
-$ hledger -f - reg cur:USD
-2025-01-01                      a                        1.000 USD     1.000 USD
-                                z                       -2.000 USD    -1.000 USD

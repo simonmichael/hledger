@@ -520,11 +520,14 @@ transactionMapPostingAmounts f  = transactionMapPostings (postingTransformAmount
 transactionAmounts :: Transaction -> [MixedAmount]
 transactionAmounts = map pamount . tpostings
 
--- | Get the canonical amount styles inferred from this transaction's amounts.
+-- | Get this transaction's local styles - the commodity styles inferred from
+-- its explicitly-written (or generated from balance assignments) posting amounts.
+-- Inferred balancing amounts are excluded so that they can't confusingly increase
+-- the entry's local balancing precision.
 transactionCommodityStyles :: Transaction -> M.Map CommoditySymbol AmountStyle
 transactionCommodityStyles =
   either (const mempty) id .  -- ignore style problems, commodityStylesFromAmounts doesn't report them currently
-  commodityStylesFromAmounts . concatMap (amountsRaw . pamount) . tpostings
+  commodityStylesFromAmounts . concatMap (amountsRaw . pamount) . filter isExplicitAmount . tpostings
 
 -- | Like transactionCommodityStyles, but attach a particular rounding strategy to the styles,
 -- affecting how they will affect display precisions when applied.
