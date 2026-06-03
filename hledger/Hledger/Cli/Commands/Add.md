@@ -82,6 +82,6 @@ The posting amount required to produce this balance will be calculated automatic
 
 **Adding a posting dated before an existing balance assignment**\
 `add` won't let you add a posting dated earlier than an existing balance assignment in that account.
-(Because it calculates balance assignments only once at startup, so adding the new amount causes an assertion failure.)
+(Because it calculates balance assignments only once at startup, converting them to assertions, so adding the new amount causes an assertion failure.)
 To work around this, run `add` with balance assertions ignored: `hledger add -I`.
 
