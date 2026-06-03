@@ -74,6 +74,9 @@ data AddState = AddState {
   ,asJournal            :: Journal           -- ^ the journal we are adding to
   ,asSimilarTransaction :: Maybe Transaction -- ^ the old transaction most similar to the new one being entered
   ,asPostings           :: [Posting]         -- ^ the new postings entered so far
+  ,asInferredAmounts    :: [Maybe MixedAmount]
+   -- ^ posting amounts inferred from balance assignments, if any, corresponding to asPostings.
+   --   Stored so subsequent amount prompts can offer the inferred amount's negation as a default.
 } deriving (Show)
 
 defAddState = AddState {
@@ -84,6 +87,7 @@ defAddState = AddState {
   ,asJournal            = nulljournal
   ,asSimilarTransaction = Nothing
   ,asPostings           = []
+  ,asInferredAmounts    = []
 }
 
 data AddStep =
@@ -192,6 +196,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
           state' = state
             { asArgs = drop 1 asArgs
             , asPostings = []
+            , asInferredAmounts = []
             , asSimilarTransaction = mbaset
             }
           descAndCommentString = T.unpack $ desc <> (if T.null comment then "" else "  ; " <> comment)
@@ -225,7 +230,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
           let notFirstEnterPost stage = case stage of
                 GetPosting _ Nothing -> False
                 _ -> True
-          transactionWizard previnput state{asPostings=[]} (dropWhile notFirstEnterPost stack)
+          transactionWizard previnput state{asPostings=[], asInferredAmounts=[]} (dropWhile notFirstEnterPost stack)
 
   GetAccount txndata -> accountWizard previnput state >>= \case
     Just account
@@ -242,7 +247,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
             GetAmount _ _ -> False
             GetDescription _ -> False
             _ -> True
-      transactionWizard previnput state{asPostings=init asPostings} (dropWhile notPrevAmountAndNotGetDesc stack)
+      transactionWizard previnput state{asPostings=init asPostings, asInferredAmounts=init asInferredAmounts} (dropWhile notPrevAmountAndNotGetDesc stack)
 
   GetAmount txndata account -> amountWizard previnput state >>= \case
     Just (mamt, assertion, (comment, tags, pdate1, pdate2)) -> do
@@ -258,27 +263,29 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
                           }
           amountAndCommentString = showMixedAmountOneLine mixedamt ++ T.unpack (if T.null comment then "" else "  ;" <> comment)
           prevAmountAndCmnt' = replaceNthOrAppend (length asPostings) amountAndCommentString (prevAmountAndCmnt previnput)
-          state' = state{asPostings=asPostings++[p], asArgs=drop 1 asArgs}
           -- Include a dummy posting to balance the unfinished transation in assertion checking
           dummytxn = nulltransaction{tpostings = asPostings ++ [p, post "" missingamt]
                                      ,tdate = txnDate txndata
                                      ,tdescription = txnDesc txndata }
           bopts = balancingopts_ (inputopts_ asOpts)
-          balanceassignment = mixedamt==missingmixedamt && isJust assertion
-          etxn
-            -- If the new posting is doing a balance assignment,
-            -- don't attempt to balance the transaction or check assertions yet
-            | balanceassignment = Right dummytxn
-            -- Otherwise, balance the transaction in context of the whole journal,
-            -- maybe filling its balance assignments if any,
-            -- and maybe checking all the journal's balance assertions.
-            | otherwise = balanceTransactionInJournal dummytxn asJournal bopts
+          isbalanceassignment = mixedamt==missingmixedamt && isJust assertion
+          -- Balance the transaction in context of the whole journal,
+          -- filling any balance assignment, and checking all the journal's balance assertions.
+          etxn = balanceTransactionInJournal dummytxn asJournal bopts
 
       case etxn of
         Left err -> do
           liftIO (hPutStrLn stderr err)
           transactionWizard previnput state (GetAmount txndata account : stack)
-        Right _ -> 
+        Right balanced -> do
+          -- For a balance-assignment posting, remember the amount the balancer
+          -- inferred, so the next posting's default can use it.
+          let minferredamterredamt
+                | isbalanceassignment = pamount <$> tpostings balanced `atMay` length asPostings
+                | otherwise = Nothing
+              state' = state{asPostings=asPostings++[p]
+                            ,asInferredAmounts=asInferredAmounts++[minferredamterredamt]
+                            ,asArgs=drop 1 asArgs}
           transactionWizard previnput{prevAmountAndCmnt=prevAmountAndCmnt'} state' (GetPosting txndata (Just posting) : stack)
     Nothing -> transactionWizard previnput state (drop 1 stack)
 
@@ -387,7 +394,7 @@ amountWizard previnput@PrevInput{..} state@AddState{..} = do
           | Just hp <- mhistoricalp, followedhistoricalsofar    = showamt $ pamount hp
           | pnum > 1 && not (mixedAmountLooksZero balancingamt) = showamt balancingamtfirstcommodity
           | otherwise                                           = ""
-  retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $ 
+  retryMsg "A valid hledger amount is required. Eg: 1, $2, 3 EUR, \"4 red apples\"." $
    parser' parseAmountAndComment $
    withCompletion (amountCompleter def) $
    defaultTo' def $
@@ -418,7 +425,15 @@ amountWizard previnput@PrevInput{..} state@AddState{..} = do
           Left err -> fail $ customErrorBundlePretty err
           -- Keep our original comment string from the user to add to the journal
           Right (_, tags, date1', date2') -> return $ (mamt, massertion, (com, tags, date1', date2'))
-      balancingamt = maNegate . sumPostings $ filter isReal asPostings
+      balancingamt = maNegate . sumPostings $ filter isReal asPostings'
+        where
+          -- Postings entered so far, with any amounts from balance assignments filled in
+          asPostings' =
+            [ case minferredamt of
+                Just a  -> p{pamount = a}
+                Nothing -> p
+            | (p, minferredamt) <- zip asPostings (asInferredAmounts ++ repeat Nothing)
+            ]
       balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
       showamt = wbUnpack . showMixedAmountB defaultFmt . mixedAmountSetPrecision
                   -- what should this be ?
