@@ -122,7 +122,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetFullPrecision, amountSetFullPrecisionUpTo, amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showMixedAmountWith)
+import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountWith)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
@@ -905,8 +905,8 @@ journalCheckAcquireBasis j = mapM_ checkTxn (jtxns j) >> Right j
 
     acquireBasisErr t idx p basis transacted =
       printf "%s:%d:\n%s\n" f l (T.unpack ex)
-      ++ "This acquire posting's cost basis (" ++ showAmt basis
-      ++ ") differs from its transacted cost (" ++ showAmt transacted ++ ").\n"
+      ++ "This acquire posting's cost basis (" ++ basisStr
+      ++ ") differs from its transacted cost (" ++ transactedStr ++ ").\n"
       ++ "Acquire postings should ideally have basis equal to transacted cost. Common fixes:\n"
       ++ "  - drop the {}/{{}} so basis is inferred from the transacted cost\n"
       ++ "  - drop the @/@@ so transacted cost is inferred from the basis\n"
@@ -916,11 +916,8 @@ journalCheckAcquireBasis j = mapM_ checkTxn (jtxns j) >> Right j
         col1 = 5 + if isVirtual p then 1 else 0
         col2 = col1 + T.length (paccount p) - 1
         (f, l, _mcols, ex) = makePostingErrorExcerptByIndex t idx (Just (col1, Just col2))
-
-    showAmt =
-      showAmountWith oneLineNoCostFmt{displayZeroCommodity=True}
-      . amountSetFullPrecisionUpTo Nothing
-      . amountSetFullPrecision
+        (basisStr, transactedStr) =
+          showAmountsDistinctly oneLineNoCostFmt{displayZeroCommodity=True} basis transacted
 
 -- | For each disposal transaction with a transacted price, add a pair of balanced
 -- postings recognising the realised capital gain:

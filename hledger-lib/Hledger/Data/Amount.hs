@@ -93,6 +93,7 @@ module Hledger.Data.Amount (
   machineFmt,
   showAmount,
   showAmountWith,
+  showAmountsDistinctly,
   showAmountB,
   showAmountQuantity,
   showAmountCost,
@@ -741,6 +742,26 @@ showAmount = wbUnpack . showAmountB defaultFmt
 -- | Like showAmount but uses the given amount format.
 showAmountWith :: AmountFormat -> Amount -> String
 showAmountWith fmt = wbUnpack . showAmountB fmt
+
+-- | Render two similar amounts as strings using the given format, at enough
+-- decimal display precision that the two strings differ. Starts at the
+-- larger of the two amounts' current display precisions and increases
+-- (in lockstep) until the rendered strings are distinct, capped at the
+-- larger of the two amounts' internal precisions. If the amounts are
+-- equal at the Decimal level the loop terminates at the cap and returns
+-- both strings as-is. Useful in error messages that compare two amounts
+-- which would otherwise round to identical-looking text.
+showAmountsDistinctly :: AmountFormat -> Amount -> Amount -> (String, String)
+showAmountsDistinctly fmt a b = go start
+  where
+    start = max (amountDisplayPrecision a) (amountDisplayPrecision b)
+    cap   = max (amountInternalPrecision a) (amountInternalPrecision b)
+    render p = (showAmountWith fmt (setp p a), showAmountWith fmt (setp p b))
+    setp p  = amountSetPrecision (Precision p)
+    go p
+      | sa /= sb || p >= cap = (sa, sb)
+      | otherwise            = go (p + 1)
+      where (sa, sb) = render p
 
 -- | Render an amount using its display style and the given amount format, as a builder for efficiency.
 -- (This can be converted to a Text with wbToText or to a String with wbUnpack).
