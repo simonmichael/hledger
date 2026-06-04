@@ -546,6 +546,28 @@ with carryover basis, NSO exercises, RSU vesting, wash-sale adjustments,
 etc.) are best expressed by adding a separate income/equity/asset posting
 that funds the difference.
 
+The check uses strict Decimal equality, not the precision-tolerant
+`mixedAmountLooksZero` comparison used by transaction balancing and the
+recorded-gain check. Those tolerances are bounded within a single entry,
+but a basis discrepancy persists in the lot store and amplifies at
+disposal (gain = `(sale − basis) × qty`), and there is no downstream
+"basis assertion" check that would surface accumulated drift. Strict
+equality treats sub-precision inexactness as the same kind of error as
+a typo.
+
+When the per-unit basis would be a non-terminating decimal (eg
+$50 / 7 = $7.142857...), record it cleanly via one of:
+
+- `{}` — let hledger infer basis from the transacted cost (same precise
+  division).
+- `{{TotalCost}}` — record the total basis; hledger derives the
+  per-unit value with the same precise division.
+- An explicit `{$7.142857143}` at sufficient precision.
+
+An explicit `{$7.14}` paired with `@@ $50` deliberately fails the check
+— the rounded annotation forgets a per-unit fraction that would
+compound across disposals.
+
 Other PTA apps (hledger 1, Ledger, Beancount, rustledger, acc) accept entries
 where `B ≠ T`, so this check is off by default to avoid interoperability
 pain. It runs only when the user types `hledger check basis` (not in
