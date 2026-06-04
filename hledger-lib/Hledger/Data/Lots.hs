@@ -122,7 +122,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountsDistinctly)
+import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
@@ -897,9 +897,7 @@ journalCheckAcquireBasis j = mapM_ checkTxn (jtxns j) >> Right j
           , a <- amountsRaw (pamount p)
           , Just basis <- [acostbasis a >>= cbCost]
           , Just tc <- [acost a]
-          , let transacted = case tc of
-                  UnitCost  x -> x
-                  TotalCost x -> divideAmountAndCapPrecision (abs (aquantity a)) x
+          , let transacted = amountCostToUnitCost (abs (aquantity a)) tc
           , aquantity basis /= aquantity transacted
           ]
 
@@ -907,11 +905,11 @@ journalCheckAcquireBasis j = mapM_ checkTxn (jtxns j) >> Right j
       printf "%s:%d:\n%s\n" f l (T.unpack ex)
       ++ "This acquire posting's cost basis (" ++ basisStr
       ++ ") differs from its transacted cost (" ++ transactedStr ++ ").\n"
-      ++ "Acquire postings should ideally have basis equal to transacted cost. Common fixes:\n"
-      ++ "  - drop the {}/{{}} so basis is inferred from the transacted cost\n"
-      ++ "  - drop the @/@@ so transacted cost is inferred from the basis\n"
-      ++ "  - set both to the same value (eg capitalising fees into basis,\n"
-      ++ "    in which case remove any separate fee or expense posting)"
+      ++ "Options:\n"
+      ++ "  - drop {} or {{}} so basis is inferred from the transacted cost\n"
+      ++ "  - drop @ or @@ so transacted cost is inferred from the basis\n"
+      ++ "  - use {{TotalCost}} or write the per-unit basis at higher precision\n"
+      ++ "  - if the difference is real (gift, NSO, RSU, etc.), fund it via a separate posting"
       where
         col1 = 5 + if isVirtual p then 1 else 0
         col2 = col1 + T.length (paccount p) - 1

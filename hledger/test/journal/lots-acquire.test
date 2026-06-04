@@ -387,3 +387,39 @@ $ hledger -f- check basis
 $ hledger -f- check basis
 >2 /cost basis \(\$7\.57142857\) differs from its transacted cost \(\$7\.14285714\)/
 >=1
+
+# *** 29. A total cost that divides non-terminatingly is accepted —
+# basis and transacted are both computed via the same precise division,
+# so they agree at the Decimal level even though displayed digits would
+# round identically only at high precision.
+<
+commodity AAAA  ; lots:
+
+2025-05-24
+    assets       -850897.32 CNY
+    assets        813244.1200 AAAA
+
+$ hledger -f- check basis
+
+# *** 30. {{TotalCost}} for a non-terminating per-unit division is also
+# accepted — the parser uses precise division, matching the transacted
+# computation, so basis and transacted agree at the Decimal level.
+<
+2026-01-01
+    assets    7 AAA {{$50}} @@ $50
+    cash    -$50
+
+$ hledger -f- check basis
+>=0
+
+# *** 31. An explicit {per-unit-basis} that rounds away part of the
+# per-unit value is still rejected, since the rounding error would
+# compound at disposal.
+<
+2026-01-01
+    assets    7 AAA {$7.14} @@ $50
+    cash    -$50
+
+$ hledger -f- check basis
+>2 /differs from its transacted cost/
+>=1

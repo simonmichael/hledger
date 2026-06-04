@@ -1060,7 +1060,9 @@ balanceassertionp = do
 --   Consolidated:  {DATE, "LABEL", COST} or {{DATE, "LABEL", TOTALCOST}}
 --                  with all fields optional and in DLC order
 -- If total cost syntax {{}} is used, the parsed cost is converted to unit cost
--- by dividing by the posting quantity (limiting decimal digits to defaultMaxDisplayPrecision).
+-- by dividing by the posting quantity (with full Decimal precision, so that
+-- `{{T}}` and `@@T` yield equal per-unit Decimals — important for the strict
+-- comparison in `journalCheckAcquireBasis`).
 lotcostp :: Quantity -> JournalParser m CostBasis
 lotcostp postingqty =
   -- dbg "lotcostp" $
@@ -1126,8 +1128,13 @@ lotcostp postingqty =
       lift skipNonNewlineSpaces
       pure $ CostBasis Nothing Nothing ma
 
+    -- Divide with full Decimal precision (so `{{T}}` and `@@T` give equal
+    -- per-unit Decimals for the strict basis check), but widen display
+    -- precision to show the quotient's digits (capped at
+    -- 'defaultMaxDisplayPrecision' for non-terminating decimals).
     convertToUnitCost lotamt
-      | postingqty /= 0 = divideAmountAndCapPrecision postingqty lotamt
+      | postingqty /= 0 = amountSetFullPrecisionUpTo (Just defaultMaxDisplayPrecision) $
+                          lotamt{aquantity = aquantity lotamt / postingqty}
       | otherwise       = lotamt
 
 -- Parse a Ledger-style [LOTDATE].
