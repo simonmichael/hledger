@@ -113,7 +113,7 @@ module Hledger.Data.Amount (
   amountSetFullPrecisionUpTo,
   amountInternalPrecision,
   amountDisplayPrecision,
-  defaultMaxPrecision,
+  defaultMaxDisplayPrecision,
   setAmountInternalPrecision,
   withInternalPrecision,
   setAmountDecimalPoint,
@@ -391,13 +391,13 @@ divideAmount n = transformAmount (/n)
 
 -- | Divide an amount's quantity by some number, then round both internal and
 -- display precision to the quotient's natural precision capped at
--- 'defaultMaxPrecision'. This avoids non-terminating divisions (eg 53/7) leaving
--- 255 decimal digits of slop in the internal quantity, while still showing every
--- decimal digit a clean division produces.
+-- 'defaultMaxDisplayPrecision'. This avoids non-terminating divisions (eg 53/7)
+-- leaving 255 decimal digits of slop in the internal quantity, while still showing
+-- every decimal digit a clean division produces.
 divideAmountAndCapPrecision :: Quantity -> Amount -> Amount
 divideAmountAndCapPrecision n a =
   let a' = a{aquantity = aquantity a / n}
-      p  = min defaultMaxPrecision (amountInternalPrecision a')
+      p  = min defaultMaxDisplayPrecision (amountInternalPrecision a')
   in setAmountInternalPrecision p a'
 
 -- | Multiply an amount's quantity (and its total cost, if it has one) by a constant.
@@ -516,15 +516,15 @@ amountSetFullPrecisionUpTo mmaxp a = amountSetPrecision (Precision p) a
   where
     p = case mmaxp of
       Just maxp -> min maxp $ max disp intp
-      Nothing   -> if amountHasMaxDigits a then defaultMaxPrecision else max disp intp
+      Nothing   -> if amountHasMaxDigits a then defaultMaxDisplayPrecision else max disp intp
       where
         disp = amountDisplayPrecision a
         intp = amountInternalPrecision a
 
 -- | The fallback display precision used when showing amounts
 -- representing an infinite decimal.
-defaultMaxPrecision :: Word8
-defaultMaxPrecision = 8
+defaultMaxDisplayPrecision :: Word8
+defaultMaxDisplayPrecision = 8
 
 -- | How many internal decimal digits are stored for this amount ?
 amountInternalPrecision :: Amount -> Word8

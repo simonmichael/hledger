@@ -1060,7 +1060,7 @@ balanceassertionp = do
 --   Consolidated:  {DATE, "LABEL", COST} or {{DATE, "LABEL", TOTALCOST}}
 --                  with all fields optional and in DLC order
 -- If total cost syntax {{}} is used, the parsed cost is converted to unit cost
--- by dividing by the posting quantity (limiting decimal digits to defaultMaxPrecision).
+-- by dividing by the posting quantity (limiting decimal digits to defaultMaxDisplayPrecision).
 lotcostp :: Quantity -> JournalParser m CostBasis
 lotcostp postingqty =
   -- dbg "lotcostp" $

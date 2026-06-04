@@ -71,7 +71,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
         -- But it's not easy to find out the valuation commodity (or commodities) here if it's implicit,
         -- as that information is buried in the price graph.
         -- Instead, do what we don't like to do: hard code a max precision, overriding commodity styles.
-        mixedAmountSetPrecisionMax defaultMaxPrecision
+        mixedAmountSetPrecisionMax defaultMaxDisplayPrecision
       . maybe id (mixedAmountApplyValuation priceOracle styles periodlast today date) value_
       . maybe id (mixedAmountToCost styles) conversionop_
 
@@ -157,7 +157,7 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
                , T.pack $ showMixedAmountOneLineWithoutCost False $ styleAmounts styles $ cashFlowAmt
                -- , T.pack $ showMixedAmount $
                --   -- dbg0With (lbl "cashflow after styling".showMixedAmountOneLine) $
-               --   mapMixedAmount (amountSetFullPrecisionUpTo (Just defaultMaxPrecision)) $
+               --   mapMixedAmount (amountSetFullPrecisionUpTo (Just defaultMaxDisplayPrecision)) $
                --   styleAmounts (styles
                --                 -- & dbg0With (lbl "styles".show))
                --   cashFlowAmt
