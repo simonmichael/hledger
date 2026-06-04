@@ -7232,14 +7232,11 @@ typically we write just one of them and let the other be inferred.
 
 You can check that `B` == `T` everywhere by running `hledger check basis`.
 This catches {}/@ mismatches which would silently miscalculate capital gains.
-
-This check uses strict equality, not equality-within-local-precisions
-like transaction balancing or recorded gain checking,
-because an inexact basis annotation would persist and be amplified at disposal time,
-and there is no downstream "basis assertion" to catch accumulated drift).
+Note, this check uses strict equality, not equality-within-local-precisions like transaction balancing or recorded gain checking,
+(because an inexact basis annotation would persist and be amplified at disposal time).
 So if you write an explicit cost basis annotation, use sufficient precision.
 If the amount is a non-terminating decimal, you won't be able to record it explicitly -
-instead write `{}` (let hledger infer), or `{{TOTALCOST}}` (record the total basis).
+instead write `{}` or `{{TOTALCOST}}` and let hledger infer it.
 
 Some real-world situations can produce a cost basis that differs from what was
 paid - gifts (carryover basis), inheritance (stepped-up basis), stock options
