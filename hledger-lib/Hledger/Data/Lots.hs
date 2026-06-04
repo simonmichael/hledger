@@ -122,7 +122,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, mixedAmountSetFullPrecision, mixedAmountSetFullPrecisionUpTo, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountWith)
+import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, divideAmountAndCapPrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
@@ -1021,13 +1021,12 @@ journalAddOrCheckGainPostings verbosetags j = do
     mismatchErr t gain ugainSum =
       txnErrPrefix t
       ++ "This disposal's realised gain amount is wrong.\n"
-      ++ "  written:    " ++ showamt (maNegate ugainSum) ++ "\n"
-      ++ "  calculated: " ++ showamt (maNegate gain)
+      ++ "  written:    " ++ writtenStr ++ "\n"
+      ++ "  calculated: " ++ calculatedStr
       where
-        showamt =
-          showMixedAmountWith oneLineNoCostFmt{displayZeroCommodity=True}
-          . mixedAmountSetFullPrecisionUpTo Nothing
-          . mixedAmountSetFullPrecision
+        (writtenStr, calculatedStr) =
+          showMixedAmountsDistinctly oneLineNoCostFmt{displayZeroCommodity=True}
+            (maNegate ugainSum) (maNegate gain)
 
     -- | The realised-capital-gain contribution from a single posting.
     --

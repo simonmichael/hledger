@@ -162,6 +162,7 @@ module Hledger.Data.Amount (
   -- ** rendering
   showMixedAmount,
   showMixedAmountWith,
+  showMixedAmountsDistinctly,
   showMixedAmountOneLine,
   showMixedAmountDebug,
   showMixedAmountWithoutCost,
@@ -744,17 +745,24 @@ showAmountWith :: AmountFormat -> Amount -> String
 showAmountWith fmt = wbUnpack . showAmountB fmt
 
 -- | Render two similar amounts as strings using the given format, at enough
--- decimal display precision that the two strings differ. Starts at the
--- larger of the two amounts' current display precisions and increases
--- (in lockstep) until the rendered strings are distinct, capped at the
--- larger of the two amounts' internal precisions. If the amounts are
--- equal at the Decimal level the loop terminates at the cap and returns
--- both strings as-is. Useful in error messages that compare two amounts
--- which would otherwise round to identical-looking text.
+-- decimal display precision that the two strings differ. First tries each
+-- at its own full (capped) precision; if the strings already differ, both
+-- are returned as-is (preserving any per-amount asymmetry). Otherwise both
+-- amounts' display precision is increased in lockstep until the strings
+-- are distinct, capped at the larger of the two amounts' internal
+-- precisions. If the amounts are equal at the Decimal level the loop
+-- terminates at the cap. Useful in error messages that compare two
+-- amounts which would otherwise round to identical-looking text.
 showAmountsDistinctly :: AmountFormat -> Amount -> Amount -> (String, String)
-showAmountsDistinctly fmt a b = go start
+showAmountsDistinctly fmt a b
+  | sa0 /= sb0 = (sa0, sb0)
+  | otherwise  = go start
   where
-    start = max (amountDisplayPrecision a) (amountDisplayPrecision b)
+    a0 = amountSetFullPrecisionUpTo Nothing $ amountSetFullPrecision a
+    b0 = amountSetFullPrecisionUpTo Nothing $ amountSetFullPrecision b
+    sa0 = showAmountWith fmt a0
+    sb0 = showAmountWith fmt b0
+    start = max (amountDisplayPrecision a0) (amountDisplayPrecision b0)
     cap   = max (amountInternalPrecision a) (amountInternalPrecision b)
     render p = (showAmountWith fmt (setp p a), showAmountWith fmt (setp p b))
     setp p  = amountSetPrecision (Precision p)
@@ -1220,6 +1228,30 @@ showMixedAmount = wbUnpack . showMixedAmountB defaultFmt
 -- See showMixedAmountB for special cases.
 showMixedAmountWith :: AmountFormat -> MixedAmount -> String
 showMixedAmountWith fmt = wbUnpack . showMixedAmountB fmt
+
+-- | Like 'showAmountsDistinctly' but for 'MixedAmount'. First tries each
+-- at its own precision; if those strings already differ, they are returned as-is.
+-- Otherwise display precision is increased uniformly (across all commodity components)
+-- in lockstep until the rendered strings are distinct, capped at the larger of
+-- the two amounts' internal precisions.
+showMixedAmountsDistinctly :: AmountFormat -> MixedAmount -> MixedAmount -> (String, String)
+showMixedAmountsDistinctly fmt a b
+  | sa0 /= sb0 = (sa0, sb0)
+  | otherwise  = go start
+  where
+    a0 = mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision a
+    b0 = mixedAmountSetFullPrecisionUpTo Nothing $ mixedAmountSetFullPrecision b
+    sa0 = showMixedAmountWith fmt a0
+    sb0 = showMixedAmountWith fmt b0
+    maxprec f x = maximum (0 : map f (amountsRaw x))
+    start = max (maxprec amountDisplayPrecision a0) (maxprec amountDisplayPrecision b0)
+    cap   = max (maxprec amountInternalPrecision a) (maxprec amountInternalPrecision b)
+    render p = (showMixedAmountWith fmt (setp p a), showMixedAmountWith fmt (setp p b))
+    setp p = mixedAmountSetPrecision (Precision p)
+    go p
+      | sa /= sb || p >= cap = (sa, sb)
+      | otherwise            = go (p + 1)
+      where (sa, sb) = render p
 
 -- | Get the one-line string representation of a mixed amount (also showing any costs).
 -- See showMixedAmountB for special cases.

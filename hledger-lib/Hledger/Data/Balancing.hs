@@ -730,8 +730,8 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
         (_,_,_,ex) = makeBalanceAssertionErrorExcerpt p
         assertedcommstr = if T.null assertedcomm then "\"\"" else assertedcomm
         fmt = oneLineFmt{displayZeroCommodity=True}
-        assertedstr = showAmountWith fmt assertedcommbalcostless
-        actualstr   = showAmountWith fmt actualcommbalcostless
+        (assertedstr, actualstr) =
+          showAmountsDistinctly fmt assertedcommbalcostless actualcommbalcostless
         diffstr     = showAmountWith fmt $ assertedcommbalcostless - actualcommbalcostless
         pad = fitText (Just w) Nothing False False . T.pack where w = max (length assertedstr) (length actualstr)
 
