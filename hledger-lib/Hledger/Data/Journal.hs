@@ -44,7 +44,6 @@ module Hledger.Data.Journal (
   journalPostingsAddAccountTags,
   journalPostingsKeepAccountTagsOnly,
   journalPostingsAddCommodityTags,
-  journalInferPostingsCostBasis,
   journalInferPostingsTransactedCost,
   journalCommodityUsesLots,
   journalCommodityLotsMethod,
@@ -157,7 +156,7 @@ import Data.List (foldl')
 #endif
 import Data.List.Extra (nubSort)
 import Data.Map.Strict qualified as M
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, mapMaybe, maybeToList)
+import Data.Maybe (catMaybes, fromMaybe, isNothing, mapMaybe, maybeToList)
 import Data.Ord (comparing)
 import Data.Set qualified as S
 import Data.Text (Text)
@@ -716,10 +715,6 @@ journalCommodityTags Journal{jdeclaredcommoditytags} c =
 journalCommodityUsesLots :: Journal -> CommoditySymbol -> Bool
 journalCommodityUsesLots j c = any ((== "lots") . T.toLower . fst) (journalCommodityTags j c)
 
--- | Does this posting have a 'lots:' tag (eg inherited from its account) ?
-postingUsesLots :: Posting -> Bool
-postingUsesLots p = any ((== "lots") . T.toLower . fst) (ptags p)
-
 -- | Get the reduction method from a commodity's lots: tag value, if any.
 journalCommodityLotsMethod :: Journal -> CommoditySymbol -> Maybe ReductionMethod
 journalCommodityLotsMethod j c =
@@ -794,32 +789,6 @@ journalPostingsAddCommodityTags :: Journal -> Journal
 journalPostingsAddCommodityTags j = journalMapPostings addtags j
   where
     addtags p = p `postingAddTags` concatMap (journalCommodityTags j) (postingCommodities p)
-
--- | For acquire postings (positive amounts) whose commodity or account has a 'lots:' tag,
--- infer cost basis (cost only, no date or label) from transacted cost.
--- The lot date will later default to the transaction date.
--- Must be called before journalClassifyLotPostings.
-journalInferPostingsCostBasis :: Journal -> Journal
-journalInferPostingsCostBasis j = journalMapPostings (postingInferCostBasis j) j
-
-postingInferCostBasis :: Journal -> Posting -> Posting
-postingInferCostBasis j p = p{pamount = mapMixedAmount amountInferCostBasis $ pamount p}
-  where
-    amountInferCostBasis :: Amount -> Amount
-    amountInferCostBasis a
-      | aquantity a <= 0                  = a  -- only positive (acquire) amounts
-      | isJust (acostbasis a)             = a  -- already has cost basis
-      | Nothing <- acost a                = a  -- no transacted cost
-      | not (journalCommodityUsesLots j (acommodity a) || postingUsesLots p) = a  -- commodity/account not lot-tracked
-      | Just cost <- acost a              = a{acostbasis = Just (costToCostBasis (aquantity a) cost)}
-
-    costToCostBasis :: Quantity -> AmountCost -> CostBasis
-    costToCostBasis qty cost = CostBasis{cbCost=Just ucost, cbDate=Nothing, cbLabel=Nothing}
-      where
-        ucost = case cost of
-          UnitCost  amt              -> amt
-          TotalCost amt | qty /= 0   -> divideAmountAndCapPrecision (abs qty) amt
-                        | otherwise  -> amt
 
 -- | For positive postings with a cost basis, which are not lot transfers,
 -- infer transacted cost from cost basis.
