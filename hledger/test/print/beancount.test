@@ -265,3 +265,24 @@ $ hledger -f- print -O beancount
     Equity:Opening
 
 >=
+
+# ** 13. Non-ASCII letters in metadata names are hex-encoded (#2576).
+# Beancount metadata keys must match [a-z][a-z0-9_-]*, so non-ASCII letters
+# like ä cannot just be lowercased; they must be encoded as c<HEXBYTES>.
+# Non-ASCII characters in values are fine - Beancount accepts UTF-8 in strings.
+<
+2024-01-01 Test ; Empfänger: Schäfer
+    assets:cash    -1 EUR
+    expenses:test   1 EUR
+
+$ hledger -f- print -O beancount
+;option "inferred_tolerance_default" "*:0.005"
+2024-01-01 open Assets:Cash
+2024-01-01 open Expenses:Test
+
+2024-01-01 * "Test"  ; Empfänger: Schäfer
+    empfce4nger: "Schäfer"
+    Assets:Cash            -1 EUR
+    Expenses:Test           1 EUR
+
+>=

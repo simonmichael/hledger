@@ -132,24 +132,25 @@ toBeancountMetadataName name =
         Just (c,cs) | T.null cs || not (isBeancountMetadataNameStartChar c) -> T.cons beancountMetadataDummyNameStartChar t
         _ -> t
 
--- | Is this a valid character to start a Beancount metadata name (lowercase letter) ?
+-- | Is this a valid character to start a Beancount metadata name (lowercase ASCII letter) ?
 isBeancountMetadataNameStartChar :: Char -> Bool
-isBeancountMetadataNameStartChar c = isLetter c && islowercase c
+isBeancountMetadataNameStartChar = isAsciiLower
 
 -- | Dummy valid starting character to prepend to a Beancount metadata name if needed.
 beancountMetadataDummyNameStartChar :: Char
 beancountMetadataDummyNameStartChar = 'm'
 
--- | Is this a valid character in the middle of a Beancount metadata name (a lowercase letter, digit, _ or -) ?
+-- | Is this a valid character in the middle of a Beancount metadata name (a lowercase ASCII letter, digit, _ or -) ?
 isBeancountMetadataNameChar :: Char -> Bool
-isBeancountMetadataNameChar c = (isLetter c && islowercase c) || isDigit c || c `elem` ['_', '-']
+isBeancountMetadataNameChar c = isAsciiLower c || isDigit c || c `elem` ['_', '-']
 
 -- | Convert a character to one or more characters valid inside a Beancount metadata name.
--- Letters are lowercased, spaces are converted to dashes, and unsupported characters are encoded as c<HEXBYTES>.
+-- ASCII uppercase letters are lowercased, spaces are converted to dashes, and unsupported
+-- characters (including non-ASCII letters) are encoded as c<HEXBYTES>.
 toBeancountMetadataNameChar :: Char -> Text
 toBeancountMetadataNameChar c
   | isBeancountMetadataNameChar c = T.singleton c
-  | isLetter c = T.singleton $ toLower c
+  | isAsciiUpper c = T.singleton $ toLower c
   | isSpace c = "-"
   | otherwise = T.pack $ printf "c%x" c
 
@@ -312,8 +313,6 @@ charToBeancount c = if isSpace c then "-" else printf "C%x" c
 -- https://hackage.haskell.org/package/base-4.20.0.1/docs/Data-Char.html#v:isUpperCase would be more correct,
 -- but isn't available till base 4.18/ghc 9.6. isUpper is close enough in practice.
 isuppercase = isUpper
--- same story, presumably
-islowercase = isLower
 
 -- | Is this a valid character to start a Beancount account name part (capital letter or digit) ?
 isBeancountAccountStartChar :: Char -> Bool
