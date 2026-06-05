@@ -227,10 +227,8 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
           transactionWizard previnput state (Confirm t' : stack)
         Left err -> do
           liftIO (hPutStrLn stderr $ "\n" ++ (capitalize err) ++ ", please re-enter.")
-          let notFirstEnterPost stage = case stage of
-                GetPosting _ Nothing -> False
-                _ -> True
-          transactionWizard previnput state{asPostings=[], asInferredAmounts=[]} (dropWhile notFirstEnterPost stack)
+          -- Back up one step: re-prompt for the next account, keeping postings entered so far.
+          transactionWizard previnput state (GetAccount txndata : drop 1 stack)
 
   GetAccount txndata -> accountWizard previnput state >>= \case
     Just account
