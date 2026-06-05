@@ -217,6 +217,7 @@ Discussions
 Policies
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
 - <https://github.com/stanford-cs336/assignment1-basics/blob/main/CLAUDE.md>
+- <https://ladybird.org/posts/changing-how-we-develop-ladybird/> ([discussion](https://news.ycombinator.com/item?id=48409191))
 
 Law
 - <https://www.congress.gov/crs-product/LSB10922>
