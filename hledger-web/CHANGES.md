@@ -29,6 +29,9 @@ Improvements
 
 - Allow yesod-static 1.6.1.1 and later again.
 
+- In hledger-web, account/register/journal links now preserve the sidebar
+  scroll position when JavaScript is available.
+
 - Uses hledger 1.99.2.
 
 
