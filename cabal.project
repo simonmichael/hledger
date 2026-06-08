@@ -3,21 +3,25 @@ packages: hledger-lib
           hledger-ui
           hledger-web
 
--- workarounds for
+-- workarounds:
 -- https://github.com/haskell/haskeline/issues/130 / hledger #2410, see hledger/package.yaml
 -- https://github.com/jtdaugherty/brick/issues/539
 -- https://github.com/yesodweb/yesod/issues/1917
 -- https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 
 constraints:
+  attoparsec-aeson >=2.2.2.0,
   brick >= 2.10,
   haskeline >= 0.8.4,
+  persistent >= 2.14.5.2,
   ram < 0,             
   text-iso8601 >= 0.2,
+  vty-windows >= 0.2.0.1,
 
 allow-newer:
   aeson,
   containers,
+  template-haskell,
   text-iso8601,
 
 

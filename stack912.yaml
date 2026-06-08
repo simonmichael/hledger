@@ -13,11 +13,16 @@ packages:
 
 resolver: nightly-2026-06-01
 
-# for hledger-web and https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 extra-deps:
+# https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 - aeson-2.3.0.0
 - text-iso8601-0.2.0.0
 allow-newer: true
+allow-newer-deps:
+  - aeson-pretty
+  - http-api-data
+  - persistent
+  - yesod-test
 
 nix:
   pure: false

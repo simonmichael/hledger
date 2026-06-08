@@ -2,7 +2,7 @@
 # https://gitlab.haskell.org/ghc/ghc/-/wikis/migration/9.10
 # https://downloads.haskell.org/ghc/9.10.1/docs/users_guide/9.10.1-notes.html
 
-resolver: lts-24.34
+resolver: lts-24.44
 
 packages:
 - hledger-lib
@@ -11,12 +11,16 @@ packages:
 - hledger-web
 
 extra-deps:
-# for #2410, #2512:
+# #2410, #2512:
 - haskeline-0.8.4.1
-# for hledger-web and https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
+# https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 - aeson-2.3.0.0
 - text-iso8601-0.2.0.0
 allow-newer: true
+allow-newer-deps:
+  - aeson-pretty
+  - http-api-data
+  - persistent
 
 nix:
   pure: false
