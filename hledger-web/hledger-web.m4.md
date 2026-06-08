@@ -72,9 +72,10 @@ Flags:
      --serve-api            like --serve, but serve only the JSON web API,
                             not the web UI
      --allow=view|add|edit  set the user's access level for changing data
-                            (default: `add`). It also accepts `sandstorm` for
-                            use on that platform (reads permissions from the
-                            `X-Sandstorm-Permissions` request header).
+                            (default: `add` on a local-only address, `view`
+                            otherwise). It also accepts `sandstorm` for that
+                            platform (reads from the `X-Sandstorm-Permissions`
+                            request header).
      --cors=ORIGIN          allow cross-origin requests from the specified
                             origin; setting ORIGIN to "*" allows requests from
                             any origin
@@ -137,15 +138,12 @@ If this is not working see [Install > Shell completions](install.html#shell-comp
 
 # PERMISSIONS
 
-By default, hledger-web allows anyone who can reach it to view the journal
-and to add new transactions, but not to change existing data.
-
-You can restrict who can reach it, by
+You can restrict who can access hledger-web by
 
 - setting the IP address it listens on (see `--host` above).
   By default it listens on 127.0.0.1, accessible to users on the local machine only.
-- putting it behind an authenticating proxy, such as caddy or apache
-- putting it behind a firewall
+- or by putting it behind an authenticating proxy, such as caddy or apache
+- or by putting it behind a firewall.
 
 And you can restrict what the users reaching it can do,
 by specifying the `--allow=ACCESSLEVEL` option at startup.
@@ -156,7 +154,9 @@ ACCESSLEVEL is one of:
 - `edit` - also allows editing, uploading or downloading the journal file(s)
 - `sandstorm` - (for the hledger-web Sandstorm app:) allows whichever of `view`, `add`, or `edit` are specified in the `X-Sandstorm-Permissions` HTTP header
 
-The default access level is `add`.
+The default access level is `add` when listening on a local-only address
+(`127.0.0.1`, `::1`, `localhost`, or a unix socket), and `view` otherwise.
+To allow more than the default access, start it with an explicit `--allow=add` or `--allow=edit` option.
 
 # EDITING, UPLOADING, DOWNLOADING
 
