@@ -75,12 +75,14 @@ main = do
 
   -- convert to release notes format
   let
+    -- if there are markdown sub-headings in the changelog, demote them by two levels to fit in the usual relnots structure
+    demote = demoteHeadings 2
     newrelnotesheading = printf "## %s hledger-%s\n" date ver
     newrelnotesbody = intercalate "\n\n" [
-      changelogHeadingToRelnotesHeading "hledger" hledgerChangesHeading,        hledgerChanges,
-      changelogHeadingToRelnotesHeading "hledger-ui" hledgerUiChangesHeading,   hledgerUiChanges,
-      changelogHeadingToRelnotesHeading "hledger-web" hledgerWebChangesHeading, hledgerWebChanges,
-      "### project changes " <> ver <> "\n",                                    projectChanges,
+      changelogHeadingToRelnotesHeading "hledger" hledgerChangesHeading,        demote hledgerChanges,
+      changelogHeadingToRelnotesHeading "hledger-ui" hledgerUiChangesHeading,   demote hledgerUiChanges,
+      changelogHeadingToRelnotesHeading "hledger-web" hledgerWebChangesHeading, demote hledgerWebChanges,
+      "### project changes " <> ver <> "\n",                                    demote projectChanges,
       "### credits " <> ver <> "\n",                                            intercalate ",\n" relauthors <> ".\n"
       ] <> "\n\n"
 
@@ -123,6 +125,15 @@ relnotesSections alltext = (unlines preamble, firstsectionver, firstsectionhighl
     (firstsectionls, restls) = span (not.isReleaseHeading) ls3
     firstsectionbody = unlines $ firstsectionheading : firstsectionls
     rest = unlines restls
+
+-- Prepend n '#'s to every ATX-style markdown heading line (one or more
+-- leading '#'s followed by a space). Demotes # -> #+n, ## -> ##+n, etc.
+demoteHeadings :: Int -> String -> String
+demoteHeadings n = unlines . map demote . lines
+  where
+    demote s = case span (=='#') s of
+      (hs@(_:_), ' ':_) -> replicate n '#' <> s
+      _                 -> s
 
 unlines' = intercalate "\n"
 
