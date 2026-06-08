@@ -18,6 +18,37 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
+# 7eb4ed33
+
+Doc updates
+
+- stack, cabal: re-test & refine all build plans for aeson 2.3 etc; update install page to disrecommend non-source-tree builds
+- AI policy, FAQ, and journal: many updates, links, and cleanups; new project AI usage journal at `doc/ai/ai.journal`.
+- `check basis`: explain the strict-comparison rationale; list the escape hatches. [#2636]
+- SPEC-lots: align with the user manual's lot reporting restructure.
+- New PLAN-commodity-preferred-symbols.md; archived PLAN-ugain.md.
+- ACHIEVEMENTS: better star-history link, top 10 apps; log scale by default.
+- PULLREQUESTS: cross-link to COMMITS and AI.
+- REGRESSIONS: mention the latest release; [#2642].
+- RELEASING, ANNOUNCE, and release notes updates.
+
+Infrastructure/tools
+
+- cabal.project: consolidate workarounds (haskeline Windows bug [#2410], yesod-static bounds bug); general cleanup.
+- Stack: bump dev/release builds and scripts to nightly-2026-06-01.
+- CI: more linux-binary workarounds for dependency bugs and bounds.
+- PR template updated, mentioning the AI policy.
+- New `just ai` scripts and updates.
+- CI: fix references to the old `master` branch in workflows.
+- New `regen-shelltests` script and Claude Code skill.
+- Fix `just devver`.
+- Gitignore updates.
+
+[#2410]: https://github.com/simonmichael/hledger/issues/2410
+[#2636]: https://github.com/simonmichael/hledger/issues/2636
+[#2642]: https://github.com/simonmichael/hledger/issues/2642
+
+
 # 1.99.2 2026-04-28
 
 Doc updates

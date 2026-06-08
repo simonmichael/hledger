@@ -23,6 +23,41 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
+# 7eb4ed33
+
+Breaking changes
+
+- When listening on a non-local-only IP address, hledger-web now
+  allows only read-only access by default. So if you set a public
+  address with --host, you may also need --allow=add.
+
+Fixes
+
+- hledger-web now uses aeson 2.3, avoiding a denial-of-service bug in
+  that library.  Previous hledger-web versions, with /add enabled, are
+  vulnerable to HTTP requests that could trigger memory/CPU exhaustion.
+  Now it uses a fixed version of aeson (and disables /add by default,
+  except on local-only addresses).
+  (<https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html>)
+
+Features
+
+- `cur:` queries are now alias-aware; a new `exactcur:` keeps strict matching.
+  `cur:COMM` now matches COMM and every member of its commodity alias
+  group (canonical symbol plus aliases declared via the `alias:` tag).
+  Regex matching is group-aware: if the regex matches any group member,
+  the whole group is matched. `exactcur:REGEX` preserves the old exact
+  matching behaviour.
+  Alias group membership is recomputed on every journal reload, so a
+  mid-session commodity-directive change takes effect next time.
+
+Improvements
+
+Docs
+
+API
+
+
 # 1.99.2 2026-04-28
 
 Improvements

@@ -17,6 +17,45 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
+# 7eb4ed33
+
+Breaking changes
+
+Fixes
+
+- `amountIntegerWidth` was one too wide with a negative amount that
+  truncates to 0 with `Precision 0` (eg -0.3).
+
+Improvements
+
+- Rename `defaultMaxPrecision` to `defaultMaxDisplayPrecision`.
+  This constant is a display fallback for amounts representing
+  infinite decimals; the new name makes that intent explicit.
+
+- Rename `splitPostingTagName` to `feesplitPostingTagName`.
+  The tag was historically called `_split-posting` because fee-splits
+  were the only kind. Now that `_lotsplit-posting` exists for per-lot
+  splits, the names are renamed for symmetry. The tag value
+  `_split-posting` becomes `_feesplit-posting`.
+
+- `Hledger.Write.Ods`: enable digit grouping in output if `AmountStyle` declares any digit groups.
+  (Henning Thielemann)
+
+- `Hledger.Write.Ods.CommodityStyle`: use a custom data type instead of a pair.
+  (Henning Thielemann)
+
+- `Hledger.Utils.Regex`: new `regexEscape`.
+
+- `Hledger.Data.Amount`: consolidate `showPriceDirective` here.
+
+- `Hledger.Data.Journal`: new `journalBaseCurrencyCode` guesses a base currency.
+
+- `Hledger.Utils.IO`: new `withFileOrStdout`.
+
+- `Hledger.Data.Currency`: some cryptocurrency symbols added for auto-detection
+  (roughly the top 100 by market cap).
+
+
 # 1.99.2 2026-04-28
 
 Improvements

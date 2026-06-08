@@ -23,6 +23,33 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
+# 7eb4ed33
+
+Breaking changes
+
+Fixes
+
+Features
+
+- `cur:` queries are now alias-aware; a new `exactcur:` keeps strict matching.
+  `cur:COMM` now matches COMM and every member of its commodity alias
+  group (canonical symbol plus aliases declared via the `alias:` tag).
+  Regex matching is group-aware: if the regex matches any group member,
+  the whole group is matched. `exactcur:REGEX` preserves the old exact
+  matching behaviour.
+  Alias group membership is recomputed on every journal reload, so a
+  mid-session commodity-directive change takes effect next time.
+
+Improvements
+
+- The `E` key now jumps to the error position with the Zed and Sublime Text editors, also.
+  (Rostislav Raykov)
+
+Docs
+
+API
+
+
 # 1.99.2 2026-04-28
 
 Fixes

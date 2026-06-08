@@ -165,7 +165,7 @@ which provides a terminal interface.
 This key will be available if `hledger-iadd` is installed in $path.
 
 `E` runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default (`emacsclient -a "" -nw`) on the journal file.
-With some editors (emacs, vi), the cursor will be positioned at the current transaction
+With some editors, the cursor will be positioned at the current transaction
 when invoked from the register and transaction screens, and at the error location (if possible)
 when invoked from the error screen.
 
