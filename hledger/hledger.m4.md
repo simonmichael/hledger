@@ -2695,29 +2695,22 @@ Note, these tags will be queryable but won't be shown in `print` output, even wi
 
 ### Commodity aliases
 
-An `alias:` tag on a commodity directive declares one or more alternative symbols
-which should be treated as equivalent to it for valuation purposes.
-This is useful when your journal uses a familiar symbol like `$` while market
-prices are recorded against the canonical ISO code like `USD` (eg as written by
-`hledger get`):
+An `alias:` tag on a commodity directive declares one or more aliases
+(alternate symbols) for the commodity. Here USD has three aliases:
+  
+    commodity USD 1.00    ; alias: $ US$ "us dollars"
 
-```journal
-commodity 1.00 USD  ; alias: $
+A 1:1 market price is inferred between each these (it can be seen with
+the `prices` command); so `-X` reports can freely convert between them.
+This is useful eg if your journal and your downloaded market price
+data use different symbols for a commodity.
 
-P 2024-01-01 EUR 1.10 USD
-```
-
-For each declared alias, hledger injects a synthetic 1:1 price directive
-(eg `$ → USD`), dated `0000-01-01`, so reports like `bal -X EUR` can convert
-amounts via the alias's canonical form.
-
-Multiple aliases can be listed in one tag value, separated by whitespace.
-Symbols containing special characters or spaces should be enclosed in double
-or single quotes:
+Multiple aliases can be separated by whitespace.  Symbols containing
+spaces should be enclosed in double or single quotes:
 
 ```journal
 commodity USD1.00
-    ; alias: $ "US$" USDOLLAR
+    ; alias: $ US$ "US DOLLAR"
 ```
 
 Aliased symbols are also accepted by `hledger check commodities`, so you
