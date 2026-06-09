@@ -18,7 +18,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 7eb4ed33
+# 12e76d3d
 
 Doc updates
 
@@ -34,6 +34,7 @@ Doc updates
 
 Infrastructure/tools
 
+- tools/relnotes: demote any markdown headings in changelogs, to fit in release notes
 - cabal.project: consolidate workarounds (haskeline Windows bug [#2410], yesod-static bounds bug); general cleanup.
 - Stack: bump dev/release builds and scripts to nightly-2026-06-01.
 - CI: more linux-binary workarounds for dependency bugs and bounds.

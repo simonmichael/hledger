@@ -28,7 +28,7 @@ AI usage
 User-visible changes in the hledger command line tool and library.
 
 
-# 7eb4ed33
+# 12e76d3d
 
 #### Breaking changes
 
