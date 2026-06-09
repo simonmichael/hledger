@@ -33,7 +33,7 @@ endPosition = Just (-1, Nothing)
 -- and return the exit code; or raise an error.
 -- hledger-iadd is an alternative to the built-in add command.
 runIadd :: FilePath -> IO ExitCode
-runIadd f = runCommand ("hledger-iadd -f " ++ f) >>= waitForProcess
+runIadd f = runCommand ("hledger-iadd -f " ++ shellQuoteIfNeeded f) >>= waitForProcess
 
 -- | Run the user's preferred text editor (or try a default editor),
 -- on the given file, blocking until it exits, and return the exit
@@ -99,7 +99,7 @@ editFileAtPositionCommand :: Maybe TextPosition -> FilePath -> IO String
 editFileAtPositionCommand mpos f = do
   cmd <- getEditCommand
   let editor = lowercase $ takeBaseName $ headDef "" $ words' cmd
-      f' = singleQuoteIfNeeded f
+      f' = shellQuoteIfNeeded f
       mpos' = Just . bimap show (fmap show) =<< mpos
       join sep = intercalate sep . catMaybes
       args = case editor of

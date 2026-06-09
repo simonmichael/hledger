@@ -11,6 +11,7 @@ module Hledger.Utils.String (
  -- quoting
  quoteIfNeeded,
  singleQuoteIfNeeded,
+ shellQuoteIfNeeded,
  quoteForCommandLine,
  -- quotechars,
  -- whitespacechars,
@@ -41,6 +42,7 @@ import Data.Char (isSpace, toLower, toUpper)
 import Data.List (intercalate, dropWhileEnd)
 import Data.Text qualified as T
 import Safe (headErr, tailErr)
+import System.Info (os)
 import Text.Megaparsec ((<|>), between, many, noneOf, sepBy)
 import Text.Megaparsec.Char (char)
 import Text.Printf (printf)
@@ -154,6 +156,18 @@ singleQuoteIfNeeded s | any (`elem` s) (quotechars++whitespacechars) = singleQuo
 -- | Prepend and append single quotes to a string.
 singleQuote :: String -> String
 singleQuote s = "'"++s++"'"
+
+-- | Quote a string if needed for use as one argument in a shell command line
+-- on the current platform. Uses double-quote escaping on Windows (cmd.exe does
+-- not recognise single quotes as a quoting character); elsewhere uses single
+-- quotes, which are literal in POSIX shells. Use this whenever interpolating
+-- a path or other string into a command that will be passed to
+-- 'System.Process.runCommand', 'System.Process.callCommand', or
+-- 'System.Process.shell'.
+shellQuoteIfNeeded :: String -> String
+shellQuoteIfNeeded
+  | os == "mingw32" = quoteIfNeeded
+  | otherwise       = singleQuoteIfNeeded
 
 -- | Try to single- and backslash-quote a string as needed to make it usable
 -- as an argument on a (sh/bash) shell command line. At least, well enough 

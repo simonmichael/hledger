@@ -29,7 +29,7 @@ import System.IO
 import System.IO.Temp
 import System.Process
 
-import Hledger.Utils (first3, second3, third3, embedFileRelative, error')
+import Hledger.Utils (first3, second3, third3, embedFileRelative, error', shellQuoteIfNeeded)
 import Text.Printf (printf)
 import System.Environment (lookupEnv)
 import Hledger.Utils.Debug
@@ -107,7 +107,7 @@ runInfoForTopic tool mtopic =
     BC.hPutStrLn h $ manualInfo tool
     hClose h
     callCommand $ dbg1 "info command" $
-      "info -f " ++ f ++ maybe "" (printf " -n '%s'") mtopic
+      "info -f " ++ shellQuoteIfNeeded f ++ maybe "" (printf " -n '%s'") mtopic
 
 -- less with any vertical whitespace squashed, case-insensitive searching, the $ regex metacharacter accessible as \$.
 less = "less -s -i --use-backslash"
@@ -129,7 +129,7 @@ runPagerForTopic tool mtopic = do
         case mtopic of
           Nothing -> (envpager, "")
           Just t  -> (less, "-p'^(   )?" ++ t ++ if exactmatch then "\\$'" else "")
-    callCommand $ dbg1 "pager command" $ unwords [pager, searcharg, f]
+    callCommand $ dbg1 "pager command" $ unwords [pager, searcharg, shellQuoteIfNeeded f]
 
 -- | Display a man page for this tool, scrolled to the given topic if provided, using "man".
 -- When a topic is provided we force man to use "less", ignoring $MANPAGER and $PAGER.
@@ -145,7 +145,7 @@ runManForTopic tool mtopic =
         case mtopic of
           Nothing -> ""
           Just t  -> "-P \"" ++ less ++ " -p'^(   )?" ++ t ++ (if exactmatch then "\\\\$" else "") ++ "'\""
-    callCommand $ dbg1 "man command" $ unwords ["man", pagerarg, f]
+    callCommand $ dbg1 "man command" $ unwords ["man", pagerarg, shellQuoteIfNeeded f]
 
 -- | Get the named tldr page's source, if we know it.
 tldr :: TldrPage -> Maybe ByteString
@@ -165,7 +165,7 @@ runTldrForPage name =
         -- tlrc - ?
         -- tldr-node-client - undocumented env var suggested in output
         setEnv "TLDR_AUTO_UPDATE_DISABLED" "1"
-        callCommand $ dbg1 "tldr command" $ "tldr --render " <> f
+        callCommand $ dbg1 "tldr command" $ "tldr --render " <> shellQuoteIfNeeded f
       ) `catch` (\(_e::IOException) -> do
         hPutStrLn stderr $ "Warning: could not run tldr --render, using fallback viewer instead.\n"
         BC.putStrLn b
