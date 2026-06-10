@@ -20,10 +20,6 @@ extra-deps:
 - attoparsec-aeson-2.2.2.0
 - text-iso8601-0.2.0.0
 allow-newer: true
-allow-newer-deps:
-  - aeson-pretty
-  - http-api-data
-  - persistent
 
 nix:
   pure: false

@@ -21,10 +21,6 @@ extra-deps:
 - character-ps-0.1
 - text-iso8601-0.2.0.0
 allow-newer: true
-allow-newer-deps:
-- aeson
-- aeson-pretty
-- persistent
 
 nix:
   pure: false
