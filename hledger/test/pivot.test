@@ -130,7 +130,57 @@ $ hledger -f- --pivot acct:kind:project bal ^expense -N
                   20  expenses:equipment:job2
                   25  expenses:fee:job2
 
-# ** 12. Pivot on the commodity symbol with "comm".
+# ** 12. Pipe fallback: use first non-empty value among alternatives within a component.
+# When the tag is present, its value is used.
+<
+2024/01/01 Lunch
+    assets:bank                      30 USD
+    expenses:food                   -30 USD  ; mynotes: tasty lunch
+$ hledger -f- --pivot 'mynotes|desc' print
+2024-01-01 Lunch
+    Lunch                                         30 USD
+    tasty lunch                                  -30 USD  ; mynotes: tasty lunch
+
+>= 0
+
+# ** 13. Pipe fallback: when the first alternative is absent, the next is used.
+# The assets posting has no mynotes tag, so it falls back to desc.
+<
+2024/01/01 Lunch
+    assets:bank                      30 USD
+    expenses:food                   -30 USD  ; mynotes: tasty lunch
+$ hledger -f- --pivot 'mynotes|desc' bal --no-total
+              30 USD  Lunch
+             -30 USD  tasty lunch
+
+# ** 14. Three-way pipe fallback: first non-empty among three alternatives.
+<
+2024/01/01 Meeting
+    assets:bank                      10 USD
+    expenses:misc                   -10 USD  ; project: alpha
+$ hledger -f- --pivot 'mynotes|project|desc' bal --no-total
+              10 USD  Meeting
+             -10 USD  alpha
+
+# ** 15. Pipe fallback combined with colon composition.
+# acct:tag1|tag2 builds a two-level account name; fallback applies per component.
+<
+2024/01/01 Groceries
+    assets:bank                      50 USD
+    expenses:food                   -50 USD  ; category: produce
+$ hledger -f- --pivot 'acct:category|desc' bal --no-total
+              50 USD  assets:bank:Groceries
+             -50 USD  expenses:food:produce
+
+# ** 16. All alternatives absent: result is empty string (existing behaviour preserved).
+<
+2024/01/01 Test
+    assets   1 USD
+    expenses
+$ hledger -f- --pivot 'notag1|notag2' bal assets --no-total
+               1 USD  
+
+# ** 17. Pivot on the commodity symbol with "comm".
 <
 2025-01-01
     expenses   1 A
@@ -147,7 +197,7 @@ Balance changes in 2025:
 ---++----------
    || 1 A, 2 B 
 
-# ** 13. "cur" is accepted as a synonym. Postings with multiple commodities currently are lumped in the "" bucket, not pivoted fully.
+# ** 18. "cur" is accepted as a synonym. Postings with multiple commodities currently are lumped in the "" bucket, not pivoted fully.
 $ hledger -f- bal -Y assets --pivot=cur
 Balance changes in 2025:
 
@@ -157,7 +207,7 @@ Balance changes in 2025:
 --++------------
   || -1 A, -2 B 
 
-# ** 14. When commodities are being converted, the original commodity is shown.
+# ** 19. When commodities are being converted, the original commodity is shown.
 <
 2025-01-01
     expenses   1 A @ $10
@@ -174,7 +224,7 @@ Balance changes in 2025, converted to cost:
 ---++------
    || $210 
 
-# ** 15. The "" bucket looks a bit strange in this case..
+# ** 20. The "" bucket looks a bit strange in this case..
 $ hledger -f- bal -Y assets --pivot=comm -B
 Balance changes in 2025, converted to cost:
 
@@ -184,7 +234,7 @@ Balance changes in 2025, converted to cost:
 ---++-------
    || $-210 
 
-# ** 16. Pivot on amount.
+# ** 21. Pivot on amount.
 $ hledger -f- bal -Y --pivot=amt
 Balance changes in 2025:
 
@@ -196,7 +246,7 @@ Balance changes in 2025:
 ------++-----------------
       || $-210, 1 A, 2 B 
 
-# ** 17. Pivot on cost.
+# ** 22. Pivot on cost.
 $ hledger -f- bal -Y --pivot=cost
 Balance changes in 2025:
 

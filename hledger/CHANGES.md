@@ -28,6 +28,12 @@ AI usage
 User-visible changes in the hledger command line tool and library.
 
 
+Features
+
+- `--pivot` now supports `|`-separated fallback within each colon-delimited component.
+  Eg `--pivot 'mynotes|desc'` uses the `mynotes` tag value when present and non-empty,
+  otherwise falls back to the transaction description. (#1640)
+
 # 1.99.2 2026-04-28
 
 Breaking changes

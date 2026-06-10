@@ -1472,13 +1472,24 @@ pivotAccount :: Text -> Posting -> Text
 pivotAccount fieldortagname p =
   T.intercalate ":" [pivotComponent x p | x <- T.splitOn ":" fieldortagname]
 
--- | Get the value of the given field or tag for this posting.
+-- | Resolve one colon-separated pivot component for a posting.
+-- Within a component, multiple field or tag names can be separated by @|@;
+-- the first non-empty value is returned (left-to-right fallback).
+-- For example, @--pivot 'mynotes|desc'@ returns the value of the @mynotes@ tag
+-- if present and non-empty, otherwise the transaction description.
+pivotComponent :: Text -> Posting -> Text
+pivotComponent fieldortagname p =
+  case filter (not . T.null) $ map (`pivotSingleField` p) $ T.splitOn "|" fieldortagname of
+    (v:_) -> v
+    []    -> ""
+
+-- | Get the value of the given single field or tag for this posting.
 -- "comm" and "cur" are accepted as synonyms meaning the commodity symbol.
 -- Pivoting on an unknown field or tag, or on commodity when there are multiple commodities, returns "".
 -- Pivoting on a tag when there are multiple values for that tag, returns the first value.
 -- Pivoting on the "type" tag normalises type values to their short spelling.
-pivotComponent :: Text -> Posting -> Text
-pivotComponent fieldortagname p
+pivotSingleField :: Text -> Posting -> Text
+pivotSingleField fieldortagname p
   | fieldortagname == "code",        Just t <- ptransaction p = tcode t
   | fieldortagname `elem` descnames, Just t <- ptransaction p = tdescription t
   | fieldortagname == "payee",       Just t <- ptransaction p = transactionPayee t
