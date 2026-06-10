@@ -1828,7 +1828,7 @@ ai-ccusagej-update:
 
 # Show claude code monthly usage (by default).
 @ai-ccusagej-monthly *BALARGS:
-    just ai-ccusagej bal -M {{ BALARGS }}
+    just ai-ccusagej-bal -M {{ BALARGS }}
 
 # Show claude code daily usage this month (by default).
 @ai-ccusagej-daily *BALARGS:
