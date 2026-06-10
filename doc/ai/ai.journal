@@ -3,17 +3,20 @@
 # YYYY-MM-01 is an estimate for usage in YYYY-MM.
 
 2026-01-01 sm
-    (ai)                                         796 opus_output_tokens
+    (ai)                                         771 opus_output_tokens
 
 2026-02-01 sm
-    (ai)                                       53205 opus_output_tokens
+    (ai)                                       53229 opus_output_tokens
 
 2026-03-01 sm
-    (ai)                                      117518 opus_output_tokens
+    (ai)                                      112112 opus_output_tokens
 
 2026-04-01 sm
-    (ai)                                     2001479 opus_output_tokens
+    (ai)                                      686507 opus_output_tokens
 
-2026-04-01 adamsardo | 2582
+2026-04-01 adamsardo | #2582
     (ai)                                       20000 codex_output_tokens  ; time:2-3h interactive
+
+2026-05-01 sm
+    (ai)                                     2680593 opus_output_tokens
 
