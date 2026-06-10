@@ -18,4 +18,6 @@ extra-deps:
 # https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html
 - aeson-2.3.0.0
 - text-iso8601-0.2.0.0
+# bounds allow a lower haskeline version, but here we can require 0.8.4.1, avoiding #2410 on Windows.
+- haskeline-0.8.4.1
 allow-newer: true
