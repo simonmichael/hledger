@@ -1762,7 +1762,7 @@ ai-ccusagej-update:
 
     # commodities
     commodity $1.
-    commodity 1,000.t            ; generic total tokens
+    commodity 1,000.t            ; generic total tokens, alias: opus_output_tokens
     commodity 1,000.0kt          ; kilotokens
     commodity 1,000.0Mt          ; megatokens
     commodity 1,000.0Gt          ; gigatokens
