@@ -6,11 +6,13 @@
 | .__/|_|  \___// |\___|\___|\__|
 |_|           |__/
 
-Doc updates
+## Docs
 
-Website
+## Website
 
-Infrastructure/tools
+## Tools/infrastructure
+
+## AI usage
 
 -->
 
@@ -20,30 +22,51 @@ For package-specific changes, see the hledger package changelogs.
 
 # 12e76d3d
 
-Doc updates
+## Docs
 
-- stack, cabal: re-test & refine all build plans for aeson 2.3 etc; update install page to disrecommend non-source-tree builds
-- AI policy, FAQ, and journal: many updates, links, and cleanups; new project AI usage journal at `doc/ai/ai.journal`.
-- `check basis`: explain the strict-comparison rationale; list the escape hatches. [#2636]
-- SPEC-lots: align with the user manual's lot reporting restructure.
-- New PLAN-commodity-preferred-symbols.md; archived PLAN-ugain.md.
-- ACHIEVEMENTS: better star-history link, top 10 apps; log scale by default.
-- PULLREQUESTS: cross-link to COMMITS and AI.
-- REGRESSIONS: mention the latest release; [#2642].
-- RELEASING, ANNOUNCE, and release notes updates.
+- Install: add Building outside the source tree
+- AI policy/FAQ/journal: updates, links; start journalling estimated project AI usage
+- SPEC-lots: align with the user manual's restructure of Lot reporting
+- PLAN-commodity-preferred-symbols, PLAN-ugain
+- ACHIEVEMENTS: better star-history link, top 10 apps
+- PULLREQUESTS: cross-link to COMMITS and AI
+- REGRESSIONS: [#2642]
+- RELEASING, ANNOUNCE, relnotes updates
 
-Infrastructure/tools
+## Tools/infrastructure
 
 - tools/relnotes: demote any markdown headings in changelogs, to fit in release notes
 - cabal.project: consolidate workarounds (haskeline Windows bug [#2410], yesod-static bounds bug); general cleanup.
-- Stack: bump dev/release builds and scripts to nightly-2026-06-01.
-- CI: more linux-binary workarounds for dependency bugs and bounds.
-- PR template updated, mentioning the AI policy.
-- New `just ai` scripts and updates.
-- CI: fix references to the old `master` branch in workflows.
-- New `regen-shelltests` script and Claude Code skill.
-- Fix `just devver`.
-- Gitignore updates.
+- stack: bump dev/release builds and scripts to nightly-2026-06-01.
+- ci: fix old references to `master` in workflows
+- ci: linux binaries: more workarounds for dependency/bounds bugs
+- pr template: update, mention the AI policy
+- `just ai*` usage report scripts
+- `tools/regen-shelltests.py` script, `regen-shelltests` claude code skill
+- `just devver`: fix
+- gitignore updates
+
+## AI usage
+
+hledger 2.x releases use AI-assisted development; our AI policy is at <https://hledger.org/AI.html>.
+All changes were steered, reviewed, and tested by Simon or a contributor.
+
+For 1.99.3, mostly opus 4.7 was used. My token usage report method and
+outputs have changed since last time and are not guaranteed correct,
+but here's my current estimate of tokens used per month:
+
+```
+            output tokens  release
+ Jan       ||       771 || 
+ Feb       ||    53,229 || 
+ Mar       ||   112,112 || 1.99.1
+ Apr       ||   686,507 || 1.99.2
+ May       || 2,680,593 || 
+ Jun       ||   737,780 || 1.99.3
+   Total   || 4,270,992 || 
+ Average   ||   711,832 || 
+```
+
 
 [#2410]: https://github.com/simonmichael/hledger/issues/2410
 [#2636]: https://github.com/simonmichael/hledger/issues/2636
