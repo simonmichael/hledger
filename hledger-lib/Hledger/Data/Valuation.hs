@@ -307,6 +307,14 @@ amountValueAtDate priceoracle styles mto d a =
 -- between the valued amount and the value of the cost basis (see
 -- mixedAmountApplyValuation).
 --
+-- Note: the "cost basis" subtracted here is the sum of every contributing
+-- posting's transacted cost, regardless of direction. When a disposal posting
+-- records its sale price with @ (rather than carrying lot cost via {cost}),
+-- the negative quantity flips its cost contribution from acquisition cost to
+-- negated sale proceeds, so the result accumulates realised gain alongside
+-- any unrealised gain on remaining units. In other words, with bare @ this
+-- reports total gain since inception.
+--
 -- If the commodity we are valuing in is not the same as the commodity of the
 -- cost, this will value the cost at the same date as the primary amount. This
 -- may not be what you want; for example you may want the cost valued at the

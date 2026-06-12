@@ -3,7 +3,7 @@
 (bal)
 
 A flexible, general purpose "summing" report that shows accounts with some kind of numeric data.
-This can be balance changes per period, end balances, budget performance, unrealised capital gains, etc.
+This can be balance changes per period, end balances, budget performance, capital gains, etc.
 
 ```flags
 Flags:
@@ -12,9 +12,10 @@ Flags:
      --valuechange          calculation mode: show total change of value of
                             period-end historical balances (caused by deposits,
                             withdrawals, market price fluctuations)
-     --gain                 calculation mode: show unrealised capital
-                            gain/loss (historical balance value minus cost
-                            basis)
+     --gain                 calculation mode: show capital gain/loss
+                            (historical balance value minus the net of
+                            postings' transacted costs; equals unrealised
+                            gain if nothing has been disposed of)
      --budget[=DESCPAT]     calculation mode: show sum of posting amounts
                             together with budget goals defined by periodic
                             transactions. With a DESCPAT argument (must be
@@ -101,7 +102,7 @@ Many of these work with the other balance-like commands as well (`bs`, `cf`, `is
 - or actual and planned balance changes ([`--budget`](#budget-report))
 - or value of balance changes ([`-V`](#valuation-mode))
 - or change of balance values ([`--valuechange`](#balance-report-modes))
-- or unrealised capital gain/loss ([`--gain`](#balance-report-modes))
+- or capital gain/loss ([`--gain`](#balance-report-modes))
 - or balance changes from sibling postings (`--related`/`-r`)
 - or postings count ([`--count`](#balance-report-modes))
 
@@ -502,8 +503,12 @@ It is one of:
 - `--budget` : sum the amounts, but also show the budget goal amount (for each account/period)
 - `--valuechange` : show the change in period-end historical balance values
   (caused by deposits, withdrawals, and/or market price fluctuations)
-- `--gain` : show the unrealised capital gain/loss, (the current valued balance
-  minus each amount's original cost)
+- `--gain` : show capital gain/loss for each account: the current valued balance
+  minus the net of postings' transacted costs (acquisition costs minus disposal
+  proceeds). For accounts where nothing has been sold this equals the unrealised
+  gain; once disposals exist the figure also includes realised gain on the
+  disposed units, so it is best read as "total gain since inception".
+  To track realised gain separately, use lot notation (see [Lot reporting](#lot-reporting)).
 - `--count` : show the count of postings
 
 #### Accumulation mode
