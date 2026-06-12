@@ -314,11 +314,10 @@ main = handleExit $ withGhcDebug' $ do
 
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $ do
-    let srcnote = case (not (null confcmdarg), mconffile) of
-          (True, Just f) -> " (from config file " <> f <> ")"
-          _              -> ""
-    error' $ "command " <> cmdarg <> srcnote
-          <> " is not recognised. Run with no command to see a list."
+    let (srcnote, hint) = case (not (null confcmdarg), mconffile) of
+          (True, Just f) -> (" (from config file " <> f <> ")", "")
+          _              -> ("", " Run with no command to see a list.")
+    error' $ "command " <> cmdarg <> srcnote <> " is not recognised." <> hint
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
