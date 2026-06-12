@@ -3836,7 +3836,7 @@ This can be confusing, so let's start with an overview:
   then its value will be automatically assigned to that hledger field.
 
 - For a CSV with the following fields:
-  accounttype, accounted, `date`,, type, payee, `amount`, for example:
+  accounttype, accountid, `date`,, type, payee, `amount`, for example:
   ```csv
   Chequing,12345-1111111,5/1/2026,,"WWW TRF DDA - 2651",,-50.00,,
   Savings,12345-2222222,5/1/2026,,"Transfer","WWW TRANSFER - 1743 ",50.00,,
