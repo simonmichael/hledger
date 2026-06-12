@@ -4145,9 +4145,9 @@ When using these, there's two things to be aware of:
    (this makes it easier to reuse common rules with different CSV files).
    Don't use a hledger field name here (see [CSV fields and hledger fields](#csv-fields-and-hledger-fields)).
 
-You can also prefix a matcher with `!` (and optional space) to negate it.
+You can also prefix a matcher with `!` to negate it.
 Eg `! whole foods`, `! %3 whole foods`, `!%description whole foods` will match if "whole foods" is NOT present.
-*Added in 1.32.*
+*Since 1.32.*
 
 The pattern is, as usual in hledger, a POSIX extended regular expression
 that also supports GNU word boundaries (`\b`, `\B`, `\<`, `\>`) and nothing else.
