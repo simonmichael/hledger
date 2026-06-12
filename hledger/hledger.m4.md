@@ -3865,7 +3865,7 @@ This can be confusing, so let's start with an overview:
   WWW TRF DDA
     account2 equity:transfers
   if HYDRO
-  account2 expenses:utilities:hydro
+    account2 expenses:utilities:hydro
   ```
 
 - CSV fields can only be read, not written to. They'll be on the right hand side, with a % prefix. Eg
