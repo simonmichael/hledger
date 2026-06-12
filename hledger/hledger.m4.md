@@ -3848,7 +3848,7 @@ This can be confusing, so let's start with an overview:
   # combine type and payee to fill hledger's description
   description %type %payee
   ```
-  the following description to payee mapping rules will fail, because hledger rules match per-CSV field:
+  the following description to payee mapping rules will fail, because hledger rules match per-CSV field and *not* the hledger %description that is printed anywhere output is supported:
   ```rules
   if
   Transfer WWW TRANSFER
