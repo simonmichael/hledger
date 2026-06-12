@@ -127,6 +127,7 @@ Here are the regressions found since 2020.
 [#2514]: https://github.com/simonmichael/hledger/issues/2514
 [#2553]: https://github.com/simonmichael/hledger/issues/2553
 [#2564]: https://github.com/simonmichael/hledger/issues/2564
+[#2642]: https://github.com/simonmichael/hledger/issues/2642
 
 <!-- 
 This table keeps evolving. Bold things are unresolved. The formatting evolves like this:
