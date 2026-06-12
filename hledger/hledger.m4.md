@@ -3835,6 +3835,39 @@ This can be confusing, so let's start with an overview:
 - For simple cases, you can give a CSV field the same name as one of the hledger fields,
   then its value will be automatically assigned to that hledger field.
 
+- For a CSV with the following fields:
+  accounttype, accounted, `date`,, type, payee, `amount`, for example:
+  ```csv
+  Chequing,12345-1111111,5/1/2026,,"WWW TRF DDA - 2651",,-50.00,,
+  Savings,12345-2222222,5/1/2026,,"Transfer","WWW TRANSFER - 1743 ",50.00,,
+  Chequing,12345-1111111,5/10/2026,,"Payment","WWW PAYMENT - 1745 HYDRO ",-55.66,,
+  ```
+  with the following rules
+  ```rules
+  fields accounttype, accountid, date,, type, payee, amount
+  # combine type and payee to fill hledger's description
+  description %type %payee
+  ```
+  the following description to payee mapping rules will fail, because hledger rules match per-CSV field:
+  ```rules
+  if
+  Transfer WWW TRANSFER
+  WWW TRF DDA  # <- This one will succeed
+    account2 equity:transfers
+  if Payment HYDRO
+    account2 expenses:utilities:hydro
+
+  ```
+  rather then the above rules, the following (which are scoped to single CSV field) must be used:
+  ```rules
+  if
+  Transfer
+  WWW TRF DDA
+    account2 equity:transfers
+  if HYDRO
+  account2 expenses:utilities:hydro
+  ```
+
 - CSV fields can only be read, not written to. They'll be on the right hand side, with a % prefix. Eg
   - testing a CSV field's value: `if %CSVFIELD ...`
   - interpolating its value:     `HLEDGERFIELD %CSVFIELD`
