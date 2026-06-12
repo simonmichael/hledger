@@ -433,7 +433,15 @@ amountWizard previnput@PrevInput{..} state@AddState{..} = do
             | (p, minferredamt) <- zip asPostings (asInferredAmounts ++ repeat Nothing)
             ]
       balancingamtfirstcommodity = mixed . take 1 $ amounts balancingamt
-      showamt = wbUnpack . showMixedAmountB defaultFmt . mixedAmountSetPrecision
+      -- Note, apply the journal's commodity display styles so default
+      -- inputs match the journal's format even when summing amounts
+      -- that were entered with different or missing styles (#2645).
+      -- NoRounding preserves the NaturalPrecision we set, so all
+      -- significant digits are shown.
+      showamt = wbUnpack
+              . showMixedAmountB defaultFmt
+              . styleAmounts (journalCommodityStylesWith NoRounding asJournal)
+              . mixedAmountSetPrecision
                   -- what should this be ?
                   -- 1 maxprecision (show all decimal places or none) ?
                   -- 2 maxprecisionwithpoint (show all decimal places or .0 - avoids some but not all confusion with thousands separators) ?
