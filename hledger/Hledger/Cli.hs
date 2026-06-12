@@ -313,8 +313,12 @@ main = handleExit $ withGhcDebug' $ do
   dbgio "is addon command" isaddoncmd
 
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
-  when badcmdprovided $
-    error' $ "command "++clicmdarg++" is not recognized. Run with no command to see a list."
+  when badcmdprovided $ do
+    let srcnote = case (not (null confcmdarg), mconffile) of
+          (True, Just f) -> " (from config file " <> f <> ")"
+          _              -> ""
+    error' $ "command " <> cmdarg <> srcnote
+          <> " is not recognised. Run with no command to see a list."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
