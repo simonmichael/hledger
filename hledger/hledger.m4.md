@@ -4231,6 +4231,10 @@ they can express many matchers and field assignments in a more compact tabular f
 
 ```rules
 if,HLEDGERFIELD1,HLEDGERFIELD2,...
+TODO: /\ This is wrong if hledger is supposed to only match CSV fields
+         Alternatively, this documentation is correct, and hledger is buggy.
+         The resolution would then be to matching for a %description that is spans multiple contatenated values.
+         Alternatively hledgerfield is wrong because there is a middle-processing step where description="type string,payee string".  In this case this middle step must be noted in the documentation, becaues hledgerfield=description is what appears in the journal and what the user expects.
 MATCHERA,VALUE1,VALUE2,...
 MATCHERB && MATCHERC,VALUE1,VALUE2,...  (*since 1.42*)
 ; Comment line that explains MATCHERD
