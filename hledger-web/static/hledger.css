@@ -92,7 +92,9 @@ ul {
 }
 
 #sidebar-menu {
-    overflow:hidden;
+    max-height: calc(100vh - 5.5em);
+    overflow-x:hidden;
+    overflow-y:auto;
     border-right: 1px solid #ebebeb;
 }
 #sidebar-menu .main-menu {

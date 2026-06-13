@@ -4,35 +4,12 @@
 // STARTUP
 
 $(document).ready(function() {
+  hledgerInitGlobal();
+  hledgerInitPage();
+  hledgerInitAjaxNavigation();
+});
 
-  // add form helpers XXX move to addForm ?
-
-  // date picker
-  // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
-  var dateEl = $('#dateWrap').datepicker({
-    showOnFocus: false,
-    autoclose: true,
-    format: 'yyyy-mm-dd',
-    todayHighlight: true,
-    weekStart: 1 // Monday
-  });;
-
-  // focus and pre-fill the add form whenever it is shown
-  $('#addmodal')
-    .on('shown.bs.modal', function() {
-      addformFocus();
-    })
-    .on('hidden.bs.modal', function() {
-      // close the date picker if open
-      dateEl.datepicker('hide');
-    });
-
-  // ensure that the keypress listener on the final amount input is always active
-  $('#addform')
-    .on('focus', '.amount-input:last', function() {
-      addformLastAmountBindKey();
-    });
-
+function hledgerInitGlobal() {
   // keyboard shortcuts
   // 'body' seems to hold focus better than document in FF
   $('body').bind('keydown', 'h',       function(){ $('#helpmodal').modal('toggle'); return false; });
@@ -55,7 +32,154 @@ $(document).ready(function() {
   $('[data-toggle="offcanvas"]').click(function () {
       $('.row-offcanvas').toggleClass('active');
   });
-});
+}
+
+function hledgerInitPage() {
+
+  // add form helpers XXX move to addForm ?
+
+  // date picker
+  // http://bootstrap-datepicker.readthedocs.io/en/latest/options.html
+  var dateEl = $('#dateWrap').datepicker({
+    showOnFocus: false,
+    autoclose: true,
+    format: 'yyyy-mm-dd',
+    todayHighlight: true,
+    weekStart: 1 // Monday
+  });;
+
+  // focus and pre-fill the add form whenever it is shown
+  $('#addmodal')
+    .off('shown.bs.modal.hledger hidden.bs.modal.hledger')
+    .on('shown.bs.modal.hledger', function() {
+      addformFocus();
+    })
+    .on('hidden.bs.modal.hledger', function() {
+      // close the date picker if open
+      dateEl.datepicker('hide');
+    });
+
+  // ensure that the keypress listener on the final amount input is always active
+  $('#addform')
+    .off('focus.hledger')
+    .on('focus.hledger', '.amount-input:last', function() {
+      addformLastAmountBindKey();
+    });
+}
+
+function hledgerInitAjaxNavigation() {
+  if (!window.history || !window.history.pushState || !window.DOMParser || !window.URL || !window.location.origin) {
+    return;
+  }
+
+  $(document).off('click.hledgerAjaxNavigation')
+    .on('click.hledgerAjaxNavigation', '#sidebar-menu a[href], #main-content a[href]', function(ev) {
+      if (!hledgerAjaxCanHandleLink(this, ev)) {
+        return;
+      }
+      ev.preventDefault();
+      hledgerAjaxNavigate(this.href, true);
+    });
+
+  $(window).off('popstate.hledgerAjaxNavigation')
+    .on('popstate.hledgerAjaxNavigation', function() {
+      hledgerAjaxNavigate(window.location.href, false);
+    });
+}
+
+function hledgerAjaxCanHandleLink(link, ev) {
+  if (ev.isDefaultPrevented() || ev.metaKey || ev.ctrlKey || ev.shiftKey || ev.altKey) {
+    return false;
+  }
+  if (link.target && link.target !== '_self') {
+    return false;
+  }
+
+  var url = new URL(link.href, window.location.href);
+  if (url.origin !== window.location.origin) {
+    return false;
+  }
+
+  var path = url.pathname.replace(/\/$/, '');
+  return path === hledgerAjaxRoutePath('/journal') || path === hledgerAjaxRoutePath('/register');
+}
+
+function hledgerAjaxRoutePath(route) {
+  var base = new URL(document.hledgerWebBaseurl, window.location.href);
+  var basePath = base.pathname.replace(/\/$/, '');
+  return basePath + route;
+}
+
+function hledgerAjaxNavigate(href, pushHistory) {
+  $.ajax({
+    url: href,
+    method: 'GET',
+    dataType: 'html',
+    cache: false
+  }).done(function(html) {
+    if (!hledgerAjaxApplyPage(html, href, pushHistory)) {
+      window.location.href = href;
+    }
+  }).fail(function() {
+    window.location.href = href;
+  });
+}
+
+function hledgerAjaxApplyPage(html, href, pushHistory) {
+  var doc = new DOMParser().parseFromString(html, 'text/html');
+  var newMain = doc.querySelector('#main-content');
+  var newSidebar = doc.querySelector('#sidebar-menu');
+  if (!newMain || !newSidebar) {
+    return false;
+  }
+
+  var $oldSidebar = $('#sidebar-menu');
+  var sidebarScrollTop = $oldSidebar.scrollTop();
+  var $newMain = $(newMain);
+  var scripts = $newMain.find('script').remove().toArray();
+
+  $('#main-content').replaceWith($newMain);
+  $oldSidebar.find('.main-menu').replaceWith($(newSidebar).find('.main-menu'));
+  $oldSidebar.scrollTop(sidebarScrollTop);
+
+  if (doc.title) {
+    document.title = doc.title;
+  }
+  if (pushHistory) {
+    window.history.pushState({hledgerAjax: true}, doc.title || '', href);
+  }
+
+  hledgerInitPage();
+  hledgerAjaxRunScripts(scripts);
+  hledgerHighlightHash();
+  hledgerScrollToHashOrTop();
+  return true;
+}
+
+function hledgerAjaxRunScripts(scripts) {
+  $.each(scripts, function(_i, script) {
+    if (script.src) {
+      $.ajax({url: script.src, dataType: 'script', async: false});
+    } else {
+      $.globalEval(script.text || script.textContent || script.innerHTML || '');
+    }
+  });
+}
+
+function hledgerHighlightHash() {
+  $('.highlighted').removeClass('highlighted');
+  if (window.location.hash && $(window.location.hash)[0]) {
+    $(window.location.hash).addClass('highlighted');
+  }
+}
+
+function hledgerScrollToHashOrTop() {
+  if (window.location.hash && $(window.location.hash)[0]) {
+    window.scrollTo(0, $(window.location.hash).offset().top);
+  } else {
+    window.scrollTo(0, 0);
+  }
+}
 
 //----------------------------------------------------------------------
 // ADD FORM
