@@ -1249,9 +1249,9 @@ journalCommodityAliasGroup :: Journal -> CommoditySymbol -> [CommoditySymbol]
 journalCommodityAliasGroup j s =
   M.findWithDefault [s] s (journalCommodityAliasGroups j)
 
--- | Rewrite Sym terms in a query to also match all alias-group siblings
+-- | Rewrite Cur terms in a query to also match all alias-group siblings
 -- of any declared symbol matched by the original regex, using this
--- journal's commodity declarations. SymExact terms are left untouched.
+-- journal's commodity declarations. Sym terms are left untouched.
 -- See 'queryExpandSymForAliases' for the rewrite strategy.
 queryExpandSymAliases :: Journal -> Query -> Query
 queryExpandSymAliases j =

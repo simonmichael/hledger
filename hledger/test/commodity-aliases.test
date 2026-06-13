@@ -155,8 +155,8 @@ $ hledger -f- bal cur:'U.*' --no-total
               $10.00  assets:cash
              $-10.00  equity:opening
 
-# ** 13. exactcur:COMM matches only COMM, ignoring its alias group.
-$ hledger -f- bal exactcur:USD --no-total
+# ** 13. sym:COMM matches only COMM, ignoring its alias group.
+$ hledger -f- bal sym:USD --no-total
 
 # ** 14. Separate alias groups don't bleed into each other.
 <

@@ -445,7 +445,7 @@ desc:'amazon|amzn|audible'  Amazon transactions
 cur:EUR              amounts with commodity symbol EUR (or any of its declared aliases)
 cur:\\$              amounts with commodity symbol $ (or any of its aliases)
 cur:....?            amounts with 3- or 4-character symbols (or any of their aliases)
-exactcur:EUR         amounts whose commodity is EUR (ignoring aliases)
+sym:EUR              amounts whose commodity symbol is exactly EUR (ignoring aliases)
 tag:.=202[1-3]       things with any tag whose value contains 2021, 2022 or 2023
 ```
 
@@ -5798,10 +5798,11 @@ amounts like `$1` or `1 USD` or `1 U`.
 \
 *(experimental)*
 
-### exactcur: query
-**`exactcur:FULLREGEX`**\
-This is like `cur:`, but ignores commodity aliases.
-So in the example above, `exactcur:USD` would match `1 USD` but not `$1` or `1 U`.
+### sym: query
+**`sym:FULLREGEX`**\
+This is like `cur:`, but matches a specific commodity symbol, ignoring
+alias-group relationships. So in the example above, `sym:USD` would
+match `1 USD` but not `$1` or `1 U`.
 \
 *(experimental)*
 

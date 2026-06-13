@@ -2,7 +2,7 @@
 
 ## Context
 
-Since the recent cur:/exactcur: work, hledger's `commodity` directives form
+Since the recent cur:/sym: work, hledger's `commodity` directives form
 *alias groups*: any symbols that share membership in someone's `alias:` tag,
 or that are reachable transitively, are merged into one undirected group
 ([`journalCommodityAliasGroups`](../hledger-lib/Hledger/Data/Journal.hs#L1240)).

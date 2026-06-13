@@ -77,7 +77,7 @@ User-visible changes in the hledger command line tool and library.
   your downloaded market price data use different symbols for a currency.
 
   `cur:COMM` queries now match COMM or any of its commodity aliases.
-  To match exactly the COMM symbol without considering aliases, use `exactcur:COMM`.
+  To match only a specific symbol without considering aliases, use `sym:SYM`.
 
 - `commodities`: `--used` now only shows commodities used in transactions;
   a new `--priced` flag shows commodities used in P directives.

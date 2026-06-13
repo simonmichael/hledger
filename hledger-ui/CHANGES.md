@@ -35,14 +35,10 @@ Fixes
 
 Features
 
-- `cur:` queries are now alias-aware; a new `exactcur:` keeps strict matching.
-  `cur:COMM` now matches COMM and every member of its commodity alias
-  group (canonical symbol plus aliases declared via the `alias:` tag).
-  Regex matching is group-aware: if the regex matches any group member,
-  the whole group is matched. `exactcur:REGEX` preserves the old exact
-  matching behaviour.
-  Alias group membership is recomputed on every journal reload, so a
-  mid-session commodity-directive change takes effect next time.
+- `cur:COMM` queries now match COMM or any of its commodity aliases (see hledger changelog).
+  To match only a specific symbol without considering aliases, use `sym:SYM`.
+  Aliases are recomputed on each journal reload, so a mid-session
+  change to alias definitions takes effect next time.
 
 Improvements
 
