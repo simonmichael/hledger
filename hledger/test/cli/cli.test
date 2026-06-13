@@ -93,7 +93,7 @@ $ hledger balance -h
 
 # ** 10. with an unrecognised command, give an error and non-zero exit status
 $ hledger nosuchcommand
->2 /not recognized.*to see a list/
+>2 /not recognised.*to see a list/
 >= 1
 
 # ** 11. general flags can go before command
