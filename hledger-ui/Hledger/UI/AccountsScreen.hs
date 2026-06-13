@@ -295,8 +295,8 @@ asHandleNormalMode (ALS scons ass) ev = do
     VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify' (toggleEmpty >>> regenerateScreens j d) >> centerSelection  -- back compat: accept Z as well as z
 
     -- LEFT key or a click in the app's left margin: exit to the parent screen.
-    VtyEvent e | e `elem` moveLeftEvents  -> modify' popScreen
-    VtyEvent (EvMouseUp 0 _ (Just BLeft)) -> modify' popScreen  -- this mouse click is a VtyEvent since not in a clickable widget
+    VtyEvent e | e `elem` moveLeftEvents  -> modify' (popScreenAndRegenerate d)
+    VtyEvent (EvMouseUp 0 _ (Just BLeft)) -> modify' (popScreenAndRegenerate d)  -- this mouse click is a VtyEvent since not in a clickable widget
 
     -- RIGHT key or MouseUp on an account: enter the register screen for the selected account
     VtyEvent e | e `elem` moveRightEvents, not $ isBlankItem $ listSelectedElement l -> enterRegisterScreen d selacct ui

@@ -134,11 +134,12 @@ import           Data.Colour.RGBSpace (RGB(RGB))
 import           Data.Colour.RGBSpace.HSL (lightness)
 import           Data.Colour.SRGB (sRGB)
 import           Data.Encoding (DynEncoding)
-import           Data.FileEmbed (makeRelativeToProject, embedStringFile)
+import           Data.FileEmbed (makeRelativeToProject)
 import           Data.Functor ((<&>))
 import           Data.List hiding (uncons)
 import           Data.Maybe (isJust, catMaybes)
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
 import           Data.Text.Encoding.Error (UnicodeException)
 import Data.Text.IO qualified as T
 import Data.Text.Lazy qualified as TL
@@ -150,7 +151,8 @@ import           Debug.Trace
 import           Foreign.C.Error (Errno(..), ePIPE)
 import           GHC.IO.Encoding (getLocaleEncoding, textEncodingName)
 import           GHC.IO.Exception (IOException(..), IOErrorType (ResourceVanished))
-import           Language.Haskell.TH.Syntax (Q, Exp)
+import           Language.Haskell.TH (stringE)
+import           Language.Haskell.TH.Syntax (Q, Exp, addDependentFile, runIO)
 import           Safe (headMay, maximumDef)
 import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor, ConsoleIntensity (..))
 import           System.Console.Terminal.Size (Window (Window), size)
@@ -551,7 +553,11 @@ textToHandle t = do
 
 -- | Like embedFile, but takes a path relative to the package directory.
 embedFileRelative :: FilePath -> Q Exp
-embedFileRelative f = makeRelativeToProject f >>= embedStringFile
+embedFileRelative f = do
+  p <- makeRelativeToProject f
+  addDependentFile p
+  s <- runIO $ T.unpack . T.decodeUtf8 <$> BS.readFile p
+  stringE s
 
 -- -- | Like hereFile, but takes a path relative to the package directory.
 -- -- Similar to embedFileRelative ?

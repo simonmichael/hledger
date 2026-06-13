@@ -34,11 +34,13 @@ module Hledger.UI.UIState
 ,incDepth
 ,resetDepth
 ,popScreen
+,popScreenAndRegenerate
 ,pushScreen
 ,enableForecast
 ,resetFilter
 ,resetScreens
 ,regenerateScreens
+,regenerateCurrentScreen
 )
 where
 
@@ -361,6 +363,15 @@ popScreen ui@UIState{aPrevScreens = s : ss} =
   where ui1 = ui{aPrevScreens = ss ,aScreen = s }
 popScreen ui = ui
 
+popScreenAndRegenerate :: Day -> UIState -> UIState
+popScreenAndRegenerate d ui@UIState{aPrevScreens=s:ss, aopts=opts, ajournal=j} =
+  dbg1Msg ("popping screen " <> showScreenId (aScreen ui) <> ". " <> showScreenStack "" showScreenId ui1)
+  ui1
+  where
+    s' = screenUpdate opts d j s
+    ui1 = s' `seq` ui{aPrevScreens=ss, aScreen=s'}
+popScreenAndRegenerate _ ui = ui
+
 -- | Reset options to their startup values, discard screen navigation history,
 -- and return to the top screen, regenerating it with the startup options 
 -- and the provided reporting date.
@@ -375,17 +386,41 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
 -- (using the ui state's current options), preserving the screen navigation history.
 -- Note, does not save the reporting date.
 --
--- XXX Currently this does not properly regenerate the transaction screen or error screen,
--- which depend on state from their parent(s); those screens' handlers must do additional work, which is fragile.
+-- XXX Currently this does not properly regenerate the error screen,
+-- which depends on state from its parent; that screen's handler must do additional work, which is fragile.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
 regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
   -- Re-derive _rsQuery from the user's querystring_ and re-expand cur:
   -- terms against the (possibly reloaded) journal's commodity aliases.
   -- If re-derivation fails, fall back to the existing query.
+  let opts' = uiOptsForJournal j opts
+      updateScreen = screenUpdate opts' d j
+      s' = updateScreen s
+      ss' = strictMapScreens updateScreen ss
+      ui' = ui{aopts=opts', ajournal=j, aScreen=s', aPrevScreens=ss'}
+  in s' `seq` ss' `seq` ui' `seq` ui'
+
+-- | Save a new journal and regenerate just the active screen. Hidden screens
+-- are refreshed when they become active again.
+regenerateCurrentScreen :: Journal -> Day -> UIState -> UIState
+regenerateCurrentScreen j d ui@UIState{aopts=opts, aScreen=s} =
+  let opts' = uiOptsForJournal j opts
+      s' = screenUpdate opts' d j s
+      ui' = ui{aopts=opts', ajournal=j, aScreen=s'}
+  in s' `seq` ui' `seq` ui'
+
+uiOptsForJournal :: Journal -> UIOpts -> UIOpts
+uiOptsForJournal j opts =
   let copts  = uoCliOpts opts
       rspec  = reportspec_ copts
       rspec' = case reportSpecExpandCurQueries j rspec of
                  Right rs -> rs
                  Left _   -> rspec
-      opts'  = opts{uoCliOpts = copts{reportspec_ = rspec'}}
-  in ui{aopts=opts', ajournal=j, aScreen=screenUpdate opts' d j s, aPrevScreens=map (screenUpdate opts' d j) ss}
+  in opts{uoCliOpts = copts{reportspec_ = rspec'}}
+
+strictMapScreens :: (Screen -> Screen) -> [Screen] -> [Screen]
+strictMapScreens _ [] = []
+strictMapScreens f (s:ss) =
+  let s' = f s
+      ss' = strictMapScreens f ss
+  in s' `seq` ss' `seq` s' : ss'
