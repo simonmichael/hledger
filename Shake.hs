@@ -734,7 +734,7 @@ main = do
           -- Parse the changelog.
           oldlines <- liftIO $ lines <$> readFileStrictly out
           let
-            (preamble, oldheading:rest) = span isnotheading oldlines where isnotheading = not . ("#" `isPrefixOf`)
+            (preamble, oldheading:rest) = span isnotheading oldlines where isnotheading = not . ("# " `isPrefixOf`)
             oldversion = headDef err $ drop 1 $ words oldheading
               where err = error $ "could not parse changelog heading: "++oldheading
 
