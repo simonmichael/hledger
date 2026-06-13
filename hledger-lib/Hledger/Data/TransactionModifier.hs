@@ -25,7 +25,7 @@ import Hledger.Data.Amount
 import Hledger.Data.Dates
 import Hledger.Data.Transaction (txnTieKnot, transactionAddHiddenAndMaybeVisibleTag)
 import Hledger.Query (Query, filterQuery, matchesAmount, matchesPostingExtra,
-                      parseQuery, queryIsAmt, queryIsSym, simplifyQuery)
+                      parseQuery, queryIsAmt, queryIsCurOrSym, simplifyQuery)
 import Hledger.Data.Posting (commentJoin, commentAddTag, postingAddTags, modifiedTransactionTagName)
 import Hledger.Utils (dbg6, wrap)
 
@@ -123,7 +123,7 @@ tmPostingRuleToFunction verbosetags styles query querytxt tmpr =
   where
     pr = tmprPosting tmpr
     qry = "= " <> querytxt
-    symq = filterQuery (liftA2 (||) queryIsSym queryIsAmt) query
+    symq = filterQuery (liftA2 (||) queryIsCurOrSym queryIsAmt) query
     account' = if accountTemplate `T.isInfixOf` paccount pr
                  then \p -> T.replace accountTemplate (paccount p) $ paccount pr
                  else const $ paccount pr

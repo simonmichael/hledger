@@ -44,8 +44,8 @@ module Hledger.Query (
   queryIsDepth,
   queryIsReal,
   queryIsAmt,
-  queryIsSym,
-  queryIsAmtOrSym,
+  queryIsCurOrSym,
+  queryIsAmtOrCurOrSym,
   queryIsStartDateOnly,
   queryIsTransactionRelated,
   -- * accessors
@@ -72,7 +72,7 @@ module Hledger.Query (
   matchesTag,
   -- patternsMatchTags,
   matchesPriceDirective,
-  queryExpandSymForAliases,
+  queryExpandCurForAliases,
   words'',
   queryprefixes,
   -- * tests
@@ -125,7 +125,7 @@ data Query =
   | Real Bool                 -- ^ match postings with this "realness" value
   | Amt OrdPlus Quantity      -- ^ match if the amount's numeric quantity is less than/greater than/equal to/unsignedly equal to some value
   | Sym Regexp           -- ^ match if the commodity symbol is fully matched by this regexp.
-  | Cur Regexp                -- ^ match if the commodity symbol, or any symbol in its alias group, is fully matched by this regexp. Alias awareness is applied by 'queryExpandSymForAliases' once a Journal is available.
+  | Cur Regexp                -- ^ match if the commodity symbol, or any symbol in its alias group, is fully matched by this regexp. Alias awareness is applied by 'queryExpandCurForAliases' once a Journal is available.
   -- compound queries (expr:)
   | Not Query                 -- ^ negate this match
   | And [Query]               -- ^ match if all of these match
@@ -653,8 +653,8 @@ filterQueryOrNotQuery p0 = simplifyQuery . filterQueryOrNotQuery' p0
 -- a, b, ... are the alias-group siblings of any declared symbol matched
 -- by r that are not themselves matched by r. The original Cur r is kept
 -- so non-declared symbols still match if r matches them.
-queryExpandSymForAliases :: [CommoditySymbol] -> (CommoditySymbol -> [CommoditySymbol]) -> Query -> Query
-queryExpandSymForAliases declared groupOf = transformQuery expandSym
+queryExpandCurForAliases :: [CommoditySymbol] -> (CommoditySymbol -> [CommoditySymbol]) -> Query -> Query
+queryExpandCurForAliases declared groupOf = transformQuery expandSym
   where
     expandSym (Cur r) =
       let matched  = filter (regexMatchText r) declared
@@ -734,13 +734,13 @@ queryIsAmt :: Query -> Bool
 queryIsAmt (Amt _ _) = True
 queryIsAmt _         = False
 
-queryIsSym :: Query -> Bool
-queryIsSym (Cur _)      = True
-queryIsSym (Sym _) = True
-queryIsSym _ = False
+queryIsCurOrSym :: Query -> Bool
+queryIsCurOrSym (Cur _)      = True
+queryIsCurOrSym (Sym _) = True
+queryIsCurOrSym _ = False
 
-queryIsAmtOrSym :: Query -> Bool
-queryIsAmtOrSym = liftA2 (||) queryIsAmt queryIsSym
+queryIsAmtOrCurOrSym :: Query -> Bool
+queryIsAmtOrCurOrSym = liftA2 (||) queryIsAmt queryIsCurOrSym
 
 -- | Does this query specify a start date and nothing else (that would
 -- filter postings prior to the date) ?
@@ -765,7 +765,7 @@ queryIsTransactionRelated = matchesQuery (
   ||| queryIsDesc
   ||| queryIsReal
   ||| queryIsAmt
-  ||| queryIsSym
+  ||| queryIsCurOrSym
   )
 
 (|||) :: (a->Bool) -> (a->Bool) -> (a->Bool)
@@ -1259,23 +1259,23 @@ tests_Query = testGroup "Query" [
       -- and matches its target like Cur would
       assertBool "" $ (toSymE "shekels") `matchesPosting` nullposting{pamount=mixedAmount nullamt{acommodity="shekels"}}
       assertBool "" $ not $ (toSymE "shek") `matchesPosting` nullposting{pamount=mixedAmount nullamt{acommodity="shekels"}}
-    ,testCase "queryExpandSymForAliases" $ do
+    ,testCase "queryExpandCurForAliases" $ do
       -- A group lookup where $ has aliases USD and U$.
       let group s | s `elem` ["$","USD","U$"] = ["$","USD","U$"]
                   | otherwise                 = [s]
           declared = ["$","USD","U$"]
           curUSD = Cur (toRegexCI' "^USD$")
       -- Cur matching USD gets expanded to Or including the canonical and other alias.
-      case queryExpandSymForAliases declared group curUSD of
+      case queryExpandCurForAliases declared group curUSD of
         Or qs -> assertBool "expansion includes original Cur" (curUSD `elem` qs)
               >> assertEqual "expansion has 3 disjuncts" 3 (length qs)
         q     -> assertFailure $ "expected Or expansion, got " <> show q
       -- Sym is untouched even when its regex matches a declared alias.
       let exactUSD = Sym (toRegexCI' "^USD$")
-      assertEqual "" exactUSD (queryExpandSymForAliases declared group exactUSD)
+      assertEqual "" exactUSD (queryExpandCurForAliases declared group exactUSD)
       -- No expansion when the regex matches a non-declared symbol with no aliases.
       let curJPY = Cur (toRegexCI' "^JPY$")
-      assertEqual "" curJPY (queryExpandSymForAliases declared group curJPY)
+      assertEqual "" curJPY (queryExpandCurForAliases declared group curJPY)
   ]
 
   ,testCase "matchesTransaction" $ do

@@ -182,7 +182,7 @@ Three new pieces:
 Same shape as the cur: expansion. Preferred symbols depend on the
 (potentially reloaded) journal. The normalization map can be re-derived
 from the journal each time `styleAmounts` would be re-derived — the
-existing journal-attach hooks (`reportSpecExpandSymQueries`-equivalent
+existing journal-attach hooks (`reportSpecExpandCurQueries`-equivalent
 sites) already cover this.
 
 ### Code impact estimate

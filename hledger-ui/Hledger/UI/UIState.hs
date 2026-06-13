@@ -274,7 +274,7 @@ setFilter s ui = do
   ui' <- first (const s) $ setEither querystring (words'' queryprefixes $ T.pack s) ui
   let copts  = uoCliOpts (aopts ui')
       rspec  = reportspec_ copts
-      rspec' = rspec{_rsQuery = queryExpandSymAliases (ajournal ui') (_rsQuery rspec)}
+      rspec' = rspec{_rsQuery = queryExpandCurAliases (ajournal ui') (_rsQuery rspec)}
       opts'  = (aopts ui'){uoCliOpts = copts{reportspec_ = rspec'}}
   Right ui'{aopts = opts'}
 
@@ -384,7 +384,7 @@ regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
   -- If re-derivation fails, fall back to the existing query.
   let copts  = uoCliOpts opts
       rspec  = reportspec_ copts
-      rspec' = case reportSpecExpandSymQueries j rspec of
+      rspec' = case reportSpecExpandCurQueries j rspec of
                  Right rs -> rs
                  Left _   -> rspec
       opts'  = opts{uoCliOpts = copts{reportspec_ = rspec'}}

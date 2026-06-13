@@ -251,7 +251,7 @@ getViewData = do
   -- changes since startup).
   let
     initialdepthq = filterQuery queryIsDepth _rsQuery
-    q = simplifyQuery $ queryExpandSymAliases j $ And [q1, initialdepthq]
+    q = simplifyQuery $ queryExpandCurAliases j $ And [q1, initialdepthq]
 
   -- if either of the above gave an error, display it
   maybe (pure ()) (setMessage . toHtml) $ mjerr <|> mqerr

@@ -100,7 +100,7 @@ web opts0 j = do
   -- terms in the startup query are expanded against the journal's
   -- commodity aliases.
   let copts = cliopts_ opts0
-      opts  = case reportSpecExpandSymQueries j (reportspec_ copts) of
+      opts  = case reportSpecExpandCurQueries j (reportspec_ copts) of
                 Right rs -> opts0{cliopts_ = copts{reportspec_ = rs}}
                 Left _   -> opts0
   let depthlessinitialq = filterQuery (not . queryIsDepth) . _rsQuery . reportspec_ $ cliopts_ opts

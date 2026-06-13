@@ -29,7 +29,7 @@ module Hledger.Data.Journal (
   commoditiesAndAliases,
   journalCommodityAliasGroups,
   journalCommodityAliasGroup,
-  queryExpandSymAliases,
+  queryExpandCurAliases,
   journalInferCommodityStyles,
   journalStyleAmounts,
   journalCommodityStyles,
@@ -1079,7 +1079,7 @@ journalModifyTransactions verbosetags d j =
          (journalAccountType j)
          (journalInheritedAccountTags j)
          (journalCommodityStyles j)
-         (queryExpandSymAliases j)
+         (queryExpandCurAliases j)
          d verbosetags (jtxnmodifiers j) (jtxns j) of
     Right ts -> Right j{jtxns=ts}
     Left err -> Left err
@@ -1252,12 +1252,12 @@ journalCommodityAliasGroup j s =
 -- | Rewrite Cur terms in a query to also match all alias-group siblings
 -- of any declared symbol matched by the original regex, using this
 -- journal's commodity declarations. Sym terms are left untouched.
--- See 'queryExpandSymForAliases' for the rewrite strategy.
-queryExpandSymAliases :: Journal -> Query -> Query
-queryExpandSymAliases j =
+-- See 'queryExpandCurForAliases' for the rewrite strategy.
+queryExpandCurAliases :: Journal -> Query -> Query
+queryExpandCurAliases j =
   let groups = journalCommodityAliasGroups j
       declared = M.keys groups
-  in queryExpandSymForAliases declared (\s -> M.findWithDefault [s] s groups)
+  in queryExpandCurForAliases declared (\s -> M.findWithDefault [s] s groups)
 
 -- | For each declared commodity with one or more @alias:@ tag values,
 -- inject a synthetic 1:1 P price directive, from alias to canonical

@@ -119,7 +119,7 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
     _                                         -> withJournal copts' $ \j ->
         -- Refresh the startup ReportSpec against the loaded journal so any
         -- cur: terms are expanded for the journal's commodity aliases.
-        let opts' = case reportSpecExpandSymQueries j (reportspec_ copts') of
+        let opts' = case reportSpecExpandCurQueries j (reportspec_ copts') of
                       Right rs -> opts{uoCliOpts = (uoCliOpts opts){reportspec_ = rs}}
                       Left _   -> opts
         in runBrickUi opts' j

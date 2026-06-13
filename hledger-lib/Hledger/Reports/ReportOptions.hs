@@ -43,7 +43,7 @@ module Hledger.Reports.ReportOptions (
   updateReportSpec,
   updateReportSpecWith,
   rawOptsToReportSpec,
-  reportSpecExpandSymQueries,
+  reportSpecExpandCurQueries,
   balanceAccumulationOverride,
   flat_,
   tree_,
@@ -678,8 +678,8 @@ journalValueAndFilterPostingsWith = _journalValueAndFilterPostingsWith1431
 --   where
 --     -- with -r, replace each posting with its sibling postings
 --     filterJournalPostings' = if related_ ropts then filterJournalRelatedPostings else filterJournalPostings
---     amtsymq = dbg1 "amtsymq" $ filterQuery queryIsAmtOrSym q
---     reportq = dbg1 "reportq" $ filterQuery (not . queryIsAmtOrSym) q
+--     amtsymq = dbg1 "amtsymq" $ filterQuery queryIsAmtOrCurOrSym q
+--     reportq = dbg1 "reportq" $ filterQuery (not . queryIsAmtOrCurOrSym) q
 
 -- 1.43
 -- XXX #2396 This goes wrong with cur:. filterJournal*Postings keep all postings containing the matched commodity,
@@ -694,7 +694,7 @@ _journalValueAndFilterPostingsWith1431 rspec@ReportSpec{_rsQuery = q, _rsReportO
   journalApplyValuationFromOptsWith rspec . filterjournal q
   where
     filterjournal q2 =
-      filterJournalAmounts (filterQuery queryIsAmtOrSym q2) .  -- an extra amount filtering pass for #2396
+      filterJournalAmounts (filterQuery queryIsAmtOrCurOrSym q2) .  -- an extra amount filtering pass for #2396
       (if related_ ropts then filterJournalRelatedPostings q2 else filterJournalPostings q2)
 
 -- | Convert this journal's postings' amounts to cost and/or to value, if specified
@@ -1086,7 +1086,7 @@ rawOptsToReportSpec day coloronstdout = reportOptsToSpec day . rawOptsToReportOp
 -- cache that goes stale whenever the journal's commodity/alias
 -- declarations change. Long-lived sessions (hledger-ui watch,
 -- hledger-web) should call this on every reload.
-reportSpecExpandSymQueries :: Journal -> ReportSpec -> Either String ReportSpec
-reportSpecExpandSymQueries j rs = do
+reportSpecExpandCurQueries :: Journal -> ReportSpec -> Either String ReportSpec
+reportSpecExpandCurQueries j rs = do
   rs' <- reportOptsToSpec (_rsDay rs) (_rsReportOpts rs)
-  Right rs'{_rsQuery = queryExpandSymAliases j (_rsQuery rs')}
+  Right rs'{_rsQuery = queryExpandCurAliases j (_rsQuery rs')}

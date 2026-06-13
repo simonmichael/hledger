@@ -479,7 +479,7 @@ main = handleExit $ withGhcDebug' $ do
 -- a commodity-alias-aware query.
 runWithExpandedCurQueries :: CliOpts -> Journal -> (CliOpts -> Journal -> IO ()) -> IO ()
 runWithExpandedCurQueries opts j cmd =
-  case reportSpecExpandSymQueries j (reportspec_ opts) of
+  case reportSpecExpandCurQueries j (reportspec_ opts) of
     Left err    -> error' err
     Right rspec -> cmd opts{reportspec_ = rspec} j
 
