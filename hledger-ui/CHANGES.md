@@ -23,11 +23,15 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 12e76d3d
+# 7c68920a
 
 Breaking changes
 
 Fixes
+
+- On Windows, the `A` key (running `hledger-iadd`), the `E` key
+  (running `$EDITOR`), and the running of info/man/tldr/pager helpers
+  now correctly quote file paths containing spaces. [#2646]
 
 Features
 
@@ -49,6 +53,8 @@ Docs
 
 API
 
+
+[#2646]: https://github.com/simonmichael/hledger/issues/2646
 
 # 1.99.2 2026-04-28
 

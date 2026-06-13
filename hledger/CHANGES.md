@@ -28,7 +28,7 @@ AI usage
 User-visible changes in the hledger command line tool and library.
 
 
-# 12e76d3d
+# 7c68920a
 
 ## Breaking changes
 
@@ -57,6 +57,12 @@ User-visible changes in the hledger command line tool and library.
 - Bad option values are now reliably reported as an error.
   Previously, some invalid option values triggered an error only if
   the option was actually used by the command being run.
+
+- On Windows, file paths containing spaces are now quoted properly
+  when invoking external helpers (info, man, tldr, pager, `$EDITOR`,
+  `hledger-iadd`). This affected hledger-ui's `A` and `E` keys, and
+  hledger's help/pager invocations.
+  [#2646]
 
 ## Commodities & prices
 
@@ -101,6 +107,9 @@ User-visible changes in the hledger command line tool and library.
   So if the entered transaction fails to balance or satisfy balance assertions,
   it now just reprompts for another posting, instead of discarding the postings
   entered. (This is most visible when entering balance assignments.)
+
+- `add`'s default amounts are now displayed with the journal's commodity
+  display styles, helping to avoid misparsing of decimal marks. [#2645]
 
 ## Data import
 
@@ -160,6 +169,10 @@ User-visible changes in the hledger command line tool and library.
   now show the path of the problem rules file.
 
 - `import`'s "no data files" error message is improved.
+
+- With an unrecognised command argument, the error message now shows
+  the bad argument, and the config file path if it came from a config
+  file.  [#2489]
 
 ## Journal
 
@@ -335,6 +348,7 @@ User-visible changes in the hledger command line tool and library.
 ## Docs
 
 - add: balance assignments [#2603]
+- balance: `--gain` shows total (realised + unrealised) gain [#2049]
 - check basis: explain strict-comparison rationale, list escape hatches [#2636]
 - Cost basis methods: edits
 - Cost basis vs transacted cost: edits
@@ -367,15 +381,20 @@ User-visible changes in the hledger command line tool and library.
 [#1148]: https://github.com/simonmichael/hledger/issues/1148
 [#1640]: https://github.com/simonmichael/hledger/issues/1640
 [#1950]: https://github.com/simonmichael/hledger/issues/1950
+[#2049]: https://github.com/simonmichael/hledger/issues/2049
 [#2410]: https://github.com/simonmichael/hledger/issues/2410
 [#2420]: https://github.com/simonmichael/hledger/issues/2420
+[#2489]: https://github.com/simonmichael/hledger/issues/2489
 [#2576]: https://github.com/simonmichael/hledger/issues/2576
 [#2577]: https://github.com/simonmichael/hledger/issues/2577
 [#2578]: https://github.com/simonmichael/hledger/issues/2578
 [#2581]: https://github.com/simonmichael/hledger/issues/2581
 [#2584]: https://github.com/simonmichael/hledger/issues/2584
+[#2588]: https://github.com/simonmichael/hledger/issues/2588
 [#2603]: https://github.com/simonmichael/hledger/issues/2603
 [#2636]: https://github.com/simonmichael/hledger/issues/2636
+[#2645]: https://github.com/simonmichael/hledger/issues/2645
+[#2646]: https://github.com/simonmichael/hledger/issues/2646
 
 
 # 1.99.2 2026-04-28

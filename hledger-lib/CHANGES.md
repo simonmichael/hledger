@@ -17,7 +17,7 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# 12e76d3d
+# 7c68920a
 
 Breaking changes
 
@@ -51,6 +51,8 @@ Improvements
 - `Hledger.Data.Journal`: new `journalBaseCurrencyCode` guesses a base currency.
 
 - `Hledger.Utils.IO`: new `withFileOrStdout`.
+
+- `Hledger.Utils.String`: new `shellQuoteIfNeeded` (double-quote escaping on mingw32, single quotes elsewhere).
 
 - `Hledger.Data.Currency`: some cryptocurrency symbols added for auto-detection
   (roughly the top 100 by market cap).

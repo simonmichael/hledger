@@ -20,7 +20,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 12e76d3d
+# 7c68920a
 
 ## Docs
 
@@ -36,12 +36,14 @@ For package-specific changes, see the hledger package changelogs.
 ## Tools/infrastructure
 
 - tools/relnotes: demote any markdown headings in changelogs, to fit in release notes
-- cabal.project: consolidate workarounds (haskeline Windows bug [#2410], yesod-static bounds bug); general cleanup.
-- stack: bump dev/release builds and scripts to nightly-2026-06-01.
+- tools: Shake changelogs: parse inter-release headings more carefully
+- cabal.project: consolidate workarounds (haskeline Windows bug [#2410], yesod-static bounds bug); general cleanup
+- stack: bump dev/release builds and scripts to nightly-2026-06-01 [#2410]
+- stack: ignore all bounds, for now, to allow building with aeson 2.3
 - ci: fix old references to `master` in workflows
 - ci: linux binaries: more workarounds for dependency/bounds bugs
 - pr template: update, mention the AI policy
-- `just ai*` usage report scripts
+- `just ai*` usage report scripts: vertical output by default; easy conversion from opus tokens to t/kt/Mt
 - `tools/regen-shelltests.py` script, `regen-shelltests` claude code skill
 - `just devver`: fix
 - gitignore updates
