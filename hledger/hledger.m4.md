@@ -3820,30 +3820,37 @@ It's important to know which is which, when you are creating rules:
 
 1. CSV fields
    - are the parts of the records (lines) in your CSV data
-   - are referenced by their position, or a mnemonic name
+   - are referenced by their position or assigned name, with a `%` prefix (eg `%1` or `%date`)
    - are read-only.
 
 2. hledger fields
-   - are the parts of a hledger journal entry (mostly):\
-     `date`, `description`, `account1`, `account1`, `amount1`, `account2`, ...
-   - are written to, to construct a journal entry
+   - are the parts of a hledger journal entry (see [hledger field names](#hledger-field-names))
+     (eg `date`, `description`, `account1`, `amount1`)
+   - are written to by rules to construct a journal entry
    - are write-only.
 
-Rules can't read what has been written to a hledger field, or make new fields.
+CSV rules can't read what has been written to a hledger field, or make new fields.
 In other words, you can't use "variables" in a rules file.
 (But you could add new CSV fields to the data before running rules, with a preprocessing script.)
 
 It's ok for a CSV field and a hledger field to have the same name;
-in fact this is a convenient way to copy the CSV field's value to the hledger field.
+this causes the CSV field's value to be copied to the hledger field.
 hledger knows which kind of field is meant from the context;
 also, CSV fields are usually written with a `%` prefix.
 Some examples:
 
-|||
-|-|-|
-| `date %1`              | set the entry's date to the value of CSV field 1
-| `fields date, bankamt` | name the CSV fields, and use the first as the entry's date
-| `if %date ...`         | test the value of the CSV date field
+```rules
+# set the journal entry's date to the value of CSV field 1
+date %1
+```
+```rules
+# name the CSV fields, and use the first as the entry's date
+fields date, bankamt
+
+# test the value of the CSV date field
+if %date 2026
+ ...
+```
 
 ## `fields` list
 
