@@ -4219,7 +4219,7 @@ if MATCHERD
 The character after `if` is used as the if table's field delimiter.
 It must not appear in the field names, values, or matchers (you cannot escape it with a backslash).
 `|` is conventional, but you can use a different character if it's more convenient.
-Eg you could use `,` - just remember this delimiter has nothing to do with the one used in the CSV file.
+Just remember this delimiter has nothing to do with the one used in the CSV file.
 Each line must contain the same number of delimiters.
 
 Here's an example.
