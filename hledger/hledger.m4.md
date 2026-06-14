@@ -4194,7 +4194,7 @@ MATCHERD|VALUE1|VALUE2|...
 An if table is applied as follows:
 
 - try each of the matchers in turn
-- if it matches the CSV record, assign all of the values on that line to the corresponding hledger fields
+- when a matcher matches the CSV record, assign all of the values on that line to the corresponding hledger fields
 - if multiple matchers succeed, later lines override earlier ones.
 
 So the above is equivalent to:
