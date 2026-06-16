@@ -1,9 +1,8 @@
 #!/usr/bin/env stack
 -- stack runghc --package hledger
--- or, for more setup/build progress output:
--- stack runghc --package hledger --verbosity info
+-- (to see setup progress output, add --verbosity info)
 
--- hledger-script-example-short - a short hledger stack script example
+-- hledger-example-read - a short hledger stack script example
 
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -13,12 +12,12 @@ import Data.Text.IO qualified as T
 
 cmdmode = hledgerCommandMode (unlines
     ---------------------------standard terminal width-----------------------------
-  ["script-example-short"
-  ,"Usage: hledger-script-example-short [OPTS] [ARGS]"
-  ,"or:    hledger script-example-short -- [OPTS] [ARGS]"
+  ["example-hello"
+  ,"Usage: hledger-example-hello [OPTS] [ARGS]"
+  ,"or:    hledger example-hello -- [OPTS] [ARGS]"
   ,"Examples:"
-  ,"$ hledger-script-example-short         # do the thing"
-  ,"$ hledger-script-example-short --help  # print help"
+  ,"$ hledger-example-hello         # do the thing"
+  ,"$ hledger-example-hello --help  # print help"
   ])
   [] [generalflagsgroup1] [] ([], Just $ argsFlag "[ARGS]")
 

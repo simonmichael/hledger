@@ -444,22 +444,22 @@ They are often [stack scripts](https://docs.haskellstack.org/en/stable/topics/sc
 They can do anything hledger's builtin commands can do, and are usually more robust than command line scripts.
 Some builtin commands were first developed as standalone haskell scripts.
 
-### hledger-hello
+### hledger-example-hello
 
-[`hledger-hello.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-hello.hs)
+[`hledger-example-hello.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-example-hello.hs)
 is a minimal stack script that does not use hledger at all.
 
-### hledger-script-example-short
+### hledger-example-read
 
-[`hledger-script-example-short.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-script-example-short.hs)
+[`hledger-example-read.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-example-read.hs)
 is a minimal hledger haskell script that provides command line help and reads a hledger journal.
 It has the same structure as most of the hledger haskell scripts here:
 it is a stack script for robustness, it provides command line help,
 it processes standard hledger options, it reads a journal and performs some action with it.
 
-### hledger-script-example
+### hledger-example-read2
 
-[`hledger-script-example.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-script-example.hs)
+[`hledger-example-read2.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-example-read2.hs)
 is a more commented versino of the above.
 
 ### hledger-swap-dates
@@ -634,7 +634,7 @@ $ hledger
 
 ### Create a new script
 
-To create a new hledger-integrated script, copy hledger-script-example.hs.
+To create a new hledger-integrated script, copy hledger-example-read.hs.
 On unix, the new script should be marked executable. This should do it:
 
     $ cd bin

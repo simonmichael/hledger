@@ -1,7 +1,7 @@
 #!/usr/bin/env stack
 --  stack runghc --package hledger
 -------------------------------------------------------------------------------
--- About this script. You can remove this text. See also hledger-script-example-short.hs.
+-- About this script. You can remove this text. See also hledger-example-read.hs.
 --
 -- This is an example of a hledger addon command (an executable named hledger-*),
 -- implemented as a haskell script which can use hledger's API.
@@ -29,7 +29,7 @@
 -------------------------------------------------------------------------------
 {-
 
-script-example - my new script
+example-read2 - my new script
 
 -}
 
@@ -50,13 +50,13 @@ import Data.Text.IO qualified as T
 cmdmode = hledgerCommandMode (unlines
     ---------------------------standard terminal width-----------------------------
     -- command name on first line:
-  ["script-example"
+  ["example-read2"
     -- then --help text:
-  ,"Usage: hledger-script-example [OPTS] [ARGS]"
-  ,"or:    hledger script-example -- [OPTS] [ARGS]"
+  ,"Usage: hledger-example-read2 [OPTS] [ARGS]"
+  ,"or:    hledger example-read2 -- [OPTS] [ARGS]"
   ,"Examples:"
-  ,"$ hledger-script-example         # do the thing"
-  ,"$ hledger-script-example --help  # print help"
+  ,"$ hledger-example-read2         # do the thing"
+  ,"$ hledger-example-read2 --help  # print help"
   ])
     -- you can add or change options here (see CliOptions.hs); usually not needed
   [] [generalflagsgroup1] [] ([], Just $ argsFlag "[ARGS]")
@@ -115,14 +115,14 @@ Use the [s|...|] multiline string syntax (requires --package string-qq and {-# L
 
     cmdmode = hledgerCommandMode (unlines
         -- Command name, then --help text. Note, empty help lines get stripped.
-    [s| script-example
+    [s| example-read2
     This is an example of a (hledger-lib-using) hledger script."
-    Usage: hledger-script-example [OPTS] [ARGS]"
-    or:    hledger script-example -- [OPTS] [ARGS]"
+    Usage: hledger-example-read2 [OPTS] [ARGS]"
+    or:    hledger example-read2 -- [OPTS] [ARGS]"
     Save it under another name and customise it."
     The hledger- name makes it appear in hledger's commands list."
     Examples:"
-    $ hledger-script-example --help"
+    $ hledger-example-read2 --help"
     (this help)"
       |]
         ------------------------------------78----------------------------------------
