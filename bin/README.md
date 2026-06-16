@@ -460,7 +460,7 @@ it processes standard hledger options, it reads a journal and performs some acti
 ### hledger-example-read2
 
 [`hledger-example-read2.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-example-read2.hs)
-is a more commented versino of the above.
+is a more commented version of the above.
 
 ### hledger-swap-dates
 

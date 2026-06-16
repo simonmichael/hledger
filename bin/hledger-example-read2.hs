@@ -1,7 +1,11 @@
 #!/usr/bin/env stack
---  stack runghc --package hledger
+-- stack runghc --package hledger
+-- (to see setup progress output, add --verbosity info)
+
+-- hledger-example-read2 - a more commented version of hledger-example-read.hs
+
 -------------------------------------------------------------------------------
--- About this script. You can remove this text. See also hledger-example-read.hs.
+-- About this script. You can remove this text.
 --
 -- This is an example of a hledger addon command (an executable named hledger-*),
 -- implemented as a haskell script which can use hledger's API.
@@ -27,11 +31,6 @@
 -- If compiled to a binary, the script will run without stack or cabal or haskell packages.
 -- (It will still require certain C libraries.)
 -------------------------------------------------------------------------------
-{-
-
-example-read2 - my new script
-
--}
 
 -- Haskell language customisations. OverloadedStrings is a useful one.
 -- https://downloads.haskell.org/ghc/latest/docs/users_guide/exts/intro.html
