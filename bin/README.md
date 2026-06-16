@@ -444,14 +444,23 @@ They are often [stack scripts](https://docs.haskellstack.org/en/stable/topics/sc
 They can do anything hledger's builtin commands can do, and are usually more robust than command line scripts.
 Some builtin commands were first developed as standalone haskell scripts.
 
+### hledger-hello
+
+[`hledger-hello.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-hello.hs)
+is a minimal stack script that does not use hledger at all.
+
+### hledger-script-example-short
+
+[`hledger-script-example-short.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-script-example-short.hs)
+is a minimal hledger haskell script that provides command line help and reads a hledger journal.
+It has the same structure as most of the hledger haskell scripts here:
+it is a stack script for robustness, it provides command line help,
+it processes standard hledger options, it reads a journal and performs some action with it.
+
 ### hledger-script-example
 
 [`hledger-script-example.hs`](https://github.com/simonmichael/hledger/blob/main/bin/hledger-script-example.hs)
-is a template for writing your own hledger-integrated add-on command.
-It has the same structure as most of the add-ons here:
-- a stack script for robustness
-- providing command line help
-- accepting common hledger options
+is a more commented versino of the above.
 
 ### hledger-swap-dates
 
