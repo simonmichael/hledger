@@ -1,5 +1,5 @@
 #!/usr/bin/env stack
--- stack runghc --package hledger
+-- stack runghc --package hledger --package text
 -- (to see setup progress output, add --verbosity info)
 
 -- hledger-example-read2 - a more commented version of hledger-example-read.hs
