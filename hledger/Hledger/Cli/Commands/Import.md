@@ -217,6 +217,31 @@ when there are multiple matched files, it will pick the oldest, not the newest.
 
 ### Import special cases
 
+#### Multiple journals in the same directory
+
+You might want to keep each journal you are importing to in its own directory.
+That way, each will have its own `rules/`, `data/`, and `data/archive/` directories (if those are used).
+
+Otherwise, imports to the same-directory journals will potentially use
+the same `rules/`, `data/` and `data/archive/` directories (depending
+on commands and rules configuration).
+This is not necessarily a problem; it might even be desirable in some cases.
+But see below:
+
+#### Import configurations to avoid
+
+A few unusual workflows which you should generally avoid:
+
+- Don't import from one input file to different journals.
+  The imports' overlap detection would overwrite the same `.latest.FILE` state file.
+  (In effect, the journals would compete for the new records.)
+
+- Don't import from multiple data files on the same day, reusing the same rules file for all, with `archive` enabled.
+  The archived file names in `data/archive/` would clash, causing some archives to be overwritten.
+
+- Don't do argument-less `hledger import` to more than one journal in the same directory.
+  That would read from the same files in `rules/`, potentially disrupting both overlap detection and archiving.
+
 #### Deduplication
 
 Here are two kinds of "deduplication" which `import` does not handle
@@ -244,5 +269,5 @@ Alternately, what if you download, but forget to import or delete, then download
 Now each of `bank.csv` and `bank (2).csv` might contain data that's not in the other, and not in your journal.
 In this case, it's best to import each of them in turn, oldest first
 (otherwise, overlap detection could cause new records to be skipped).
-Enabling [import archiving](import-archiving) ensures this.
+Enabling [import archiving](#import-archiving) ensures this.
 Then `hledger import bank.rules; hledger import bank.rules` will import and archive first `bank.csv`, then `bank (2).csv`.
