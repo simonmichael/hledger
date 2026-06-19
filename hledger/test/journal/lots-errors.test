@@ -1,4 +1,4 @@
-# Tests for lot error behavior (formerly testing --lots-warn mode, which has been removed).
+# Tests for lot error behaviour.
 
 # ** 1. no lots available with --lots errors (exits 1)
 <
@@ -111,3 +111,48 @@ hledger: Error: -:3:
 T is lotful but this acquire posting has no cost basis or price.
 No lot will be created.
 >=1
+
+# ** 8. A leaf account name enclosed in `{...}` that is not a valid lot name
+# errors at load time with the parse-failure message.
+<
+2026-01-01 literal brace account
+    assets:project:{not a lot}    $1
+    equity:opening               $-1
+
+$ hledger -f - print
+>2 /cannot parse lot name part: not a lot/
+>= 1
+
+# ** 9. With --ignore-lots/-I, {...} leaf accounts are treated as ordinary subaccounts.
+<
+2026-01-01 literal brace account
+    assets:project:{not a lot}    $1
+    equity:opening               $-1
+
+$ hledger -f- -I print
+2026-01-01 literal brace account
+    assets:project:{not a lot}                    $1
+    equity:opening                               $-1
+
+>=
+
+# ** 10. `check lots` re-enables validation even when -I is used.
+<
+2026-01-01 literal brace account
+    assets:project:{not a lot}    $1
+    equity:opening               $-1
+
+$ hledger -f- -I check lots
+>2 /cannot parse lot name part: not a lot/
+>= 1
+
+# ** 11. A lot subaccount name missing required parts (date and cost) also
+# triggers the lot-subaccount error.
+<
+2026-01-01 only label
+    assets:project:{"label only"}    $1
+    equity:opening                  $-1
+
+$ hledger -f - print
+>2 /lot subaccount name must contain a date and cost/
+>= 1

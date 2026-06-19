@@ -339,8 +339,9 @@ findRecentAssertionError ps = do
 --       (show baiLatestClearedAssertionDate)
 --       (diffDays today baiLatestClearedAssertionDate)
 
--- | Check all lot tracking calculations. Validation runs during journalFinalise,
--- so any valid Journal reaching this point has already passed the checks.
--- This stub exists so @hledger check lots@ remains a valid command.
+-- | Check all lot tracking calculations. Validation runs during journalFinalise
+-- (unless --ignore-lots/-I is in effect), so any valid Journal reaching this point
+-- has already passed the checks. This stub exists so @hledger check lots@ remains
+-- a valid command, and also re-enables the validation when -I was passed.
 journalCheckLots :: Journal -> Either String ()
 journalCheckLots _ = Right ()

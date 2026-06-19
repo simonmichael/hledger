@@ -122,11 +122,14 @@ journalTransform opts =
   <&> maybeCollapseLotDetail opts
 
 -- | Collapse lot-tracking detail (strip lot subaccounts, drop synthetic lot-processing
--- postings) so reports show the user's original form. Skipped when --lots is set.
+-- postings) so reports show the user's original form. Skipped when --lots is set,
+-- or when --ignore-lots/-I is set (in which case leaf-@{...}@ accounts are
+-- treated as ordinary account names).
 maybeCollapseLotDetail :: CliOpts -> Journal -> Journal
 maybeCollapseLotDetail opts
-  | boolopt "lots" rawopts = id
-  | otherwise              = journalCollapseLotDetail
+  | boolopt "lots" rawopts        = id
+  | boolopt "ignore-lots" rawopts = id
+  | otherwise                     = journalCollapseLotDetail
   where rawopts = rawopts_ opts
 
 -- | If the --pivot option is present, replace the journal's account names by specified other values.

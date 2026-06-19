@@ -158,20 +158,18 @@ resolveReductionMethodWithSource j p commodity =
            (v:_) -> parseReductionMethod v
            []    -> Nothing
 
--- | If the account name ends with a final @:{...}@ component that is
--- syntactically a hledger lot annotation, return @Just (base, "{...}")@,
--- splitting off the trailing lot subaccount. Otherwise return @Nothing@.
--- The split looks for the last @\":{\"@ such that the content between
--- it and the terminating @\"}\"@ has no further braces. This handles
--- @\":\"@ inside labels (eg @\"12:05\"@) and stray @\"{\"@ earlier in
--- the account name.
+-- | If the account name's final colon-separated component is enclosed in @{@
+-- and @}@, treat it as a lot subaccount and return @Just (base, "{...}")@.
+-- Otherwise return @Nothing@.
+-- Full validation of the lot name (parts, dates, costs) is left to 'parseLotName';
+-- this function only identifies candidates so they can be validated uniformly.
 splitLotSubaccount :: AccountName -> Maybe (AccountName, Text)
 splitLotSubaccount a = do
-  inner <- T.stripSuffix "}" a
-  let (prefix, content) = T.breakOnEnd ":{" inner
+  let (prefix, leaf) = T.breakOnEnd ":" a
   guard $ not (T.null prefix)
-  guard $ T.all (\c -> c /= '{' && c /= '}') content
-  Just (T.dropEnd 2 prefix, "{" <> content <> "}")
+  guard $ "{" `T.isPrefixOf` leaf
+  guard $ "}" `T.isSuffixOf` leaf
+  Just (T.dropEnd 1 prefix, leaf)
 
 -- | Strip any trailing lot subaccount (a final @:{...}@ component) from an
 -- account name. E.g., @\"assets:broker:{2026-01-15, $50}\"@ becomes

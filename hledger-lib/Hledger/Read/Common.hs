@@ -134,7 +134,7 @@ import Control.Monad.Except (ExceptT(..), liftEither, withExceptT)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.State.Strict (MonadState, evalStateT, modify', get, put)
 import Control.Monad.Trans.Class (lift)
-import Data.Bifunctor (bimap, second)
+import Data.Bifunctor (bimap, first, second)
 import Data.Char (digitToInt, isDigit, isSpace)
 import Data.Decimal (DecimalRaw (Decimal), Decimal)
 import Data.Either (rights)
@@ -156,6 +156,7 @@ import System.IO (Handle)
 import Text.Megaparsec
 import Text.Megaparsec.Char (char, char', digitChar, newline, string)
 import Text.Megaparsec.Char.Lexer (decimal)
+import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Query (Query(..), filterQuery, parseQueryTerm, queryEndDate, queryStartDate, queryIsDate, simplifyQuery)
@@ -370,10 +371,11 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
             else pure)
 
       -- Lot classification and transacted cost inference
-      >>= journalInferBasisFromAccountNames                                       -- infer cost basis from lot subaccount names
-      <&> journalClassifyLotPostings verbose_tags_                                -- detect and classify lot postings (acquire/dispose/transfer..), maybe with visible tags
-      <&> journalInferPostingsTransactedCost                                      -- in acquire postings, infer a transacted cost from cost basis
-      >>= (if checklots then journalAddGainOrUGainPosting verbose_tags_                else pure)  -- if user wrote an explicit rgain or ugain posting alone, add its counter
+      -- (skipped by --ignore-lots or -I; forced back on by --strict or `hledger check lots`)
+      >>= (if checklots then journalInferBasisFromAccountNames           else pure)  -- infer cost basis from lot subaccount names (validates them)
+      <&> (if checklots then journalClassifyLotPostings verbose_tags_    else id  )  -- detect and classify lot postings (acquire/dispose/transfer..), maybe with visible tags
+      <&> (if checklots then journalInferPostingsTransactedCost          else id  )  -- in acquire postings, infer a transacted cost from cost basis
+      >>= (if checklots then journalAddGainOrUGainPosting verbose_tags_  else pure)  -- if user wrote an explicit rgain or ugain posting alone, add its counter
 
       -- Transaction balancing
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)     -- maybe check that journal entries are in date order
@@ -448,9 +450,9 @@ journalInferBasisFromAccountNames j = do
     processPosting p = case lotSubaccountName (paccount p) of
       Nothing   -> Right p
       Just name -> do
-        cb <- parseLotName parseAmt name
+        cb <- first (lotErr p) $ parseLotName parseAmt name
         when (isNothing (cbDate cb) || isNothing (cbCost cb)) $
-          Left $ "lot subaccount name must contain a date and cost: " ++ T.unpack name
+          Left $ lotErr p $ "lot subaccount name must contain a date and cost: " ++ T.unpack name
         let updateAmt a = case acostbasis a of
               Nothing -> Right a{acostbasis = Just cb}
               Just existing -> do
@@ -458,6 +460,14 @@ journalInferBasisFromAccountNames j = do
                 Right a{acostbasis = Just merged}
         amts' <- mapM updateAmt (amountsRaw (pamount p))
         Right p{pamount = foldMap mixedAmount amts'}
+
+    -- Wrap a lot-subaccount parse error with a verbose source-position excerpt
+    -- highlighting the posting's account name, and remind the reader that final
+    -- @:{...}@ components are reserved for lot subaccount syntax.
+    lotErr p msg = printf
+      "%s:%d:\n%s\n%s\n\nA final colon-separated account component enclosed in \"{\" and \"}\" is\nreserved for lot subaccount syntax. To accept this account name unchanged,\nrun with --ignore-lots (-I), or rename the account."
+      f line ex msg
+      where (f, line, _, ex) = makePostingAccountErrorExcerpt p
 
 setYear :: Year -> JournalParser m ()
 setYear y = modify' (\j -> j{jparsedefaultyear=Just y})
