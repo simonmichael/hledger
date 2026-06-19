@@ -3576,8 +3576,6 @@ If the command fails, hledger will fail and show the error output in the error m
 With `archive` added to a rules file, the `import` command
 will archive each successfully processed data file or data command output in an `archive/` subdirectory
 of the `data/` directory next to the main journal file.
-(`archive/` keeps archived files out of sight of the `source` rule's glob pattern,
-which might otherwise re-match them.)
 The archive file name will be based on the rules file and the data file's modification date and extension
 (or for a data-generating command, the current date and the ".csv" extension).
 The original data file, if any, will be removed.
