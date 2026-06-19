@@ -250,7 +250,7 @@ parseLotName parseAmt t = do
           | isLabelPart p = go ps d (Just (T.drop 1 (T.dropEnd 1 p))) c
           | otherwise = case parseAmt (T.unpack p) of
               Just amt -> go ps d l (Just amt)
-              Nothing  -> Left $ "cannot parse lot name part: " ++ T.unpack p
+              Nothing  -> Left $ "invalid lot name: " ++ T.unpack p
 
     isDatePart p = T.length p == 10 && T.all (\c -> isDigit c || c == '-') p
     isLabelPart p = "\"" `T.isPrefixOf` p && "\"" `T.isSuffixOf` p && T.length p >= 2

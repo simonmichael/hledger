@@ -120,7 +120,7 @@ No lot will be created.
     equity:opening               $-1
 
 $ hledger -f - print
->2 /cannot parse lot name part: not a lot/
+>2 /invalid lot name: not a lot/
 >= 1
 
 # ** 9. With --ignore-lots/-I, {...} leaf accounts are treated as ordinary subaccounts.
@@ -143,7 +143,7 @@ $ hledger -f- -I print
     equity:opening               $-1
 
 $ hledger -f- -I check lots
->2 /cannot parse lot name part: not a lot/
+>2 /invalid lot name: not a lot/
 >= 1
 
 # ** 11. A lot subaccount name missing required parts (date and cost) also

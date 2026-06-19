@@ -465,7 +465,7 @@ journalInferBasisFromAccountNames j = do
     -- highlighting the posting's account name, and remind the reader that final
     -- @:{...}@ components are reserved for lot subaccount syntax.
     lotErr p msg = printf
-      "%s:%d:\n%s\n%s\n\nA final colon-separated account component enclosed in \"{\" and \"}\" is\nreserved for lot subaccount syntax. To accept this account name unchanged,\nrun with --ignore-lots (-I), or rename the account."
+      "%s:%d:\n%s\n%s\n\nA final account name part enclosed in { } must be a valid lot subaccount name.\nPlease adjust the account name, or use --ignore-lots/-I."
       f line ex msg
       where (f, line, _, ex) = makePostingAccountErrorExcerpt p
 
