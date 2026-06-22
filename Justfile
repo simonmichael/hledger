@@ -993,6 +993,12 @@ relbranch VER:
 @hackageupload:
     tools/hackageupload $PACKAGES
 
+@hackagerevise:
+    $OPEN https://hackage.haskell.org/package/hledger-lib/hledger-lib.cabal/edit
+    $OPEN https://hackage.haskell.org/package/hledger/hledger.cabal/edit
+    $OPEN https://hackage.haskell.org/package/hledger-ui/hledger-ui.cabal/edit
+    $OPEN https://hackage.haskell.org/package/hledger-web/hledger-web.cabal/edit
+
 # Make git tags for a full release today, but don't push them yet. Run on release branch.
 reltags:
     #!/usr/bin/env bash
