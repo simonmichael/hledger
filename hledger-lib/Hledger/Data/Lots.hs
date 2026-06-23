@@ -250,7 +250,23 @@ parseLotName parseAmt t = do
           | isLabelPart p = go ps d (Just (T.drop 1 (T.dropEnd 1 p))) c
           | otherwise = case parseAmt (T.unpack p) of
               Just amt -> go ps d l (Just amt)
-              Nothing  -> Left $ "invalid lot name: " ++ T.unpack p
+              Nothing  -> Left $ fromMaybe ("invalid lot name: " ++ T.unpack p)
+                                           (missingDateCommaHint p)
+
+        -- If a part starts with what looks like a date but no comma followed,
+        -- the user probably forgot the comma (eg @{2026-01-15 $10}@). Show a
+        -- corrected form to make the fix obvious.
+        missingDateCommaHint :: Text -> Maybe String
+        missingDateCommaHint p
+          | T.length p > 10
+          , let (candidate, rest) = T.splitAt 10 p
+          , isDatePart candidate
+          , let rest' = T.stripStart rest
+          , not (T.null rest')
+          , T.head rest' /= ','
+          = Just $ "Missing comma in lot name: " ++ T.unpack p
+                ++ "\nDid you mean:              " ++ T.unpack candidate ++ ", " ++ T.unpack rest' ++ " ?"
+          | otherwise = Nothing
 
     isDatePart p = T.length p == 10 && T.all (\c -> isDigit c || c == '-') p
     isLabelPart p = "\"" `T.isPrefixOf` p && "\"" `T.isSuffixOf` p && T.length p >= 2
@@ -287,16 +303,21 @@ parseLotName parseAmt t = do
     -- Try to peel a date (YYYY-MM-DD) from the front. Returns the date text
     -- and the remainder after stripping a comma separator, or Nothing and the
     -- unchanged input. Requires that the date candidate is followed by end of
-    -- string, a comma, or whitespace (to avoid greedily consuming digits that
-    -- are part of a cost amount).
+    -- string or a comma with optional surrounding whitespace (to keep the 
+    -- syntax regular; gives a helpful error if the comma is missing).
     peelDate :: Text -> (Maybe Text, Text)
     peelDate s
       | T.length s >= 10
       , let (candidate, rest) = T.splitAt 10 s
       , isDatePart candidate
-      , T.null rest || T.head rest == ',' || T.head rest == ' '
+      , properBoundary rest
       = (Just candidate, stripSep rest)
       | otherwise = (Nothing, s)
+      where
+        properBoundary txt = case T.uncons (T.stripStart txt) of
+          Nothing       -> True
+          Just (',', _) -> True
+          _             -> False
 
     -- Try to peel a double-quoted label from the front. Scans from the opening
     -- quote to the next closing quote. A quoted string is only treated as a
