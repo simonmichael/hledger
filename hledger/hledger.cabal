@@ -1,6 +1,6 @@
 cabal-version: 2.2
 
--- This file has been generated from package.yaml by hpack version 0.39.1.
+-- This file has been generated from package.yaml by hpack version 0.39.6.
 --
 -- see: https://github.com/sol/hpack
 
@@ -175,7 +175,7 @@ library
     , http-types
     , lucid
     , math-functions >=0.3.3.0
-    , megaparsec >=7.0.0 && <9.8
+    , megaparsec >=7.0.0 && <9.8.0 || >9.8.0 && <9.9
     , microlens >=0.4
     , modern-uri >=0.3
     , mtl >=2.2.1
@@ -230,7 +230,7 @@ executable hledger
     , http-client
     , http-types
     , math-functions >=0.3.3.0
-    , megaparsec >=7.0.0 && <9.8
+    , megaparsec >=7.0.0 && <9.8.0 || >9.8.0 && <9.9
     , microlens >=0.4
     , mtl >=2.2.1
     , process
@@ -281,7 +281,7 @@ test-suite unittest
     , http-client
     , http-types
     , math-functions >=0.3.3.0
-    , megaparsec >=7.0.0 && <9.8
+    , megaparsec >=7.0.0 && <9.8.0 || >9.8.0 && <9.9
     , microlens >=0.4
     , mtl >=2.2.1
     , process
@@ -334,7 +334,7 @@ benchmark bench
     , http-client
     , http-types
     , math-functions >=0.3.3.0
-    , megaparsec >=7.0.0 && <9.8
+    , megaparsec >=7.0.0 && <9.8.0 || >9.8.0 && <9.9
     , microlens >=0.4
     , mtl >=2.2.1
     , process
