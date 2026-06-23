@@ -215,6 +215,7 @@ Discussions
     ([summary](https://www.theregister.com/ai-ml/2026/05/26/pope-leo-warns-ai-boom-can-give-big-tech-and-the-people-who-run-it-too-much-power/5245883))
 
 Policies
+- <https://sfconservancy.org/llm-gen-ai/llm-backed-generative-ai-recommendations.html>
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
 - <https://github.com/stanford-cs336/assignment1-basics/blob/main/CLAUDE.md>
 - <https://ladybird.org/posts/changing-how-we-develop-ladybird/> ([discussion](https://news.ycombinator.com/item?id=48409191))
