@@ -12,16 +12,7 @@
 /* 1. colours */
 
 /* green */
-::-moz-placeholder {
-  font-style:italic;
-}
-:-moz-placeholder {
-  font-style:italic;
-}
-::-webkit-input-placeholder {
-  font-style:italic;
-}
- :-ms-input-placeholder {
+::placeholder {
   font-style:italic;
 }
 
@@ -43,12 +34,8 @@ body {
   background-color: #fff;
   border: 1px solid #ccc;
   border: 1px solid rgba(0, 0, 0, 0.2);
-  -webkit-border-radius: 8px;
-     -moz-border-radius: 8px;
-          border-radius: 8px;
-  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
-     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
-          box-shadow: 0 5px 10px rgba(0,0,0,.2);
+  border-radius: 8px;
+  box-shadow: 0 5px 10px rgba(0,0,0,.2);
   overflow:auto;
   max-height:300px;
 }
@@ -169,7 +156,7 @@ ul {
 }
 
 .date {
-    whitespace: nowrap;
+    white-space: nowrap;
 }
 
 .col-any-0 {
@@ -183,11 +170,30 @@ ul {
     font-size:large;
 }
 
+.bi {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    vertical-align: -0.125em;
+}
+
+/* Hide sidebar toggle button on larger screens */
+@media (min-width: 769px) {
+    .visible-xs {
+        display: none !important;
+    }
+}
+
+/* Position close button in top left of modal header */
+.modal-header .btn-close {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+}
+
 @media screen and (max-width: 768px) {
     .row-offcanvas {
         position: relative;
-        -webkit-transition: all .25s ease-out;
-        -o-transition: all .25s ease-out;
         transition: all .25s ease-out;
     }
 
@@ -221,6 +227,24 @@ ul {
         position: absolute;
         top: 0;
         width: 90%;
+    }
+    
+    /* Mobile sidebar - ensure it's a single panel */
+    #sidebar-menu.sidebar-offcanvas {
+        position: fixed !important;
+        top: 0 !important;
+        left: -90% !important;
+        width: 90% !important;
+        height: 100vh !important;
+        z-index: 1050 !important;
+        transition: left 0.3s ease-out !important;
+        background: white !important;
+        overflow-y: auto !important;
+        box-shadow: 2px 0 5px rgba(0,0,0,0.1) !important;
+    }
+    
+    #sidebar-menu.sidebar-offcanvas.active {
+        left: 0 !important;
     }
 
     #sidebar-menu .main-menu td {

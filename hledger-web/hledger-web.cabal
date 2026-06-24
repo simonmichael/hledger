@@ -39,6 +39,7 @@ extra-source-files:
     config/routes
     config/settings.yml
     static/css/bootstrap-datepicker.standalone.min.css
+    static/css/bootstrap-icons.css
     static/css/bootstrap-theme.css
     static/css/bootstrap-theme.min.css
     static/css/bootstrap.css
@@ -52,11 +53,13 @@ extra-source-files:
     static/hledger.css
     static/hledger.js
     static/js/bootstrap-datepicker.min.js
+    static/js/bootstrap.bundle.min.js
     static/js/bootstrap.js
     static/js/bootstrap.min.js
     static/js/excanvas.js
     static/js/excanvas.min.js
     static/js/jquery.cookie.js
+    static/js/jquery.flot-4.2.6.min.js
     static/js/jquery.flot.canvas.js
     static/js/jquery.flot.canvas.min.js
     static/js/jquery.flot.categories.js
@@ -85,6 +88,7 @@ extra-source-files:
     static/js/jquery.flot.symbol.min.js
     static/js/jquery.flot.threshold.js
     static/js/jquery.flot.threshold.min.js
+    static/js/jquery.flot.time-1.8.0.min.js
     static/js/jquery.flot.time.js
     static/js/jquery.flot.time.min.js
     static/js/jquery.flot.tooltip.js

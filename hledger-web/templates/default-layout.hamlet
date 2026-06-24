@@ -1,43 +1,43 @@
 
-<div#spacer .col-xs-2.#{topShowsm}.#{topShowmd}>
+<aside#spacer .col-xs-2.#{topShowsm}.#{topShowmd}>
   <h1>
-    <button .visible-xs.btn.btn-default type="button" data-toggle="offcanvas">
-      <span .glyphicon.glyphicon-align-left.tgl-icon>
+    <button .d-block.d-md-none.btn.btn-default type="button" onclick="sidebarToggle()">
+      <span .bi.bi-list.tgl-icon>
 
-<div#topbar .col-md-8 .col-sm-8 .col-xs-10>
+<header#topbar .col-md-8 .col-sm-8 .col-xs-10>
   <h1>#{takeFileName (journalFilePath j)}
 
 $if elem ViewPermission perms
-  <div#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+  <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
     <table .main-menu .table>
       ^{accounts}
 
-<div#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
+<main#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
   $maybe m <- msg
     <div #message .alert.alert-info>#{m}
   $if elem ViewPermission perms
     <form#searchform.input-group method=GET>
       <input .form-control name=q value=#{qparam} placeholder="Search"
         title="Enter hledger search patterns to filter the data below">
-      <div .input-group-btn>
+      <div .input-group-append>
         $if not (T.null qparam)
           <a href=@{here} .btn .btn-default title="Clear search terms">
-            <span .glyphicon .glyphicon-remove-circle>
+            <span .bi.bi-x-circle>
         <button .btn .btn-default type=submit title="Apply search terms">
-          <span .glyphicon .glyphicon-search>
+          <span .bi.bi-search>
         $if elem EditPermission perms
           <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
-            <span .glyphicon .glyphicon-wrench>
-        <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal"
+            <span .bi.bi-gear>
+        <button .btn .btn-default type=button data-bs-toggle="modal" data-bs-target="#helpmodal"
            title="Show search and general help">
-          <span .glyphicon .glyphicon-question-sign>
+          <span .bi.bi-question-circle>
   ^{widget}
 
 <div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel" aria-hidden="true">
   <div .modal-dialog .modal-lg>
     <div .modal-content>
       <div .modal-header>
-        <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+        <button type="button" .btn-close data-bs-dismiss="modal" aria-label="Close">
         <span style="float:right; margin-right:4em;">#{progname} #{packageversion}
         <h3 .modal-title #helpLabel>Help
       <div .modal-body>

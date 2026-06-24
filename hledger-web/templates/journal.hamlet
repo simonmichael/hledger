@@ -3,10 +3,10 @@
 
 $if elem AddPermission perms
   <a #addformlink href="#" role="button" style="cursor:pointer; margin-top:1em;"
-     data-toggle="modal" data-target="#addmodal" title="Add a new transaction to the journal">
+     data-bs-toggle="modal" data-bs-target="#addmodal" title="Add a new transaction to the journal">
     Add a transaction
 
-<div .table-responsive>
+<section .table-responsive>
   <table .transactionsreport .table .table-condensed>
     <thead>
       <th .date style="text-align:left;">Date

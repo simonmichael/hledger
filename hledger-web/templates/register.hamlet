@@ -1,16 +1,16 @@
 <h2>
   #{header}
 
-<div>
+<section>
   ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items}
 
-<div.table-responsive>
+<section.table-responsive>
   <table .table.table-striped.table-condensed>
     <thead>
       <tr>
         <th style="text-align:left;">
           Date
-          <span .glyphicon.glyphicon-chevron-up>
+          <span .bi.bi-chevron-up>
         <th style="text-align:left;">Description
         <th style="text-align:left;">To/From Account(s)
         <th style="text-align:right; white-space:normal;">Amount Out/In

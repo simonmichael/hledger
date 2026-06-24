@@ -41,8 +41,8 @@
   <div .col-md-3.col-sm-5.col-xs-6 :isJust (fvErrors dateView):.has-error>
     <div #dateWrap .form-group.input-group.date>
       ^{fvInput dateView}
-      <div .input-group-addon>
-        <span .glyphicon .glyphicon-th>
+      <div .input-group-text>
+        <span .bi.bi-calendar>
     $maybe err <- fvErrors dateView
       <span .help-block .error-block>#{err}
   <div .col-md-9.col-sm-7.col-xs-6 :isJust (fvErrors descView):.has-error>

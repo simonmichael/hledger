@@ -1,7 +1,7 @@
 <h2>
   Your journal's files
 
-<div.row>
+<section.row>
   <div .col-md-6.col-sm-8.col-xs-12>
     <table .table.table-condensed>
       <thead>
