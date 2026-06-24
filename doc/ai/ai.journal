@@ -18,5 +18,8 @@
     (ai)                                       20000 codex_output_tokens  ; time:2-3h interactive
 
 2026-05-01 sm
-    (ai)                                     2680593 opus_output_tokens
+    (ai)                                     2230792 opus_output_tokens
 
+; as of 2026-06-24
+2026-06-01 sm
+    (ai)                                     1080010 opus_output_tokens
