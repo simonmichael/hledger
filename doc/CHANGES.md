@@ -20,7 +20,23 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 7c68920a
+# d4049bca
+
+- ;doc: SFC policy
+
+
+
+
+- ;tools: just hackagerevise
+- ;pkg: stack: bump to latest nightly, with newer haskeline & yesod packages
+- ;bin: hledger-example-read*: add missing --package option
+- ;bin: more cleanups
+- ;bin: more cleanups to example scripts
+- ;bin: add hledger-hello; README cleanups
+- ;bin: hledger-script-example-short.hs: cleanups
+- ;bin: hledger-script-example-short.hs: add x permission
+
+
 
 ## Docs
 
