@@ -536,6 +536,30 @@ API
 
 ### project changes 1.99.3
 
+## AI usage
+
+hledger 2.x releases use careful AI-assisted development.
+(If you want to use software built without any help from AI tools, choose hledger 1.x instead.)
+All changes were steered, reviewed, and tested by Simon or a contributor.
+See <https://hledger.org/AI.html> for our current AI policy and rationale.
+
+For 1.99.3, mostly opus 4.7 was used. My reporting methods have
+changed since last time; here's my current rough estimate of tokens
+used per month:
+
+```
+            output tokens  release
+ Jan       ||       771 || 
+ Feb       ||    53,229 || 
+ Mar       ||   112,112 || 1.99.1
+ Apr       ||   686,507 || 1.99.2
+ May       || 2,680,593 || 
+ Jun       ||   737,780 || 1.99.3
+
+   Total   || 4,270,992 || 
+ Average   ||   711,832 || 
+```
+
 #### Docs
 
 - Install: add Building outside the source tree
@@ -561,29 +585,6 @@ API
 - `tools/regen-shelltests.py` script, `regen-shelltests` claude code skill
 - `just devver`: fix
 - gitignore updates
-
-#### AI usage
-
-hledger 2.x releases use AI-assisted development; 
-our AI policy is at <https://hledger.org/AI.html>.
-All changes were steered, reviewed, and tested by Simon or a contributor.
-
-For 1.99.3, mostly opus 4.7 was used. My reporting methods have
-changed since last time; here's my current rough estimate of tokens
-used per month:
-
-```
-            output tokens  release
- Jan       ||       771 || 
- Feb       ||    53,229 || 
- Mar       ||   112,112 || 1.99.1
- Apr       ||   686,507 || 1.99.2
- May       || 2,230,792 || 
- Jun       || 1,080,010 || 1.99.3
-
-   Total   || 4,163,421 || 
- Average   ||   693,904 || 
-```
 
 
 [#2410]: https://github.com/simonmichael/hledger/issues/2410
