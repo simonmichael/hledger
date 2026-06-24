@@ -50,7 +50,7 @@ Updates to binaries:
 
 If you have [eget](https://github.com/zyedidia/eget), that's a convenient way to download the right binaries for your machine:
 ```
-eget simonmichael/hledger --all
+eget simonmichael/hledger --all --pre-release
 ```
 
 <!--
