@@ -12,9 +12,11 @@ Highlights:
 - prices --summary report
 - a more robust roi report.
 
-- https://github.com/simonmichael/hledger/releases/tag/1.99.3
+Release notes, install docs, user manual:
+
 - https://hledger.org/relnotes.html#2026-06-24-hledger-1993
 - https://hledger.org/install
+- https://hledger.org/dev/hledger.html
 
 Release contributors:
 
