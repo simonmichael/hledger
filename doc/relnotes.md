@@ -536,7 +536,7 @@ API
 
 ### project changes 1.99.3
 
-## AI usage
+#### AI usage
 
 hledger 2.x releases use careful AI-assisted development.
 (If you want to use software built without any help from AI tools, choose hledger 1.x instead.)
