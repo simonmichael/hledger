@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-UI" "1" "May 2026" "hledger-ui-1.99 " "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "June 2026" "hledger-ui-1.99.3 " "hledger User Manuals"
 
 
 
@@ -17,7 +17,7 @@ or
 .PD
 \f[CR]hledger ui [OPTS] [QUERYARGS]\f[R]
 .SH DESCRIPTION
-This manual is for hledger\(aqs terminal interface, version 1.99.
+This manual is for hledger\(aqs terminal interface, version 1.99.3.
 See also the hledger manual for common concepts and file formats.
 .PP
 hledger is a robust, user\-friendly, cross\-platform set of programs for
@@ -100,11 +100,9 @@ General input flags:
                             \(aqexact\(aq: \- use transaction precision (default)
      \-\-infer\-costs          infer conversion equity postings from costs
      \-\-infer\-equity         infer costs from conversion equity postings
-     \-\-lots                 show lot subaccounts and other lot details
      \-\-infer\-market\-prices  infer market prices from costs
      \-\-pivot=TAGNAME        use a different field or tag as account names
   \-s \-\-strict               do extra error checks (and override \-I)
-     \-\-verbose\-tags         add tags indicating generated/modified data
 
 General output flags (affecting some commands):
   \-b \-\-begin=DATE           include postings/transactions on/after this date
@@ -145,10 +143,17 @@ General output flags (affecting some commands):
                             \(aqend\(aq:      value at period end(s)
                             \(aqnow\(aq:      value today
                             YYYY\-MM\-DD: value on given date
+     \-\-lots                 show lot subaccounts and other lot details
   \-c \-\-commodity\-style=S    Override a commodity\(aqs display style.
                             Eg: \-c \(aq.\(aq or \-c \(aq1.000,00 EUR\(aq
      \-\-pretty[=YN]          Use box\-drawing characters in text output? The
                             optional \(aqy\(aq/\(aqyes\(aq or \(aqn\(aq/\(aqno\(aq arg requires =.
+     \-\-title=T              set or customise a report title
+     \-\-subreport\-titles=TS  customise subreport headings in compound reports
+                            (|\-separated)
+     \-\-period\-titles=OPT    customise headings in periodic reports:
+                            \(aqcompact\(aq: readable period names when possible
+                            \(aqdates\(aq:   exact dates/date ranges always
 
 General help flags:
   \-h \-\-help                 show command line help
@@ -273,10 +278,9 @@ $path.
 .PP
 \f[CR]E\f[R] runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default
 (\f[CR]emacsclient \-a \(dq\(dq \-nw\f[R]) on the journal file.
-With some editors (emacs, vi), the cursor will be positioned at the
-current transaction when invoked from the register and transaction
-screens, and at the error location (if possible) when invoked from the
-error screen.
+With some editors, the cursor will be positioned at the current
+transaction when invoked from the register and transaction screens, and
+at the error location (if possible) when invoked from the error screen.
 .PP
 \f[CR]B\f[R] toggles cost mode, showing amounts converted to their
 cost\(aqs commodity (see hledger manual > Cost reporting.

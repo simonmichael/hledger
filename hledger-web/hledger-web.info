@@ -18,7 +18,7 @@ plain text accounting app.
 or
 'hledger web [OPTS] [QUERY]'
 
-   This manual is for hledger's web interface, version 1.99.  See also
+   This manual is for hledger's web interface, version 1.99.3.  See also
 the hledger manual for common concepts and file formats.
 
    hledger is a robust, user-friendly, cross-platform set of programs
@@ -83,9 +83,10 @@ Flags:
      --serve-api            like --serve, but serve only the JSON web API,
                             not the web UI
      --allow=view|add|edit  set the user's access level for changing data
-                            (default: `add`). It also accepts `sandstorm` for
-                            use on that platform (reads permissions from the
-                            `X-Sandstorm-Permissions` request header).
+                            (default: `add` on a local-only address, `view`
+                            otherwise). It also accepts `sandstorm` for that
+                            platform (reads from the `X-Sandstorm-Permissions`
+                            request header).
      --cors=ORIGIN          allow cross-origin requests from the specified
                             origin; setting ORIGIN to "*" allows requests from
                             any origin
@@ -155,11 +156,9 @@ General input flags:
                             'exact': - use transaction precision (default)
      --infer-costs          infer conversion equity postings from costs
      --infer-equity         infer costs from conversion equity postings
-     --lots                 show lot subaccounts and other lot details
      --infer-market-prices  infer market prices from costs
      --pivot=TAGNAME        use a different field or tag as account names
   -s --strict               do extra error checks (and override -I)
-     --verbose-tags         add tags indicating generated/modified data
 
 General output flags (affecting some commands):
   -b --begin=DATE           include postings/transactions on/after this date
@@ -200,10 +199,17 @@ General output flags (affecting some commands):
                             'end':      value at period end(s)
                             'now':      value today
                             YYYY-MM-DD: value on given date
+     --lots                 show lot subaccounts and other lot details
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '.' or -c '1.000,00 EUR'
      --pretty[=YN]          Use box-drawing characters in text output? The
                             optional 'y'/'yes' or 'n'/'no' arg requires =.
+     --title=T              set or customise a report title
+     --subreport-titles=TS  customise subreport headings in compound reports
+                            (|-separated)
+     --period-titles=OPT    customise headings in periodic reports:
+                            'compact': readable period names when possible
+                            'dates':   exact dates/date ranges always
 
 General help flags:
   -h --help                 show command line help
@@ -236,16 +242,14 @@ File: hledger-web.info,  Node: PERMISSIONS,  Next: EDITING UPLOADING DOWNLOADING
 2 PERMISSIONS
 *************
 
-By default, hledger-web allows anyone who can reach it to view the
-journal and to add new transactions, but not to change existing data.
-
-   You can restrict who can reach it, by
+You can restrict who can access hledger-web by
 
    * setting the IP address it listens on (see '--host' above).  By
      default it listens on 127.0.0.1, accessible to users on the local
      machine only.
-   * putting it behind an authenticating proxy, such as caddy or apache
-   * putting it behind a firewall
+   * or by putting it behind an authenticating proxy, such as caddy or
+     apache
+   * or by putting it behind a firewall.
 
    And you can restrict what the users reaching it can do, by specifying
 the '--allow=ACCESSLEVEL' option at startup.  ACCESSLEVEL is one of:
@@ -259,7 +263,10 @@ the '--allow=ACCESSLEVEL' option at startup.  ACCESSLEVEL is one of:
      of 'view', 'add', or 'edit' are specified in the
      'X-Sandstorm-Permissions' HTTP header
 
-   The default access level is 'add'.
+   The default access level is 'add' when listening on a local-only
+address ('127.0.0.1', '::1', 'localhost', or a unix socket), and 'view'
+otherwise.  To allow more than the default access, start it with an
+explicit '--allow=add' or '--allow=edit' option.
 
 
 File: hledger-web.info,  Node: EDITING UPLOADING DOWNLOADING,  Next: RELOADING,  Prev: PERMISSIONS,  Up: Top
@@ -535,15 +542,15 @@ We welcome bug reports in the hledger issue tracker
 
 Tag Table:
 Node: Top223
-Node: OPTIONS2575
-Node: PERMISSIONS11910
-Node: EDITING UPLOADING DOWNLOADING13060
-Node: RELOADING14075
-Node: JSON API14642
-Node: DEBUG OUTPUT20291
-Node: Debug output20443
-Node: ENVIRONMENT20961
-Node: BUGS21197
+Node: OPTIONS2577
+Node: PERMISSIONS12283
+Node: EDITING UPLOADING DOWNLOADING13538
+Node: RELOADING14553
+Node: JSON API15120
+Node: DEBUG OUTPUT20769
+Node: Debug output20921
+Node: ENVIRONMENT21439
+Node: BUGS21675
 
 End Tag Table
 
