@@ -197,7 +197,7 @@ Other contributors' usage estimates can be added here too.
 
 ## Related
 
-Discussions
+### Discussions
 - in the hledger community
   - [mastodon](https://fosstodon.org/@happyborg/116312844334306281)
   - [mail list](https://groups.google.com/g/hledger/c/S7wCGw562yE)
@@ -214,21 +214,21 @@ Discussions
   - [Pope Leo XIV: Magnifica Humanitas: On Safeguarding The Human Person In The Time Of Artificial Intelligence](https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html)
     ([summary](https://www.theregister.com/ai-ml/2026/05/26/pope-leo-warns-ai-boom-can-give-big-tech-and-the-people-who-run-it-too-much-power/5245883))
 
-Policies
+### Policies
 - <https://sfconservancy.org/llm-gen-ai/llm-backed-generative-ai-recommendations.html>
 - <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
 - <https://github.com/stanford-cs336/assignment1-basics/blob/main/CLAUDE.md>
 - <https://ladybird.org/posts/changing-how-we-develop-ladybird/> ([discussion](https://news.ycombinator.com/item?id=48409191))
 
-Law
+### Law
 - <https://www.congress.gov/crs-product/LSB10922>
 - <https://legallayer.substack.com/p/who-owns-the-claude-code-wrote> ([discussion](https://news.ycombinator.com/item?id=47932937))
 
-Research
+### Research
 - **[AI 2027](https://ai-2027.com)** Mandatory reading.
 - [From Technical Debt to Cognitive and Intent Debt: Rethinking Software Health in the Age of AI](https://arxiv.org/pdf/2603.22106)
 
-Practitioners
+### Practitioners
 - Donald Knuth: <https://cs.stanford.edu/~knuth/papers/claude-cycles.pdf>
 - Kent Beck: <https://tidyfirst.substack.com/t/genies>,\
   <https://www.youtube.com/watch?v=5htJ2ML7BKU> 
@@ -236,6 +236,6 @@ Practitioners
 - <https://news.ycombinator.com/item?id=47648828> Eight years of wanting, three months of building with AI
 - Raffael Schneider: <https://raskell.io/articles/looking-back-on-2025>
 
-Tools
+### Tools
 - <https://ccusage.com>
 - <https://github.com/ratherlegit/environmental-impact-tracker>
