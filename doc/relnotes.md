@@ -463,6 +463,7 @@ more robust roi report.**
 [#2636]: https://github.com/simonmichael/hledger/issues/2636
 [#2645]: https://github.com/simonmichael/hledger/issues/2645
 [#2646]: https://github.com/simonmichael/hledger/issues/2646
+[#2649]: https://github.com/simonmichael/hledger/issues/2649
 
 
 ### hledger-ui 1.99.3

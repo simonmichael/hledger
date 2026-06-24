@@ -410,6 +410,7 @@ User-visible changes in the hledger command line tool and library.
 [#2636]: https://github.com/simonmichael/hledger/issues/2636
 [#2645]: https://github.com/simonmichael/hledger/issues/2645
 [#2646]: https://github.com/simonmichael/hledger/issues/2646
+[#2649]: https://github.com/simonmichael/hledger/issues/2649
 
 
 # 1.99.2 2026-04-28
