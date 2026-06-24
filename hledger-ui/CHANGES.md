@@ -23,7 +23,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# d4049bca
+# 1.99.3 2026-06-24
 
 Breaking changes
 

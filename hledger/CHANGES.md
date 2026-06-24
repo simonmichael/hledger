@@ -28,7 +28,7 @@ AI usage
 User-visible changes in the hledger command line tool and library.
 
 
-# d4049bca
+# 1.99.3 2026-06-24
 
 ## Breaking changes
 
