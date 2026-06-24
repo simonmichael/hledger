@@ -307,7 +307,7 @@ function addformLastAmountBindKey() {
   amountInputs.forEach(function(input) {
     input.removeEventListener('keypress', addformAddPosting);
   });
-  var lastAmountInput = document.querySelector('input[name=amount]:last');
+  var lastAmountInput = amountInputs[amountInputs.length - 1];
   if (lastAmountInput) {
     lastAmountInput.addEventListener('keypress', addformAddPosting);
   }
