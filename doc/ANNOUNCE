@@ -1,22 +1,39 @@
-G'day all. I'm pleased to announce hledger 2.0 preview release 2,
-with many refinements to lot tracking based on user testing.
-(And also hledger 1.52.1, which adds hledger 2-compatible G and U account types to hledger 1.)
+G'day all. I'm pleased to announce hledger 2.0 preview release 3.
+Highlights:
 
-- https://github.com/simonmichael/hledger/releases/tag/1.99.2
-- https://hledger.org/relnotes.html#2026-04-28-hledger-1992
+- conventional file layout for rules/data/prices
+- get command
+- commodity aliases
+- print aligns by decimal mark
+- more intuitive precision behaviour
+- more robust lot detection
+- average cost basis methods
+- customisable report titles
+- prices --summary report
+- a more robust roi report.
+
+- https://github.com/simonmichael/hledger/releases/tag/1.99.3
+- https://hledger.org/relnotes.html#2026-06-24-hledger-1993
 - https://hledger.org/install
 
 Release contributors:
 
-Simon Michael, Joshua Chapman.
+Simon Michael,
+Dmitry Astapov,
+Henning Thielemann,
+Adam Sardo,
+Rostislav Raykov.
 
 
-As always, hledger (https://hledger.org) is free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL-licensed, plain text accounting software.
-It is built around human-readable, version-controllable, future-proof plain text files.
-The UIs may seem basic at first, but it is powerful, flexible, and fun to use.
+hledger (https://hledger.org) is:
+
+- free, robust, friendly, fast, cross-platform, double-entry, multi-currency, multi-interface, GNU GPL accounting software
+- built around human-readable, version-controllable, future-proof plain text files
+- for both beginners and experts.
 
 It is a combination of accounting app, bookkeeping multitool, bootcamp/refresher course, and supportive community.
+The UIs may seem basic at first, but hledger is powerful, dependable, and fun to use.
 It can help you learn bookkeeping, untangle accounting messes, track your financial status and history, 
 run forecasts, set budgets and saving goals, produce detailed time reports, convert/transform financial data,
-check the correctness of other systems, and create more balance and calm in your life.
-Beginners, experts, contributors, sponsors welcome!
+check the correctness of other systems, and create more balance and calm in your life!
+If you find it valuable, consider becoming a sponsor (https://hledger.org/sponsor.html).
