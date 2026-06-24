@@ -1425,7 +1425,7 @@ time *ARGS:
 # @majorVersionIncrement MAJORVER:
 #     python3 -c "print({{MAJORVER}} + 0.01)"
 
-# Appropriate release branch name for the given version number.
+# Appropriate release branch name for the given version number ("MAJOR-branch")
 _versionReleaseBranch VER:
     #!/usr/bin/env bash
     MAJOR=$(just _versionMajorPart {{ VER }})
