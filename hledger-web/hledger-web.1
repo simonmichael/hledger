@@ -71,9 +71,10 @@ Flags:
      \-\-serve\-api            like \-\-serve, but serve only the JSON web API,
                             not the web UI
      \-\-allow=view|add|edit  set the user\(aqs access level for changing data
-                            (default: \(gaadd\(ga). It also accepts \(gasandstorm\(ga for
-                            use on that platform (reads permissions from the
-                            \(gaX\-Sandstorm\-Permissions\(ga request header).
+                            (default: \(gaadd\(ga on a local\-only address, \(gaview\(ga
+                            otherwise). It also accepts \(gasandstorm\(ga for that
+                            platform (reads from the \(gaX\-Sandstorm\-Permissions\(ga
+                            request header).
      \-\-cors=ORIGIN          allow cross\-origin requests from the specified
                             origin; setting ORIGIN to \(dq*\(dq allows requests from
                             any origin
@@ -150,11 +151,9 @@ General input flags:
                             \(aqexact\(aq: \- use transaction precision (default)
      \-\-infer\-costs          infer conversion equity postings from costs
      \-\-infer\-equity         infer costs from conversion equity postings
-     \-\-lots                 show lot subaccounts and other lot details
      \-\-infer\-market\-prices  infer market prices from costs
      \-\-pivot=TAGNAME        use a different field or tag as account names
   \-s \-\-strict               do extra error checks (and override \-I)
-     \-\-verbose\-tags         add tags indicating generated/modified data
 
 General output flags (affecting some commands):
   \-b \-\-begin=DATE           include postings/transactions on/after this date
@@ -195,10 +194,17 @@ General output flags (affecting some commands):
                             \(aqend\(aq:      value at period end(s)
                             \(aqnow\(aq:      value today
                             YYYY\-MM\-DD: value on given date
+     \-\-lots                 show lot subaccounts and other lot details
   \-c \-\-commodity\-style=S    Override a commodity\(aqs display style.
                             Eg: \-c \(aq.\(aq or \-c \(aq1.000,00 EUR\(aq
      \-\-pretty[=YN]          Use box\-drawing characters in text output? The
                             optional \(aqy\(aq/\(aqyes\(aq or \(aqn\(aq/\(aqno\(aq arg requires =.
+     \-\-title=T              set or customise a report title
+     \-\-subreport\-titles=TS  customise subreport headings in compound reports
+                            (|\-separated)
+     \-\-period\-titles=OPT    customise headings in periodic reports:
+                            \(aqcompact\(aq: readable period names when possible
+                            \(aqdates\(aq:   exact dates/date ranges always
 
 General help flags:
   \-h \-\-help                 show command line help
@@ -227,18 +233,15 @@ If you use the bash shell, you can auto\-complete flags by pressing TAB
 in the command line.
 If this is not working see Install > Shell completions.
 .SH PERMISSIONS
-By default, hledger\-web allows anyone who can reach it to view the
-journal and to add new transactions, but not to change existing data.
-.PP
-You can restrict who can reach it, by
+You can restrict who can access hledger\-web by
 .IP \(bu 2
 setting the IP address it listens on (see \f[CR]\-\-host\f[R] above).
 By default it listens on 127.0.0.1, accessible to users on the local
 machine only.
 .IP \(bu 2
-putting it behind an authenticating proxy, such as caddy or apache
+or by putting it behind an authenticating proxy, such as caddy or apache
 .IP \(bu 2
-putting it behind a firewall
+or by putting it behind a firewall.
 .PP
 And you can restrict what the users reaching it can do, by specifying
 the \f[CR]\-\-allow=ACCESSLEVEL\f[R] option at startup.
@@ -256,7 +259,11 @@ journal file(s)
 whichever of \f[CR]view\f[R], \f[CR]add\f[R], or \f[CR]edit\f[R] are
 specified in the \f[CR]X\-Sandstorm\-Permissions\f[R] HTTP header
 .PP
-The default access level is \f[CR]add\f[R].
+The default access level is \f[CR]add\f[R] when listening on a
+local\-only address (\f[CR]127.0.0.1\f[R], \f[CR]::1\f[R],
+\f[CR]localhost\f[R], or a unix socket), and \f[CR]view\f[R] otherwise.
+To allow more than the default access, start it with an explicit
+\f[CR]\-\-allow=add\f[R] or \f[CR]\-\-allow=edit\f[R] option.
 .SH EDITING, UPLOADING, DOWNLOADING
 If you enable the \f[CR]manage\f[R] capability mentioned above,
 you\(aqll see a new \(dqspanner\(dq button to the right of the search

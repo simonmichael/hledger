@@ -377,11 +377,9 @@ General input flags:
                             \(aqexact\(aq: \- use transaction precision (default)
      \-\-infer\-costs          infer conversion equity postings from costs
      \-\-infer\-equity         infer costs from conversion equity postings
-     \-\-lots                 show lot subaccounts and other lot details
      \-\-infer\-market\-prices  infer market prices from costs
      \-\-pivot=TAGNAME        use a different field or tag as account names
   \-s \-\-strict               do extra error checks (and override \-I)
-     \-\-verbose\-tags         add tags indicating generated/modified data
 
 General output flags (affecting some commands):
   \-b \-\-begin=DATE           include postings/transactions on/after this date
@@ -422,10 +420,17 @@ General output flags (affecting some commands):
                             \(aqend\(aq:      value at period end(s)
                             \(aqnow\(aq:      value today
                             YYYY\-MM\-DD: value on given date
+     \-\-lots                 show lot subaccounts and other lot details
   \-c \-\-commodity\-style=S    Override a commodity\(aqs display style.
                             Eg: \-c \(aq.\(aq or \-c \(aq1.000,00 EUR\(aq
      \-\-pretty[=YN]          Use box\-drawing characters in text output? The
                             optional \(aqy\(aq/\(aqyes\(aq or \(aqn\(aq/\(aqno\(aq arg requires =.
+     \-\-title=T              set or customise a report title
+     \-\-subreport\-titles=TS  customise subreport headings in compound reports
+                            (|\-separated)
+     \-\-period\-titles=OPT    customise headings in periodic reports:
+                            \(aqcompact\(aq: readable period names when possible
+                            \(aqdates\(aq:   exact dates/date ranges always
 
 General help flags:
   \-h \-\-help                 show command line help
@@ -698,7 +703,7 @@ desc:\(aqamazon|amzn|audible\(aq  Amazon transactions
 cur:EUR              amounts with commodity symbol EUR (or any of its declared aliases)
 cur:\(rs\(rs$              amounts with commodity symbol $ (or any of its aliases)
 cur:....?            amounts with 3\- or 4\-character symbols (or any of their aliases)
-exactcur:EUR         amounts whose commodity is EUR (ignoring aliases)
+sym:EUR              amounts whose commodity symbol is exactly EUR (ignoring aliases)
 tag:.=202[1\-3]       things with any tag whose value contains 2021, 2022 or 2023
 .EE
 .PP
@@ -3533,31 +3538,25 @@ Note, these tags will be queryable but won\(aqt be shown in
 \f[CR]print\f[R] output, even with \-\-verbose\-tags.
 .SS Commodity aliases
 An \f[CR]alias:\f[R] tag on a commodity directive declares one or more
-alternative symbols which should be treated as equivalent to it for
-valuation purposes.
-This is useful when your journal uses a familiar symbol like
-\f[CR]$\f[R] while market prices are recorded against the canonical ISO
-code like \f[CR]USD\f[R] (eg as written by \f[CR]hledger get\f[R]):
+aliases (alternate symbols) for the commodity.
+Here USD has three aliases:
 .IP
 .EX
-commodity 1.00 USD  ; alias: $
-
-P 2024\-01\-01 EUR 1.10 USD
+commodity USD 1.00    ; alias: $ US$ \(dqus dollars\(dq
 .EE
 .PP
-For each declared alias, hledger injects a synthetic 1:1 price directive
-(eg \f[CR]$ → USD\f[R]), dated \f[CR]0000\-01\-01\f[R], so reports like
-\f[CR]bal \-X EUR\f[R] can convert amounts via the alias\(aqs canonical
-form.
+A 1:1 market price is inferred between each these (it can be seen with
+the \f[CR]prices\f[R] command); so \f[CR]\-X\f[R] reports can freely
+convert between them.
+This is useful eg if your journal and your downloaded market price data
+use different symbols for a commodity.
 .PP
-Multiple aliases can be listed in one tag value, separated by
-whitespace.
-Symbols containing special characters or spaces should be enclosed in
-double or single quotes:
+Multiple aliases can be separated by whitespace.
+Symbols containing spaces should be enclosed in double or single quotes:
 .IP
 .EX
 commodity USD1.00
-    ; alias: $ \(dqUS$\(dq USDOLLAR
+    ; alias: $ US$ \(dqUS DOLLAR\(dq
 .EE
 .PP
 Aliased symbols are also accepted by
@@ -4590,9 +4589,6 @@ With \f[CR]archive\f[R] added to a rules file, the \f[CR]import\f[R]
 command will archive each successfully processed data file or data
 command output in an \f[CR]archive/\f[R] subdirectory of the
 \f[CR]data/\f[R] directory next to the main journal file.
-(\f[CR]archive/\f[R] keeps archived files out of sight of the
-\f[CR]source\f[R] rule\(aqs glob pattern, which might otherwise
-re\-match them.)
 The archive file name will be based on the rules file and the data
 file\(aqs modification date and extension (or for a data\-generating
 command, the current date and the \(dq.csv\(dq extension).
@@ -4814,59 +4810,59 @@ when parsing numbers (cf Amounts).
 However if any numbers in the CSV contain digit group marks, such as
 thousand\-separating commas, you should declare the decimal mark
 explicitly with this rule, to avoid misparsed numbers.
-.SS CSV fields and hledger fields
-This can be confusing, so let\(aqs start with an overview:
+.SS CSV fields vs hledger fields
+The main task of CSV rules is to convert \f[B]CSV fields\f[R] to
+\f[B]hledger fields\f[R].
+It\(aqs important to know which is which, when you are creating rules:
+.IP "1." 3
+CSV fields
+.RS 4
 .IP \(bu 2
-\f[B]CSV fields\f[R] are provided by your data file.
-They are named by their position in the CSV record, starting with 1.
-You can also give them a readable name.
+are the parts of the records (lines) in your CSV data
 .IP \(bu 2
-\f[B]hledger fields\f[R] are predefined; \f[CR]date\f[R],
-\f[CR]description\f[R], \f[CR]account1\f[R], \f[CR]amount1\f[R],
-\f[CR]account2\f[R] are some of them.
-They correspond to parts of a transaction\(aqs journal entry, mostly.
+are referenced by their position or assigned name, with a \f[CR]%\f[R]
+prefix (eg \f[CR]%1\f[R] or \f[CR]%date\f[R])
 .IP \(bu 2
-The CSV fields and hledger fields are the only fields you\(aqll be
-working with; you can\(aqt define new fields, or variables as in a
-programming language.
-(But you could add extra CSV fields to the data in preprocessing, before
-running the rules.)
-.IP \(bu 2
-For each CSV record, you\(aqll assign values to one or more of the
-hledger fields to build up a transaction (journal entry).
-Values can be static text, CSV field values from the current record, or
-a combination of these.
-.IP \(bu 2
-For simple cases, you can give a CSV field the same name as one of the
-hledger fields, then its value will be automatically assigned to that
-hledger field.
-.IP \(bu 2
-CSV fields can only be read, not written to.
-They\(aqll be on the right hand side, with a % prefix.
-Eg
-.RS 2
-.IP \(bu 2
-testing a CSV field\(aqs value: \f[CR]if %CSVFIELD ...\f[R]
-.IP \(bu 2
-interpolating its value: \f[CR]HLEDGERFIELD %CSVFIELD\f[R]
+are read\-only.
 .RE
+.IP "2." 3
+hledger fields
+.RS 4
 .IP \(bu 2
-hledger fields can only be written to, not read.
-They\(aqll be on the left hand side (or in a fields list), with no
-prefix.
-Eg
-.RS 2
+are the parts of a hledger journal entry (see hledger field names) (eg
+\f[CR]date\f[R], \f[CR]description\f[R], \f[CR]account1\f[R],
+\f[CR]amount1\f[R])
 .IP \(bu 2
-setting the transaction\(aqs description to a value:
-\f[CR]description VALUE\f[R]
+are written to by rules to construct a journal entry
 .IP \(bu 2
-setting the transaction\(aqs description to the second CSV field\(aqs
-value:
-.PD 0
-.P
-.PD
-\f[CR]fields date, description, amount\f[R]
+are write\-only.
 .RE
+.PP
+CSV rules can\(aqt read what has been written to a hledger field, or
+make new fields.
+In other words, you can\(aqt use \(dqvariables\(dq in a rules file.
+(But you could add new CSV fields to the data before running rules, with
+a preprocessing script.)
+.PP
+It\(aqs ok for a CSV field and a hledger field to have the same name;
+this causes the CSV field\(aqs value to be copied to the hledger field.
+hledger knows which kind of field is meant from the context; also, CSV
+fields are usually written with a \f[CR]%\f[R] prefix.
+Some examples:
+.IP
+.EX
+# set the journal entry\(aqs date to the value of CSV field 1
+date %1
+.EE
+.IP
+.EX
+# name the CSV fields, and use the first as the entry\(aqs date
+fields date, bankamt
+
+# test the value of the CSV date field
+if %date 2026
+ ...
+.EE
 .SS \f[CR]fields\f[R] list
 .IP
 .EX
@@ -4959,48 +4955,13 @@ Interpolation strips outer whitespace (so a CSV value like
 Interpolations always refer to a CSV field \- you can\(aqt interpolate a
 hledger field.
 (See Referencing other fields below).
-.SS Field names
-Note the two kinds of field names mentioned here, and used only in
-hledger CSV rules files:
-.IP "1." 3
-\f[B]CSV field names\f[R] (\f[CR]CSVFIELD\f[R] in these docs): you can
-optionally name the CSV columns for easy reference (since hledger
-doesn\(aqt yet automatically recognise column headings in a CSV file),
-by writing arbitrary names in a \f[CR]fields\f[R] list, eg:
-.RS 4
-.IP
-.EX
-fields When, What, Some_Id, Net, Total, Foo, Bar
-.EE
-.RE
-.IP "2." 3
-Special \f[B]hledger field names\f[R] (\f[CR]HLEDGERFIELD\f[R] in these
-docs): you must set at least some of these to generate the hledger
-transaction from a CSV record, by writing them as the left hand side of
-a field assignment, eg:
-.RS 4
-.IP
-.EX
-date        %When
-code        %Some_Id
-description %What
-comment     %Foo %Bar
-amount1     $ %Total
-.EE
-.PP
-or directly in a \f[CR]fields\f[R] list:
-.IP
-.EX
-fields date, description, code, , amount1, Foo, Bar
-currency $
-comment  %Foo %Bar
-.EE
-.RE
-.PP
-Here are all the special hledger field names available, and what happens
-when you assign values to them:
+.SS hledger field names
+Here are all the hledger fields you can assign to.
+They correspond to parts of a journal entry, or in some cases they are
+pseudo\-fields which have a special effect.
 .SS date field
 Assigning to \f[CR]date\f[R] sets the transaction date.
+This is required.
 .SS date2 field
 \f[CR]date2\f[R] sets the transaction\(aqs secondary date, if any.
 .SS status field
@@ -5033,9 +4994,9 @@ Typically \f[CR]account1\f[R] is associated with the CSV file, and is
 set once with a top\-level assignment, while \f[CR]account2\f[R] is set
 based on each transaction\(aqs description, in conditional rules.
 .PP
-If a posting\(aqs account name is left unset but its amount is set (see
-below), a default account name will be chosen (like
-\(dqexpenses:unknown\(dq or \(dqincome:unknown\(dq).
+If a posting\(aqs account name is left unset but its amount is set, the
+account name will be set to \f[CR]expenses:unknown\f[R] or
+\f[CR]income:unknown\f[R] (depending on the amount\(aqs sign).
 .SS amount field
 There are several ways to set posting amounts from CSV, useful in
 different situations.
@@ -5120,18 +5081,15 @@ You can adjust the type of assertion/assignment with the
 .PP
 See the Working with CSV tips below for more about setting amounts and
 currency.
-.SS \f[CR]if\f[R] block
+.SS \f[CR]if\f[R]
 Rules can be applied conditionally, depending on patterns in the CSV
 data.
-This allows flexibility; in particular, it is how you can categorise
-transactions, selecting an appropriate account name based on their
-description (for example).
-There are two ways to write conditional rules: \(dqif blocks\(dq,
-described here, and \(dqif tables\(dq, described below.
+This is how you can categorise transactions, selecting an appropriate
+account based on their description (eg).
 .PP
-An if block is the word \f[CR]if\f[R] and one or more \(dqmatcher\(dq
-expressions (can be a word or phrase), one per line, starting either on
-the same or next line; followed by one or more indented rules.
+An \(dqif block\(dq is the word \f[CR]if\f[R], followed by one or more
+\(dqmatcher\(dq expressions starting on the same line or the next line,
+followed by one or more indented rules.
 Eg,
 .IP
 .EX
@@ -5152,8 +5110,8 @@ MATCHER
 .PP
 If any of the matchers succeeds, all of the indented rules will be
 applied.
-They are usually field assignments, but the following special rules may
-also be used within an if block:
+The rules are usually field assignments, but the following special rules
+may also be used within an if block:
 .IP \(bu 2
 \f[CR]skip\f[R] \- skips the matched CSV record (generating no
 transaction from it)
@@ -5226,15 +5184,14 @@ declared with \f[CR]fields\f[R].
 Anything else will cause it to match against the empty string, and
 probably fail silently (this makes it easier to reuse common rules with
 different CSV files).
-Don\(aqt use a hledger field name here (see CSV fields and hledger
+Don\(aqt use a hledger field name here (see CSV fields vs hledger
 fields).
 .PP
-You can also prefix a matcher with \f[CR]!\f[R] (and optional space) to
-negate it.
+You can also prefix a matcher with \f[CR]!\f[R] to negate it.
 Eg \f[CR]! whole foods\f[R], \f[CR]! %3 whole foods\f[R],
 \f[CR]!%description whole foods\f[R] will match if \(dqwhole foods\(dq
 is NOT present.
-\f[I]Added in 1.32.\f[R]
+\f[I]Since 1.32.\f[R]
 .PP
 The pattern is, as usual in hledger, a POSIX extended regular expression
 that also supports GNU word boundaries (\f[CR]\(rsb\f[R],
@@ -5288,42 +5245,40 @@ if %account1 liabilities:family:(expenses:.*)
     account1 \(rs1
 .EE
 .SS \f[CR]if\f[R] table
-\(dqif tables\(dq are an alternative to if blocks; they can express many
-matchers and field assignments in a more compact tabular format, like
-this:
+\(dqif tables\(dq are another way of writing if rules, in a more compact
+format.
+.IP \(bu 2
+The first line begins with \f[CR]if\f[R], immediately followed by a
+delimiter character, then one or more hledger field names.
+.IP \(bu 2
+The following lines begin with a matcher expression, then values to
+assign to each of those hledger fields.
+.IP \(bu 2
+Comment lines, beginning with \f[CR];\f[R] or \f[CR]#\f[R], are also
+allowed.
+.IP \(bu 2
+An empty line ends the table.
+.PP
+Eg:
 .IP
 .EX
-if,HLEDGERFIELD1,HLEDGERFIELD2,...
-MATCHERA,VALUE1,VALUE2,...
-MATCHERB && MATCHERC,VALUE1,VALUE2,...  (*since 1.42*)
-; Comment line that explains MATCHERD
-MATCHERD,VALUE1,VALUE2,...
+if|HLEDGERFIELD1|HLEDGERFIELD2|...
+MATCHERA|VALUE1|VALUE2|...
+MATCHERB && MATCHERC|VALUE1|VALUE2|...
+MATCHERD|VALUE1|VALUE2|...
 <empty line>
 .EE
 .PP
-The first character after \f[CR]if\f[R] is taken to be this if
-table\(aqs field separator.
-It is unrelated to the separator used in the CSV file.
-It should be a non\-alphanumeric character like \f[CR],\f[R] or
-\f[CR]|\f[R] that does not appear anywhere else in the table (it should
-not be used in field names or matchers or values, and it cannot be
-escaped with a backslash).
+An if table is applied as follows:
+.IP \(bu 2
+try each of the matchers in turn
+.IP \(bu 2
+when a matcher matches the CSV record, assign all of the values on that
+line to the corresponding hledger fields
+.IP \(bu 2
+if multiple matchers succeed, later lines override earlier ones.
 .PP
-Each line must contain the same number of separators; empty values are
-allowed.
-Whitespace can be used in the matcher lines for readability (but not in
-the if line, currently).
-You can use the comment lines in the table body.
-The table must be terminated by an empty line (or end of file).
-.PP
-An if table like the above is interpreted as follows: try all of the
-lines with matchers; whenever a line with matchers succeeds, assign all
-of the values on that line to the corresponding hledger fields; If
-multiple lines match, later lines will override fields assigned by the
-earlier ones \- just like the sequence of \f[CR]if\f[R] blocks would
-behave.
-.PP
-If table presented above is equivalent to this sequence of if blocks:
+So the above is equivalent to:
 .IP
 .EX
 if MATCHERA
@@ -5336,21 +5291,32 @@ if MATCHERB && MATCHERC
   HLEDGERFIELD2 VALUE2
   ...
 
-; Comment line which explains MATCHERD
 if MATCHERD
   HLEDGERFIELD1 VALUE1
   HLEDGERFIELD2 VALUE2
   ...
 .EE
 .PP
-Example:
+The character after \f[CR]if\f[R] is used as the if table\(aqs field
+delimiter.
+It must not appear in the field names, values, or matchers (you cannot
+escape it with a backslash).
+\f[CR]|\f[R] is conventional, but you can use a different character if
+it\(aqs more convenient.
+Just remember this delimiter has nothing to do with the one used in the
+CSV file.
+Each line must contain the same number of delimiters.
+.PP
+Here\(aqs an example.
+Note you can add whitespace in the matcher lines for readability (but
+not in the if line, currently):
 .IP
 .EX
-if,account2,comment
-atm transaction fee,expenses:business:banking,deductible? check it
-%description groceries,expenses:groceries,
-;; Comment line that desribes why this particular date is special
-2023/01/12.*Plumbing LLC,expenses:house:upkeep,emergency plumbing call\-out
+if|account2|comment
+%amount [0\-9]{4,}  |                    | TODO: large amount, check it
+atm withdrawal fee | expenses:banking   |
+cafe               | expenses:dining    |
+Plumbing LLC       | expenses:home      |
 .EE
 .SS \f[CR]balance\-type\f[R]
 Balance assertions generated by assigning to balanceN are of the simple
@@ -6365,78 +6331,98 @@ per:admin:finance               ; no time spent yet
 .EE
 .PP
 hledger reads this as a transaction on this day with three (unbalanced)
-postings, where each dot represents \(dq0.25\(dq.
-No commodity symbol is assumed, but we typically interpret it as hours.
+postings, where each dot represents 0.25 (of an hour, we usually
+assume).
 .IP
 .EX
 $ hledger \-f a.timedot print   # .timedot file extension (or timedot: prefix) is required
 2023\-05\-01 *
-    (hom:errands)                    2.00  ; two hours
-    (fos:hledger:timedot)            0.50  ; half an hour
-    (per:admin:finance)                 0
+    (hom:errands)                                  2.00  ; two hours; the space is ignored
+    (fos:hledger:timedot)                          0.50  ; half an hour
+    (per:admin:finance)                            0.00  ; no time spent yet
 .EE
 .PP
-A timedot file contains a series of transactions (usually one per day).
-Each begins with a \f[B]simple date\f[R] (Y\-M\-D, Y/M/D, or Y.M.D),
-optionally be followed on the same line by a transaction description,
-and/or a transaction comment following a semicolon.
+A timedot file specifies a series of transactions, usually one per day.
+(Unlike in a journal file, these \(dqtransactions\(dq don\(aqt need to
+balance; time logs use \(dqsingle entry accounting\(dq.)
 .PP
-After the date line are zero or more time postings, consisting of:
+Each transaction begins with a \f[B]date line\f[R]: a line whose first
+word looks like a simple date, ie three groups of digits separated by
+\f[CR]\-\f[R], \f[CR]/\f[R], or \f[CR].\f[R] (if these cannot be parsed
+as a valid date, an error is raised).
+After the date, on the same line, there can optionally be a transaction
+description, and after \f[CR];\f[R], a transaction comment (possibly
+containing tags).
+.PP
+After the date line are zero or more \f[B]posting lines\f[R].
+A timedot posting line begins with a hledger\-style account name,
+optionally indented.
+After the account name there are \f[B]two or more spaces\f[R] and then a
+\f[B]timedot amount\f[R].
+(Or nothing, which is equivalent to a zero amount.)
+.PP
+Timedot amounts can be written in several ways:
 .IP \(bu 2
-\f[B]An account name\f[R] \- any hledger\-style account name, optionally
-indented.
+One or more \f[B]dots\f[R] (\f[CR].\f[R])
+.PD 0
+.P
+.PD
+Each dot represents a quarter hour.
+(There\(aqs no commodity symbol, but usually we assume hours.)
+Spaces can optionally be used for aligning or grouping dots, eg
+\f[CR].... .... ..\f[R] is easy to read as 2.5 hours.
 .IP \(bu 2
-\f[B]Two or more spaces\f[R] \- required if there is an amount (as in
-journal format).
+A \f[B]bare number\f[R] (integer or decimal)
+.PD 0
+.P
+.PD
+This can be more precise or more convenient, eg for large durations.
 .IP \(bu 2
-\f[B]A timedot amount\f[R], which can be
-.RS 2
-.IP \(bu 2
-empty (representing zero)
-.IP \(bu 2
-a number, optionally followed by a unit \f[CR]s\f[R], \f[CR]m\f[R],
+A \f[B]number followed by a time unit\f[R] (\f[CR]s\f[R], \f[CR]m\f[R],
 \f[CR]h\f[R], \f[CR]d\f[R], \f[CR]w\f[R], \f[CR]mo\f[R], or
-\f[CR]y\f[R], representing a precise number of seconds, minutes, hours,
-days weeks, months or years (hours is assumed by default), which will be
-converted to hours according to 60s = 1m, 60m = 1h, 24h = 1d, 7d = 1w,
-30d = 1mo, 365d = 1y.
+\f[CR]y\f[R])
+.PD 0
+.P
+.PD
+representing seconds, minutes, hours, days, weeks, months or years,
+which will be converted to hours using these ratios: 60s = 1m, 60m = 1h,
+24h = 1d, 7d = 1w, 30d = 1mo, 365d = 1y.
+This allows use of more convenient time units.
 .IP \(bu 2
-one or more dots (period characters), each representing 0.25.
-These are the dots in \(dqtimedot\(dq.
-Spaces are ignored and can be used for grouping/alignment.
-.IP \(bu 2
-\f[I]Added in 1.32\f[R] one or more letters.
-These are like dots but they also generate a tag \f[CR]t:\f[R] (short
-for \(dqtype\(dq) with the letter as its value, and a separate posting
-for each of the values.
-This provides a second dimension of categorisation, viewable in reports
-with \f[CR]\-\-pivot t\f[R].
-.RE
-.IP \(bu 2
-\f[B]An optional comment\f[R] following a semicolon (a hledger\-style
-posting comment).
+One or more \f[B]timedot letters\f[R] \f[I](since 1.32)\f[R]
+.PD 0
+.P
+.PD
+These work like dots, except they also generate a posting tag
+\f[CR]t:\f[R] (short for \(dqtype\(dq) with the letter as its value, and
+a separate posting for each of the letter values.
+This adds a second dimension of categorisation \- in addition to account
+name, you\(aqll have the \f[CR]t\f[R] tag\(aqs value, which can be shown
+in reports with \f[CR]\-\-pivot t\f[R], \f[CR]\-\-pivot acct:t\f[R],
+etc.
 .PP
-There is some flexibility to help with keeping time log data and notes
-in the same file:
+Posting lines can end with a hledger\-style posting comment (text after
+\f[CR];\f[R]), optionally containing tags.
+.PP
+Lines beginning with \f[CR]#\f[R] or \f[CR];\f[R] are \f[B]comment
+lines\f[R], and ignored.
+Blank lines are also ignored.
+.PP
+There is some additional support for users of Emacs org mode:
 .IP \(bu 2
-Blank lines and lines beginning with \f[CR]#\f[R] or \f[CR];\f[R] are
-ignored.
+Before the first date line, lines beginning with \f[CR]*\f[R] are also
+treated as comments, and ignored.
+This allows top\-level org headings in a timedot file.
 .IP \(bu 2
-After the first date line, lines which do not contain a double space are
-parsed as postings with zero amount.
-(hledger\(aqs register reports will show these if you add \-E).
-.IP \(bu 2
-Before the first date line, lines beginning with \f[CR]*\f[R] (eg org
-headings) are ignored.
-And from the first date line onward, Emacs org mode heading prefixes at
-the start of lines (one or more \f[CR]*\f[R]\(aqs followed by a space)
-will be ignored.
-This means the time log can also be a org outline.
+From the first date line onward, org heading prefixes (one or more
+\f[CR]*\f[R]\(aqs followed by a space) are ignored, with the rest of the
+line being parsed normally.
+This allows timedot date or posting lines to also be org headings.
 .PP
 Timedot files don\(aqt support directives like journal files.
-So a common pattern is to have a main journal file (eg
-\f[CR]time.journal\f[R]) that contains any needed directives, and then
-includes the timedot file (\f[CR]include time.timedot\f[R]).
+So a common pattern is to have a main journal file that contains any
+needed directives, and then includes the timedot file
+(\f[CR]include time.timedot\f[R]).
 .SS Timedot examples
 Numbers:
 .IP
@@ -6464,27 +6450,21 @@ biz:research  .
 .EX
 $ hledger \-f a.timedot print date:2016/2/2
 2016\-02\-02 *
-    (inc:client1)          2.00
-
-2016\-02\-02 *
-    (biz:research)          0.25
+    (inc:client1)                                  2.00
+    (biz:research)                                 0.25
 .EE
 .IP
 .EX
-$ hledger \-f a.timedot bal \-\-daily \-\-tree
-Balance changes in 2016\-02\-01\-2016\-02\-03:
+$ hledger \-f a.timedot bal \-\-daily
+Balance changes in 2016\-02\-01..2016\-02\-02:
 
-            ||  2016\-02\-01d  2016\-02\-02d  2016\-02\-03d 
-============++========================================
- biz        ||         0.25         0.25         1.00 
-   research ||         0.25         0.25         1.00 
- fos        ||         1.50            0         3.00 
-   haskell  ||         1.50            0            0 
-   hledger  ||            0            0         3.00 
- inc        ||         6.00         2.00         4.00 
-   client1  ||         6.00         2.00         4.00 
-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-            ||         7.75         2.25         8.00 
+              || 2016\-02\-01  2016\-02\-02 
+==============++========================
+ biz:research ||       0.25        0.25 
+ fos:haskell  ||       1.50           0 
+ inc:client1  ||       6.00        2.00 
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-++\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+              ||       7.75        2.25 
 .EE
 .PP
 Letters:
@@ -6502,10 +6482,10 @@ work:adm  ccecces
 .IP
 .EX
 $ hledger \-f a.timedot print
-2023\-11\-01
-    (work:adm)  1     ; t:c
-    (work:adm)  0.5   ; t:e
-    (work:adm)  0.25  ; t:s
+2023\-11\-01 *
+    (work:adm)                                     1.00  ; t:c
+    (work:adm)                                     0.50  ; t:e
+    (work:adm)                                     0.25  ; t:s
 .EE
 .IP
 .EX
@@ -6529,10 +6509,9 @@ Org:
 .EX
 * 2023 Work Diary
 ** Q1
-*** 2023\-02\-29
+*** 2023\-02\-28
 **** DONE
-0700 yoga
-**** UNPLANNED
+yoga  ....
 **** BEGUN
 hom:chores
  cleaning  ...
@@ -6540,7 +6519,7 @@ hom:chores
   outdoor \- one full watering can
   indoor \- light watering
 **** TODO
-adm:planning: trip
+adm:planning:trip
 *** LATER
 .EE
 .PP
@@ -6558,7 +6537,7 @@ $ hledger \-f a.timedot \-\-alias \(aq/\(rs./=:\(aq bal \-t
                 4.00    hledger:timedot
                 0.50    ledger
 \-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
-                4.50
+                4.50  
 .EE
 .SH PART 3: REPORTING CONCEPTS
 .SH Time periods
@@ -7308,14 +7287,15 @@ and \f[CR]cur:U.+\f[R] will all match amounts like \f[CR]$1\f[R] or
 .P
 .PD
 \f[I](experimental)\f[R]
-.SS exactcur: query
-\f[B]\f[CB]exactcur:FULLREGEX\f[B]\f[R]
+.SS sym: query
+\f[B]\f[CB]sym:FULLREGEX\f[B]\f[R]
 .PD 0
 .P
 .PD
-This is like \f[CR]cur:\f[R], but ignores commodity aliases.
-So in the example above, \f[CR]exactcur:USD\f[R] would match
-\f[CR]1 USD\f[R] but not \f[CR]$1\f[R] or \f[CR]1 U\f[R].
+This is like \f[CR]cur:\f[R], but matches a specific commodity symbol,
+ignoring alias\-group relationships.
+So in the example above, \f[CR]sym:USD\f[R] would match \f[CR]1 USD\f[R]
+but not \f[CR]$1\f[R] or \f[CR]1 U\f[R].
 .PD 0
 .P
 .PD
@@ -9364,6 +9344,17 @@ $ hledger print
 Unlike cost basis annotations, lot subaccount names must be complete,
 including all cost basis parts \- date, label if any, and cost.
 .PP
+Note this enclosing the leaf account name (final account name component)
+in \f[CR]{\f[R] and \f[CR]}\f[R] is reserved syntax for lot subaccounts,
+and hledger will report an error if what\(aqs inside the braces is is
+not a valid lot name.
+This is a breaking change from hledger 1.x, which had no special
+handling for such names.
+If you have such an account name and don\(aqt want hledger to reject it,
+you can pass \f[CR]\-\-ignore\-lots\f[R] (or \f[CR]\-I\f[R]) to skip lot
+processing entirely, causing \f[CR]:{...}\f[R] to be treated as ordinary
+subaccounts.
+.PP
 When strictly checking account names, lot subaccounts are ignored \- you
 only need to declare the base account (eg \f[CR]assets:stocks\f[R]), not
 the lot subaccounts.
@@ -9401,6 +9392,15 @@ You can check that \f[CR]B\f[R] == \f[CR]T\f[R] everywhere by running
 \f[CR]hledger check basis\f[R].
 This catches {}/\(at mismatches which would silently miscalculate
 capital gains.
+Note, this check uses strict equality, not
+equality\-within\-local\-precisions like transaction balancing or
+recorded gain checking, (because an inexact basis annotation would
+persist and be amplified at disposal time).
+So if you write an explicit cost basis annotation, use sufficient
+precision.
+If the amount is a non\-terminating decimal, you won\(aqt be able to
+record it explicitly \- instead write \f[CR]{}\f[R] or
+\f[CR]TOTALCOST\f[R] and let hledger infer it.
 .PP
 Some real\-world situations can produce a cost basis that differs from
 what was paid \- gifts (carryover basis), inheritance (stepped\-up
@@ -10008,6 +10008,8 @@ activity \- show bar charts of posting counts per period
 .IP \(bu 2
 close \- generate balance\-zeroing/restoring transactions
 .IP \(bu 2
+get \- fetch new transactions and market price data
+.IP \(bu 2
 rewrite \- generate auto postings, like print \-\-auto
 .PP
 \f[B]Maintenance commands\f[R]
@@ -10418,18 +10420,28 @@ any of them fail.
 You can run \f[CR]add\f[R] with \f[CR]\-I\f[R] or
 \f[CR]\-\-ignore\-assertions\f[R] to disable balance assertion checking.
 .SS add and balance assignments
-Since hledger 1.51, you can add a balance assignment by writing
-\f[CR]= BALANCE\f[R] (or \f[CR]==\f[R], \f[CR]=*\f[R] etc) when asked
-for an amount.
-The missing amount will be calculated automatically.
+\f[B]Adding a new balance assignment\f[R]
+.PD 0
+.P
+.PD
+When entering a posting amount, you can write a
+\f[CR]= BALANCEAMOUNT\f[R] balance assignment (or \f[CR]==\f[R],
+\f[CR]=*\f[R], \f[CR]==*\f[R]) instead.
+The posting amount required to produce this balance will be calculated
+automatically.
+\f[I](Since 1.51)\f[R]
 .PP
-\f[CR]add\f[R] normally won\(aqt let you add a new posting which is
-dated earlier than an existing balance assignment.
-(Because when \f[CR]add\f[R] runs, existing balance assignments have
-already been calculated and converted to amounts and balance
-assertions.)
-You can allow it by disabling balance assertion checking with
-\f[CR]\-I\f[R].
+\f[B]Adding a posting dated before an existing balance assignment\f[R]
+.PD 0
+.P
+.PD
+\f[CR]add\f[R] won\(aqt let you add a posting dated earlier than an
+existing balance assignment in that account.
+(Because it calculates balance assignments only once at startup,
+converting them to assertions, so adding the new amount causes an
+assertion failure.)
+To work around this, run \f[CR]add\f[R] with balance assertions ignored:
+\f[CR]hledger add \-I\f[R].
 .SS import
 Import new transactions from one or more data files to the main journal.
 Or with no arguments, import from the rules files in \f[CR]rules/\f[R].
@@ -10674,17 +10686,53 @@ Related: CSV > Amount decimal places.
 When importing from a CSV rules file
 (\f[CR]hledger import bank.rules\f[R]), you can use the archive rule to
 enable automatic archiving of the data file.
-After a successful import, the data file (specified by
-\f[CR]source\f[R]) will be moved to an archive folder (\f[CR]data/\f[R],
-next to the rules file, auto\-created), and renamed similar to the rules
-file, with a date.
+.PP
+After a successful import, the data file specified by \f[CR]source\f[R]
+will be moved (or data generated by a command will be saved) to an
+archive directory.
 This can be useful for troubleshooting, detecting variations in your
 banks\(aq CSV data, regenerating entries with improved rules, etc.
+.PP
+The archive directory is \f[CR]data/archive/\f[R], next to the main
+journal file, auto\-created.
+The archive file name will be similar to the rules file, with a date
+added: the original data file\(aqs modification date, or today\(aqs date
+if the data was command\-generated.
 .PP
 The \f[CR]archive\f[R] rule also causes \f[CR]import\f[R] to handle
 \f[CR]source\f[R] glob patterns differently: when there are multiple
 matched files, it will pick the oldest, not the newest.
 .SS Import special cases
+.SS Multiple journals in the same directory
+You might want to keep each journal you are importing to in its own
+directory.
+That way, each will have its own \f[CR]rules/\f[R], \f[CR]data/\f[R],
+and \f[CR]data/archive/\f[R] directories (if those are used).
+.PP
+Otherwise, imports to the same\-directory journals will potentially use
+the same \f[CR]rules/\f[R], \f[CR]data/\f[R] and
+\f[CR]data/archive/\f[R] directories (depending on commands and rules
+configuration).
+This is not necessarily a problem; it might even be desirable in some
+cases.
+But see below:
+.SS Import configurations to avoid
+A few unusual workflows which you should generally avoid:
+.IP \(bu 2
+Don\(aqt import from one input file to different journals.
+The imports\(aq overlap detection would overwrite the same
+\f[CR].latest.FILE\f[R] state file.
+(In effect, the journals would compete for the new records.)
+.IP \(bu 2
+Don\(aqt import from multiple data files on the same day, reusing the
+same rules file for all, with \f[CR]archive\f[R] enabled.
+The archived file names in \f[CR]data/archive/\f[R] would clash, causing
+some archives to be overwritten.
+.IP \(bu 2
+Don\(aqt do argument\-less \f[CR]hledger import\f[R] to more than one
+journal in the same directory.
+That would read from the same files in \f[CR]rules/\f[R], potentially
+disrupting both overlap detection and archiving.
 .SS Deduplication
 Here are two kinds of \(dqdeduplication\(dq which \f[CR]import\f[R] does
 not handle (and should not, because these can happen legitimately in
@@ -12218,7 +12266,7 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 A flexible, general purpose \(dqsumming\(dq report that shows accounts
 with some kind of numeric data.
 This can be balance changes per period, end balances, budget
-performance, unrealised capital gains, etc.
+performance, capital gains, etc.
 .IP
 .EX
 Flags:
@@ -12227,9 +12275,10 @@ Flags:
      \-\-valuechange          calculation mode: show total change of value of
                             period\-end historical balances (caused by deposits,
                             withdrawals, market price fluctuations)
-     \-\-gain                 calculation mode: show unrealised capital
-                            gain/loss (historical balance value minus cost
-                            basis)
+     \-\-gain                 calculation mode: show capital gain/loss
+                            (historical balance value minus the net of
+                            postings\(aq transacted costs; equals unrealised gain
+                            if nothing has been disposed of)
      \-\-budget[=DESCPAT]     calculation mode: show sum of posting amounts
                             together with budget goals defined by periodic
                             transactions. With a DESCPAT argument (must be
@@ -12320,7 +12369,7 @@ or value of balance changes (\f[CR]\-V\f[R])
 .IP \(bu 2
 or change of balance values (\f[CR]\-\-valuechange\f[R])
 .IP \(bu 2
-or unrealised capital gain/loss (\f[CR]\-\-gain\f[R])
+or capital gain/loss (\f[CR]\-\-gain\f[R])
 .IP \(bu 2
 or balance changes from sibling postings
 (\f[CR]\-\-related\f[R]/\f[CR]\-r\f[R])
@@ -12770,8 +12819,14 @@ amount (for each account/period)
 balance values (caused by deposits, withdrawals, and/or market price
 fluctuations)
 .IP \(bu 2
-\f[CR]\-\-gain\f[R] : show the unrealised capital gain/loss, (the
-current valued balance minus each amount\(aqs original cost)
+\f[CR]\-\-gain\f[R] : show capital gain/loss for each account: the
+current valued balance minus the net of postings\(aq transacted costs
+(acquisition costs minus disposal proceeds).
+For accounts where nothing has been sold this equals the unrealised
+gain; once disposals exist the figure also includes realised gain on the
+disposed units, so it is best read as \(dqtotal gain since
+inception\(dq.
+To track realised gain separately, use lot notation (see Lot reporting).
 .IP \(bu 2
 \f[CR]\-\-count\f[R] : show the count of postings
 .SS Accumulation mode
@@ -13401,7 +13456,7 @@ Show monthly change in market value of investment assets.
 .PD
 Show top gainers [or losers] last week
 .SS roi
-Shows the time\-weighted (TWR) and money\-weighted (IRR) rate of return
+Shows the money\-weighted (IRR) and time\-weighted (TWR) rate of return
 on your investments.
 .IP
 .EX
@@ -13418,15 +13473,15 @@ name) to select your investment(s) with \f[CR]\-\-inv\f[R], and another
 query to identify your profit and loss transactions with
 \f[CR]\-\-pnl\f[R].
 .PP
-If you do not record changes in the value of your investment manually,
-or do not require computation of time\-weighted return (TWR),
-\f[CR]\-\-pnl\f[R] could be an empty query (\f[CR]\-\-pnl \(dq\(dq\f[R]
-or \f[CR]\-\-pnl STR\f[R] where \f[CR]STR\f[R] does not match any of
-your accounts).
+If your investment\(aqs value changes are captured solely through price
+directives (rather than manual P&L journal entries), or if you do not
+need TWR, \f[CR]\-\-pnl\f[R] can be an empty query
+(\f[CR]\-\-pnl \(dq\(dq\f[R] or \f[CR]\-\-pnl STR\f[R] where
+\f[CR]STR\f[R] does not match any of your accounts).
 .PP
-This command will compute and display the internalized rate of return
-(IRR, also known as money\-weighted rate of return) and time\-weighted
-rate of return (TWR) for your investments for the time period requested.
+This command will compute and display the internal rate of return (IRR,
+also known as money\-weighted rate of return) and time\-weighted rate of
+return (TWR) for your investments for the time period requested.
 IRR is always annualized due to the way it is computed, but TWR is
 reported both as a rate over the chosen reporting period and as an
 annual rate.
@@ -13443,6 +13498,11 @@ negative at some point in time.
 Error (SearchFailed): Failed to find solution for Internal Rate of
 Return (IRR).
 Either search does not converge to a solution, or converges too slowly.
+.IP \(bu 2
+Error (NotBracketed): Cannot compute window IRR.
+Possible cause: investment balance becomes negative within that window.
+.IP \(bu 2
+Error (SearchFailed): Window IRR search did not converge.
 .PP
 Examples:
 .IP \(bu 2
@@ -13473,7 +13533,7 @@ Query supplied to \f[CR]\-\-inv\f[R] has to match all transactions that
 are related to your investment.
 Transactions not matching \f[CR]\-\-inv\f[R] will be ignored.
 .PP
-In these transactions, ROI will conside postings that match
+In these transactions, ROI will consider postings that match
 \f[CR]\-\-inv\f[R] to be \(dqinvestment postings\(dq and other postings
 (not matching \f[CR]\-\-inv\f[R]) will be sorted into two categories:
 \(dqcash flow\(dq and \(dqprofit and loss\(dq, as ROI needs to know
@@ -13535,61 +13595,71 @@ Traditionally this was computed as a difference between current value of
 investment and its initial value, expressed in percentage of the initial
 value.
 .PP
-However, this approach is only practical in simple cases, where
-investments receives no in\-flows or out\-flows of money, and where rate
-of growth is fixed over time.
+However, this approach is only practical in simple cases, where the
+investment receives no in\-flows or out\-flows of money and the rate of
+growth is fixed over time.
 For more complex scenarios you need different ways to compute rate of
 return, and this command implements two of them: IRR and TWR.
 .PP
-Internal rate of return, or \(dqIRR\(dq (also called \(dqmoney\-weighted
-rate of return\(dq) takes into account effects of in\-flows and
-out\-flows, and the time between them.
-Investment at a particular fixed interest rate is going to give you more
-interest than the same amount invested at the same interest rate, but
-made later in time.
-If you are withdrawing from your investment, your future gains would be
-smaller (in absolute numbers), and will be a smaller percentage of your
-initial investment, so your IRR will be smaller.
-And if you are adding to your investment, you will receive bigger
-absolute gains, which will be a bigger percentage of your initial
-investment, so your IRR will be larger.
+\f[B]Internal rate of return (IRR)\f[R], also called money\-weighted
+rate of return, answers the question: \f[I]what single constant annual
+interest rate, applied to your actual sequence of deposits and
+withdrawals, would produce exactly the ending balance you have?\f[R]
 .PP
-As mentioned before, in\-flows and out\-flows would be any cash that you
-personally put in or withdraw, and for the \(dqroi\(dq command, these
-are the postings that match the query in the\f[CR]\-\-inv\f[R] argument
-and NOT match the query in the\f[CR]\-\-pnl\f[R] argument.
-.PP
-If you manually record changes in the value of your investment as
-transactions that balance them against \(dqprofit and loss\(dq (or
-\(dqunrealized gains\(dq) account or use price directives, then in order
-for IRR to compute the precise effect of your in\-flows and out\-flows
-on the rate of return, you will need to record the value of your
-investement on or close to the days when in\- or out\-flows occur.
+IRR is inherently personal.
+If you deposited a large sum right before a bad period, your IRR is
+dragged down \- not because the investment was poorly managed, but
+because your timing was bad.
+Conversely, investing heavily just before a rally makes your IRR look
+great.
+This is what makes IRR \(dqmoney\-weighted\(dq: periods when more of
+your money is at stake contribute more to the result.
 .PP
 In technical terms, IRR uses the same approach as computation of net
-present value, and tries to find a discount rate that makes net present
-value of all the cash flows of your investment to add up to zero.
-This could be hard to wrap your head around, especially if you
-haven\(aqt done discounted cash flow analysis before.
-Implementation of IRR in hledger should produce results that match the
+present value, and tries to find a discount rate that makes the net
+present value of all the cash flows of your investment add up to zero.
+The implementation in hledger produces results that match the
 \f[CR]=XIRR\f[R] formula in Excel.
 .PP
-Second way to compute rate of return that \f[CR]roi\f[R] command
-implements is called \(dqtime\-weighted rate of return\(dq or
-\(dqTWR\(dq.
-Like IRR, it will account for the effect of your in\-flows and
-out\-flows, but unlike IRR it will try to compute the true rate of
-return of the underlying asset, compensating for the effect that
-deposits and withdrawas have on the apparent rate of growth of your
-investment.
+\f[B]Time\-weighted rate of return (TWR)\f[R] strips out the effect of
+your deposit and withdrawal timing, measuring the investment\(aqs own
+performance rather than your experience of it.
 .PP
-TWR represents your investment as an imaginary \(dqunit fund\(dq where
-in\-flows/ out\-flows lead to buying or selling \(dqunits\(dq of your
-investment and changes in its value change the value of \(dqinvestment
-unit\(dq.
-Change in \(dqunit price\(dq over the reporting period gives you rate of
-return of your investment, and make TWR less sensitive than IRR to the
-effects of cash in\-flows and out\-flows.
+hledger computes TWR using the BAI (Bank Administration Institute)
+Linked IRR method.
+The reporting period is divided into windows at each date where the
+portfolio has a known, externally\-established valuation \- these are
+dates of price directives or of manual balance updates recorded via
+\f[CR]\-\-pnl\f[R] transactions.
+Within each window, if no cash flows occurred, the return is simply the
+ratio of ending to starting value.
+If cash flows occurred within a window, the window\(aqs return is found
+by solving for the rate that reconciles the starting value, the ending
+value, and the timing of those flows.
+All window returns are then multiplied together (geometrically chained)
+to give the TWR for the full period.
+.PP
+The accuracy of TWR depends on how many valuation dates you have
+recorded.
+More valuation dates mean finer windows and more precise results.
+.PP
+\f[B]In short:\f[R] TWR tells you how good the investment was; IRR tells
+you how good your experience of the investment was.
+.PP
+\f[B]When each matters\f[R]
+.PP
+Use IRR when you want to know your actual personal return \- what you
+earned on your money, accounting for when you chose to move it.
+It is the right measure when evaluating your own deposit and withdrawal
+timing decisions.
+.PP
+Use TWR when you want to evaluate the investment vehicle itself,
+independent of your deposit timing.
+It is the right measure when comparing two funds or strategies, or when
+asking whether you would have been better off elsewhere.
+TWR is the standard that professional investment managers use to report
+fund performance, precisely because it removes the distortion caused by
+investor cash flows.
 .PP
 References:
 .IP \(bu 2
@@ -13908,6 +13978,101 @@ $ hledger bs \-Y \-f 2023.j                     # unclosed file, no query needed
 .EE
 .SS More detailed close examples
 See examples/multi\-year.
+.SS get
+Fetch data for the journal: transactions and market prices, by running
+helper scripts in journal\-relative \f[CR]data/\f[R] and
+\f[CR]prices/\f[R] directories.
+.IP
+.EX
+Flags:
+     \-\-transactions         fetch transactions only
+     \-\-prices               fetch prices only
+     \-\-dry\-run              just print the commands that would be run
+.EE
+.PP
+By default, this command fetches both transactions and prices.
+.SS Phase 1: transactions data
+.IP "1." 3
+Creates a \f[CR]data/\f[R] directory next to the main journal file, if
+it does not exist.
+.IP "2." 3
+If the \f[CR]data/getdata\f[R] helper script exists, runs it in the data
+directory, so it can save downloaded files (CSV/TSV/JSON/OFX/etc.)
+there.
+.SS Phase 2: prices
+.IP "1." 3
+Creates a \f[CR]prices/\f[R] directory next to the main journal file, if
+it does not exist.
+.IP "2." 3
+If the \f[CR]prices/getprices\f[R] helper script exists, hledger first
+guesses the journal\(aqs base currency (the commodity most used as the
+target in P price directives; or if there are no P directives, the
+commodity most used in postings; or if there are no postings,
+\(dqUSD\(dq).
+Then for each other commodity in the journal, it fetches daily market
+prices in the base currency, from that commodity\(aqs earliest
+transaction until today, by running
+\f[CR]getprices BASECUR COMM START END\f[R].
+Each commodity\(aqs prices are merged into
+\f[CR]prices/<COMM>.prices\f[R], preserving existing prices.
+.PP
+Commands being run, and files being updated, are logged to stderr.
+With \f[CR]\-\-dry\-run\f[R], you can preview the commands without
+running them.
+.SS Merging new prices
+Complete historical price data can be hard to get, so the prices phase
+is careful to preserve older prices.
+If prices files already exist, the newly fetched prices will be merged
+as follows:
+.IP \(bu 2
+Prices files will be updated only if they contain nothing but P
+directives (or blank lines).
+.IP \(bu 2
+New prices for dates already seen are discarded.
+(So if you want to replace old prices, you must delete them before
+running \f[CR]get\f[R].)
+.IP \(bu 2
+If no new prices remain to be added, the prices file is left as\-is.
+.IP \(bu 2
+Otherwise, the old prices plus the new prices are saved to the file,
+ordered by: date, from commodity, to commodity.
+.SS get\(aqs helper scripts
+Data downloading varies for everyone, and needs to be easily
+customisable, so it is done via helper scripts:
+.SS getdata
+If you want \f[CR]get\f[R] to download transaction data for you, make
+your own \f[CR]getdata\f[R] shell script (or executable program), and
+install it in the \f[CR]data\f[R] directory next to your main journal
+file.
+.PP
+It should download zero or more transaction data files into its current
+directory.
+These are typically bank/brokerage CSV/TSV/SSV files, but could be
+anything that your hledger rules files can read.
+.SS getprices
+If you want \f[CR]get\f[R] to download historical market prices (useful
+for currency conversions, and value or gains reports), install a
+\f[CR]getprices\f[R] script in the \f[CR]prices\f[R] directory next to
+your main journal file.
+.PP
+You can get one from the hledger repo\(aqs bin directory, and customise
+it if needed.
+This script uses pricehist, so you will need to install that python tool
+also (eg with \f[CR]uv tool install pricehist\f[R]).
+Some price providers limit the commodity pairs, history, or number of
+requests available for free; you can get better data by paying them and
+setting up their API keys as environment variables.
+.PP
+Or, you can make your own \f[CR]getprices\f[R] script.
+It should accept 3\-4 arguments:
+.IP \(bu 2
+ISO code for the base currency
+.IP \(bu 2
+ISO code for the commodity to be priced
+.IP \(bu 2
+ISO start date
+.IP \(bu 2
+optional ISO end date (default: today)
 .SS rewrite
 Print all transactions, rewriting the postings of matched transactions.
 For now the only rewrite available is adding new postings, like print

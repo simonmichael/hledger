@@ -111,11 +111,9 @@ General input flags:
                             'exact': - use transaction precision (default)
      --infer-costs          infer conversion equity postings from costs
      --infer-equity         infer costs from conversion equity postings
-     --lots                 show lot subaccounts and other lot details
      --infer-market-prices  infer market prices from costs
      --pivot=TAGNAME        use a different field or tag as account names
   -s --strict               do extra error checks (and override -I)
-     --verbose-tags         add tags indicating generated/modified data
 
 General output flags (affecting some commands):
   -b --begin=DATE           include postings/transactions on/after this date
@@ -156,10 +154,17 @@ General output flags (affecting some commands):
                             'end':      value at period end(s)
                             'now':      value today
                             YYYY-MM-DD: value on given date
+     --lots                 show lot subaccounts and other lot details
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '.' or -c '1.000,00 EUR'
      --pretty[=YN]          Use box-drawing characters in text output? The
                             optional 'y'/'yes' or 'n'/'no' arg requires =.
+     --title=T              set or customise a report title
+     --subreport-titles=TS  customise subreport headings in compound reports
+                            (|-separated)
+     --period-titles=OPT    customise headings in periodic reports:
+                            'compact': readable period names when possible
+                            'dates':   exact dates/date ranges always
 
 General help flags:
   -h --help                 show command line help
@@ -275,10 +280,10 @@ terminal interface.  This key will be available if 'hledger-iadd' is
 installed in $path.
 
    'E' runs $HLEDGER_UI_EDITOR, or $EDITOR, or a default ('emacsclient
--a "" -nw') on the journal file.  With some editors (emacs, vi), the
-cursor will be positioned at the current transaction when invoked from
-the register and transaction screens, and at the error location (if
-possible) when invoked from the error screen.
+-a "" -nw') on the journal file.  With some editors, the cursor will be
+positioned at the current transaction when invoked from the register and
+transaction screens, and at the error location (if possible) when
+invoked from the error screen.
 
    'B' toggles cost mode, showing amounts converted to their cost's
 commodity (see hledger manual > Cost reporting.
@@ -563,21 +568,21 @@ with the UI unresponsive.
 Tag Table:
 Node: Top221
 Node: OPTIONS1867
-Node: MOUSE9188
-Node: KEYS9520
-Node: SCREENS14704
-Node: Menu screen15444
-Node: Cash accounts screen15760
-Node: Balance sheet accounts screen16121
-Node: Income statement accounts screen16457
-Node: All accounts screen16842
-Node: Register screen17205
-Node: Transaction screen19648
-Node: Error screen20828
-Node: WATCH MODE21194
-Node: --watch problems22092
-Node: ENVIRONMENT23339
-Node: BUGS23572
+Node: MOUSE9508
+Node: KEYS9840
+Node: SCREENS15012
+Node: Menu screen15752
+Node: Cash accounts screen16068
+Node: Balance sheet accounts screen16429
+Node: Income statement accounts screen16765
+Node: All accounts screen17150
+Node: Register screen17513
+Node: Transaction screen19956
+Node: Error screen21136
+Node: WATCH MODE21502
+Node: --watch problems22400
+Node: ENVIRONMENT23647
+Node: BUGS23880
 
 End Tag Table
 
