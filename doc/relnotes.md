@@ -65,7 +65,544 @@ Major releases and user-visible changes.
 
 
 
+
+## 2026-06-24 hledger-1.99.3
+(2.0 preview 3)
+
+**conventional file layout for rules/data/prices,
+get command,
+commodity aliases,
+print aligns by decimal mark,
+more intuitive precision behaviour,
+more robust lot detection,
+average cost basis methods,
+customisable report titles,
+prices --summary report,
+more robust roi report.**
+
+### hledger 1.99.3
+
+
+#### Breaking changes
+
+- CLI: `--verbose-tags` is no longer a general flag, it is now a
+  command-specific flag for `print` and `rewrite`.
+
+- Commodities & prices: `commodities --used` now only shows
+  commodities used in transactions; use `--priced` to see commodities
+  used in P directives.
+
+- Data import: The CSV `source` and `archive` rules now read from/write to a
+  journal-adjacent `data/` directory by default.
+
+- Journal: Inferred missing amounts no longer affect display precisions or
+  entry balancing precisions.
+
+- Journal: account names whose final part is enclosed in curly braces
+  (like `assets:{foo}`) are expected to have a valid lot subaccount
+  name within the braces, and will raise an error if not. This is now
+  documented.  Also this error checking (and the hiding by default) of
+  explicit lot subaccounts can now be disabled with `-I`/`--ignore-lots`.
+
+- print: `print` now aligns posting amounts by decimal mark, by default.
+  `--layout=hledger1` restores the old layout.
+
+#### Command line
+
+- We now show a clear error when no value is provided for a
+  value-requiring option.  (Eg, `hledger import -f --dry-run` no
+  longer tries to use `--dry-run` as `-f`'s value.)
+
+- Bad option values are now reliably reported as an error.
+  Previously, some invalid option values triggered an error only if
+  the option was actually used by the command being run.
+
+- On Windows, file paths containing spaces are now quoted properly
+  when invoking external helpers (info, man, tldr, pager, `$EDITOR`,
+  `hledger-iadd`). This affected hledger-ui's `A` and `E` keys, and
+  hledger's help/pager invocations.
+  [#2646]
+
+#### Commodities & prices
+
+- Commodity aliases:
+  In journal files, commodity directives can now define one or more
+  aliases for the commodity.  Eg here USD has three aliases:
+
+      commodity USD 1.00    ; alias: $ US$ "us dollars"
+
+  A 1:1 market price is inferred for these, so you can use `-X` to
+  freely convert between them.  This is useful eg if your journal and
+  your downloaded market price data use different symbols for a currency.
+
+  `cur:COMM` queries now match COMM or any of its commodity aliases.
+  To match only a specific symbol without considering aliases, use `sym:SYM`.
+
+- `commodities`: `--used` now only shows commodities used in transactions;
+  a new `--priced` flag shows commodities used in P directives.
+  Separating these makes `--used` more useful with a date query.
+
+- `commodities` now supports `date:` queries (and/or `-b`/`-e`/`-p`
+  report period options), affecting the `--used` and `--priced` reports.
+
+- `prices` has a new `--summary` mode.
+
+- `prices` has a new `--locations` flag, showing the file and line number
+  of each price's directive or transaction from which it was inferred.
+
+#### Data entry
+
+- `add` and `import` now test for faulty filesystems before writing.
+  Some filesystems, eg an Android shared filesystem in Termux, overwrite when you tell them to append.
+  hledger now tests for this before writing to the journal, to reduce risk of data loss.
+  [#2577]
+
+- `add` now offers useful default amounts after entering a balance assignment.
+  Previously, amounts entered via `= BALANCEAMOUNT` were not affecting
+  subsequent postings' default amounts, making it difficult to
+  complete data entry. Now, appropriate balancing amounts are offered.
+
+- `add` no longer restarts at posting 1 if the final transaction checks fail.
+  So if the entered transaction fails to balance or satisfy balance assertions,
+  it now just reprompts for another posting, instead of discarding the postings
+  entered. (This is most visible when entering balance assignments.)
+
+- `add`'s default amounts are now displayed with the journal's commodity
+  display styles, helping to avoid misparsing of decimal marks. [#2645]
+
+#### Data import
+
+- `get` is a new command for fetching transaction data and market prices.
+  It runs two helper scripts which you can customise:
+  
+  - `data/getdata` to gather transaction data (eg CSV) files in `data/`
+  - `prices/getprices` to download market prices, to be saved in `prices/`
+
+  Or with `--transactions` or `--prices`, only the selected phase is run.
+  The data and prices directories are autocreated if needed, next to the main journal file.
+  Sample scripts can be found in <https://github.com/simonmichael/hledger/tree/main/bin>.
+  The sample `getprices` requires `pricehist`.
+
+- `import` with no file arguments now reads from all `.rules` files in
+  the `rules/` directory next to the main journal file, by default.
+  Files whose name begins with `.` or `_` are skipped (this is useful
+  for included files which should not be read directly.)
+
+- `import -g`/`--get` runs the `get` command before importing.  So
+  with appropriate helper scripts, a complete import workflow can be:
+  `hledger import -g [--dry-run]`
+
+- `import` now archives only when new transactions were actually
+  imported.  This avoids creating duplicate archives, eg with a
+  data-generating `source` rule like `source | paypalcsv ...`.
+
+- The CSV `source` and `archive` rules now read from/write to the
+  journal's `data/` directory by default:
+
+  - `source` looks for bare filenames/relative paths first in `data/`,
+    then in `~/Downloads`.
+    (Except paths beginning with `./` or `../` - these are relative
+    to the rules file, as before.)
+  - `archive` saves to `data/archive/`, autocreating that if needed.
+    (A breaking change; previously it saved in a data dir next to the rules file.)
+
+- On Windows, `source` file paths with a drive letter like `C:\foo`
+  are now properly recognised as absolute paths (not relative).
+
+- A `#` character in a `source` rule now always starts a same-line
+  comment, even if it appears after `|`.
+
+#### Error messages
+
+- Balance assertion errors: in the suggested troubleshooting command,
+  commodity symbols containing regex metacharacters (like $) are now
+  properly quoted for the shell.
+
+- In error messages which compare two amounts (balance assertions,
+  recorded gain, `check basis`), when the rounded amounts look
+  identical, we now show more decimal places to make the difference
+  visible. [#2636]
+
+- Certain errors when reading a CSV or rules file 
+  (eg a missing date rule, or encoding/skip/timezone errors)
+  now show the path of the problem rules file.
+
+- `import`'s "no data files" error message is improved.
+
+- With an unrecognised command argument, the error message now shows
+  the bad argument, and the config file path if it came from a config
+  file.  [#2489]
+
+#### Journal
+
+- Inferred missing amounts no longer affect display precisions or the
+  entries' local balancing precisions. So a high-precision inferred
+  amount won't affect the number of decimals displayed in reports, or
+  the precision required to balance the entry. So,
+
+  - An unseen high-precision balancing amount, eg inferred from a
+    precise `@` price, no longer makes it harder to balance the entry.
+  - Some reports that used to add unnecessary decimal zeros no longer do so.
+  - Reports more consistently show amounts smaller than their
+    commodity's display precision as `0`.
+
+#### Lots & gains
+
+- In command line help, `--lots` has moved from "General input flags"
+  to "General output flags".
+
+- hledger can now detect gain postings heuristically, without
+  requiring that their account is declared as `type:G`. Five styles
+  for writing disposal transactions are documented in the manual's
+  "Recording disposals" section.
+
+- The `G`/`Gain` and `U`/`UnrealisedGain` account types are now
+  inferred from conventional English names, like the other types.  Eg
+  `revenues:gain`, `income:capital-gains`, `equity:unrealised-gain`,
+  `equity:unrealized gains` are recognised as type G, G, U, U.
+
+- Gain amounts are now inferred or checked at the gain commodity's
+  local precision within the entry. This makes it easier to read
+  inferred gain amounts and to write explicit gain amounts.
+  As a special case, if the local precision is zero but the gain is a
+  non-integer, 2 decimal places are assumed.
+  Inferred gain amounts preserve their full precision internally, so
+  they can be viewed more precisely with a command like `print -c
+  '$1.000000' --round=soft`.
+
+- Lot transfer destinations are now checked more carefully: any
+  specified lot details on the destination annotation (date, label,
+  cost) must match the source lot, or an error is raised. (Previously,
+  this would silently disrupt lot identities.)
+
+- The `AVERAGE`/`AVERAGEALL` cost basis methods now properly
+  recalculate the pool-wide average cost after each acquisition.
+  And when they are used, lot subaccount names now omit the cost
+  (`{2026-01-15}` rather than `{2026-01-15, $50}`), so account names
+  remain stable as new lots are acquired.
+  [#2581]
+
+- `check basis` no longer fails because of non-terminating decimals in
+  the unit cost (eg `$50/7 = $7.142857...`).
+  [#2636]
+
+- Harmless commodity style differences in explicit lot subaccount
+  names are now ignored (eg `$60` vs `$ 60`).
+ 
+- Explicit lot subaccounts are detected more robustly, tolerating
+  colons or curly braces within the label or commodity symbol.
+
+- Explicit lot subaccounts now require a comma after the date.
+
+- The `--ignore-lots`/`-I` flags disable explicit lot subaccounts
+  detection and error checking. [#2649]
+
+- When disposing a single lot with a balance assertion, we no longer
+  generate an unnecessary new assertion posting.
+
+- If a Ledger-style `(LOTNOTE)` annotation contains double quotes,
+  these are now stripped so they don't clash with hledger's cost basis
+  syntax and break round-trip parsing.
+
+- When generating labels for unlabelled lots acquired on the same day,
+  we now pick the smallest numeric label not already used on that
+  date, avoiding collisions with user-provided labels.
+
+- When there's only one unlabelled acquisition on a date, we no longer
+  generate an unnecessary label.
+
+#### print & print-like commands
+
+- `--verbose-tags` is now a command-specific flag for `print` and
+  `rewrite` (not a general flag).
+
+- `print`'s `-x` and `--lots` flags are decoupled again (`-x` no
+  longer implies `--lots`).
+
+- `print` has a new `-a`/`--all` convenience flag that shows all
+  details useful for troubleshooting: it turns on `--explicit`,
+  `--lots`, and `--verbose-tags`.
+
+- `print` now properly shows inferred per-lot dispose/transfer
+  postings only when in `--lots` mode.
+
+- `print --output-format=beancount` now also encodes non-ASCII letters
+  in tag names (metadata keys), ensuring Beancount can read them.
+  [#2576]
+
+- `print` now aligns posting amounts at their decimal marks by
+  default.  The target column is 53; this is increased when needed to
+  preserve 2+ spaces between accounts and amounts.
+  
+  Also, the `=`, `==`, `=*`, `==*` operators of balance assertions and
+  assignments are aligned in a column one space past the transaction's
+  rightmost posting amount. And the assertion/assignment amounts are
+  themselves decimal-aligned, with the leftmost one starting one space
+  past the widest operator.
+
+  A new `--layout` option (also supported by `add`, `close`, `import`,
+  `rewrite`) customises this:
+
+  - `--layout=COL` (a positive integer) sets a different target column.
+  - `--layout=hledger1` revert's to hledger 1's layout (each
+    transaction's amounts right-aligned within an expandable 12-char
+    region).
+
+#### Reports
+
+- A new `--title=TITLE` option sets or customises a title heading for
+  most reports, when producing `txt`, `html` or `fods` output (or
+  `csv` or `tsv` output, in some cases).  `balancesheet`,
+  `balancesheetequity`, `cashflow`, `incomestatement` have their usual
+  title as the default; other reports have no title by default.
+
+- The `--subreport-titles=TITLE1|TITLE2|...` option customises section
+  titles for compound reports like `balancesheet` and
+  `incomestatement`. Titles should be `|`-separated. Eg: `hledger bs
+  --subreport-titles='Aktiva|Passiva'`. Or use `--subreport-titles=''`
+  to suppress subreport titles.
+
+- The `--period-titles=compact|dates` option customises column
+  headings for periodic reports.  `compact` (the default) preserves
+  current behaviour (abbreviated english month/week names within a
+  single year, explicit dates otherwise).  `dates` always shows
+  explicit ISO dates. [#2578]
+
+- `balance`: in single-period reports, account names are now kept
+  aligned when amounts are wide.  (Adam Sardo, [#1148])
+
+- `balance`: single-period HTML/FODS reports now respect the preferred
+  commodity display style, like other reports.
+  (Simon Michael, Henning Thielemann, [#2584], [#2588])
+
+- In `--pivot`'s value, `account` is now accepted as a synonym for `acct`.
+  And `description` is documented as a synonym for `desc`.
+
+- `roi` uses a new more robust TWR algorithm.
+  The previous TWR implementation assumed that an exact valuation of
+  the investment could be obtained immediately before or after any
+  cashflow, which is not generally possible. `roi` now uses the BAI
+  (Bank Administration Institute) Linked IRR method, valuing the
+  investment only on dates where an exact valuation is available.
+  This greatly improves the robustness of TWR computations.
+  (Dmitry Astapov, [#2420])
+
+#### Timedot
+
+- A line whose first word looks like a date (three groups of digits
+  separated by `-`, `/`, or `.`) is now always parsed as a timedot
+  date line, and shows a clear error if the date is invalid (instead
+  of silently treating it as a comment or a zero-amount entry).
+  
+- Lines with an org heading prefix (eg `** `) are parsed more consistently.
+
+#### Other
+
+- hledger now requires version 2.3+ of the aeson library, avoiding a
+  bug where certain data could trigger memory/CPU exhaustion.
+  (<https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html>)
+
+- `setup` no longer shows a `'"ver' is not recognized ...` error message on Windows.
+
+- `setup` now shows "all account types exist" as neutral, not a warning.
+
+- `setup` now warns if the filesystem does not support appending. [#2577]
+
+- `stats` now shows a base currency inferred for the journal.
+
+- allow megaparsec >9.8
+
+#### Docs
+
+- add: balance assignments [#2603]
+- balance: `--gain` shows total (realised + unrealised) gain [#2049]
+- check basis: explain strict-comparison rationale, list escape hatches [#2636]
+- Cost basis methods: edits
+- Cost basis vs transacted cost: edits
+- csv: CSV vs hledger fields, if, if table: rewrites [#2647]
+- Directives, Directive effects: consolidate, cleanup, update
+- get: document new command
+- Lot reporting: many updates
+- print layout: rename, expand
+- Recording disposals: new section walking through each disposal style
+- Report titles: new section
+- roi: describe new TWR algorithm (Dmitry Astapov)
+- Tags: clarify/restore some missing tags info [#1640], [#1950]
+- timedot: rewrite
+
+#### Examples
+
+- `examples/csv/github-sponsorships.rules`
+- `examples/lots/lot-entries.journal`: fix gain posting
+
+#### Scripts/addons
+
+- Add sample `getdata` and `getprices` scripts for the `get` command.
+- Drop the old `hledger-pricehist` script.
+
+#### API
+
+- `Hledger.Write.Ods`: enable digit grouping in output if `AmountStyle` declares any digit groups. (Henning Thielemann) [#2584]
+- `Hledger.Data.Amount`: consolidate `showPriceDirective` here.
+
+
+[#1148]: https://github.com/simonmichael/hledger/issues/1148
+[#1640]: https://github.com/simonmichael/hledger/issues/1640
+[#1950]: https://github.com/simonmichael/hledger/issues/1950
+[#2049]: https://github.com/simonmichael/hledger/issues/2049
+[#2410]: https://github.com/simonmichael/hledger/issues/2410
+[#2420]: https://github.com/simonmichael/hledger/issues/2420
+[#2489]: https://github.com/simonmichael/hledger/issues/2489
+[#2576]: https://github.com/simonmichael/hledger/issues/2576
+[#2577]: https://github.com/simonmichael/hledger/issues/2577
+[#2578]: https://github.com/simonmichael/hledger/issues/2578
+[#2581]: https://github.com/simonmichael/hledger/issues/2581
+[#2584]: https://github.com/simonmichael/hledger/issues/2584
+[#2588]: https://github.com/simonmichael/hledger/issues/2588
+[#2603]: https://github.com/simonmichael/hledger/issues/2603
+[#2636]: https://github.com/simonmichael/hledger/issues/2636
+[#2645]: https://github.com/simonmichael/hledger/issues/2645
+[#2646]: https://github.com/simonmichael/hledger/issues/2646
+
+
+### hledger-ui 1.99.3
+
+
+Breaking changes
+
+Fixes
+
+- On Windows, the `A` key (running `hledger-iadd`), the `E` key
+  (running `$EDITOR`), and the running of info/man/tldr/pager helpers
+  now correctly quote file paths containing spaces. [#2646]
+
+Features
+
+- `cur:COMM` queries now match COMM or any of its commodity aliases (see hledger changelog).
+  To match only a specific symbol without considering aliases, use `sym:SYM`.
+  Aliases are recomputed on each journal reload, so a mid-session
+  change to alias definitions takes effect next time.
+
+Improvements
+
+- The `E` key now jumps to the error position with the Zed and Sublime Text editors, also.
+  (Rostislav Raykov)
+- allow megaparsec >9.8
+- allow vty 6.6+
+
+Docs
+
+API
+
+
+[#2646]: https://github.com/simonmichael/hledger/issues/2646
+
+
+### hledger-web 1.99.3
+
+
+Breaking changes
+
+- When listening on a non-local-only IP address, hledger-web now
+  allows only read-only access by default. So if you set a public
+  address with --host, you may also need --allow=add.
+
+Fixes
+
+- hledger-web now uses aeson 2.3, avoiding a denial-of-service bug in
+  that library.  Previous hledger-web versions, with /add enabled, are
+  vulnerable to HTTP requests that could trigger memory/CPU exhaustion.
+  Now it uses a fixed version of aeson (and disables /add by default,
+  except on local-only addresses).
+  (<https://haskell.github.io/security-advisories/advisory/HSEC-2026-0007.html>)
+
+Features
+
+- `cur:COMM` queries now match COMM or any of its commodity aliases (see hledger changelog).
+  To match only a specific symbol without considering aliases, use `sym:SYM`.
+  Aliases are recomputed on each journal reload, so a mid-session
+  change to alias definitions takes effect next time.
+
+Improvements
+
+- allow megaparsec >9.8
+- allow yesod-core 1.7*
+
+Docs
+
+API
+
+
+### project changes 1.99.3
+
+#### Docs
+
+- Install: add Building outside the source tree
+- AI policy/FAQ/journal: updates, links; start journalling estimated project AI usage
+- SPEC-lots: align with the user manual's restructure of Lot reporting
+- PLAN-commodity-preferred-symbols, PLAN-ugain
+- ACHIEVEMENTS: better star-history link, top 10 apps
+- PULLREQUESTS: cross-link to COMMITS and AI
+- REGRESSIONS: [#2642]
+- RELEASING, ANNOUNCE, relnotes updates
+
+#### Tools/infrastructure
+
+- tools/relnotes: demote any markdown headings in changelogs, to fit in release notes
+- tools: Shake changelogs: parse inter-release headings more carefully
+- cabal.project: consolidate workarounds (haskeline Windows bug [#2410], yesod-static bounds bug); general cleanup
+- stack: bump dev/release builds and scripts to nightly-2026-06-01 [#2410]
+- stack: ignore all bounds, for now, to allow building with aeson 2.3
+- ci: fix old references to `master` in workflows
+- ci: linux binaries: more workarounds for dependency/bounds bugs
+- pr template: update, mention the AI policy
+- `just ai*` usage report scripts: vertical output by default; easy conversion from opus tokens to t/kt/Mt
+- `tools/regen-shelltests.py` script, `regen-shelltests` claude code skill
+- `just devver`: fix
+- gitignore updates
+
+#### AI usage
+
+hledger 2.x releases use AI-assisted development; 
+our AI policy is at <https://hledger.org/AI.html>.
+All changes were steered, reviewed, and tested by Simon or a contributor.
+
+For 1.99.3, mostly opus 4.7 was used. My reporting methods have
+changed since last time; here's my current rough estimate of tokens
+used per month:
+
+```
+            output tokens  release
+ Jan       ||       771 || 
+ Feb       ||    53,229 || 
+ Mar       ||   112,112 || 1.99.1
+ Apr       ||   686,507 || 1.99.2
+ May       || 2,230,792 || 
+ Jun       || 1,080,010 || 1.99.3
+
+   Total   || 4,163,421 || 
+ Average   ||   693,904 || 
+```
+
+
+[#2410]: https://github.com/simonmichael/hledger/issues/2410
+[#2636]: https://github.com/simonmichael/hledger/issues/2636
+[#2642]: https://github.com/simonmichael/hledger/issues/2642
+
+
+### credits 1.99.3
+
+
+Simon Michael,
+Dmitry Astapov,
+Henning Thielemann,
+Adam Sardo,
+Rostislav Raykov.
+
+
+
 ## 2026-04-28 hledger-1.99.2
+(2.0 preview 2)
 
 **Lot tracking refinements.**
 
@@ -228,6 +765,7 @@ Simon Michael,
 Joshua Chapman.
 
 
+
 ## 2026-04-28 hledger-1.52.1
 
 **Preserve cost basis syntax, cost basis export examples, faster valuation, commodity tags, more robust paging, fixes.**
@@ -277,7 +815,9 @@ Simon Michael.
 ## 2026-03-28 hledger-1.99.1
 (2.0 preview 1)
 
-**Automated lot tracking and capital gains calculation, improvements to `print`'s beancount output, and a new policy for AI-assisted development.**
+**Automated lot tracking and capital gains calculation, 
+improvements to `print`'s beancount output, 
+and a new policy for AI-assisted development.**
 
 ### hledger 1.99.1
 
@@ -11445,6 +11985,8 @@ find it useful or intriguing.**
 Release stats:
 
   * Contributors: Simon Michael
+
+
 
 
 
