@@ -285,7 +285,7 @@ rsHandle ev = do
             VtyEvent (EvKey (KRight)    [MShift]) -> put' $ regenerateScreens j d $ nextReportPeriod journalspan ui
             VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens j d $ previousReportPeriod journalspan ui
             VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
-            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _rssList >> redraw
+            VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle (rsListSize _rssList) _rssList >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
             -- exit screen on LEFT
@@ -307,9 +307,8 @@ rsHandle ev = do
               case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount nts nt ui
               where clickeddate = maybe "" rsItemDate $ listElements _rssList !? y
 
-            -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
-            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> do
-              vScrollBy (viewportScroll $ listName $ _rssList) 1
+            -- when selection is at the last item, do nothing
+            VtyEvent e | e `elem` moveDownEvents, isBlankElement mnextelement -> return ()
               where mnextelement = listSelectedElement $ listMoveDown _rssList
 
             -- mouse scroll wheel scrolls the viewport up or down to its maximum extent,
@@ -325,7 +324,7 @@ rsHandle ev = do
               if isBlankElement $ listSelectedElement l
               then do
                 let l' = listMoveTo lastnonblankidx l
-                scrollSelectionToMiddle l'
+                scrollSelectionToMiddle (rsListSize l') l'
                 put' ui{aScreen=RS sst{_rssList=l'}}
               else
                 put' ui{aScreen=RS sst{_rssList=l}}
@@ -355,7 +354,7 @@ rsSetAccount _ _ st = st
 -- No effect on other screens.
 rsCenterSelection :: UIState -> EventM Name UIState UIState
 rsCenterSelection ui@UIState{aScreen=RS sst} = do
-  scrollSelectionToMiddle $ _rssList sst
+  scrollSelectionToMiddle (rsListSize $ _rssList sst) (_rssList sst)
   return ui  -- ui is unchanged, but this makes the function more chainable
 rsCenterSelection ui = return ui
 
