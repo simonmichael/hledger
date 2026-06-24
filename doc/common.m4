@@ -98,11 +98,9 @@ General input flags:
                             'exact': - use transaction precision (default)
      --infer-costs          infer conversion equity postings from costs
      --infer-equity         infer costs from conversion equity postings
-     --lots                 show lot subaccounts and other lot details
      --infer-market-prices  infer market prices from costs
      --pivot=TAGNAME        use a different field or tag as account names
   -s --strict               do extra error checks (and override -I)
-     --verbose-tags         add tags indicating generated/modified data
 
 General output flags (affecting some commands):
   -b --begin=DATE           include postings/transactions on/after this date
@@ -143,10 +141,17 @@ General output flags (affecting some commands):
                             'end':      value at period end(s)
                             'now':      value today
                             YYYY-MM-DD: value on given date
+     --lots                 show lot subaccounts and other lot details
   -c --commodity-style=S    Override a commodity's display style.
                             Eg: -c '$1000.' or -c '1.000,00 EUR'
      --pretty[=YN]          Use box-drawing characters in text output? The
                             optional 'y'/'yes' or 'n'/'no' arg requires =.
+     --title=T              set or customise a report title
+     --subreport-titles=TS  customise subreport headings in compound reports
+                            (|-separated)
+     --period-titles=OPT    customise headings in periodic reports:
+                            'compact': readable period names when possible
+                            'dates':   exact dates/date ranges always
 
 General help flags:
   -h --help                 show command line help
@@ -157,5 +162,6 @@ General help flags:
      --debug=[1-9]          show this much debug output (default: 1)
      --pager=YN             use a pager when needed ? y/yes (default) or n/no
      --color=YNA --colour   use ANSI color ? y/yes, n/no, or auto (default)
+
 ```
 }} )m4_dnl '
