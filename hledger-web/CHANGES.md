@@ -23,7 +23,7 @@ User-visible changes in hledger-web.
 See also the hledger changelog.
 
 
-# 7c68920a
+# d4049bca
 
 Breaking changes
 
@@ -48,6 +48,9 @@ Features
   change to alias definitions takes effect next time.
 
 Improvements
+
+- allow megaparsec >9.8
+- allow yesod-core 1.7*
 
 Docs
 

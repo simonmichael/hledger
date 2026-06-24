@@ -23,7 +23,7 @@ User-visible changes in hledger-ui.
 See also the hledger changelog.
 
 
-# 7c68920a
+# d4049bca
 
 Breaking changes
 
@@ -44,6 +44,8 @@ Improvements
 
 - The `E` key now jumps to the error position with the Zed and Sublime Text editors, also.
   (Rostislav Raykov)
+- allow megaparsec >9.8
+- allow vty 6.6+
 
 Docs
 

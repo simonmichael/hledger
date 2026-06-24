@@ -28,7 +28,7 @@ AI usage
 User-visible changes in the hledger command line tool and library.
 
 
-# 7c68920a
+# d4049bca
 
 ## Breaking changes
 
@@ -44,6 +44,12 @@ User-visible changes in the hledger command line tool and library.
 
 - Journal: Inferred missing amounts no longer affect display precisions or
   entry balancing precisions.
+
+- Journal: account names whose final part is enclosed in curly braces
+  (like `assets:{foo}`) are expected to have a valid lot subaccount
+  name within the braces, and will raise an error if not. This is now
+  documented.  Also this error checking (and the hiding by default) of
+  explicit lot subaccounts can now be disabled with `-I`/`--ignore-lots`.
 
 - print: `print` now aligns posting amounts by decimal mark, by default.
   `--layout=hledger1` restores the old layout.
@@ -69,9 +75,9 @@ User-visible changes in the hledger command line tool and library.
 - Commodity aliases:
   In journal files, commodity directives can now define one or more
   aliases for the commodity.  Eg here USD has three aliases:
-  
+
       commodity USD 1.00    ; alias: $ US$ "us dollars"
-      
+
   A 1:1 market price is inferred for these, so you can use `-X` to
   freely convert between them.  This is useful eg if your journal and
   your downloaded market price data use different symbols for a currency.
@@ -230,6 +236,14 @@ User-visible changes in the hledger command line tool and library.
 - Harmless commodity style differences in explicit lot subaccount
   names are now ignored (eg `$60` vs `$ 60`).
  
+- Explicit lot subaccounts are detected more robustly, tolerating
+  colons or curly braces within the label or commodity symbol.
+
+- Explicit lot subaccounts now require a comma after the date.
+
+- The `--ignore-lots`/`-I` flags disable explicit lot subaccounts
+  detection and error checking. [#2649]
+
 - When disposing a single lot with a balance assertion, we no longer
   generate an unnecessary new assertion posting.
 
@@ -243,8 +257,6 @@ User-visible changes in the hledger command line tool and library.
 
 - When there's only one unlabelled acquisition on a date, we no longer
   generate an unnecessary label.
-
-- A colon in a lot's label no longer prevents hiding the lot subaccount.
 
 ## print & print-like commands
 
@@ -345,6 +357,8 @@ User-visible changes in the hledger command line tool and library.
 
 - `stats` now shows a base currency inferred for the journal.
 
+- allow megaparsec >9.8
+
 ## Docs
 
 - add: balance assignments [#2603]
@@ -352,6 +366,7 @@ User-visible changes in the hledger command line tool and library.
 - check basis: explain strict-comparison rationale, list escape hatches [#2636]
 - Cost basis methods: edits
 - Cost basis vs transacted cost: edits
+- csv: CSV vs hledger fields, if, if table: rewrites [#2647]
 - Directives, Directive effects: consolidate, cleanup, update
 - get: document new command
 - Lot reporting: many updates
@@ -369,8 +384,8 @@ User-visible changes in the hledger command line tool and library.
 
 ## Scripts/addons
 
+- Rename, update bin/hledger-example* scripts
 - Add sample `getdata` and `getprices` scripts for the `get` command.
-- Drop the old `hledger-pricehist` script.
 
 ## API
 

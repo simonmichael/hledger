@@ -20,7 +20,7 @@ General changes in the hledger project.
 For package-specific changes, see the hledger package changelogs.
 
 
-# 7c68920a
+# d4049bca
 
 ## Docs
 
@@ -37,6 +37,7 @@ For package-specific changes, see the hledger package changelogs.
 
 - tools/relnotes: demote any markdown headings in changelogs, to fit in release notes
 - tools: Shake changelogs: parse inter-release headings more carefully
+- tools: just hackagerevise
 - cabal.project: consolidate workarounds (haskeline Windows bug [#2410], yesod-static bounds bug); general cleanup
 - stack: bump dev/release builds and scripts to nightly-2026-06-01 [#2410]
 - stack: ignore all bounds, for now, to allow building with aeson 2.3

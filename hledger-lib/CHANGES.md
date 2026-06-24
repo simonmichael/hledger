@@ -17,7 +17,7 @@ API/developer-ish changes in hledger-lib.
 For user-visible changes, see the hledger package changelog.
 
 
-# 7c68920a
+# d4049bca
 
 Breaking changes
 
@@ -56,6 +56,16 @@ Improvements
 
 - `Hledger.Data.Currency`: some cryptocurrency symbols added for auto-detection
   (roughly the top 100 by market cap).
+
+- The `Query` ADT now has `Cur` for alias-aware cur: queries and`Sym`
+  for exact sym: queries. Helpers that operate on these constructors
+  are renamed accordingly: queryIsSym -> queryIsCurOrSym,
+  queryIsAmtOrSym -> queryIsAmtOrCurOrSym, queryExpandSym{For,}Aliases
+  -> queryExpandCur{For,}Aliases, reportSpecExpandSymQueries ->
+  reportSpecExpandCurQueries.
+
+- allow megaparsec >9.8
+
 
 
 # 1.99.2 2026-04-28
