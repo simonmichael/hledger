@@ -81,12 +81,14 @@ disable balance assertion checking.
 
 add and balance assignments
 
-Since hledger 1.51, you can add a balance assignment by writing
-= BALANCE (or ==, =* etc) when asked for an amount. The missing amount
-will be calculated automatically.
+Adding a new balance assignment
+When entering a posting amount, you can write a = BALANCEAMOUNT balance
+assignment (or ==, =*, ==*) instead. The posting amount required to
+produce this balance will be calculated automatically. (Since 1.51)
 
-add normally won't let you add a new posting which is dated earlier than
-an existing balance assignment. (Because when add runs, existing balance
-assignments have already been calculated and converted to amounts and
-balance assertions.) You can allow it by disabling balance assertion
-checking with -I.
+Adding a posting dated before an existing balance assignment
+add won't let you add a posting dated earlier than an existing balance
+assignment in that account. (Because it calculates balance assignments
+only once at startup, converting them to assertions, so adding the new
+amount causes an assertion failure.) To work around this, run add with
+balance assertions ignored: hledger add -I.

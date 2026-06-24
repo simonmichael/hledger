@@ -14,8 +14,8 @@ Flags:
                             withdrawals, market price fluctuations)
      --gain                 calculation mode: show capital gain/loss
                             (historical balance value minus the net of
-                            postings' transacted costs; equals unrealised
-                            gain if nothing has been disposed of)
+                            postings' transacted costs; equals unrealised gain
+                            if nothing has been disposed of)
      --budget[=DESCPAT]     calculation mode: show sum of posting amounts
                             together with budget goals defined by periodic
                             transactions. With a DESCPAT argument (must be
