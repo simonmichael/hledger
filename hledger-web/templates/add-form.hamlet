@@ -25,14 +25,16 @@
     jQuery('input[name=account]'    ).typeahead({ highlight: true }, { source: globalThis.accountsCompleter.ttAdapter() });
   });
 
-  const utf8textdecoder = new TextDecoder();
+  if (typeof utf8textdecoder === 'undefined') {
+    window.utf8textdecoder = new TextDecoder();
+  }
   function decodeBase64EncodedText(b64) {
       const unb64 = window.atob(b64);
       const arr = new Uint8Array(unb64.length);
       for (let i = 0; i < arr.length; i++) {
           arr[i] = unb64.charCodeAt(i);
       }
-      return utf8textdecoder.decode(arr);
+      return window.utf8textdecoder.decode(arr);
   }
 
 ^{extra}

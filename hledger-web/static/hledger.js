@@ -124,11 +124,21 @@ function hledgerInitPage() {
   var addform = document.getElementById('addform');
   if (addform) {
     addform.addEventListener('focus', function(e) {
-      if (e.target.classList.contains('amount-input') && 
+      if (e.target.classList.contains('amount-input') &&
           e.target === addform.querySelector('.amount-input:last')) {
         addformLastAmountBindKey();
       }
     }, true);
+  }
+
+  // restore hide empty accounts state from cookie
+  if (getCookie('hideemptyaccts') === '1') {
+    var emptyAccts = document.querySelectorAll('.acct.empty');
+    emptyAccts.forEach(function(acct) {
+      if (acct.parentElement) {
+        acct.parentElement.classList.add('hide');
+      }
+    });
   }
 }
 
