@@ -5,14 +5,14 @@
             "name": "Build hledger-web",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceFolder}/.vscode/build.js",
+            "preLaunchTask": "Build hledger-web",
             "console": "integratedTerminal"
         },
         {
             "name": "Run hledger-web",
             "type": "node",
             "request": "launch",
-            "program": "${workspaceFolder}/.vscode/run.js",
+            "preLaunchTask": "Run hledger-web",
             "console": "integratedTerminal"
         }
     ],

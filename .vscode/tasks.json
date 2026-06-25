@@ -5,20 +5,20 @@
             "label": "Build hledger-web",
             "type": "shell",
             "command": "bash",
-            "args": ["-c", "command -v stack >/dev/null 2>&1 || (echo 'Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install' && exit 1); stack install hledger-web"],
+            "args": ["-c", "command -v stack >/dev/null 2>&1 && stack install hledger-web || (echo \"Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install\" && exit 1)"],
             "group": "build",
             "problemMatcher": [],
             "windows": {
                 "command": "cmd",
-                "args": ["/c", "where stack >nul 2>&1 || (echo Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install && exit /b 1) && stack install hledger-web"]
+                "args": ["/c", "where stack >nul 2>&1 && stack install hledger-web || (echo Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install && exit /b 1)"]
             },
             "linux": {
                 "command": "bash",
-                "args": ["-c", "command -v stack >/dev/null 2>&1 || (echo 'Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install' && exit 1); stack install hledger-web"]
+                "args": ["-c", "command -v stack >/dev/null 2>&1 && stack install hledger-web || (echo \"Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install\" && exit 1)"]
             },
             "osx": {
                 "command": "bash",
-                "args": ["-c", "command -v stack >/dev/null 2>&1 || (echo 'Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install' && exit 1); stack install hledger-web"]
+                "args": ["-c", "command -v stack >/dev/null 2>&1 && stack install hledger-web || (echo \"Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install\" && exit 1)"]
             }
         },
         {
