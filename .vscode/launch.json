@@ -18,11 +18,11 @@
     ],
     "compounds": [
         {
-            "name": "Build (F5)",
+            "name": "Build",
             "configurations": ["Build hledger-web"]
         },
         {
-            "name": "Run (F6)",
+            "name": "Run",
             "configurations": ["Run hledger-web"]
         }
     ]

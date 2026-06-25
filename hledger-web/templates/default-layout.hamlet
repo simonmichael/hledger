@@ -9,6 +9,7 @@
 
 $if elem ViewPermission perms
   <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+    <input .d-block.btn.btn-default.sidebar-accessibility-buttons type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" onchange="emptyAccountsToggleCheckbox()">
     <table .main-menu .table>
       ^{accounts}
 

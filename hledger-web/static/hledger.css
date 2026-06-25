@@ -23,13 +23,9 @@ body {
 }
 
 /*------------------------------------------------------------------------------------------*/
-/* 4. typeahead styles */
+/* 4. autocomplete styles */
 
-.tt-hint {
-  color: #bbb;
-}
-
-.tt-dropdown-menu {
+.autocomplete-items {
   padding: 8px 0;
   background-color: #fff;
   border: 1px solid #ccc;
@@ -40,23 +36,16 @@ body {
   max-height:300px;
 }
 
-.tt-suggestion {
+.autocomplete-items div {
   padding: 3px 20px;
   font-size: 18px;
   line-height: 24px;
+  cursor: pointer;
 }
 
-.tt-suggestion.tt-cursor {
+.autocomplete-items div:hover {
   color: #fff;
   background-color: #0097cf;
-}
-
-.tt-suggestion p {
-  margin: 0;
-}
-
-.twitter-typeahead {
-  width:100%;
 }
 
 code {
@@ -149,6 +138,11 @@ ul {
 
 #sidebar-menu .main-menu tr.hide {
     display: none !important;
+}
+
+#sidebar-menu .sidebar-accessibility-buttons {
+    margin-top: -15px;
+    margin-bottom: 10px;
 }
 
 .transactionsreport .posting td {

@@ -1,28 +1,20 @@
 <script>
 
-  jQuery(document).ready(function() {
+  document.addEventListener('DOMContentLoaded', function() {
 
-    // Set up global completers which can be attached to appropriate inputs when needed
+    // Set up autocomplete data
+    globalThis.descriptions = #{toBloodhoundJson (toList descriptions)};
+    globalThis.accounts = #{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)};
 
-    globalThis.descriptionsCompleter = new Bloodhound({
-      local:#{toBloodhoundJson (toList descriptions)},
-      limit:100,
-      datumTokenizer: function(d) { return [d.value]; },
-      queryTokenizer: function(q) { return [q]; }
-    });
-    globalThis.descriptionsCompleter.initialize();
-
-    globalThis.accountsCompleter = new Bloodhound({
-      local:#{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)},
-      limit:100,
-      datumTokenizer: function(d) { return [d.value]; },
-      queryTokenizer: function(q) { return [q]; }
-    });
-    globalThis.accountsCompleter.initialize();
-
-    // Attach the completers to the initial form inputs.
-    jQuery('input[name=description]').typeahead({ highlight: true }, { source: globalThis.descriptionsCompleter.ttAdapter() });
-    jQuery('input[name=account]'    ).typeahead({ highlight: true }, { source: globalThis.accountsCompleter.ttAdapter() });
+    // Attach autocomplete to the initial form inputs
+    var descInput = document.querySelector('input[name=description]');
+    var accountInput = document.querySelector('input[name=account]');
+    if (descInput && globalThis.descriptions) {
+      setupAutocomplete(descInput, globalThis.descriptions);
+    }
+    if (accountInput && globalThis.accounts) {
+      setupAutocomplete(accountInput, globalThis.accounts);
+    }
   });
 
   if (typeof utf8textdecoder === 'undefined') {
@@ -57,7 +49,7 @@
   $forall (n, (acc, amt, accE, amtE)) <- displayRows
     <div .form-group .row .account-group style="padding-left:1em;">
       <div .col-sm-9.col-xs-9 :isJust accE:.has-error>
-        <input .account-input.form-control.input-lg.typeahead type=text
+        <input .account-input.form-control.input-lg type=text
           name=account placeholder="Account #{n}" value="#{acc}">
         $maybe err <- accE
           <span .help-block .error-block>_{err}

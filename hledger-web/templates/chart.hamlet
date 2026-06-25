@@ -1,162 +1,128 @@
 $# If $ is the first character in a line, it must be \-escaped to hide it from hamlet.
 <label #register-chart-label style=""><br>
 <section #register-chart style="height:150px; margin-bottom:1em; display:block;">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 <script type=text/javascript>
-  \$(document).ready(function() {
-    var $chartdiv = $('#register-chart');
-    if ($chartdiv.is(':visible')) {
-      \$('#register-chart-label').text('#{charttitle}');
-      var seriesData = [
+  document.addEventListener('DOMContentLoaded', function() {
+    var chartCanvas = document.getElementById('register-chart');
+    if (chartCanvas && chartCanvas.offsetParent !== null) {
+      document.getElementById('register-chart-label').textContent = '#{charttitle}';
+
+      var datasets = [
       $forall (c,items) <- percommoditytxnreports
-        // we render each commodity using two series:
+        // we render each commodity using two datasets:
         // one with extra data points added to show a stepped balance line
         {
-        data: [
-          $forall i <- reverse items
-            [
-            #{dayToUtcNoonTimestamp $ triDate i},
-            #{simpleMixedAmountQuantity $ triCommodityBalance c i}
-            ],
-        ],
-        label: '#{shownull $ T.unpack c}',
-        color: #{colorForCommodity c},
-        lines: {
-          show: true,
-          steps: true,
-        },
-        points: {
-          show: false,
-        },
-        clickable: false,
-        hoverable: false,
+          data: [
+            $forall i <- reverse items
+              {
+                x: #{dayToUtcNoonTimestamp $ triDate i},
+                y: #{simpleMixedAmountQuantity $ triCommodityBalance c i}
+              },
+          ],
+          label: '#{shownull $ T.unpack c}',
+          borderColor: '#{colorForCommodity c}',
+          backgroundColor: '#{colorForCommodity c}',
+          stepped: true,
+          pointRadius: 0,
+          pointHoverRadius: 0,
         },
         // and one with the original data, showing one clickable, hoverable point per transaction
         {
-        data: [
-          $forall i <- reverse items
-            [
-            #{dayToUtcNoonTimestamp $ triDate i},
-            #{simpleMixedAmountQuantity $ triCommodityBalance c i},
-            '#{showZeroCommodity $ triCommodityAmount c i}',
-            '#{showZeroCommodity $ triCommodityBalance c i}',
-            '#{concat $ intersperse "\\n" $ lines $ T.unpack $ showTransaction $ triOrigTransaction i}',
-            #{tindex $ triOrigTransaction i}
-            ],
-        ],
-        label: '',
-        color: #{colorForCommodity c},
-        lines: {
-          show: false,
-        },
-        points: {
-          show: true,
-        },
+          data: [
+            $forall i <- reverse items
+              {
+                x: #{dayToUtcNoonTimestamp $ triDate i},
+                y: #{simpleMixedAmountQuantity $ triCommodityBalance c i},
+                amount: '#{showZeroCommodity $ triCommodityAmount c i}',
+                balance: '#{showZeroCommodity $ triCommodityBalance c i}',
+                transaction: '#{concat $ intersperse "\\n" $ lines $ T.unpack $ showTransaction $ triOrigTransaction i}',
+                tindex: #{tindex $ triOrigTransaction i}
+              },
+          ],
+          label: '',
+          borderColor: '#{colorForCommodity c}',
+          backgroundColor: '#{colorForCommodity c}',
+          showLine: false,
+          pointRadius: 4,
+          pointHoverRadius: 6,
         },
       ];
-      var plot = registerChart($chartdiv, seriesData);
-      plot.setSelection({ xaxis: { from: 500, to: 700 } });  // ?
-      \$chartdiv.bind("plotclick",    registerChartClick);
-      \$chartdiv.bind("plotselected", registerChartSelect);
-    };
-  });
 
-  //eslint-disable-next-line no-unused-vars
-  function registerChart($container, series) {
-    // https://github.com/flot/flot/blob/master/API.md
-    return $container.plot(
-      series,
-      {
-        xaxis: {
-          mode: "time",
-          timeformat: "%Y/%m/%d",
-        },
-        selection: {
-          mode: "x"
-        },
-        legend: {
-          position: 'sw'
-        },
-        grid: {
-          markings: function () {
-            var now = Date.now();
-            return [
-              {
-                xaxis: { to: now }, // past
-                yaxis: { to: 0 },   // <0
-                color: '#ffdddd',
-              },
-              {
-                xaxis: { from: now }, // future
-                yaxis: { from: 0 },   // >0
-                color: '#e0e0e0',
-              },
-              {
-                xaxis: { from: now }, // future
-                yaxis: { to: 0 },     // <0
-                color: '#e8c8c8',
-              },
-              {
-                yaxis: { from: 0, to: 0 }, // =0
-                color: '#bb0000',
-                lineWidth:1
-              },
-            ];
+      var ctx = chartCanvas.getContext('2d');
+      var chart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets: datasets },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            mode: 'nearest',
+            intersect: false,
+            axis: 'x'
           },
-          hoverable: true,
-          autoHighlight: true,
-          clickable: true,
-        },
-        // https://github.com/krzysu/flot.tooltip
-        tooltip: true,
-        tooltipOpts: {
-          xDateFormat: "%Y/%m/%d",
-          content:
-            function(label, x, y, flotitem) {
-              var data = flotitem.series.data[flotitem.dataIndex];
-              return data[3]+" balance on %x after "+data[2]+" posted by transaction:<pre>"+data[4]+"</pre>";
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'yyyy/MM/dd'
+                }
+              },
+              ticks: {
+                maxRotation: 45,
+                minRotation: 45
+              }
             },
-          onHover: function(flotitem, $tooltipel) {
-            \$tooltipel.css('border-color',flotitem.series.color);
+            y: {
+              grid: {
+                color: function(context) {
+                  if (context.tick.value === 0) {
+                    return '#bb0000';
+                  }
+                  return '#e0e0e0';
+                },
+                lineWidth: function(context) {
+                  if (context.tick.value === 0) {
+                    return 1;
+                  }
+                  return 1;
+                }
+              }
+            }
           },
-        },
-      }
-    ).data("plot");
-  }
-
-  // Handle a click event on the chart.
-  function registerChartClick(ev, pos, item) {
-    if (!item) { return; }
-    var targetselector = '#' + item.series.data[item.dataIndex][5];
-    var $target = $(targetselector);
-    if ($target.length) {
-      window.location.hash = targetselector;
-      \$('html, body').animate({
-        scrollTop: $target.offset().top
-      }, 1000);
+          plugins: {
+            legend: {
+              position: 'southwest'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  var point = context.raw;
+                  if (point.transaction) {
+                    return point.balance + ' balance on ' + new Date(point.x).toLocaleDateString('sv') + ' after ' + point.amount + ' posted by transaction:\n' + point.transaction;
+                  }
+                  return context.dataset.label + ': ' + context.parsed.y;
+                }
+              }
+            }
+          },
+          onClick: function(evt, elements) {
+            if (elements.length > 0) {
+              var point = elements[0].element.$context.raw;
+              if (point.tindex !== undefined) {
+                var targetselector = '#' + point.tindex;
+                var target = document.querySelector(targetselector);
+                if (target) {
+                  window.location.hash = targetselector;
+                  target.scrollIntoView({ behavior: 'smooth' });
+                }
+              }
+            }
+          }
+        }
+      });
     }
-  }
-
-  // Handle a selection (zoom) event on the chart.
-  function registerChartSelect(ev, ranges) {
-    console.log("selected", ranges.xaxis.from, ranges.xaxis.to);
-
-    // Reconstruct from/to dates carefully based on the selected x-values.
-    // Those x values are unix timestamps (milliseconds since epoch) enclosing the data points' timestamps.
-    // Those are generated by dayToJsTimestamp, and are UTC times representing the transaction dates.
-    var from = new Date(ranges.xaxis.from);
-    var fromy = from.getUTCFullYear();
-    var fromm = from.getUTCMonth() + 1;
-    var fromd = from.getUTCDate();
-    var to = new Date(ranges.xaxis.to + 1 * 24 * 60 * 60 * 1000);
-    var toy = to.getUTCFullYear();
-    var tom = to.getUTCMonth() + 1;
-    var tod = to.getUTCDate();
-
-    var range = fromy + "/" + fromm + "/" + fromd + "-" + toy + "/" + tom + "/" + tod;
-    var baselink = "@?{nodatelink}";
-    if (baselink.endsWith("?q")) {
-      document.location = baselink + "=date:" + range;
-    } else {
-      document.location = baselink + "%20date:" + range;
-    }
-  }
+  });
