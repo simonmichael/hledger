@@ -58,12 +58,7 @@ git shortlog -sn LASTRELEASETAG..
 h2, h2:last-child > h3 { margin-top:4em; }
 </style>
 
-Major releases and user-visible changes.
-
-
-
-
-
+User-visible changes in the core hledger tools.
 
 
 ## 2026-06-24 hledger-1.99.3
