@@ -140,9 +140,41 @@ ul {
     display: none !important;
 }
 
-#sidebar-menu .sidebar-accessibility-buttons {
-    margin-top: -15px;
-    margin-bottom: 10px;
+#topbar .empty-account-checkbox {
+    margin-left: -550px;
+    margin-right: 550px;
+    margin-bottom: -3px;
+    transform: scale(1.82);
+}
+
+#topbar .close-sidebar-arrow {
+    margin-left: -630px;
+    margin-right: 630px;
+    transform: scale(2);
+}
+
+#topbar .open-sidebar-arrow {
+    margin-left: -20px;
+    margin-right: 20px;
+    transform: scale(2);
+    display: none;
+}
+
+
+body.sidebar-open #topbar .close-sidebar-arrow {
+    display: block;
+}
+
+body.sidebar-open #topbar .open-sidebar-arrow {
+    display: none;
+}
+
+body.sidebar-hidden #topbar .close-sidebar-arrow {
+    display: none;
+}
+
+body.sidebar-hidden #topbar .open-sidebar-arrow {
+    display: block;
 }
 
 .transactionsreport .posting td {

@@ -5,11 +5,16 @@
       <span .bi.bi-list.tgl-icon>
 
 <header#topbar .col-md-8 .col-sm-8 .col-xs-10>
-  <h1>#{takeFileName (journalFilePath j)}
+  <h1 .d-flex.align-items-center>
+    <button .btn.btn-default.close-sidebar-arrow type="button" onclick="sidebarToggle()" title="Close Sidebar">
+      <span .bi.bi-arrow-left>
+    <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar">
+      <span .bi.bi-arrow-right>
+    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" onchange="emptyAccountsToggleCheckbox()" title="Show/Hide Empty Accounts">
+    #{takeFileName (journalFilePath j)}
 
 $if elem ViewPermission perms
   <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-    <input .d-block.btn.btn-default.sidebar-accessibility-buttons type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" onchange="emptyAccountsToggleCheckbox()">
     <table .main-menu .table>
       ^{accounts}
 

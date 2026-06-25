@@ -146,6 +146,15 @@ function hledgerInitPage() {
       }
     });
   }
+  
+  // initialize body class for sidebar state
+  if (getCookie('showsidebar') === '0') {
+    document.body.classList.add('sidebar-hidden');
+    document.body.classList.remove('sidebar-open');
+  } else {
+    document.body.classList.add('sidebar-open');
+    document.body.classList.remove('sidebar-hidden');
+  }
 }
 
 function hledgerInitAjaxNavigation() {
@@ -451,6 +460,15 @@ function sidebarToggle() {
     }
     var showSidebar = sidebar && sidebar.classList.contains('col-any-0') ? '0' : '1';
     setCookie('showsidebar', showSidebar, 365);
+    
+    // Toggle sidebar-open
+    if (showSidebar === '1') {
+      document.body.classList.add('sidebar-open');
+      document.body.classList.remove('sidebar-hidden');
+    } else {
+      document.body.classList.add('sidebar-hidden');
+      document.body.classList.remove('sidebar-open');
+    }
   }
 }
 
@@ -463,6 +481,12 @@ function emptyAccountsToggle() {
   });
   var hideEmpty = getCookie('hideemptyaccts') === '1' ? '0' : '1';
   setCookie('hideemptyaccts', hideEmpty, 365);
+  
+  // Sync checkbox state
+  var checkbox = document.getElementById('hideEmptyAccounts');
+  if (checkbox) {
+    checkbox.checked = hideEmpty === '1';
+  }
 }
 
 function emptyAccountsToggleCheckbox() {
