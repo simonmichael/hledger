@@ -134,11 +134,11 @@ function hledgerInitPage() {
   // set checkbox state from cookie
   var checkbox = document.getElementById('hideEmptyAccounts');
   if (checkbox) {
-    checkbox.checked = getCookie('hideemptyaccts') === '1';
+    checkbox.checked = getCookie('hideemptyaccts') === 'true';
   }
 
   // restore hide empty accounts state from cookie
-  if (getCookie('hideemptyaccts') === '1') {
+  if (getCookie('hideemptyaccts') === 'true') {
     var emptyAccts = document.querySelectorAll('.acct.empty');
     emptyAccts.forEach(function(acct) {
       if (acct.parentElement) {
@@ -148,7 +148,7 @@ function hledgerInitPage() {
   }
   
   // initialize body class for sidebar state
-  if (getCookie('showsidebar') === '0') {
+  if (getCookie('showsidebar') === 'false') {
     document.body.classList.add('sidebar-hidden');
     document.body.classList.remove('sidebar-open');
   } else {
@@ -458,11 +458,11 @@ function sidebarToggle() {
       spacer.classList.toggle('col-sm-4');
       spacer.classList.toggle('col-any-0');
     }
-    var showSidebar = sidebar && sidebar.classList.contains('col-any-0') ? '0' : '1';
+    var showSidebar = sidebar && sidebar.classList.contains('col-any-0') ? 'false' : 'true';
     setCookie('showsidebar', showSidebar, 365);
     
     // Toggle sidebar-open
-    if (showSidebar === '1') {
+    if (showSidebar === 'true') {
       document.body.classList.add('sidebar-open');
       document.body.classList.remove('sidebar-hidden');
     } else {
@@ -479,13 +479,13 @@ function emptyAccountsToggle() {
       acct.parentElement.classList.toggle('hide');
     }
   });
-  var hideEmpty = getCookie('hideemptyaccts') === '1' ? '0' : '1';
+  var hideEmpty = getCookie('hideemptyaccts') === 'true' ? 'false' : 'true';
   setCookie('hideemptyaccts', hideEmpty, 365);
   
   // Sync checkbox state
   var checkbox = document.getElementById('hideEmptyAccounts');
   if (checkbox) {
-    checkbox.checked = hideEmpty === '1';
+    checkbox.checked = hideEmpty === 'true';
   }
 }
 
@@ -504,7 +504,7 @@ function emptyAccountsToggleCheckbox() {
     }
   });
   
-  setCookie('hideemptyaccts', shouldHide ? '1' : '0', 365);
+  setCookie('hideemptyaccts', shouldHide ? 'true' : 'false', 365);
 }
 
 // Cookie helper functions
