@@ -12,7 +12,7 @@ Current guidelines:
   PRs are processed at the discretion of hledger's maintainers/reviewers, only when they have time and motivation.
 
 - PRs that try to minimise work for maintainers/reviewers are more likely to get processed quickly.
-  Eg, PRs that are small, clear, high quality, passing tests, non-conflicting with main, aware of current project status, mindful of impact, responsive to discussion.
+  Eg, PRs that are small, clear, high quality, following guidelines, passing tests, non-conflicting with main, well researched, mindful of impact, responsive to discussion.
 
 - PRs from known/returning contributors are prioritised.
 
