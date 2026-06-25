@@ -4,18 +4,21 @@
         {
             "label": "Build hledger-web",
             "type": "shell",
-            "command": "stack",
-            "args": ["install", "hledger-web"],
+            "command": "bash",
+            "args": ["-c", "command -v stack >/dev/null 2>&1 || (echo 'Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install' && exit 1); stack install hledger-web"],
             "group": "build",
             "problemMatcher": [],
             "windows": {
-                "command": "stack"
+                "command": "cmd",
+                "args": ["/c", "where stack >nul 2>&1 || (echo Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install && exit /b 1) && stack install hledger-web"]
             },
             "linux": {
-                "command": "stack"
+                "command": "bash",
+                "args": ["-c", "command -v stack >/dev/null 2>&1 || (echo 'Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install' && exit 1); stack install hledger-web"]
             },
             "osx": {
-                "command": "stack"
+                "command": "bash",
+                "args": ["-c", "command -v stack >/dev/null 2>&1 || (echo 'Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install' && exit 1); stack install hledger-web"]
             }
         },
         {

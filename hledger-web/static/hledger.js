@@ -138,7 +138,7 @@ function hledgerInitPage() {
   }
 
   // restore hide empty accounts state from cookie
-  if (getCookie('hideemptyaccts') === 'true') {
+  if (getCookie('hideemptyaccts')) {
     var emptyAccts = document.querySelectorAll('.acct.empty');
     emptyAccts.forEach(function(acct) {
       if (acct.parentElement) {
@@ -462,7 +462,7 @@ function sidebarToggle() {
     setCookie('showsidebar', showSidebar, 365);
     
     // Toggle sidebar-open
-    if (showSidebar === 'true') {
+    if (showSidebar) {
       document.body.classList.add('sidebar-open');
       document.body.classList.remove('sidebar-hidden');
     } else {
