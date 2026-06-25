@@ -1,5 +1,7 @@
 # Pull requests
 
+Last updated: 2026-06
+
 ## Shortcut urls
 
 - <https://prs.hledger.org>
@@ -14,10 +16,11 @@ Most contributed hledger code (and some of the project maintainer's code)
 is submitted and reviewed via Github pull requests.
 Here are some tips for contributing PRs to hledger.
 
+<!-- keep synced with .github/pull_request_template.md -->
+
 > All hledger pull requests require expert review, and many require coaching and support.
 > We must balance the cost and benefit of accepting PRs, especially AI-generated ones.
 > Thanks for your understanding and your contributions!
-> See also: <https://hledger.org/PULLREQUESTS.html>
 > 
 > Current guidelines:
 > 
@@ -79,9 +82,9 @@ Smaller/more focussed PRs can be reviewed quicker and accepted (or rejected) qui
 
 Consider showing a draft of documentation first (more on this below).
 
-When you are not ready for the PR to be merged, please make it a Draft PR.
-(Non-draft means "I think this is ready, you can merge any time".)
-Use a normal PR title, ie don't write "WIP:" or "Draft:" in the title.
+If you are not ready for the PR to be merged, please make it a Draft PR.
+(But don't write "WIP:" or "Draft:" in the title, just use a normal title.)
+
 
 ## The commit(s)
 
@@ -147,9 +150,4 @@ Sharing a rough draft in the chat room, in an issue comment, or in a draft PR wi
 This is often the quickest road to getting something merged into hledger.
 hledger's many parts interact in surprisingly complex ways.
 The documentation-driven working style lets us discuss, clarify and reach a good-enough consensus more quickly.
-
-## Related ideas
-
-[Neil Mitchell’s Blog - The One PR Per Day Rule](https://neilmitchell.blogspot.com/2019/06/the-one-pr-per-day-rule.html)
-
 
