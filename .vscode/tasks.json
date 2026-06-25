@@ -1,0 +1,20 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build hledger-web",
+            "type": "shell",
+            "command": "stack",
+            "args": ["install", "hledger-web"],
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run hledger-web",
+            "type": "shell",
+            "command": "hledger-web",
+            "group": "build",
+            "problemMatcher": []
+        }
+    ]
+}

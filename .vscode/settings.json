@@ -1,0 +1,4 @@
+{
+    "terminal.integrated.enableansi": true,
+    "haskell.debug.auto": false
+}

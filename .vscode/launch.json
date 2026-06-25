@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Build hledger-web",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/.vscode/build.js",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Run hledger-web",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceFolder}/.vscode/run.js",
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Build (F5)",
+            "configurations": ["Build hledger-web"]
+        },
+        {
+            "name": "Run (F6)",
+            "configurations": ["Run hledger-web"]
+        }
+    ]
+}
