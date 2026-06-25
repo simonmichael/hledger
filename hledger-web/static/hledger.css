@@ -147,6 +147,10 @@ ul {
     vertical-align:bottom;
 }
 
+#sidebar-menu .main-menu tr.hide {
+    display: none !important;
+}
+
 .transactionsreport .posting td {
     border: none !important;
 }
