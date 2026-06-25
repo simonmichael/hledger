@@ -1184,6 +1184,24 @@ tags:
     echo "Commit authors since last release:"
     git shortlog -sn `git tag --sort=-creatordate -l '[0-9]*' | head -1`..
 
+# show contributor commits and names in main and site repos since DATE
+@contribs YYYY-MM-DD:
+    printf "==========\nmain:\n\n"; just contribs-main {{ YYYY-MM-DD }}
+    printf "==========\nsite:\n\n"; just contribs-site {{ YYYY-MM-DD }}
+    printf "==========\nfinance:\n\n"; just contribs-finance {{ YYYY-MM-DD }}
+
+# show contributor commits and names in the main repo since DATE
+@contribs-main YYYY-MM-DD:
+    git shortlog -n --perl-regexp --author='^(?!(Simon Michael))' --since {{ YYYY-MM-DD }}
+
+# show contributor commits and names in the site repo since DATE
+@contribs-site YYYY-MM-DD:
+    git -C site shortlog -n --perl-regexp --author='^(?!(Simon Michael))' --since {{ YYYY-MM-DD }}
+
+# show contributor commits and names in the finance repo since DATE
+@contribs-finance YYYY-MM-DD:
+    git -C finance shortlog -n --perl-regexp --author='^(?!(Simon Michael))' --since {{ YYYY-MM-DD }}
+
 # Show all release dates and versions (of the hledger package).
 @rels:
     awk '/^#+ +[0-9]+\.[0-9].*([0-9]{4}-[0-9]{2}-[0-9]{2})/{printf "%s %s\n",$3,$2}' hledger/CHANGES.md
