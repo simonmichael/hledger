@@ -58,28 +58,33 @@ Release readiness and the release process go from the bottom of this diagram to 
 
 ## Release script
 Short version, based on the checklist below.
-Last updated: 2025-12
+Last updated: 2026-06\
+Key: main: = in hledger repo main branch, rel: = hledger repo release branch, site: = site repo.
 
-1. **finish fixes/features/docs in main**
-2. **begin draft builds:** `j ghbin oldest`
-3. **in release branch, update code:** `j relbranch VER`; minor: cherry-pick new changes from main
-4. **update manuals and website manuals:** `j manuals-site`
-5. **major: update website scripts/redirects:** update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
-6. **update changelogs:** `j changelogs`; edit; `j changelogs-finalise`
-7. **update relnotes:** `j relnotes`; edit; commit
-8. **update announcements:** edit `doc/ANNOUNCE`
-9. **update install docs:** edit `doc/ghrelnotes`, `doc/ghtestbinnotes.md`, `site/src/install.md`
-10. **tag:** `j reltags`
-11. **make release builds:** `j ghbin`
-12. **in main, merge updates from release branch**
-13. **in release branch, release to hackage:** `j hackageupload`
-14. **push to github:** push site repo, push main, push VER-branch, `j reltags-push VER`
-15. **release to github:** manually make new github latest release from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
-16. **major: activate website scripts/redirects:** `j site-restart`
-17. **announce to matrix, irc, mail list, mastodon, forum, pta.o**
-18. **major: update dev version:** `j devver`
-19. **update manuals:** `j manuals`
-20. **update changelogs:** `j changelogs`; edit
+1. **main: finish fixes/features/docs/issues/prs**
+1. **main: begin/fix release builds:** `j ghbin oldest`
+1. **main: update general flags help:** build hledger, copy general flags help from `stack exec -- hledger -h` to common.m4
+1. **main: update command docs and manuals ?** `j manuals`
+1. **(major release) main: update website manuals:** `j manuals-site`
+1. **(major release) main: update website scripts/redirects:** update `site/Makefile`, `site/js/site.js`, `site/hledger.org.caddy`
+1. **main: create/update release branch:** `j relbranch VER` (for 1.99.x preview releases, create branch manually)
+1. **(minor release) rel: cherry-pick new changes from main**
+1. **rel: update command docs and manuals:** `j manuals`
+1. **rel: update changelogs:** `j changelogs`; edit; `j changelogs-finalise`
+1. **rel: update relnotes:** `j relnotes`; edit (add summary); commit
+1. **rel: update announcements:** edit `doc/ANNOUNCE`
+1. **main: cherry-pick changelogs, relnotes, announcement, other relevant updates from relbranch** `jjui -r ::`
+1. **main: update install docs:** edit `doc/ghrelnotes`, `doc/ghtestbinnotes.md`, `site/src/install.md`
+1. **rel: make release builds:** `j ghbin`
+1. **rel: make release tags:** `j reltags`
+1. **(non-preview release) rel: publish on hackage:** `j hackageupload`
+1. **push to github:** push site repo, push VER-branch, `j reltags-push VER`, push main
+1. **publish on github:** manually make new github release (latest or prerelease) from VER tag; `j ghrel-notes`; `j ghbin-download ghrel-upload`
+1. **(major release) main: activate website scripts/redirects:** `j site-restart`
+1. **(major release) main: update dev version:** `j devver`
+1. **main: update manuals:** `j manuals`
+1. **main: update changelogs:** `j changelogs`; edit
+1. **announce to matrix, irc, mail list, mastodon, forum, pta.o**
 
 
 ## Release checklist
