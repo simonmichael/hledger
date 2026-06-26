@@ -95,6 +95,18 @@ ul {
     overflow:hidden;
     border-right: 1px solid #ebebeb;
 }
+/* On wider screens, give the sidebar and the main content each their own
+   vertical scrollbar so they scroll independently and the window itself doesn't
+   scroll. This keeps the account list from shifting when the main pane is long,
+   and lets its scroll position be preserved across navigations (restored from
+   sessionStorage in hledger.js). calc leaves room for the header row above, so
+   the last accounts aren't clipped; short lists stay content-height. */
+@media screen and (min-width: 769px) {
+    #sidebar-menu, #main-content {
+        max-height: calc(100vh - 5em);
+        overflow-y: auto;
+    }
+}
 #sidebar-menu .main-menu {
     table-layout: fixed;
     word-wrap: break-word;
