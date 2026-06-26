@@ -1,20 +1,26 @@
 
+<div#top-left-controls>
+  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar (s)">
+    <span .bi.bi-arrow-left>
+  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar (s)">
+    <span .bi.bi-arrow-right>
+
+<button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar (s)">
+  <span .bi.bi-arrow-left>
+
 <aside#spacer .col-xs-2.#{topShowsm}.#{topShowmd}>
   <h1>
-    <button .d-block.d-md-none.btn.btn-default type="button" onclick="sidebarToggle()">
-      <span .bi.bi-list.tgl-icon>
+    <button .mobile-menu-btn.btn.btn-default type="button" onclick="sidebarToggle()" title="Open Sidebar">
+      <span .bi.bi-list>
 
 <header#topbar .col-md-8 .col-sm-8 .col-xs-10>
   <h1 .d-flex.align-items-center>
-    <button .btn.btn-default.close-sidebar-arrow type="button" onclick="sidebarToggle()" title="Close Sidebar">
-      <span .bi.bi-arrow-left>
-    <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar">
-      <span .bi.bi-arrow-right>
-    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" onchange="emptyAccountsToggleCheckbox()" title="Show/Hide Empty Accounts">
     #{takeFileName (journalFilePath j)}
 
 $if elem ViewPermission perms
   <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" onchange="emptyAccountsToggleCheckbox()" title="Show/Hide Empty Accounts (e)">
+    <label for="hideEmptyAccounts">Show/hide empty accounts (e)
     <table .main-menu .table>
       ^{accounts}
 
@@ -23,6 +29,9 @@ $if elem ViewPermission perms
     <div #message .alert.alert-info>#{m}
   $if elem ViewPermission perms
     <form#searchform.input-group method=GET>
+      <div .input-group-prepend>
+        <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to Journal(home) (j)">
+          <span .bi.bi-house>
       <input .form-control name=q value=#{qparam} placeholder="Search"
         title="Enter hledger search patterns to filter the data below">
       <div .input-group-append>

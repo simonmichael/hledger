@@ -148,12 +148,40 @@ function hledgerInitPage() {
   }
   
   // initialize body class for sidebar state
-  if (getCookie('showsidebar') === 'false') {
+  var isMobile = window.innerWidth <= 768;
+  var showSidebarCookie = getCookie('showsidebar');
+  
+  // On mobile, always treat as sidebar closed
+  if (isMobile || showSidebarCookie === 'false') {
     document.body.classList.add('sidebar-hidden');
     document.body.classList.remove('sidebar-open');
   } else {
     document.body.classList.add('sidebar-open');
     document.body.classList.remove('sidebar-hidden');
+  }
+
+  // sync sidebar grid classes with cookie state
+  var sidebar = document.getElementById('sidebar-menu');
+  var mainContent = document.getElementById('main-content');
+  var spacer = document.getElementById('spacer');
+  if (sidebar && mainContent && spacer) {
+    if (isMobile || showSidebarCookie === 'false') {
+      // sidebar should be hidden
+      sidebar.classList.remove('col-md-4', 'col-sm-4');
+      sidebar.classList.add('col-any-0');
+      mainContent.classList.remove('col-md-8', 'col-sm-8');
+      mainContent.classList.add('col-md-12', 'col-sm-12');
+      spacer.classList.remove('col-md-4', 'col-sm-4');
+      spacer.classList.add('col-any-0');
+    } else {
+      // sidebar should be visible
+      sidebar.classList.add('col-md-4', 'col-sm-4');
+      sidebar.classList.remove('col-any-0');
+      mainContent.classList.add('col-md-8', 'col-sm-8');
+      mainContent.classList.remove('col-md-12', 'col-sm-12');
+      spacer.classList.add('col-md-4', 'col-sm-4');
+      spacer.classList.remove('col-any-0');
+    }
   }
 }
 
@@ -436,9 +464,17 @@ function sidebarToggle() {
   var isMobile = window.innerWidth <= 768;
   
   if (isMobile) {
-    // Mobile: toggle offcanvas
+    // Mobile: toggle offcanvas and body classes
     if (sidebar) {
       sidebar.classList.toggle('active');
+      // Update body classes for mobile close sidebar arrow visibility
+      if (sidebar.classList.contains('active')) {
+        document.body.classList.add('sidebar-open');
+        document.body.classList.remove('sidebar-hidden');
+      } else {
+        document.body.classList.add('sidebar-hidden');
+        document.body.classList.remove('sidebar-open');
+      }
     }
   } else {
     // Desktop: toggle grid classes
@@ -458,11 +494,11 @@ function sidebarToggle() {
       spacer.classList.toggle('col-sm-4');
       spacer.classList.toggle('col-any-0');
     }
-    var showSidebar = sidebar && sidebar.classList.contains('col-any-0') ? 'false' : 'true';
+    var showSidebar = sidebar && !sidebar.classList.contains('col-any-0') ? 'true' : 'false';
     setCookie('showsidebar', showSidebar, 365);
     
     // Toggle sidebar-open
-    if (showSidebar) {
+    if (showSidebar === 'true') {
       document.body.classList.add('sidebar-open');
       document.body.classList.remove('sidebar-hidden');
     } else {

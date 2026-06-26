@@ -140,45 +140,141 @@ ul {
     display: none !important;
 }
 
-#topbar .empty-account-checkbox {
-    margin-left: -550px;
-    margin-right: 550px;
-    margin-bottom: -3px;
+#top-left-controls {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1000;
+}
+
+#topbar h1 {
+    margin-left: 30px;
+}
+
+.home-btn {
+    margin-right: 1vw;
     transform: scale(1.82);
 }
 
-#topbar .close-sidebar-arrow {
-    margin-left: -630px;
-    margin-right: 630px;
-    transform: scale(2);
+.mobile-menu-btn {
+    display: none;
 }
 
-#topbar .open-sidebar-arrow {
-    margin-left: -20px;
-    margin-right: 20px;
+#sidebar-menu .empty-account-checkbox {
+    position: relative;
+    top: 3px;
+    transform: scale(1.82);
+    z-index: 1000;
+}
+
+#sidebar-menu label[for="hideEmptyAccounts"] {
+    margin-left: 0.5em;
+}
+#top-left-controls .close-sidebar-arrow-desktop {
+    transform: scale(2);
+    display: none;
+}
+
+#top-left-controls .open-sidebar-arrow {
     transform: scale(2);
     display: none;
 }
 
 
-body.sidebar-open #topbar .close-sidebar-arrow {
+body.sidebar-open #top-left-controls .close-sidebar-arrow-desktop {
     display: block;
 }
 
-body.sidebar-open #topbar .open-sidebar-arrow {
+body.sidebar-open #top-left-controls .open-sidebar-arrow {
     display: none;
 }
 
-body.sidebar-hidden #topbar .close-sidebar-arrow {
+body.sidebar-hidden #top-left-controls .close-sidebar-arrow-desktop {
     display: none;
 }
 
-body.sidebar-hidden #topbar .open-sidebar-arrow {
+body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
     display: block;
+    position: relative;
+}
+
+.close-sidebar-arrow-mobile {
+    display: none;
+    position: fixed;
+    top: 10px;
+    left: 44vw;
+    transform: scale(2);
+}
+
+body.sidebar-hidden #top-left-controls .empty-account-checkbox {
+    display: none;
+}
+
+body.sidebar-hidden #top-left-controls label[for="hideEmptyAccounts"] {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    body.sidebar-open #top-left-controls .close-sidebar-arrow-desktop {
+        display: none;
+    }
+
+    body.sidebar-hidden #top-left-controls .close-sidebar-arrow-desktop {
+        display: none;
+    }
+
+    body.sidebar-open #top-left-controls .open-sidebar-arrow {
+        display: none;
+    }
+
+    body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
+        display: none;
+    }
+
+    body.sidebar-hidden .close-sidebar-arrow-mobile {
+        display: none;
+    }
+
+    body.sidebar-open .close-sidebar-arrow-mobile {
+        display: block;
+    }
+
+    body.sidebar-hidden .mobile-menu-btn {
+        display: block;
+        transform: scale(1.5);
+    }
+
+    body.sidebar-open .mobile-menu-btn {
+        display: none;
+    }
+
+    #top-left-controls .empty-account-checkbox {
+        display: none;
+    }
+
+    #top-left-controls label[for="hideEmptyAccounts"] {
+        display: none;
+    }
 }
 
 .transactionsreport .posting td {
     border: none !important;
+}
+
+.transactionsreport {
+    table-layout: fixed;
+}
+
+.transactionsreport th.date, .transactionsreport td.date {
+    width: 100px;
+}
+
+.transactionsreport th.description, .transactionsreport td.description {
+    width: 200px;
+}
+
+.transactionsreport th.account, .transactionsreport td.account {
+    width: auto;
 }
 
 .negative {

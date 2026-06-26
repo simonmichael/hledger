@@ -5,16 +5,6 @@
     // Set up autocomplete data
     globalThis.descriptions = #{toBloodhoundJson (toList descriptions)};
     globalThis.accounts = #{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)};
-
-    // Attach autocomplete to the initial form inputs
-    var descInput = document.querySelector('input[name=description]');
-    var accountInput = document.querySelector('input[name=account]');
-    if (descInput && globalThis.descriptions) {
-      setupAutocomplete(descInput, globalThis.descriptions);
-    }
-    if (accountInput && globalThis.accounts) {
-      setupAutocomplete(accountInput, globalThis.accounts);
-    }
   });
 
   if (typeof utf8textdecoder === 'undefined') {
