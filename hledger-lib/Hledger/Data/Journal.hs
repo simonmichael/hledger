@@ -473,6 +473,9 @@ journalCommoditiesFromTransactions j = S.fromList $ map acommodity $ journalPost
 -- 1. The "to" commodity that appears most often in P (price) directives, if any.
 -- 2. Otherwise, the commodity that appears most often in posting and cost amounts.
 -- 3. Otherwise, "USD".
+-- The synthetic 1:1 bridge directives generated from commodity @alias:@ tags
+-- (see journalInferAliasPrices) are excluded from step 1, so that declaring
+-- aliases doesn't sway the guess.
 -- Commodity symbols are normalised to ISO 4217 codes where possible,
 -- so that equivalent symbols are tallied together.
 -- Ties are broken by first occurrence order.
@@ -480,8 +483,16 @@ journalBaseCurrencyCode :: Journal -> CurrencyCode
 journalBaseCurrencyCode j =
   fromMaybe "USD" $ mostFrequent priceTargetComms <|> mostFrequent postingAndCostComms
   where
-    priceTargetComms    = map (toCurrencyCode . acommodity . pdamount) (jpricedirectives j)
+    priceTargetComms    = map (toCurrencyCode . acommodity . pdamount) realPriceDirectives
     postingAndCostComms = map (toCurrencyCode . acommodity) $ journalPostingAndCostAmounts j
+
+    -- Price directives, excluding the 1:1 bridges inferred from commodity alias: tags.
+    realPriceDirectives = filter (not . isCommodityAliasPrice) $ jpricedirectives j
+    isCommodityAliasPrice pd =
+      aquantity (pdamount pd) == 1 && (pdcommodity pd, acommodity (pdamount pd)) `S.member` commodityAliasPairs
+    commodityAliasPairs = S.fromList [ (a, csymbol c)
+                                     | c <- M.elems (jdeclaredcommodities j)
+                                     , a <- commodityAliases c ]
 
     -- Most frequent element, ties broken by first-occurrence order.
     -- A single pass for efficiency: each map entry stores (negate count, first index),
