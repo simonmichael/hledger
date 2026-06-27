@@ -19,8 +19,8 @@
 
 $if elem ViewPermission perms
   <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts (e)">
-    <label for="hideEmptyAccounts">Show empty accounts (e)
+    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts&#10Keybind: e">
+    <label for="hideEmptyAccounts" title="Show empty accounts&#10Keybind: e">Show empty accounts
     <table .main-menu .table>
       ^{accounts}
 
@@ -30,7 +30,7 @@ $if elem ViewPermission perms
   $if elem ViewPermission perms
     <form#searchform.input-group method=GET>
       <div .input-group-prepend>
-        <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to Journal(home) (j)">
+        <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to Journal(homepage)&#10Keybind: j">
           <span .bi.bi-house>
       <input .form-control name=q value=#{qparam} placeholder="Search"
         title="Enter hledger search patterns to filter the data below">

@@ -484,6 +484,9 @@ function sidebarToggle() {
     }
   } else {
     // Desktop: toggle grid classes
+    // Check state BEFORE toggling to determine new state
+    var wasHidden = sidebar && sidebar.classList.contains('col-any-0');
+    
     if (sidebar) {
       sidebar.classList.toggle('col-md-4');
       sidebar.classList.toggle('col-sm-4');
@@ -500,11 +503,13 @@ function sidebarToggle() {
       spacer.classList.toggle('col-sm-4');
       spacer.classList.toggle('col-any-0');
     }
-    var showSidebar = sidebar && !sidebar.classList.contains('col-any-0') ? 'true' : 'false';
+    
+    // After toggle: if it was hidden, now it's open
+    var showSidebar = wasHidden ? 'true' : 'false';
     setCookie('showsidebar', showSidebar, 365);
     
-    // Toggle sidebar-open
-    if (showSidebar) {
+    // Update body classes to match new state
+    if (showSidebar === 'true') {
       document.body.classList.add('sidebar-open');
       document.body.classList.remove('sidebar-hidden');
     } else {

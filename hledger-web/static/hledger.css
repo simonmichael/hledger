@@ -169,6 +169,8 @@ ul {
 
 #sidebar-menu label[for="hideEmptyAccounts"] {
     margin-left: 0.5em;
+    position: relative;
+    z-index: 2000;
 }
 #top-left-controls .close-sidebar-arrow-desktop {
     transform: scale(2);
