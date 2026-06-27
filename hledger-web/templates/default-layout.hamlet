@@ -1,9 +1,11 @@
 
 <div#top-left-controls>
-  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keybind: s">
+  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keyboard shortcut: s">
     <span .bi.bi-arrow-left>
-  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keybind: s">
-    <span .bi.bi-arrow-right>
+  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keyboard shortcut: s">
+    <span .bi.bi-layout-text-sidebar>
+  <input .empty-account-checkbox type="checkbox" id="hideEmptyAccountsDesktop" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Toggles Empty Accounts&#10Keyboard shortcut: e">
+  <label for="hideEmptyAccountsDesktop" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
 
 <button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar">
   <span .bi.bi-arrow-left>
@@ -19,8 +21,8 @@
 
 $if elem ViewPermission perms
   <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts&#10Keybind: e">
-    <label for="hideEmptyAccounts" title="Show empty accounts&#10Keybind: e">Show empty accounts
+    <input .empty-account-checkbox-mobile type="checkbox" id="hideEmptyAccountsMobile" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts&#10Keyboard shortcut: e">
+    <label for="hideEmptyAccountsMobile" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
     <table .main-menu .table>
       ^{accounts}
 
@@ -30,16 +32,17 @@ $if elem ViewPermission perms
   $if elem ViewPermission perms
     <form#searchform.input-group method=GET>
       <div .input-group-prepend>
-        <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to Journal(homepage)&#10Keybind: j">
-          <span .bi.bi-house>
+        $if not isJournalPage
+          <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j">
+            <span .bi.bi-house>
       <input .form-control name=q value=#{qparam} placeholder="Search"
         title="Enter hledger search patterns to filter the data below">
       <div .input-group-append>
         $if not (T.null qparam)
           <a href=@{here} .btn .btn-default title="Clear search terms">
             <span .bi.bi-x-circle>
-        <button .btn .btn-default type=submit title="Apply search terms">
-          <span .bi.bi-search>
+        <button .btn .btn-default type="button" onclick="addformShow()" title="Add a transaction&#10Keyboard shortcut: a">
+          <span .bi.bi-plus-square>
         $if elem EditPermission perms
           <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
             <span .bi.bi-gear>

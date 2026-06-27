@@ -145,6 +145,9 @@ ul {
     top: 10px;
     left: 10px;
     z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 10px;
 }
 
 #topbar h1 {
@@ -160,18 +163,35 @@ ul {
     display: none;
 }
 
-#sidebar-menu .empty-account-checkbox {
+#top-left-controls .empty-account-checkbox {
     position: relative;
+    left: 13px;
     top: 3px;
-    transform: scale(1.82);
+    transform: scale(1.72);
     z-index: 1000;
 }
 
-#sidebar-menu label[for="hideEmptyAccounts"] {
-    margin-left: 0.5em;
+#top-left-controls label[for="hideEmptyAccountsDesktop"] {
     position: relative;
+    top: 8px;
+    left: 15px;
     z-index: 2000;
 }
+
+#sidebar-menu .empty-account-checkbox-mobile {
+    display: none;
+    position: relative;
+    top: 13px;
+    transform: scale(1.5);
+}
+
+#sidebar-menu label[for="hideEmptyAccountsMobile"] {
+    display: none;
+    position: relative;
+    left: 25px;
+    bottom: 2px;
+}
+
 #top-left-controls .close-sidebar-arrow-desktop {
     transform: scale(2);
     display: none;
@@ -212,7 +232,7 @@ body.sidebar-hidden #top-left-controls .empty-account-checkbox {
     display: none;
 }
 
-body.sidebar-hidden #top-left-controls label[for="hideEmptyAccounts"] {
+body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     display: none;
 }
 
@@ -233,6 +253,22 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccounts"] {
         display: none;
     }
 
+    #top-left-controls .empty-account-checkbox {
+        display: none;
+    }
+
+    #top-left-controls label[for="hideEmptyAccountsDesktop"] {
+        display: none;
+    }
+
+    #sidebar-menu .empty-account-checkbox-mobile {
+        display: block;
+    }
+
+    #sidebar-menu label[for="hideEmptyAccountsMobile"] {
+        display: block;
+    }
+
     body.sidebar-hidden .close-sidebar-arrow-mobile {
         display: none;
     }
@@ -247,14 +283,6 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccounts"] {
     }
 
     body.sidebar-open .mobile-menu-btn {
-        display: none;
-    }
-
-    #top-left-controls .empty-account-checkbox {
-        display: none;
-    }
-
-    #top-left-controls label[for="hideEmptyAccounts"] {
         display: none;
     }
 }

@@ -4,58 +4,25 @@
         {
             "label": "Build hledger-web",
             "type": "shell",
-            "command": "bash",
-            "args": ["-c", "command -v stack >/dev/null 2>&1 && stack install hledger-web || (echo \"Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install\" && exit 1)"],
+            "command": "stack",
+            "args": ["install", "hledger-web"],
             "group": "build",
-            "problemMatcher": [],
-            "windows": {
-                "command": "cmd",
-                "args": ["/c", "where stack >nul 2>&1 && stack install hledger-web || (echo Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install && exit /b 1)"]
-            },
-            "linux": {
-                "command": "bash",
-                "args": ["-c", "command -v stack >/dev/null 2>&1 && stack install hledger-web || (echo \"Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install\" && exit 1)"]
-            },
-            "osx": {
-                "command": "bash",
-                "args": ["-c", "command -v stack >/dev/null 2>&1 && stack install hledger-web || (echo \"Error: Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install\" && exit 1)"]
-            }
+            "problemMatcher": []
         },
         {
             "label": "Run hledger-web",
             "type": "shell",
             "command": "hledger-web",
             "group": "build",
-            "problemMatcher": [],
-            "windows": {
-                "command": "hledger-web"
-            },
-            "linux": {
-                "command": "hledger-web"
-            },
-            "osx": {
-                "command": "hledger-web"
-            }
+            "problemMatcher": []
         },
         {
             "label": "Check Stack Installation",
             "type": "shell",
-            "command": "bash",
-            "args": ["-c", "command -v stack || echo 'Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install'"],
+            "command": "stack",
+            "args": ["--version"],
             "group": "build",
-            "problemMatcher": [],
-            "windows": {
-                "command": "cmd",
-                "args": ["/c", "where stack || echo Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install"]
-            },
-            "linux": {
-                "command": "bash",
-                "args": ["-c", "command -v stack || echo 'Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install'"]
-            },
-            "osx": {
-                "command": "bash",
-                "args": ["-c", "command -v stack || echo 'Stack is not installed. Please install it from https://docs.haskellstack.org/en/stable/README/#how-to-install'"]
-            }
+            "problemMatcher": []
         }
     ]
 }

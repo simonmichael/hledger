@@ -18,7 +18,9 @@ $forall (acct, adisplay, aindent, abal) <- items
           <a href="@?{(registerR, [("q", replaceInacct qparam $ accountOnlyQuery acct)])}" .only.hidden-sm.hidden-xs
              title="Show transactions affecting this account but not subaccounts">only
     <td .amount>
-      ^{mixedAmountAsHtml abal}
+      <a href="@?{(registerR, [("q", replaceInacct qparam $ accountQuery acct)])}"
+         title="Show transactions affecting this account and subaccounts">
+        ^{mixedAmountAsHtml abal}
 <tr .total>
   <td>
   <td .amount>

@@ -159,6 +159,7 @@ instance Yesod App where
         sideShowsm = if showSidebar then "col-sm-4" else "" :: Text
         mainShowmd = if showSidebar then "col-md-8" else "col-md-12" :: Text
         mainShowsm = if showSidebar then "col-sm-8" else "col-sm-12" :: Text
+        isJournalPage = here == JournalR
 
     -- We break up the default layout into two components:
     -- default-layout is the contents of the body tag, and

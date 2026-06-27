@@ -136,10 +136,17 @@ function hledgerInitPage() {
   }
 
   // set checkbox state from cookie (checked = show empty accounts)
-  var checkbox = document.getElementById('hideEmptyAccounts');
-  if (checkbox) {
-    var hideCookie = getCookie('hideemptyaccts');
-    checkbox.checked = hideCookie !== 'true';
+  var checkboxDesktop = document.getElementById('hideEmptyAccountsDesktop');
+  var checkboxMobile = document.getElementById('hideEmptyAccountsMobile');
+  var hideCookie = getCookie('hideemptyaccts');
+  // Only set checked state if cookie exists, otherwise leave as HTML default
+  if (hideCookie !== null && hideCookie !== '') {
+    if (checkboxDesktop) {
+      checkboxDesktop.checked = hideCookie !== 'true';
+    }
+    if (checkboxMobile) {
+      checkboxMobile.checked = hideCookie !== 'true';
+    }
   }
 
   // restore hide empty accounts state from cookie
@@ -529,15 +536,25 @@ function emptyAccountsToggle() {
   var hideEmpty = getCookie('hideemptyaccts') === 'true' ? 'false' : 'true';
   setCookie('hideemptyaccts', hideEmpty, 365);
   
-  // Sync checkbox state
-  var checkbox = document.getElementById('hideEmptyAccounts');
-  if (checkbox) {
-    checkbox.checked = hideEmpty !== 'true';
+  // Sync checkbox state for both desktop and mobile
+  var checkboxDesktop = document.getElementById('hideEmptyAccountsDesktop');
+  var checkboxMobile = document.getElementById('hideEmptyAccountsMobile');
+  if (checkboxDesktop) {
+    checkboxDesktop.checked = hideEmpty !== 'true';
+  }
+  if (checkboxMobile) {
+    checkboxMobile.checked = hideEmpty !== 'true';
   }
 }
 
 function emptyAccountsToggleCheckbox() {
-  var checkbox = document.getElementById('hideEmptyAccounts');
+  var checkboxDesktop = document.getElementById('hideEmptyAccountsDesktop');
+  var checkboxMobile = document.getElementById('hideEmptyAccountsMobile');
+  
+  // Determine which checkbox was clicked and get its state
+  var checkbox = checkboxDesktop || checkboxMobile;
+  if (!checkbox) return;
+  
   var shouldHide = !checkbox.checked;
   
   var emptyAccts = document.querySelectorAll('.acct.empty');
@@ -552,6 +569,14 @@ function emptyAccountsToggleCheckbox() {
   });
   
   setCookie('hideemptyaccts', shouldHide ? 'true' : 'false', 365);
+  
+  // Sync both checkboxes
+  if (checkboxDesktop) {
+    checkboxDesktop.checked = !shouldHide;
+  }
+  if (checkboxMobile) {
+    checkboxMobile.checked = !shouldHide;
+  }
 }
 
 // Cookie helper functions
