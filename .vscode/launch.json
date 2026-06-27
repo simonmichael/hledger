@@ -12,18 +12,7 @@
             "name": "Run hledger-web",
             "type": "node",
             "request": "launch",
-            "preLaunchTask": "Run hledger-web",
             "console": "integratedTerminal"
-        }
-    ],
-    "compounds": [
-        {
-            "name": "Build",
-            "configurations": ["Build hledger-web"]
-        },
-        {
-            "name": "Run",
-            "configurations": ["Run hledger-web"]
         }
     ]
 }

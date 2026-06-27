@@ -148,11 +148,11 @@ function hledgerInitPage() {
   }
   
   // initialize body class for sidebar state
-  var isMobile = window.innerWidth <= 768;
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
   var showSidebarCookie = getCookie('showsidebar');
   
   // On mobile, always treat as sidebar closed
-  if (isMobile || showSidebarCookie === 'false') {
+  if (isMobile || !showSidebarCookie) {
     document.body.classList.add('sidebar-hidden');
     document.body.classList.remove('sidebar-open');
   } else {
@@ -165,7 +165,7 @@ function hledgerInitPage() {
   var mainContent = document.getElementById('main-content');
   var spacer = document.getElementById('spacer');
   if (sidebar && mainContent && spacer) {
-    if (isMobile || showSidebarCookie === 'false') {
+    if (isMobile || !showSidebarCookie) {
       // sidebar should be hidden
       sidebar.classList.remove('col-md-4', 'col-sm-4');
       sidebar.classList.add('col-any-0');
@@ -461,7 +461,7 @@ function sidebarToggle() {
   var spacer = document.getElementById('spacer');
   
   // Check if we're on mobile
-  var isMobile = window.innerWidth <= 768;
+  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
   
   if (isMobile) {
     // Mobile: toggle offcanvas and body classes
@@ -498,7 +498,7 @@ function sidebarToggle() {
     setCookie('showsidebar', showSidebar, 365);
     
     // Toggle sidebar-open
-    if (showSidebar === 'true') {
+    if (showSidebar) {
       document.body.classList.add('sidebar-open');
       document.body.classList.remove('sidebar-hidden');
     } else {
