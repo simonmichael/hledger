@@ -277,6 +277,73 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccounts"] {
     width: auto;
 }
 
+.mobile-account {
+    display: none;
+}
+
+.desktop-account {
+    display: inline;
+}
+
+@media (max-width: 768px) {
+    .transactionsreport {
+        table-layout: fixed;
+    }
+
+    .transactionsreport th.date {
+        width: 25%;
+    }
+
+    .transactionsreport td.date {
+        width: 25%;
+    }
+
+    .transactionsreport th.description {
+        width: 50%;
+    }
+
+    .transactionsreport td.description {
+        width: 50%;
+    }
+
+    .transactionsreport th.account {
+        visibility: collapse;
+        width: 0;
+    }
+
+    .transactionsreport td.account {
+        visibility: collapse;
+        width: 0;
+    }
+
+    .transactionsreport th.amount {
+        text-align: right;
+        width: 25%;
+    }
+
+    .transactionsreport td.amount {
+        width: 25%;
+    }
+
+    .mobile-account {
+        display: block;
+        font-size: 0.8em;
+        margin-top: 2px;
+    }
+
+    .mobile-account a {
+        color: #337ab7;
+    }
+
+    .desktop-account {
+        display: none;
+    }
+
+    .desktop-only {
+        display: none;
+    }
+}
+
 .negative {
     color: #a94442;
 }

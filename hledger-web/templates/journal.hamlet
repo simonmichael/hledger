@@ -11,25 +11,30 @@ $if elem AddPermission perms
     <thead>
       <th .date style="text-align:left;">Date
       <th .description style="text-align:left;">Description
-      <th .account style="text-align:left;">Account
+      <th .account .desktop-only style="text-align:left;">Account
       <th .amount style="text-align:right;">Amount
 
     $forall torig <- items
       <tr .title ##{transactionFrag torig} title="#{showTransaction torig}">
         <td .date nowrap>
           #{show (tdate torig)}
-        <td colspan=2>
+        <td .title-description>
           #{textElideRight 60 (tdescription torig)}
+        <td>
         <td .amount style="text-align:right;">
 
       $forall Posting { paccount = acc, pamount = amt } <- tpostings torig
         <tr .posting>
           <td>
+            <span .mobile-account>
+              <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
+                #{elideAccountName 40 acc}
           <td>
-          <td>
-            &nbsp;
-            <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
-              #{elideAccountName 40 acc}
+          <td .desktop-only>
+            <span .desktop-account>
+              &nbsp;
+              <a href="@?{acctlink acc}##{tindex torig}" title="#{acc}">
+                #{elideAccountName 40 acc}
           <td .amount style="text-align:right;">
             ^{mixedAmountAsHtml amt}
 
