@@ -87,6 +87,10 @@ function hledgerInitGlobal() {
   });
 }
 
+function isMobile() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+}
+
 function toggleModal(modalId) {
   var modal = document.getElementById(modalId);
   if (modal) {
@@ -131,14 +135,15 @@ function hledgerInitPage() {
     }, true);
   }
 
-  // set checkbox state from cookie
+  // set checkbox state from cookie (checked = show empty accounts)
   var checkbox = document.getElementById('hideEmptyAccounts');
   if (checkbox) {
-    checkbox.checked = getCookie('hideemptyaccts') === 'true';
+    var hideCookie = getCookie('hideemptyaccts');
+    checkbox.checked = hideCookie !== 'true';
   }
 
   // restore hide empty accounts state from cookie
-  if (getCookie('hideemptyaccts')) {
+  if (getCookie('hideemptyaccts') === 'true') {
     var emptyAccts = document.querySelectorAll('.acct.empty');
     emptyAccts.forEach(function(acct) {
       if (acct.parentElement) {
@@ -148,11 +153,12 @@ function hledgerInitPage() {
   }
   
   // initialize body class for sidebar state
-  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  var mobile = isMobile();
   var showSidebarCookie = getCookie('showsidebar');
   
   // On mobile, always treat as sidebar closed
-  if (isMobile || !showSidebarCookie) {
+  // On desktop, show sidebar by default unless explicitly hidden
+  if (mobile || showSidebarCookie === 'false') {
     document.body.classList.add('sidebar-hidden');
     document.body.classList.remove('sidebar-open');
   } else {
@@ -165,7 +171,7 @@ function hledgerInitPage() {
   var mainContent = document.getElementById('main-content');
   var spacer = document.getElementById('spacer');
   if (sidebar && mainContent && spacer) {
-    if (isMobile || !showSidebarCookie) {
+    if (mobile || showSidebarCookie === 'false') {
       // sidebar should be hidden
       sidebar.classList.remove('col-md-4', 'col-sm-4');
       sidebar.classList.add('col-any-0');
@@ -461,9 +467,9 @@ function sidebarToggle() {
   var spacer = document.getElementById('spacer');
   
   // Check if we're on mobile
-  var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || window.innerWidth <= 768;
+  var mobile = isMobile();
   
-  if (isMobile) {
+  if (mobile) {
     // Mobile: toggle offcanvas and body classes
     if (sidebar) {
       sidebar.classList.toggle('active');
@@ -521,13 +527,13 @@ function emptyAccountsToggle() {
   // Sync checkbox state
   var checkbox = document.getElementById('hideEmptyAccounts');
   if (checkbox) {
-    checkbox.checked = hideEmpty === 'true';
+    checkbox.checked = hideEmpty !== 'true';
   }
 }
 
 function emptyAccountsToggleCheckbox() {
   var checkbox = document.getElementById('hideEmptyAccounts');
-  var shouldHide = checkbox.checked;
+  var shouldHide = !checkbox.checked;
   
   var emptyAccts = document.querySelectorAll('.acct.empty');
   emptyAccts.forEach(function(acct) {

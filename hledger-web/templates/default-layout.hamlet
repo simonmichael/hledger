@@ -19,8 +19,8 @@
 
 $if elem ViewPermission perms
   <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" onchange="emptyAccountsToggleCheckbox()" title="Show/Hide Empty Accounts (e)">
-    <label for="hideEmptyAccounts">Show/hide empty accounts (e)
+    <input .empty-account-checkbox type="checkbox" id="hideEmptyAccounts" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts (e)">
+    <label for="hideEmptyAccounts">Show empty accounts (e)
     <table .main-menu .table>
       ^{accounts}
 
