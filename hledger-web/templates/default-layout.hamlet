@@ -1,11 +1,11 @@
 
 <div#top-left-controls>
-  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar (s)">
+  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keybind: s">
     <span .bi.bi-arrow-left>
-  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar (s)">
+  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keybind: s">
     <span .bi.bi-arrow-right>
 
-<button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar (s)">
+<button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar">
   <span .bi.bi-arrow-left>
 
 <aside#spacer .col-xs-2.#{topShowsm}.#{topShowmd}>
