@@ -37,6 +37,11 @@ Brick.defaultMain brickapp st
 {-# LANGUAGE OverloadedStrings  #-}
 {-# LANGUAGE TemplateHaskell    #-}
 {-# LANGUAGE EmptyDataDeriving #-}
+-- StrictData makes all screen-state and item record fields strict by default, so a future
+-- field that captures prior-generation data cannot silently be lazy and reintroduce the
+-- --watch reload leak (#1825). Note: this does not reach brick's GenericList.listSelected,
+-- so the explicit index forcing in UIScreens/UIState is still required.
+{-# LANGUAGE StrictData #-}
 
 module Hledger.UI.UITypes where
 
