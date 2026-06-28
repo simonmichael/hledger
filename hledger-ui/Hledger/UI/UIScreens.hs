@@ -58,14 +58,16 @@ import Data.Function ((&))
 -- | Regenerate the content of any screen from new options, reporting date and journal.
 screenUpdate :: UIOpts -> Day -> Journal -> Screen -> Screen
 screenUpdate opts d j = \case
-  MS sst -> MS $ msUpdate sst  -- opts d j ass
-  AS sst -> AS $ asUpdate opts d j sst
-  CS sst -> CS $ csUpdate opts d j sst
-  BS sst -> BS $ bsUpdate opts d j sst
-  IS sst -> IS $ isUpdate opts d j sst
-  RS sst -> RS $ rsUpdate opts d j sst
-  TS sst -> TS $ tsUpdate sst
-  ES sst -> ES $ esUpdate sst
+  -- Force each regenerated screen state to WHNF so the strict selection-index
+  -- binding in each updater fires, severing references to the previous generation (#1825).
+  MS sst -> MS $! msUpdate sst  -- opts d j ass
+  AS sst -> AS $! asUpdate opts d j sst
+  CS sst -> CS $! csUpdate opts d j sst
+  BS sst -> BS $! bsUpdate opts d j sst
+  IS sst -> IS $! isUpdate opts d j sst
+  RS sst -> RS $! rsUpdate opts d j sst
+  TS sst -> TS $  tsUpdate sst
+  ES sst -> ES $  esUpdate sst
 
 -- | Construct an error screen.
 -- Screen-specific arguments: the error message to show.
@@ -134,8 +136,10 @@ asUpdate uopts d = dbgui "asUpdate" .
 -- | Update an accounts-like screen's state from this report spec, reporting date,
 -- cli options, report options modifier, extra query, and journal.
 asUpdateHelper :: ReportSpec -> Day -> CliOpts -> (ReportOpts -> ReportOpts) -> Query -> Journal -> AccountsScreenState -> AccountsScreenState
-asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelper"
-  ass{_assList=l}
+asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelper" $
+  -- Force the new list, which forces the bang-patterned selidx below, severing the
+  -- reference to the previous generation's state (ass) so it can be GC'd (#1825).
+  l `seq` ass{_assList=l}
   where
     ropts = roptsModify $ _rsReportOpts rspec0
     rspec =
@@ -149,7 +153,8 @@ asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelp
     l = listMoveToIfDisplayItems selidx displayitems $ list AccountsList (V.fromList $ displayitems ++ blankitems) 1
       where
         -- which account should be selected ?
-        selidx = headDef 0 $ catMaybes [
+        -- Strict: forced via `l `seq`` above, so the new list holds no thunk over ass (#1825).
+        !selidx = headDef 0 $ catMaybes [
            elemIndex a as                               -- the one previously selected, if it can be found
           ,findIndex (a `isAccountNamePrefixOf`) as     -- or the first account found with the same prefix
           ,Just $ max 0 (length (filter (< a) as) - 1)  -- otherwise, the alphabetically preceding account.
@@ -244,8 +249,10 @@ rsNew uopts d j acct forceinclusive =  -- XXX forcedefaultselection - whether to
 -- | Update a register screen from these options, reporting date, and journal.
 rsUpdate :: UIOpts -> Day -> Journal -> RegisterScreenState -> RegisterScreenState
 rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
-  dbgui "rsUpdate"
-  rss{_rssList=l'}
+  dbgui "rsUpdate" $
+  -- Force the new list, which forces the bang-patterned newselidx below, severing the
+  -- reference to the previous generation's list (oldlist) so it can be GC'd (#1825).
+  l' `seq` rss{_rssList=l'}
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
     -- gather arguments and queries
@@ -320,7 +327,8 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
     l' = listMoveToIfDisplayItems newselidx displayitems l
       where
         endidx = max 0 $ length displayitems - 1
-        newselidx =
+        -- Strict: forced via `l' `seq`` above, so the new list holds no thunk over oldlist (#1825).
+        !newselidx =
           -- case (forcedefaultselection, listSelectedElement _rssList) of
           --   (True, _)    -> endidx
           --   (_, Nothing) -> endidx

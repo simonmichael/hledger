@@ -388,4 +388,15 @@ regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
                  Right rs -> rs
                  Left _   -> rspec
       opts'  = opts{uoCliOpts = copts{reportspec_ = rspec'}}
-  in ui{aopts=opts', ajournal=j, aScreen=screenUpdate opts' d j s, aPrevScreens=map (screenUpdate opts' d j) ss}
+      -- Regenerate the active screen and the whole hidden stack strictly, so no
+      -- previous-generation screen/list/journal is retained after a reload (#1825).
+      s'  = screenUpdate opts' d j s
+      ss' = strictMapScreens (screenUpdate opts' d j) ss
+  in s' `seq` ss' `seq` ui{aopts=opts', ajournal=j, aScreen=s', aPrevScreens=ss'}
+
+-- | Like @map@ over a screen stack, but strict in the list spine and in each regenerated
+-- screen (forced to WHNF), so the lazy-map accumulation of previous-generation screens is
+-- collapsed on each reload rather than chaining up over time (#1825).
+strictMapScreens :: (Screen -> Screen) -> [Screen] -> [Screen]
+strictMapScreens _ []     = []
+strictMapScreens f (s:ss) = let s' = f s; ss' = strictMapScreens f ss in s' `seq` ss' `seq` (s' : ss')
