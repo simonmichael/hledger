@@ -53,7 +53,7 @@ import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
-import Hledger.UI.UIState (uiState, getDepth)
+import Hledger.UI.UIState (uiState)
 import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
@@ -225,9 +225,13 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
               rsSetAccount acct False $
               rsNew uopts today j acct forceinclusive
                 where
-                  forceinclusive = case getDepth ui of
+                  -- Take the depth from uopts, not `getDepth ui`: ui depends on regscr
+                  -- (this binding), so referencing ui here ties a knot that StrictData's
+                  -- strict UIState fields turn into a <<loop>> at startup (#1825).
+                  forceinclusive = case dsFlatDepth (depth_ regropts) of
                                     Just de -> accountNameLevel acct >= de
                                     Nothing -> False
+                    where regropts = _rsReportOpts $ reportspec_ $ uoCliOpts uopts
 
             -- The accounts screen containing acct.
             -- Keep these selidx values synced with the menu items in msNew.
