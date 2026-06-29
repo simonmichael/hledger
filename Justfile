@@ -1130,20 +1130,23 @@ INSTALLING:
 
 # On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
 # linux / mac only for now, does not handle the windows zip file.
-# download github release VER binaries for OS (linux, mac) and ARCH (x64, arm64) to bin/old/hledger*-VER
-@installrel VER OS ARCH:
+# download the specified version of github release binaries, for the current OS and ARCH, to bin/old/hledger*-VER
+installrel VER:
     #!/usr/bin/env bash
 
     # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
     # can't use $GHC or {{GHC}} here for some reason
-    OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
+    OS=$(ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"')
+
+    # The current architecture, in the form used for hledger release binaries: x64, arm64 or other.
+    ARCH=$(ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case arch of "x86_64"->"x64"; "aarch64"->"arm64"; "arm"->"arm64"; _->"other"')
 
     # if [[ "$OS" == "windows" ]]; then
-    #   cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
+    #   cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/$VER/hledger-$OS-$ARCH.zip | funzip | `type -P gtar || echo tar` xf - --transform "s/$/-$VER/"
     # else
     # fi
 
-    cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.tar.gz | `type -P gtar || echo tar` xzf - --transform 's/$/-{{ VER }}/'
+    cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/$VER/hledger-$OS-$ARCH.tar.gz | `type -P gtar || echo tar` xzf - --transform "s/\$/-$VER/"
 
 # # download recent versions of the hledger executables from github to bin/hledger*-VER
 # get-recent-binaries:
