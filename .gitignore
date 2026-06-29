@@ -12,6 +12,7 @@ _*
 
 # dev stuff
 .build
+.hx
 .idea
 *.iml
 .shake
