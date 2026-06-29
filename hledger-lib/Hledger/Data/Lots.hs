@@ -1119,10 +1119,16 @@ journalCollapseLotDetail j
     collapsePosting p
       | postingHasTag lotParentAssertionTagName p = Nothing
       | otherwise = Just p
-          { paccount = lotBaseAccount (paccount p)
-          , pamount  = mapMixedAmount stripInferredBasis (pamount p)
+          { paccount          = newAcct
+          , pamount           = mapMixedAmount stripInferredBasis (pamount p)
+          -- A lot-subaccount balance assertion was checked against the
+          -- pre-collapse paccount during journalFinalise; drop it here so the
+          -- collapsed view isn't re-validated against the parent total.
+          , pbalanceassertion =
+              if newAcct == paccount p then pbalanceassertion p else Nothing
           }
       where
+        newAcct = lotBaseAccount (paccount p)
         -- Preserve acostbasis the user wrote explicitly on poriginal; strip any
         -- acostbasis added later by lot processing.
         origHasBasis = case poriginal p of

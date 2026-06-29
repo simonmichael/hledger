@@ -236,7 +236,16 @@ transactionWithMostlyOriginalPostings t =
   where
     postingMostlyOriginal p = orig
         { paccount = paccount p
-        , pamount = newAmt }
+        , pamount = newAmt
+        -- When paccount equals the original (no collapse), trust the
+        -- original's assertion. When paccount has been changed (eg a lot
+        -- subaccount was collapsed away), use the current state's
+        -- assertion — which 'journalCollapseLotDetail' has already cleared
+        -- if the assertion targeted the now-hidden lot subaccount.
+        , pbalanceassertion =
+            if paccount orig == paccount p
+            then pbalanceassertion orig
+            else pbalanceassertion p }
       where
         orig = originalPosting p
         newAmt
