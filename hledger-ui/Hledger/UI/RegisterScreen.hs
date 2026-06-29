@@ -295,7 +295,7 @@ rsHandle ev = do
 
             -- enter transaction screen on RIGHT
             VtyEvent e | e `elem` moveRightEvents ->
-              case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount nts nt ui
+              case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount _rssForceInclusive nts nt ui
             -- or on transaction click
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
@@ -304,7 +304,7 @@ rsHandle ev = do
               where clickeddate = maybe "" rsItemDate $ listElements _rssList !? y
             -- and on MouseUp, enter the subscreen
             MouseUp _n (Just BLeft) Location{loc=(_x,y)} | not $ (=="") clickeddate -> do
-              case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount nts nt ui
+              case mtxns of Nothing -> return (); Just (nts, nt) -> rsEnterTransactionScreen _rssAccount _rssForceInclusive nts nt ui
               where clickeddate = maybe "" rsItemDate $ listElements _rssList !? y
 
             -- when selection is at the last item, DOWN scrolls instead of moving, until maximally scrolled
@@ -359,7 +359,7 @@ rsCenterSelection ui@UIState{aScreen=RS sst} = do
   return ui  -- ui is unchanged, but this makes the function more chainable
 rsCenterSelection ui = return ui
 
-rsEnterTransactionScreen :: AccountName -> [NumberedTransaction] -> NumberedTransaction -> UIState -> EventM Name UIState ()
-rsEnterTransactionScreen acct nts nt ui = do
+rsEnterTransactionScreen :: AccountName -> Bool -> [NumberedTransaction] -> NumberedTransaction -> UIState -> EventM Name UIState ()
+rsEnterTransactionScreen acct forceinclusive nts nt ui = do
   dbguiEv "rsEnterTransactionScreen"
-  put' $ pushScreen (tsNew acct nts nt) ui
+  put' $ pushScreen (tsNew acct forceinclusive nts nt) ui

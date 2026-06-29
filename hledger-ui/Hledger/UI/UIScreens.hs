@@ -66,7 +66,7 @@ screenUpdate opts d j = \case
   BS sst -> BS $! bsUpdate opts d j sst
   IS sst -> IS $! isUpdate opts d j sst
   RS sst -> RS $! rsUpdate opts d j sst
-  TS sst -> TS $  tsUpdate sst
+  TS sst -> TS $! tsUpdate opts d j sst
   ES sst -> ES $  esUpdate sst
 
 -- | Construct an error screen.
@@ -254,54 +254,8 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
   -- reference to the previous generation's list (oldlist) so it can be GC'd (#1825).
   l' `seq` rss{_rssList=l'}
   where
-    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
-    -- gather arguments and queries
-    -- XXX temp
-    inclusive = tree_ ropts || _rssForceInclusive
-    thisacctq = Acct $ mkregex _rssAccount
-      where
-        mkregex = if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex
-
-    -- adjust the report options and report spec, carefully as usual to avoid screwups (#1523)
-    ropts' = ropts {
-        -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
-        depth_=mempty
-        -- do not strip prices so we can toggle costs within the ui
-      , show_costs_=True
-      -- XXX aregister also has this, needed ?
-        -- always show historical balance
-      -- , balanceaccum_= Historical
-      }
-    rspec' =
-      updateReportSpec ropts' rspec{_rsDay=d}
-      & either (error' "rsUpdate: adjusting the query for register, should not have failed") id -- PARTIAL:
-      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)
-
-    -- gather transactions to display
-    items = styleAmounts styles $ accountTransactionsReport rspec' j thisacctq
-              where
-                styles = journalCommodityStylesWith HardRounding j
-    items' =
-      (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
-      reverse  -- most recent last
-      items
-
-    -- pre-render the list items, helps calculate column widths
-    displayitems = map displayitem items'
-      where
-        displayitem (t, _, _issplit, otheraccts, change, bal) =
-          RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate wd (_rsQuery rspec') thisacctq t
-                            ,rsItemStatus        = tstatus t
-                            ,rsItemDescription   = tdescription t
-                            ,rsItemOtherAccounts = T.intercalate ", " . map accountSummarisedName $ nub otheraccts
-                                                    -- _   -> "<split>"  -- should do this if accounts field width < 30
-                            ,rsItemChangeAmount  = showamt change
-                            ,rsItemBalanceAmount = showamt bal
-                            ,rsItemTransaction   = t
-                            }
-            where
-              showamt = showMixedAmountB oneLineNoCostFmt{displayMaxWidth=Just 3}
-              wd = whichDate ropts'
+    -- the rendered register items (one per transaction); shared with the transaction screen
+    displayitems = registerScreenDisplayItems uopts d j _rssAccount _rssForceInclusive
 
     -- blank items are added to allow more control of scroll position; we won't allow movement over these.
     -- XXX Ugly. Changing to 0 helps when debugging.
@@ -353,25 +307,85 @@ rsUpdate uopts d j rss@RSS{_rssAccount, _rssForceInclusive, _rssList=oldlist} =
                   [(abs $ diffDays (tdate t) prevseld, abs (tindex t - prevselidx), tindex t) | t <- ts])
                 ts = map rsItemTransaction displayitems
 
+-- | The rendered register items (one per transaction) for an account's register,
+-- from these options, reporting date, journal, account name, and whether to include
+-- subaccount transactions. Shared by the register screen and the transaction screen
+-- so they show the same set of transactions.
+registerScreenDisplayItems :: UIOpts -> Day -> Journal -> AccountName -> Bool -> [RegisterScreenItem]
+registerScreenDisplayItems uopts d j acct forceinclusive = map displayitem items'
+  where
+    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} = uopts
+    inclusive = tree_ ropts || forceinclusive
+    thisacctq = Acct $ mkregex acct
+      where
+        mkregex = if inclusive then accountNameToAccountRegex else accountNameToAccountOnlyRegex
+
+    -- adjust the report options and report spec, carefully as usual to avoid screwups (#1523)
+    ropts' = ropts {
+        -- ignore any depth limit, as in postingsReport; allows register's total to match accounts screen
+        depth_=mempty
+        -- do not strip prices so we can toggle costs within the ui
+      , show_costs_=True
+      }
+    rspec' =
+      updateReportSpec ropts' rspec{_rsDay=d}
+      & either (error' "registerScreenDisplayItems: adjusting the query for register, should not have failed") id -- PARTIAL:
+      & reportSpecSetFutureAndForecast (forecast_ $ inputopts_ copts)
+
+    -- gather transactions to display
+    items = styleAmounts styles $ accountTransactionsReport rspec' j thisacctq
+              where
+                styles = journalCommodityStylesWith HardRounding j
+    items' =
+      (if empty_ ropts then id else filter (not . mixedAmountLooksZero . fifth6)) $  -- without --empty, exclude no-change txns
+      reverse  -- most recent last
+      items
+
+    displayitem (t, _, _issplit, otheraccts, change, bal) =
+      RegisterScreenItem{rsItemDate          = showDate $ transactionRegisterDate wd (_rsQuery rspec') thisacctq t
+                        ,rsItemStatus        = tstatus t
+                        ,rsItemDescription   = tdescription t
+                        ,rsItemOtherAccounts = T.intercalate ", " . map accountSummarisedName $ nub otheraccts
+                                                -- _   -> "<split>"  -- should do this if accounts field width < 30
+                        ,rsItemChangeAmount  = showamt change
+                        ,rsItemBalanceAmount = showamt bal
+                        ,rsItemTransaction   = t
+                        }
+      where
+        showamt = showMixedAmountB oneLineNoCostFmt{displayMaxWidth=Just 3}
+        wd = whichDate ropts'
+
 -- | Construct a transaction screen showing one of a given list of transactions,
 -- with the ability to step back and forth through the list.
 -- Screen-specific arguments: the account whose transactions are being shown,
--- the list of showable transactions, the currently shown transaction.
-tsNew :: AccountName -> [NumberedTransaction] -> NumberedTransaction -> Screen
-tsNew acct nts nt =
+-- whether that register included subaccounts, the list of showable transactions,
+-- the currently shown transaction.
+tsNew :: AccountName -> Bool -> [NumberedTransaction] -> NumberedTransaction -> Screen
+tsNew acct forceinclusive nts nt =
   dbgui "tsNew" $
   TS TSS{
-     _tssAccount      = acct
-    ,_tssTransactions = nts
-    ,_tssTransaction  = nt
+     _tssAccount        = acct
+    ,_tssForceInclusive = forceinclusive
+    ,_tssTransactions   = nts
+    ,_tssTransaction    = nt
     }
 
--- | Update a transaction screen. 
--- This currently does nothing because the initialisation in rsHandle is not so easy to extract.
--- To see the updated transaction, one must exit and re-enter the transaction screen.
--- See also tsHandle.
-tsUpdate :: TransactionScreenState -> TransactionScreenState
-tsUpdate = dbgui "tsUpdate"
+-- | Update a transaction screen: rebuild its transaction list from the (possibly reloaded)
+-- journal, and reselect the same transaction by its journal index, so the screen refreshes
+-- in place on reload. If that transaction is gone, fall back to the one at the same position,
+-- else the last, else a blank.
+tsUpdate :: UIOpts -> Day -> Journal -> TransactionScreenState -> TransactionScreenState
+tsUpdate uopts d j tss@TSS{_tssAccount, _tssForceInclusive, _tssTransaction=(oldpos, oldtxn)} =
+  dbgui "tsUpdate" $
+  length numberedtxns `seq` selected `seq`
+  tss{_tssTransactions=numberedtxns, _tssTransaction=selected}
+  where
+    displayitems = registerScreenDisplayItems uopts d j _tssAccount _tssForceInclusive
+    numberedtxns = zipWith (\i item -> (i, rsItemTransaction item)) [(1::Integer)..] displayitems
+    selected     = fromMaybe fallback $ find ((== tindex oldtxn) . tindex . snd) numberedtxns
+    fallback     = case numberedtxns of
+      [] -> (0, nulltransaction)
+      _  -> fromMaybe (last numberedtxns) $ (\t -> (oldpos, t)) <$> lookup oldpos numberedtxns
 
 -- | Set selected index of a list if there are displayitems.
 -- If there are no displayitems, remove the selected index of the list.
