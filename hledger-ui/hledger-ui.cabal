@@ -127,3 +127,37 @@ executable hledger-ui
   default-language: GHC2021
   if (flag(debug))
     cpp-options: -DDEBUG
+
+test-suite unittest
+  type: exitcode-stdio-1.0
+  main-is: UITest.hs
+  other-modules:
+      UITestUtils
+      Paths_hledger_ui
+  autogen-modules:
+      Paths_hledger_ui
+  hs-source-dirs:
+      test
+  ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -threaded
+  cpp-options: -DVERSION="1.99"
+  build-depends:
+      base >=4.18 && <4.23
+    , brick >=2.1.1 && <2.3.2 || >2.3.2 && <3
+    , cmdargs >=0.8
+    , directory
+    , filepath
+    , hledger ==1.99.*
+    , hledger-lib ==1.99.*
+    , hledger-ui
+    , mtl >=2.2.1
+    , stm
+    , tasty >=1.2.3
+    , tasty-hunit >=0.10
+    , text >=1.2.4.1
+    , time >=1.5
+    , vector
+    , vty >=6.1
+    , vty-crossplatform >=0.4.0.0
+  default-language: GHC2021
+  if (flag(debug))
+    cpp-options: -DDEBUG

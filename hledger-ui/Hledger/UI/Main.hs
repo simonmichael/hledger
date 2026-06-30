@@ -126,10 +126,14 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
-runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
-  do
-  let
+-- | Build hledger-ui's startup state: normalise the options, choose the initial
+-- screen, and set up the stack of previous screens as if the user had navigated
+-- down to it from the menu. Uses the startup report date (@copts^.rsDay@), so it is
+-- deterministic and reusable outside the brick app (eg from tests). Keep synced with msNew.
+uiInitialState :: UIOpts -> Journal -> UIState
+uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
+  uiState uopts j prevscrs currscr
+  where
     today = copts^.rsDay
 
     -- hledger-ui's query handling is currently in flux, mixing old and new approaches.
@@ -256,19 +260,24 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
           bsacctsscr  = bsNew uopts today j Nothing
           isacctsscr  = isNew uopts today j Nothing
 
-    ui = uiState uopts j prevscrs currscr
-    app = brickApp (uoTheme uopts)
+
+runBrickUi :: UIOpts -> Journal -> IO ()
+runBrickUi uopts0 j =
+  do
+  let
+    ui  = uiInitialState uopts0 j
+    app = brickApp (uoTheme uopts0)
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
 
-  let 
+  let
     -- helper: make a Vty terminal controller with mouse support enabled
     makevty = do
       v <- mkVty mempty
       setMode (outputIface v) Mouse True
       return v
 
-  if not (uoWatch uopts)
+  if not (uoWatch uopts0)
   then do
     vty <- makevty
     void $ customMain vty makevty Nothing app ui

@@ -112,3 +112,27 @@ executables:
     ghc-options: -threaded
     dependencies:
     - hledger-ui
+
+tests:
+  unittest:
+    source-dirs: test
+    main: UITest.hs
+    # -threaded is required to drive the brick/vty event loop in the headless harness
+    ghc-options: -threaded
+    dependencies:
+    - hledger-ui
+    - hledger-lib >=1.99 && <1.100
+    - hledger >=1.99 && <1.100
+    - brick >=2.1.1 && <2.3.2 || >2.3.2 && <3
+    - vty >=6.1
+    - vty-crossplatform >= 0.4.0.0
+    - tasty >=1.2.3
+    - tasty-hunit >=0.10
+    - cmdargs >=0.8
+    - mtl >=2.2.1
+    - text >=1.2.4.1
+    - stm
+    - vector
+    - directory
+    - filepath
+    - time >=1.5
