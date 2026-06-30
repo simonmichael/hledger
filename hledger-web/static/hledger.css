@@ -166,7 +166,7 @@ ul {
 #top-left-controls .empty-account-checkbox {
     position: relative;
     left: 13px;
-    top: 3px;
+    top: 8px;
     transform: scale(1.72);
     z-index: 1000;
 }
@@ -198,8 +198,56 @@ ul {
 }
 
 #top-left-controls .open-sidebar-arrow {
+    position: relative;
+    right: 10px;
+    bottom: 8px;
     transform: scale(2);
     display: none;
+}
+
+#searchform button[onclick="addformShow()"] {
+    position: relative;
+    bottom: 0.4rem;
+    left: 0.9rem;
+    width: 6rem;
+    height: 6rem;
+    padding: 0;
+    margin-right: 1rem;
+}
+
+#searchform button[onclick="addformShow()"] .bi {
+    transform: scale(2.5);
+}
+
+#searchform button[data-bs-target="#helpmodal"] {
+    position: relative;
+    bottom: 0.4rem;
+    left: 0.9rem;
+    width: 6rem;
+    height: 6rem;
+    padding: 0;
+}
+
+#searchform button[data-bs-target="#helpmodal"] .bi {
+    transform: scale(2.5);
+}
+
+#searchform .input-group-append {
+    display: flex;
+    align-items: center;
+}
+
+#searchform input.form-control {
+    height: 3rem;
+}
+
+#addmodal .btn-close {
+    margin-left: 47rem;
+}
+
+#addmodal .modal-title {
+    margin-top: -1.2rem;
+    margin-bottom: 1rem;
 }
 
 

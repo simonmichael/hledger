@@ -3,7 +3,7 @@
   <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keyboard shortcut: s">
     <span .bi.bi-arrow-left>
   <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keyboard shortcut: s">
-    <span .bi.bi-layout-text-sidebar>
+    <span .bi.bi-layout-text-sidebar-reverse>
   <input .empty-account-checkbox type="checkbox" id="hideEmptyAccountsDesktop" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Toggles Empty Accounts&#10Keyboard shortcut: e">
   <label for="hideEmptyAccountsDesktop" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
 
