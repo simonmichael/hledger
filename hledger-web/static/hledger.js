@@ -113,6 +113,52 @@ function hledgerInitPage() {
     dateEl.type = 'date';
   }
 
+  // Make sidebar rows clickable
+  var sidebarRows = document.querySelectorAll('#sidebar-menu .main-menu tr:not(.total)');
+  sidebarRows.forEach(function(row) {
+    row.style.cursor = 'pointer';
+    row.addEventListener('click', function(e) {
+      // Don't trigger if clicking on the "only" link
+      if (e.target.closest('.only')) {
+        return;
+      }
+      // Find the account name link and navigate to it
+      var acctLink = row.querySelector('.acct-name');
+      if (acctLink) {
+        e.preventDefault();
+        window.location.href = acctLink.href;
+      }
+    });
+
+    // Color-code account names by type (only top-level accounts)
+    var acctLink = row.querySelector('.acct-name');
+    if (acctLink) {
+      var acctName = acctLink.getAttribute('data-account-name');
+      if (acctName) {
+        acctName = acctName.toLowerCase();
+        // Only color top-level accounts (no colons, or exact match)
+        var parts = acctName.split(':');
+        var topLevel = parts[0];
+        if (parts.length === 1) {
+          if (topLevel === 'assets') {
+            acctLink.style.color = '#32CD32'; // lime green
+          } else if (topLevel === 'liabilities') {
+            acctLink.style.color = '#0000FF'; // hyperlink blue
+          } else if (topLevel === 'equity') {
+            acctLink.style.color = '#800080'; // purple
+          } else if (topLevel === 'income') {
+            acctLink.style.color = '#FFD700'; // yellow
+          } else if (topLevel === 'expenses') {
+            acctLink.style.color = '#FF0000'; // red
+          } else {
+            // Legible blue for miscellaneous accounts
+            acctLink.style.color = '#1E90FF'; // dodger blue
+          }
+        }
+      }
+    }
+  });
+
   // focus and pre-fill the add form whenever it is shown
   var addmodal = document.getElementById('addmodal');
   if (addmodal) {

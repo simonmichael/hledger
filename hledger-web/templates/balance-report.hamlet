@@ -12,7 +12,8 @@ $forall (acct, adisplay, aindent, abal) <- items
       <div .ff-wrapper>
         \#{indent aindent}
         <a.acct-name href="@?{(registerR, [("q", replaceInacct qparam $ accountQuery acct)])}"
-           title="Show transactions affecting this account and subaccounts">
+           title="Show transactions affecting this account and subaccounts"
+           data-account-name="#{acct}">
           #{adisplay}
         $if hasSubAccounts acct
           <a href="@?{(registerR, [("q", replaceInacct qparam $ accountOnlyQuery acct)])}" .only.hidden-sm.hidden-xs

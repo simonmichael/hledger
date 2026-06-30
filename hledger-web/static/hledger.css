@@ -102,6 +102,7 @@ ul {
     font-weight: 500;
     color: #2F2F2F;
     padding: 4px 20px;
+    text-decoration: none;
 }
 
 #sidebar-menu .main-menu a:hover {
@@ -117,6 +118,10 @@ ul {
 
 #sidebar-menu .main-menu tr:hover .only {
     visibility: visible;
+}
+
+#sidebar-menu .main-menu tr:not(.total):hover {
+    background-color: #f5f5f5;
 }
 
 #sidebar-menu .main-menu .inacct, #sidebar-menu .main-menu .inacct .acct-name {
@@ -205,31 +210,29 @@ ul {
     display: none;
 }
 
-#searchform button[onclick="addformShow()"] {
-    position: relative;
-    bottom: 0.4rem;
-    left: 0.9rem;
-    width: 6rem;
-    height: 6rem;
-    padding: 0;
-    margin-right: 1rem;
-}
-
-#searchform button[onclick="addformShow()"] .bi {
-    transform: scale(2.5);
-}
-
+#searchform button[onclick="addformShow()"],
+#searchform a[title="Clear search terms"],
 #searchform button[data-bs-target="#helpmodal"] {
     position: relative;
-    bottom: 0.4rem;
-    left: 0.9rem;
-    width: 6rem;
-    height: 6rem;
+    bottom: 0.5rem;
+    width: 4rem;
+    height: 4rem;
     padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
+#searchform button[onclick="addformShow()"],
+#searchform button[data-bs-target="#helpmodal"] {
+    bottom: 1.4rem;
+    margin-left: 1rem;
+}
+
+#searchform button[onclick="addformShow()"] .bi,
+#searchform a[title="Clear search terms"] .bi,
 #searchform button[data-bs-target="#helpmodal"] .bi {
-    transform: scale(2.5);
+    transform: scale(2.89);
 }
 
 #searchform .input-group-append {
