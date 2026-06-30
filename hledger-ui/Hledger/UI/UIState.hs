@@ -348,12 +348,17 @@ closeMinibuffer = setMode Normal
 setMode :: Mode -> UIState -> UIState
 setMode m ui = ui{aMode=m}
 
+-- | Descend into a new screen, making it active and suspending the current one
+-- onto the navigation stack. The canonical way to push the zipper.
 pushScreen :: Screen -> UIState -> UIState
 pushScreen scr ui =
   dbg1Msg ("pushing screen " <> showScreenId scr <> ". " <> showScreenStack "" showScreenId ui1)
   ui1
   where ui1 = ui{aPrevScreens=aScreen ui:aPrevScreens ui, aScreen=scr }
 
+-- | Return to the parent screen, discarding the active one. At the root screen this
+-- is a no-op, since the stack always keeps at least one screen. The canonical way to
+-- pop the zipper.
 popScreen :: UIState -> UIState
 popScreen ui@UIState{aPrevScreens = s : ss} =
   dbg1Msg ("popping screen " <> showScreenId (aScreen ui) <> ". " <> showScreenStack "" showScreenId ui1)

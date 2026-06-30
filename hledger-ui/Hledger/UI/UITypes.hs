@@ -74,13 +74,19 @@ data UIState = UIState {
     -- can change while program runs:
   ,aopts         :: UIOpts    -- ^ the command-line options and query arguments currently in effect
   ,ajournal      :: Journal   -- ^ the journal being viewed (can change with --watch)
-  -- The screen fields are kept lazy (~) under StrictData: a screen's construction may
-  -- read back from the UIState that will contain it (eg --register startup derives a
-  -- screen parameter from the ui's options), and forcing these at construction would turn
-  -- that benign laziness knot into a <<loop>> (#1825). Reload regeneration forces screens
-  -- explicitly (regenerateScreens), so this does not weaken the leak fix.
-  ,aPrevScreens :: ~[Screen] -- ^ previously visited screens, most recent first (XXX silly, reverse these)
-  ,aScreen      :: ~Screen   -- ^ the currently active screen
+  -- aScreen together with aPrevScreens forms a non-empty navigation zipper: there is
+  -- always an active screen, with zero or more suspended ancestor screens behind it.
+  -- "At least one screen" is thus guaranteed by the types, and popScreen at the root is
+  -- a no-op. aPrevScreens is kept nearest-first, so pushScreen/popScreen are O(1). Change
+  -- the stack only through pushScreen/popScreen/resetScreens, not by editing these fields.
+  --
+  -- Both fields are kept lazy (~) under StrictData: a screen's construction may read back
+  -- from the UIState that will contain it (eg --register startup derives a screen parameter
+  -- from the ui's options), and forcing them at construction would turn that benign laziness
+  -- knot into a <<loop>> (#1825). Reload regeneration forces screens explicitly
+  -- (regenerateScreens), so this does not weaken the leak fix.
+  ,aScreen      :: ~Screen   -- ^ the currently active screen (the zipper's focus)
+  ,aPrevScreens :: ~[Screen] -- ^ suspended ancestor screens, nearest first
   ,aMode         :: Mode      -- ^ the currently active mode on the current screen
   } deriving (Show)
 
