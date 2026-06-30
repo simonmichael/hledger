@@ -1,7 +1,7 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE NamedFieldPuns #-}
+{- |
+Module      : Hledger.UI.Main
+Copyright   : (c) 2012-2015, 2017-2024 Simon Michael <simon@joyful.com>
 SPDX-License-Identifier: GPL-3.0-or-later
 Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
 
@@ -31,40 +31,38 @@ import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (withAsync)
 #if MIN_VERSION_base(4,20,0)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
-#endif
-import Control.Monad (forM_, void, when)
-import Data.Bifunctor (first)
-import Data.Function ((&))
+import Data.Maybe
 import qualified Data.Text as T
-import Data.Time.Calendar (Day)
-import qualified Data.Vector as V
-import System.Directory (doesDirectoryExist, doesFileExist)
-import System.FilePath (takeDirectory, (</>))
+import qualified Data.Text.IO as T
+import System.Directory
+import System.FilePath
 import System.FSNotify
-import Brick
+import System.IO (stderr)
+import Data.Maybe (fromMaybe)
+import Data.Text qualified as T
+import Graphics.Vty (Mode (Mouse), Vty (outputIface), Output (setMode))
+import Graphics.Vty.CrossPlatform (mkVty)
 import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
 import System.Environment (withProgName)
 import System.FilePath (takeDirectory)
-import System.FSNotify (Event(Added, Modified), watchDir, withManager, EventIsDirectory (IsFile))
-import Brick hiding (bsDraw)
-import Brick.BChan qualified as BC
-
 import Hledger.UI.UITypes
 import Hledger.UI.UIUtils
-import Hledger.UI.UIState
-import Control.Concurrent (threadDelay)
-import Control.Concurrent.Async (withAsync, wait, race)
-import Control.Concurrent.STM (atomically, newTVarIO, readTVar, writeTVar, TVar)
-import Control.Monad (void, forever, when)
+
+#if !MIN_VERSION_base(4,11,0)
+import Control.Monad (when)
+#endif
+
+----------------------------------------------------------------------
+
+import Hledger.UI.Theme
+import Hledger.UI.UIOptions
+import Hledger.UI.UITypes
+import Hledger.UI.UIState (uiState, uiDisplayJournal)
 import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
-import Lens.Micro.Platform
-import Data.Time.LocalTime (getZonedTime)
-import Data.Time.Format (defaultTimeLocale, formatTime)
-import qualified System.IO as IO
-
-
--- | hledger-ui's main function.
+import Hledger.UI.MenuScreen
+import Hledger.UI.AccountsScreen
+import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
 import Hledger.UI.UIScreens
@@ -113,6 +111,10 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
   let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}
 
+  -- always load the journal with full lot detail retained; the UI collapses it for display
+  -- (toggled by the L key), so the uncollapsed journal stays available without re-reading files.
+  let loadcopts = copts'{rawopts_ = setboolopt "lots" (rawopts_ copts')}
+
   case True of
     _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
     _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
@@ -120,7 +122,7 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
     _ | boolopt "version" rawopts -> putStrLn prognameandversion
     -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
-    _                                         -> withJournal copts' $ \j ->
+    _                                         -> withJournal loadcopts $ \j ->
         -- Refresh the startup ReportSpec against the loaded journal so any
         -- cur: terms are expanded for the journal's commodity aliases.
         let opts' = case reportSpecExpandCurQueries j (reportspec_ copts') of
@@ -130,10 +132,14 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
-runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
-  do
-  let
+-- | Build hledger-ui's startup state: normalise the options, choose the initial
+-- screen, and set up the stack of previous screens as if the user had navigated
+-- down to it from the menu. Uses the startup report date (@copts^.rsDay@), so it is
+-- deterministic and reusable outside the brick app (eg from tests). Keep synced with msNew.
+uiInitialState :: UIOpts -> Journal -> UIState
+uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
+  uiState uopts j prevscrs currscr
+  where
     today = copts^.rsDay
 
     -- hledger-ui's query handling is currently in flux, mixing old and new approaches.
@@ -156,67 +162,80 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
     -- state, and/or the current date.
 
     -- Some subqueries are generated by parsing freeform user input, which
-  -- Start a background thread to watch for file changes, if --watch is active.
-  -- When a change is detected, it writes the current time to a TVar.
-  -- The Brick UI thread will poll this TVar and reload when it changes.
-#if MIN_VERSION_fsnotify(0,4,0)
-  let
-    -- | The files we want to watch: the main journal file, and any
-    -- included files. We watch the directories containing these files,
+    -- can fail. We don't want hledger users to see such failures except:
+
+    -- 1. at program startup, in which case the program exits
+    -- 2. after entering a new freeform query in hledger-ui/web, in which case
+    --    the change is rejected and the program keeps running
+
     -- So we should parse those kinds of subquery only at those times. Any
     -- subqueries which do not require parsing can be kept separate. And
-    watchfiles = nub $ sort $ map (takeDirectory . fst) $ jfiles j
-    -- | Start the file watcher thread.
-    withWatchTVar mtvar = bracket
-#if MIN_VERSION_fsnotify(0,4,0)
-      (do
-        -- fsnotify 0.4+ uses the CoArbitrary-based Event type
-        -- We need to handle the new event type
+    -- these can be combined to make the full query when needed, eg when
+    -- hledger-ui screens are generating their data. (TODO)
+
+    -- Some parts of the query are also kept separate for UI reasons.
+    -- hledger-ui provides special UI for controlling depth (number keys), 
+    -- the report period (shift arrow keys), realness/status filters (RUPC keys) etc.
     -- There is also a freeform text area for extra query terms (/ key).
     -- It's cleaner and less conflicting to keep the former out of the latter.
 
     uopts = uopts0{
       uoCliOpts=copts{
          reportspec_=rspec{
-          -- Stop watching
-          stopManager wm
-      )
-#endif
-      (\() -> do
-        -- Watch thread: wait for events and update TVar
-        let loop = do
+            _rsQuery=filteredQuery $ _rsQuery rspec,  -- query with depth/date parts removed
+            _rsReportOpts=ropts{
+               depth_    = queryDepth $ _rsQuery rspec,  -- query's depth part
+               period_   = periodfromoptsandargs,       -- query's date part
+               no_elide_ = True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
+               empty_    = not $ empty_ ropts,  -- show zero items by default, hide them with -E (unlike hledger)
                declared_ = True  -- always show declared accounts even if unused
                }
             }
-         }
-      }
-      where
-        datespanfromargs = queryDateSpan (date2_ ropts) $ _rsQuery rspec
-        periodfromoptsandargs =
-        in loop
-      )
-  -- | Run the app with optional file watching.
-#endif
-  let runApp = if watch_ then withWatchTVar else withoutWatchTVar
-#else
-  -- For older fsnotify, use the previous approach
-    -- Note the previous screens list is ordered nearest-first, with the top-most (menu) screen last.
-#endif
+      -- 1. start a file watcher thread, which will update the tvar when the file changes
+      -- 2. start a second thread which waits for changes in the tvar and calls nextEvent
+      -- 3. continue with brick as before, but now also handling AppEvent's
+      withManagerConf watch $ \mgr -> do
+        -- 1
+        -- We watch the journal's parent directory, not the journal file itself,
+        -- because editors may write the file indirectly, causing the watch to be lost.
+          where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
-  -- Run the app
-#if MIN_VERSION_fsnotify(0,4,0)
-  withAsync runApp $ \a -> do
-    -- Build the Brick app
-    let app = App
+        -- https://github.com/simonmichael/hledger/issues/1617
+        let dir = takeDirectory $ T.unpack $ fst $ listToEFM $ filepaths $ _jopts $ cliopts opts
+        -- debug1 "watching for changes to" dir
+        watchDir'
+          mgr
+          dir
+          (const True)  -- predicate: ignore all events, or: accept all events
+    -- Keep all of this synced with msNew.
+    rawopts = rawopts_ $ uoCliOpts $ uopts
+    (prevscrs, currscr) =
+      dbg1With (showScreenStack "initial" showScreenSelection . uncurry2 (uiState defuiopts nulljournal)) $
+      if
+        -- An accounts screen is specified. Its previous screen will be the menu screen with it selected.
         | boolopt "cash" rawopts -> ([msSetSelectedScreen csItemIndex menuscr], csacctsscr)
         | boolopt "bs"   rawopts -> ([msSetSelectedScreen bsItemIndex menuscr], bsacctsscr)
-        | boolopt "is"   rawopts -> ([msSetSelectedScreen isItemIndex menuscr], isacctsscr)
-          , appAttrMap = const $ttr
-          }
-    -- Run Brick
-#endif
-    void $ customMain (V.mkVty vtyConfig) (Just chan) app initState
-    wait a
+        -- 3
+        runBrick ui0
+
+-- | A file watcher configuration that avoids accumulating resources.
+-- The default config may leak watch descriptors over time.
+-- We use a 1-second debounce to coalesce rapid events and reduce churn.
+watch :: WatchConfig
+watch = WatchConfig
+  { confDebounce = Debounce 1
+  , confUsePolling = False
+  , confPollInterval = 1000000  -- 1 second, unused when polling is off
+  }
+
+-- | A wrapper around watchDir that ensures we don't accumulate threads.
+-- The key issue is that fsnotify can leak OS resources if not configured properly.
+watchDir' :: WatchManager -> FilePath -> ActionPredicate -> EventCallback -> IO StopWatching
+watchDir' mgr dir pred cb = watchDir mgr dir pred cb
+
+-- | Run brick.
+runBrick :: UIState -> IO ()
+runBrick ui0 = do
         --    ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
         --     register screen for ACCT
         --
@@ -224,7 +243,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
           let
             -- the account being requested
             acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-              . firstMatch $ journalAccountNamesDeclaredOrImplied j
+              . firstMatch $ journalAccountNamesDeclaredOrImplied jdisplay
               where
                 firstMatch = case toRegexCI $ T.pack apat of
                     Right re -> find (regexMatchText re)
@@ -233,16 +252,20 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
             -- the register screen for acct
             regscr = 
               rsSetAccount acct False $
-              rsNew uopts today j acct forceinclusive
+              rsNew uopts today jdisplay acct forceinclusive
                 where
-                  forceinclusive = case getDepth ui of
+                  -- Take the depth from uopts, not `getDepth ui`: ui depends on regscr
+                  -- (this binding), so referencing ui here ties a knot that StrictData's
+                  -- strict UIState fields turn into a <<loop>> at startup (#1825).
+                  forceinclusive = case dsFlatDepth (depth_ regropts) of
                                     Just de -> accountNameLevel acct >= de
                                     Nothing -> False
+                    where regropts = _rsReportOpts $ reportspec_ $ uoCliOpts uopts
 
             -- The accounts screen containing acct.
             -- Keep these selidx values synced with the menu items in msNew.
             (acctsscr, selidx) =
-              case journalAccountType j acct of
+              case journalAccountType jdisplay acct of
                 Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
                 Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
                 _                                       -> (allacctsscr,0)
@@ -257,24 +280,29 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
 
         where
           menuscr     = msNew
-          allacctsscr = asNew uopts today j Nothing
-          csacctsscr  = csNew uopts today j Nothing
-          bsacctsscr  = bsNew uopts today j Nothing
-          isacctsscr  = isNew uopts today j Nothing
+          allacctsscr = asNew AllAccounts             uopts today jdisplay Nothing
+          csacctsscr  = asNew CashAccounts            uopts today jdisplay Nothing
+          bsacctsscr  = asNew BalancesheetAccounts    uopts today jdisplay Nothing
+          isacctsscr  = asNew IncomestatementAccounts uopts today jdisplay Nothing
 
-    ui = uiState uopts j prevscrs currscr
-    app = brickApp (uoTheme uopts)
+
+runBrickUi :: UIOpts -> Journal -> IO ()
+runBrickUi uopts0 j =
+  do
+  let
+    ui  = uiInitialState uopts0 j
+    app = brickApp (uoTheme uopts0)
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
 
-  let 
+  let
     -- helper: make a Vty terminal controller with mouse support enabled
     makevty = do
       v <- mkVty mempty
       setMode (outputIface v) Mouse True
       return v
 
-  if not (uoWatch uopts)
+  if not (uoWatch uopts0)
   then do
     vty <- makevty
     void $ customMain vty makevty Nothing app ui
@@ -351,23 +379,17 @@ uiHandle ev = do
   dbguiEv $ "\n==== " ++ show ev
   ui <- get
   case aScreen ui of
-    MS _ -> msHandle ev
-    AS _ -> asHandle ev
-    CS _ -> csHandle ev
-    BS _ -> bsHandle ev
-    IS _ -> isHandle ev
-    RS _ -> rsHandle ev
-    TS _ -> tsHandle ev
-    ES _ -> esHandle ev
+    MS sst -> msHandle sst ev
+    AS sst -> asHandle sst ev
+    RS sst -> rsHandle sst ev
+    TS sst -> tsHandle sst ev
+    ES sst -> esHandle sst ev
 
 uiDraw :: UIState -> [Widget Name]
 uiDraw ui =
   case aScreen ui of
-    MS _ -> msDraw ui
-    AS _ -> asDraw ui
-    CS _ -> csDraw ui
-    BS _ -> bsDraw ui
-    IS _ -> isDraw ui
-    RS _ -> rsDraw ui
-    TS _ -> tsDraw ui
-    ES _ -> esDraw ui
+    MS sst -> msDraw sst ui
+    AS sst -> asDraw sst ui
+    RS sst -> rsDraw sst ui
+    TS sst -> tsDraw sst ui
+    ES sst -> esDraw sst ui
