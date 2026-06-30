@@ -24,7 +24,6 @@ import Data.Time.Calendar (Day)
 import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Lens.Micro ((^.))
-import Safe (headMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -106,19 +105,14 @@ esHandle ESS{..} ev = do
 
 
     where
-      -- Reload and fully regenerate the error screen.
-      -- XXX On an error screen below the transaction screen, this is tricky because of a current limitation of regenerateScreens.
-      -- For now we try to work around by re-entering the transaction screen.
-      -- This can show flicker in the UI and it's hard to handle all situations robustly.
-      esReload copts d ui = uiReload copts d ui >>= maybeReloadErrorScreen copts d
-      esReloadIfFileChanged copts d j ui = liftIO (uiReloadIfFileChanged copts d j ui) >>= maybeReloadErrorScreen copts d
-      maybeReloadErrorScreen copts d ui =
-        case headMay $ aPrevScreens ui of
-          Just (TS _) -> do
-            -- check balance assertions, exit to register screen, enter transaction screen, reload once more
-            put' $ popScreen $ popScreen $ uiCheckBalanceAssertions d ui
-            sendVtyEvents [EvKey KEnter [], EvKey (KChar 'g') []]  -- XXX Might be disrupted if other events are queued ?
-          _ -> uiReload copts d (popScreen ui) >>= put' . uiCheckBalanceAssertions d
+      -- Reload from the error screen: drop the error screen, then reload and regenerate the
+      -- revealed parent (uiReload re-pushes an error screen if it still fails), and recheck
+      -- balance assertions. This works for any parent, since every screen now regenerates from
+      -- its own stored parameters.
+      esReload copts d ui =
+        uiReload copts d (popScreen ui) >>= put' . uiCheckBalanceAssertions d
+      esReloadIfFileChanged copts d j ui =
+        liftIO (uiReloadIfFileChanged copts d j (popScreen ui)) >>= put' . uiCheckBalanceAssertions d
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX

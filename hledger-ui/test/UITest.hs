@@ -66,6 +66,21 @@ tests = testGroup "hledger-ui"
         -- ... and an amount, rendered via the amount-column width calculation
         assertBool "the register should show the $20 amount"
           (hasText "$20")
+
+  , testCase "reload into a parse error shows, and keeps, the error screen" $
+      -- Build the initial screens from a good journal, but point the cli options at a broken
+      -- file, so reloading reads the broken file. (No mid-run file mutation needed.)
+      withJournalFile fixture $ \goodPath ->
+        withJournalFile brokenFixture $ \brokenPath -> do
+          uopts <- withDay (fromGregorian 2024 6 1) <$> uiOptsForArgs ["-f", brokenPath, "--all"]
+          j <- readJournalFile' goodPath
+          (states, frames) <- driveUI uopts j [key 'g', key 'g']
+          -- first g: uiReload fails on the broken file and pushes the error screen
+          activeScreenTag (states !! 1) @?= "E"
+          -- second g: the simplified esReload pops, reloads, and re-pushes; stays on the error screen
+          activeScreenTag (last states) @?= "E"
+          assertBool "the error screen should show its 'Oops' header"
+            (any (T.isInfixOf "Oops") (renderText region (last frames)))
   ]
 
 -- | Run an action with a freshly loaded fixture journal and matching startup
@@ -91,6 +106,16 @@ fixture = T.unlines
   , "2024-03-15 salary"
   , "    assets:checking       $500"
   , "    income:salary"
+  ]
+
+-- A journal with a parse error (a bare, non-directive line), so loading it fails.
+brokenFixture :: Text
+brokenFixture = T.unlines
+  [ "2024-01-05 opening"
+  , "    assets:checking      $1000"
+  , "    equity:opening"
+  , ""
+  , "this is not a valid journal line"
   ]
 
 withJournalFile :: Text -> (FilePath -> IO a) -> IO a

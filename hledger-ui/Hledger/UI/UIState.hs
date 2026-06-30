@@ -380,8 +380,8 @@ resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScre
 -- (using the ui state's current options), preserving the screen navigation history.
 -- Note, does not save the reporting date.
 --
--- XXX Currently this does not properly regenerate the transaction screen or error screen,
--- which depend on state from their parent(s); those screens' handlers must do additional work, which is fragile.
+-- Every screen regenerates from its own stored parameters (plus the options, date and journal),
+-- not from any other screen, so the whole stack refreshes uniformly here.
 regenerateScreens :: Journal -> Day -> UIState -> UIState
 regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
   -- Re-derive _rsQuery from the user's querystring_ and re-expand cur:

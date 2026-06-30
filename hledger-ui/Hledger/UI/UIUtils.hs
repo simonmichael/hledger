@@ -42,7 +42,7 @@ module Hledger.UI.UIUtils (
   ,mapScreens
   ,uiNumBlankItems
   ,showScreenStack
-  ,sendVtyEvents
+  ,sendVtyEvents  -- currently unused, kept (and exported, to avoid an unused-binding warning) for future use
   )
 where
 
