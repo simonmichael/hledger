@@ -414,7 +414,9 @@ asSetSelectedAccount acct scr =
             where
               as = map asItemAccountName $ V.toList $ listElements l
 
-isBlankItem mitem = ((asItemAccountName . snd) <$> mitem) == Just ""
+-- | Is this a blank account-list item, or no item at all (empty list / no selection) ?
+-- Either way there is no real account here to act on.
+isBlankItem mitem = maybe True (T.null . asItemAccountName . snd) mitem
 
 asListSize = V.length . V.takeWhile ((/="").asItemAccountName) . listElements
 
