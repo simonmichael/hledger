@@ -39,10 +39,9 @@ import Brick.Widgets.Edit (getEditContents, handleEditorEvent)
 import Control.Arrow ((>>>))
 
 
-msDraw :: UIState -> [Widget Name]
-msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec@ReportSpec{_rsReportOpts=ropts}}}
+msDraw :: MenuScreenState -> UIState -> [Widget Name]
+msDraw sst UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
-              ,aScreen=MS sst
               ,aMode=mode
               } = dbgui "msDraw" $
     case mode of
@@ -87,7 +86,6 @@ msDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspec@Re
               ,("q", str "quit")
               ]
 
-msDraw _ =  dbgui "msDraw" $ errorWrongScreenType "msDraw"  -- PARTIAL:
 
 -- msDrawItem :: (Int,Int) -> Bool -> MenuScreenItem -> Widget Name
 -- msDrawItem (_acctwidth, _balwidth) _selected MenuScreenItem{..} =
@@ -97,8 +95,8 @@ msDrawItem _selected MenuScreenItem{..} =
     render $ txt msItemScreenName
 
 -- XXX clean up like asHandle
-msHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-msHandle ev = do
+msHandle :: MenuScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+msHandle sst ev = do
   ui0 <- get'
   dbguiEv "msHandle"
   case ui0 of
@@ -106,7 +104,6 @@ msHandle ev = do
        aopts=UIOpts{uoCliOpts=copts}
       ,ajournal=j
       ,aMode=mode
-      ,aScreen=MS sst
       } -> do
       let
         -- save the currently selected account, in case we leave this screen and lose the selection
@@ -256,7 +253,6 @@ msHandle ev = do
             MouseUp{}   -> return ()
             AppEvent _  -> return ()
 
-    _ -> dbguiEv "msHandle" >> errorWrongScreenType "msHandle"
 
 msEnterScreen :: Day -> AccountsScreenKind -> UIState -> EventM Name UIState ()
 msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do

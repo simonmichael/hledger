@@ -277,11 +277,6 @@ makeLenses ''ErrorScreenState
 
 ----------------------------------------------------------------------------------------------------
 
--- | Error message to use in case statements adapting to the different Screen shapes.
-errorWrongScreenType :: String -> a
-errorWrongScreenType lbl =
-  -- unsafePerformIO $ threadDelay 2000000 >>  -- delay to allow console output to be seen
-  error' (unwords [lbl, "called with wrong screen type, should not happen"])
 
 -- dummy monoid instance needed make lenses work with List fields not common across constructors
 --instance Monoid (List n a)

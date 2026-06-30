@@ -55,12 +55,11 @@ import Control.Arrow ((>>>))
 import Safe (headDef)
 
 
-asDraw :: UIState -> [Widget Name]
-asDraw ui@UIState{aScreen=AS ASS{_assKind=kind}} = dbgui "asDraw" $ asDrawHelper ui ropts' scrname
+asDraw :: AccountsScreenState -> UIState -> [Widget Name]
+asDraw ass@ASS{_assKind=kind} ui = dbgui "asDraw" $ asDrawHelper ass ui ropts' scrname
   where
     ropts'  = accountsScreenRoptsMod kind $ _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
     scrname = accountsScreenName kind ropts'
-asDraw _ = dbgui "asDraw" $ errorWrongScreenType "asDraw"  -- PARTIAL:
 
 -- | The display name shown in an accounts-like screen's header, for the given kind.
 accountsScreenName :: AccountsScreenKind -> ReportOpts -> String
@@ -73,11 +72,10 @@ accountsScreenName kind ropts = case kind of
 -- | Help draw any accounts-like screen (all accounts, balance sheet, income statement..).
 -- The provided ReportOpts are used instead of the ones in the UIState.
 -- The other argument is the screen display name.
-asDrawHelper :: UIState -> ReportOpts -> String -> [Widget Name]
-asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
+asDrawHelper :: AccountsScreenState -> UIState -> ReportOpts -> String -> [Widget Name]
+asDrawHelper ass UIState{aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
   dbgui "asDrawHelper" $
-  case scr of
-    AS ass -> case mode of
+  case mode of
       Help -> [helpDialog, maincontent]
       _    -> [maincontent]
       where
@@ -169,7 +167,6 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                   ,("?", str "help")
                   -- ,("q", str "quit")
                   ]
-    _ -> dbgui "asDrawHelper" $ errorWrongScreenType "asDrawHelper"  -- PARTIAL:
 
 asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name
 asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
@@ -192,19 +189,16 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
             | otherwise = id
 
 -- | Handle events on any accounts-like screen (all accounts, balance sheet, income statement..).
-asHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-asHandle ev = do
+asHandle :: AccountsScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+asHandle ass ev = do
   dbguiEv "asHandle"
-  ui0@UIState{aScreen=scr, aMode=mode} <- get'
-  case scr of
-    AS ass -> do
-      -- save the currently selected account, in case we leave this screen and lose the selection
-      put' ui0{aScreen=AS ass{_assSelectedAccount=asSelectedAccount ass}}
-      case mode of
-        Normal          -> asHandleNormalMode ass ev
-        Minibuffer _ ed -> handleMinibufferMode ed ev
-        Help            -> handleHelpMode ev
-    _ -> dbgui "asHandle" $ errorWrongScreenType "asHandle"  -- PARTIAL:
+  ui0@UIState{aMode=mode} <- get'
+  -- save the currently selected account, in case we leave this screen and lose the selection
+  put' ui0{aScreen=AS ass{_assSelectedAccount=asSelectedAccount ass}}
+  case mode of
+    Normal          -> asHandleNormalMode ass ev
+    Minibuffer _ ed -> handleMinibufferMode ed ev
+    Help            -> handleHelpMode ev
 
 -- | Handle events when in normal mode on any accounts-like screen.
 -- The provided state should be the ui state's current screen.

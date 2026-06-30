@@ -36,10 +36,8 @@ import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 
-esDraw :: UIState -> [Widget Name]
-esDraw UIState{aScreen=ES ESS{..}
-              ,aMode=mode
-              } =
+esDraw :: ErrorScreenState -> UIState -> [Widget Name]
+esDraw ESS{..} UIState{aMode=mode} =
   case mode of
     Help       -> [helpDialog, maincontent]
     _          -> [maincontent]
@@ -64,14 +62,12 @@ esDraw UIState{aScreen=ES ESS{..}
               ,("q", "quit")
               ]
 
-esDraw _ = error' "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
-esHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-esHandle ev = do
+esHandle :: ErrorScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+esHandle ESS{..} ev = do
   ui0 <- get'
   case ui0 of
-    ui@UIState{aScreen=ES ESS{..}
-              ,aopts=UIOpts{uoCliOpts=copts}
+    ui@UIState{aopts=UIOpts{uoCliOpts=copts}
               ,ajournal=j
               ,aMode=mode
               } ->
@@ -108,7 +104,6 @@ esHandle ev = do
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
 
-    _ -> errorWrongScreenType "esHandle"
 
     where
       -- Reload and fully regenerate the error screen.

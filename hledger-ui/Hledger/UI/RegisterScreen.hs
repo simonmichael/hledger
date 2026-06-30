@@ -45,9 +45,8 @@ import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 import Hledger.UI.ErrorScreen (uiReload, uiReloadIfFileChanged, uiToggleBalanceAssertions)
 
-rsDraw :: UIState -> [Widget Name]
-rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
-              ,aScreen=RS RSS{..}
+rsDraw :: RegisterScreenState -> UIState -> [Widget Name]
+rsDraw RSS{..} UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               ,aMode=mode
               } = dbgui "rsDraw" $
   case mode of
@@ -156,7 +155,6 @@ rsDraw UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}}
               -- ,("q", "quit")
               ]
 
-rsDraw _ = dbgui "rsDraw" $ errorWrongScreenType "rsDraw"  -- PARTIAL:
 
 rsDrawItem :: (Int,Int,Int,Int,Int) -> Bool -> RegisterScreenItem -> Widget Name
 rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected RegisterScreenItem{..} =
@@ -184,14 +182,13 @@ rsDrawItem (datewidth,descwidth,acctswidth,changewidth,balwidth) selected Regist
         | otherwise = id
 
 -- XXX clean up like asHandle
-rsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-rsHandle ev = do
+rsHandle :: RegisterScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+rsHandle sst@RSS{..} ev = do
   ui0 <- get'
   dbguiEv "rsHandle"
   case ui0 of
     ui@UIState{
-      aScreen=RS sst@RSS{..}
-      ,aopts=UIOpts{uoCliOpts=copts}
+      aopts=UIOpts{uoCliOpts=copts}
       ,ajournal=j
       ,aMode=mode
       } -> do
@@ -340,7 +337,6 @@ rsHandle ev = do
             MouseUp{}         -> return ()
             AppEvent _        -> return ()
 
-    _ -> errorWrongScreenType "rsHandle"
 
 isBlankElement mel = ((rsItemDate . snd) <$> mel) == Just ""
 

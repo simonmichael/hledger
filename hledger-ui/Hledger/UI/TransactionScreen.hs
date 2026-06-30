@@ -32,13 +32,13 @@ import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 import Hledger.UI.ErrorScreen (uiReload, uiReloadIfFileChanged, uiToggleBalanceAssertions)
 
-tsDraw :: UIState -> [Widget Name]
-tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
+tsDraw :: TransactionScreenState -> UIState -> [Widget Name]
+tsDraw TSS{_tssTransaction=(i,t')
+          ,_tssTransactions=nts
+          ,_tssAccount=acct
+          }
+       UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
-              ,aScreen=TS TSS{_tssTransaction=(i,t')
-                              ,_tssTransactions=nts
-                              ,_tssAccount=acct
-                              }
               ,aMode=mode
               } =
   case mode of
@@ -95,7 +95,6 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
               -- ,("q", "quit")
               ]
 
-tsDraw _ = errorWrongScreenType "tsDraw"  -- PARTIAL:
 
 -- Render a transaction suitably for the transaction screen.
 showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
@@ -111,12 +110,11 @@ showTxn ropts rspec j t =
       fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
       reportPeriodOrJournalLastDay rspec j
 
-tsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-tsHandle ev = do
+tsHandle :: TransactionScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+tsHandle TSS{_tssTransaction=(i,t), _tssTransactions=nts} ev = do
   ui0 <- get'
   case ui0 of
-    ui@UIState{aScreen=TS TSS{_tssTransaction=(i,t), _tssTransactions=nts}
-              ,aopts=UIOpts{uoCliOpts=copts}
+    ui@UIState{aopts=UIOpts{uoCliOpts=copts}
               ,ajournal=j
               ,aMode=mode
               } ->
@@ -183,7 +181,6 @@ tsHandle ev = do
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
 
-    _ -> errorWrongScreenType "tsHandle"
 
     where
       -- Reload the journal and regenerate the whole screen stack; tsUpdate now refreshes

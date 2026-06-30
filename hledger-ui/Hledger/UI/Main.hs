@@ -351,17 +351,17 @@ uiHandle ev = do
   dbguiEv $ "\n==== " ++ show ev
   ui <- get
   case aScreen ui of
-    MS _ -> msHandle ev
-    AS _ -> asHandle ev
-    RS _ -> rsHandle ev
-    TS _ -> tsHandle ev
-    ES _ -> esHandle ev
+    MS sst -> msHandle sst ev
+    AS sst -> asHandle sst ev
+    RS sst -> rsHandle sst ev
+    TS sst -> tsHandle sst ev
+    ES sst -> esHandle sst ev
 
 uiDraw :: UIState -> [Widget Name]
 uiDraw ui =
   case aScreen ui of
-    MS _ -> msDraw ui
-    AS _ -> asDraw ui
-    RS _ -> rsDraw ui
-    TS _ -> tsDraw ui
-    ES _ -> esDraw ui
+    MS sst -> msDraw sst ui
+    AS sst -> asDraw sst ui
+    RS sst -> rsDraw sst ui
+    TS sst -> tsDraw sst ui
+    ES sst -> esDraw sst ui
