@@ -73,7 +73,10 @@ data UIState = UIState {
    astartupopts  :: UIOpts    -- ^ the command-line options and query arguments specified at program start
     -- can change while program runs:
   ,aopts         :: UIOpts    -- ^ the command-line options and query arguments currently in effect
-  ,ajournal      :: Journal   -- ^ the journal being viewed (can change with --watch)
+  ,ajournal      :: Journal   -- ^ the journal being viewed (can change with --watch).
+                              --   This is auncollapsedjournal collapsed for display, unless the lots toggle (--lots) is on.
+  ,auncollapsedjournal :: Journal  -- ^ the journal as loaded, retaining full lot detail (lot subaccounts and
+                                   --   synthetic lot postings). Kept so the lots toggle can re-derive ajournal in memory.
   -- aScreen together with aPrevScreens forms a non-empty navigation zipper: there is
   -- always an active screen, with zero or more suspended ancestor screens behind it.
   -- "At least one screen" is thus guaranteed by the types, and popScreen at the root is

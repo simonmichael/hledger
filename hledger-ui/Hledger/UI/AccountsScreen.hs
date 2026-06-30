@@ -159,6 +159,7 @@ asDrawHelper ass UIState{aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
                     IncomestatementAccounts -> ("", str "")
                     _                       -> ("H", renderToggle (not ishistorical) "end-bals" "changes")
                   ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
+                  ,("L", renderToggle1 (boolopt "lots" $ rawopts_ copts) "lots")
                   --,("/", "filter")
                   --,("DEL", "unfilter")
                   --,("ESC", "cancel/top")
@@ -239,12 +240,12 @@ asHandleNormalMode ass ev = do
     -- adjust the viewed period and regenerate, just in case needed.
     -- (Eg: when watching data for "today" and the time has just passed midnight.)
     AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-      modify' (setReportPeriod (DayPeriod d) >>> regenerateScreens j d)
+      modify' (setReportPeriod (DayPeriod d) >>> regenerateScreens d)
       where p = reportPeriod ui
 
     -- set or reset a filter:
-    VtyEvent (EvKey (KChar '/') []) -> modify' (showMinibuffer "filter" Nothing >>> regenerateScreens j d)
-    VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> modify' (resetFilter >>> regenerateScreens j d)
+    VtyEvent (EvKey (KChar '/') []) -> modify' (showMinibuffer "filter" Nothing >>> regenerateScreens d)
+    VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> modify' (resetFilter >>> regenerateScreens d)
 
     -- run external programs:
     VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
@@ -264,37 +265,38 @@ asHandleNormalMode ass ev = do
       put' ui{aScreen=AS ass{_assList=l'}}
 
     -- adjust the period displayed:
-    VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)
-    VtyEvent (EvKey (KDown)     [MShift]) -> modify' (shrinkReportPeriod d             >>> regenerateScreens j d)
-    VtyEvent (EvKey (KUp)       [MShift]) -> modify' (growReportPeriod d               >>> regenerateScreens j d)
-    VtyEvent (EvKey (KRight)    [MShift]) -> modify' (nextReportPeriod journalspan     >>> regenerateScreens j d)
-    VtyEvent (EvKey (KLeft)     [MShift]) -> modify' (previousReportPeriod journalspan >>> regenerateScreens j d)
+    VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens d)
+    VtyEvent (EvKey (KDown)     [MShift]) -> modify' (shrinkReportPeriod d             >>> regenerateScreens d)
+    VtyEvent (EvKey (KUp)       [MShift]) -> modify' (growReportPeriod d               >>> regenerateScreens d)
+    VtyEvent (EvKey (KRight)    [MShift]) -> modify' (nextReportPeriod journalspan     >>> regenerateScreens d)
+    VtyEvent (EvKey (KLeft)     [MShift]) -> modify' (previousReportPeriod journalspan >>> regenerateScreens d)
 
     -- various toggles and settings:
     VtyEvent (EvKey (KChar 'I') []) -> get' >>= uiToggleBalanceAssertions d
-    VtyEvent (EvKey (KChar 'F') []) -> modify' (toggleForecast d   >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar 'B') []) -> modify' (toggleConversionOp >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar 'V') []) -> modify' (toggleValue        >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '0') []) -> modify' (setDepth (Just 0)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '1') []) -> modify' (setDepth (Just 1)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '2') []) -> modify' (setDepth (Just 2)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '3') []) -> modify' (setDepth (Just 3)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '4') []) -> modify' (setDepth (Just 4)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '5') []) -> modify' (setDepth (Just 5)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '6') []) -> modify' (setDepth (Just 6)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '7') []) -> modify' (setDepth (Just 7)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '8') []) -> modify' (setDepth (Just 8)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '9') []) -> modify' (setDepth (Just 9)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar c) []) | c `elem` ['-','_'] -> modify' (decDepth >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar c) []) | c `elem` ['+','='] -> modify' (incDepth >>> regenerateScreens j d)
+    VtyEvent (EvKey (KChar 'F') []) -> modify' (toggleForecast d   >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar 'B') []) -> modify' (toggleConversionOp >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar 'V') []) -> modify' (toggleValue        >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '0') []) -> modify' (setDepth (Just 0)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '1') []) -> modify' (setDepth (Just 1)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '2') []) -> modify' (setDepth (Just 2)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '3') []) -> modify' (setDepth (Just 3)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '4') []) -> modify' (setDepth (Just 4)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '5') []) -> modify' (setDepth (Just 5)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '6') []) -> modify' (setDepth (Just 6)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '7') []) -> modify' (setDepth (Just 7)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '8') []) -> modify' (setDepth (Just 8)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '9') []) -> modify' (setDepth (Just 9)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar c) []) | c `elem` ['-','_'] -> modify' (decDepth >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar c) []) | c `elem` ['+','='] -> modify' (incDepth >>> regenerateScreens d)
     -- toggles after which the selection should be recentered:
-    VtyEvent (EvKey (KChar 'H') []) -> modify' (toggleHistorical   >>> regenerateScreens j d) >> centerSelection  -- harmless on BS/IS screens
-    VtyEvent (EvKey (KChar 't') []) -> modify' (toggleTree         >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'R') []) -> modify' (toggleReal         >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'U') []) -> modify' (toggleUnmarked     >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'P') []) -> modify' (togglePending      >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'C') []) -> modify' (toggleCleared      >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify' (toggleEmpty >>> regenerateScreens j d) >> centerSelection  -- back compat: accept Z as well as z
+    VtyEvent (EvKey (KChar 'L') []) -> modify' (toggleLots         >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'H') []) -> modify' (toggleHistorical   >>> regenerateScreens d) >> centerSelection  -- harmless on BS/IS screens
+    VtyEvent (EvKey (KChar 't') []) -> modify' (toggleTree         >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'R') []) -> modify' (toggleReal         >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'U') []) -> modify' (toggleUnmarked     >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'P') []) -> modify' (togglePending      >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'C') []) -> modify' (toggleCleared      >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify' (toggleEmpty >>> regenerateScreens d) >> centerSelection  -- back compat: accept Z as well as z
 
     -- LEFT key or a click in the app's left margin: exit to the parent screen.
     VtyEvent e | e `elem` moveLeftEvents  -> modify' popScreen
@@ -346,11 +348,11 @@ asHandleNormalMode ass ev = do
 
 -- | Handle events when in minibuffer mode on any screen.
 handleMinibufferMode ed ev = do
-  ui@UIState{ajournal=j} <- get'
+  ui <- get'
   d <- liftIO getCurrentDay
   case ev of
     VtyEvent (EvKey KEsc   []) -> put' $ closeMinibuffer ui
-    VtyEvent (EvKey KEnter []) -> put' $ regenerateScreens j d ui'
+    VtyEvent (EvKey KEnter []) -> put' $ regenerateScreens d ui'
       where
         ui' = setFilter s (closeMinibuffer ui)
           & fromRight (showMinibuffer "Cannot compile regular expression" (Just s) ui)

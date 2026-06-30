@@ -155,7 +155,7 @@ tsHandle TSS{_tssTransaction=(i,t), _tssTransactions=nts} ev = do
               tsReloadIfFileChanged copts d j ui
 
             AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-              put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+              put' $ regenerateScreens d $ setReportPeriod (DayPeriod d) ui
               where
                 p = reportPeriod ui
 
@@ -163,11 +163,12 @@ tsHandle TSS{_tssTransaction=(i,t), _tssTransactions=nts} ev = do
 
             -- for toggles that may change the current/prev/next transactions,
             -- we must regenerate the transaction list, like the g handler above ? with regenerateTransactions ? TODO WIP
-            -- EvKey (KChar 'E') [] -> put' $ regenerateScreens j d $ stToggleEmpty ui
-            -- EvKey (KChar 'C') [] -> put' $ regenerateScreens j d $ stToggleCleared ui
-            -- EvKey (KChar 'R') [] -> put' $ regenerateScreens j d $ stToggleReal ui
-            VtyEvent (EvKey (KChar 'B') []) -> put' . regenerateScreens j d $ toggleConversionOp ui
-            VtyEvent (EvKey (KChar 'V') []) -> put' . regenerateScreens j d $ toggleValue ui
+            -- EvKey (KChar 'E') [] -> put' $ regenerateScreens d $ stToggleEmpty ui
+            -- EvKey (KChar 'C') [] -> put' $ regenerateScreens d $ stToggleCleared ui
+            -- EvKey (KChar 'R') [] -> put' $ regenerateScreens d $ stToggleReal ui
+            VtyEvent (EvKey (KChar 'B') []) -> put' . regenerateScreens d $ toggleConversionOp ui
+            VtyEvent (EvKey (KChar 'V') []) -> put' . regenerateScreens d $ toggleValue ui
+            VtyEvent (EvKey (KChar 'L') []) -> put' . regenerateScreens d $ toggleLots ui
 
             VtyEvent e | e `elem` moveUpEvents   -> put' $ tsSelect iprev tprev ui
             VtyEvent e | e `elem` moveDownEvents -> put' $ tsSelect inext tnext ui

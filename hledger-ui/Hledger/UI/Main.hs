@@ -53,7 +53,7 @@ import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
-import Hledger.UI.UIState (uiState)
+import Hledger.UI.UIState (uiState, uiDisplayJournal)
 import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
@@ -106,6 +106,10 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
   let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}
 
+  -- always load the journal with full lot detail retained; the UI collapses it for display
+  -- (toggled by the L key), so the uncollapsed journal stays available without re-reading files.
+  let loadcopts = copts'{rawopts_ = setboolopt "lots" (rawopts_ copts')}
+
   case True of
     _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
     _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
@@ -113,7 +117,7 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
     _ | boolopt "version" rawopts -> putStrLn prognameandversion
     -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
-    _                                         -> withJournal copts' $ \j ->
+    _                                         -> withJournal loadcopts $ \j ->
         -- Refresh the startup ReportSpec against the loaded journal so any
         -- cur: terms are expanded for the journal's commodity aliases.
         let opts' = case reportSpecExpandCurQueries j (reportspec_ copts') of
@@ -191,6 +195,10 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
+    -- The journal collapsed for display per the current lots toggle; the initial screens
+    -- are built from it, while uiState keeps the uncollapsed journal for the L toggle.
+    jdisplay = uiDisplayJournal uopts j
+
     -- Choose the initial screen to display.
     -- We also set up a stack of previous screens, as if you had navigated down to it from the top.
     -- Note the previous screens list is ordered nearest-first, with the top-most (menu) screen last.
@@ -215,7 +223,7 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
           let
             -- the account being requested
             acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-              . firstMatch $ journalAccountNamesDeclaredOrImplied j
+              . firstMatch $ journalAccountNamesDeclaredOrImplied jdisplay
               where
                 firstMatch = case toRegexCI $ T.pack apat of
                     Right re -> find (regexMatchText re)
@@ -224,7 +232,7 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
             -- the register screen for acct
             regscr = 
               rsSetAccount acct False $
-              rsNew uopts today j acct forceinclusive
+              rsNew uopts today jdisplay acct forceinclusive
                 where
                   -- Take the depth from uopts, not `getDepth ui`: ui depends on regscr
                   -- (this binding), so referencing ui here ties a knot that StrictData's
@@ -237,7 +245,7 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
             -- The accounts screen containing acct.
             -- Keep these selidx values synced with the menu items in msNew.
             (acctsscr, selidx) =
-              case journalAccountType j acct of
+              case journalAccountType jdisplay acct of
                 Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
                 Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
                 _                                       -> (allacctsscr,0)
@@ -252,10 +260,10 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
 
         where
           menuscr     = msNew
-          allacctsscr = asNew AllAccounts             uopts today j Nothing
-          csacctsscr  = asNew CashAccounts            uopts today j Nothing
-          bsacctsscr  = asNew BalancesheetAccounts    uopts today j Nothing
-          isacctsscr  = asNew IncomestatementAccounts uopts today j Nothing
+          allacctsscr = asNew AllAccounts             uopts today jdisplay Nothing
+          csacctsscr  = asNew CashAccounts            uopts today jdisplay Nothing
+          bsacctsscr  = asNew BalancesheetAccounts    uopts today jdisplay Nothing
+          isacctsscr  = asNew IncomestatementAccounts uopts today jdisplay Nothing
 
 
 runBrickUi :: UIOpts -> Journal -> IO ()

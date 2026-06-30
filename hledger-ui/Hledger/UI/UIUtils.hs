@@ -199,6 +199,7 @@ helpDialog =
                   ,renderKey ("B   ", "show amounts/costs")
                   ,renderKey ("E   ", "open editor")
                   ,renderKey ("I   ", "toggle balance assertions")
+                  ,renderKey ("L   ", "show/hide lot detail")
                   ,renderKey ("V   ", "show amounts/market values")
                   ,renderKey ("g   ", "reload data")
                   ,renderKey ("C-l ", "redraw & recenter")

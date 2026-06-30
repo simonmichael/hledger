@@ -15,7 +15,7 @@ import Data.Time.Calendar (fromGregorian)
 import System.Directory (getTemporaryDirectory, removeFile)
 import System.IO (hClose, openTempFile)
 import Test.Tasty (TestTree, defaultMain, testGroup)
-import Test.Tasty.HUnit (assertBool, testCase, (@?=))
+import Test.Tasty.HUnit (assertBool, assertFailure, testCase, (@?=))
 
 import Hledger (Journal, readJournalFile')
 import Hledger.UI.UIOptions (UIOpts)
@@ -81,6 +81,24 @@ tests = testGroup "hledger-ui"
           activeScreenTag (last states) @?= "E"
           assertBool "the error screen should show its 'Oops' header"
             (any (T.isInfixOf "Oops") (renderText region (last frames)))
+
+  , testCase "L toggles lot detail on the accounts screen, reversibly in memory" $
+      withJournalFile lotsFixture $ \path -> do
+        uopts <- withDay (fromGregorian 2026 6 1) <$> uiOptsForArgs ["-f", path, "--all"]
+        -- readJournalFile' finalises the journal (creating lot subaccounts) but does not
+        -- apply the CLI lot-collapse, so this is the uncollapsed journal the ui state expects.
+        j <- readJournalFile' path
+        (_, frames) <- driveUI uopts j [key 'L', key 'L']
+        let lotShown = map (\pic -> any (T.isInfixOf "{2026-01-01") (renderText region pic)) frames
+        case lotShown of
+          [] -> assertFailure "no frames were rendered"
+          (initialShown : _) -> do
+            -- collapsed by default: the lot subaccount is hidden on the initial accounts screen
+            assertBool "lot subaccounts are hidden by default" (not initialShown)
+            -- L reveals the lot subaccount (re-derived in memory, no reload) ...
+            assertBool "L reveals the lot subaccount" (or lotShown)
+            -- ... and L again collapses it, proving the toggle is reversible without re-reading
+            assertBool "L again collapses the lot subaccount" (not (last lotShown))
   ]
 
 -- | Run an action with a freshly loaded fixture journal and matching startup
@@ -116,6 +134,16 @@ brokenFixture = T.unlines
   , "    equity:opening"
   , ""
   , "this is not a valid journal line"
+  ]
+
+-- A journal with a lot-tracked commodity, so accounts have lot subaccounts to show or hide.
+lotsFixture :: Text
+lotsFixture = T.unlines
+  [ "commodity AAPL  ; lots:"
+  , ""
+  , "2026-01-01 buy"
+  , "    assets:stocks    10 AAPL {$50} @ $50"
+  , "    assets:cash     $-500"
   ]
 
 withJournalFile :: Text -> (FilePath -> IO a) -> IO a

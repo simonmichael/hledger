@@ -157,13 +157,15 @@ uiAdjustOpts uopts = enableForecast uopts
 uiReload :: CliOpts -> Day -> UIState -> EventM Name UIState UIState
 uiReload copts d ui = liftIO $ do
   ej <-
-    let copts1 = uiAdjustOpts (astartupopts ui) copts
-    in runExceptT $ journalTransform copts1 <$> journalReload copts1
+    let copts1   = uiAdjustOpts (astartupopts ui) copts
+        loadopts = copts1{rawopts_ = setboolopt "lots" (rawopts_ copts1)}  -- keep lot detail; the UI collapses it for display
+    in runExceptT $ journalTransform loadopts <$> journalReload loadopts
   -- dbg1IO "uiReload before reload" (map tdescription $ jtxns $ ajournal ui)
   return $ case ej of
-    Right j  ->
-      -- dbg1 "uiReload after reload" (map tdescription $ jtxns j) $
-      regenerateScreens j d ui
+    Right jraw ->
+      -- dbg1 "uiReload after reload" (map tdescription $ jtxns jraw) $
+      -- save the uncollapsed journal; regenerateScreens derives the display journal from it
+      regenerateScreens d ui{auncollapsedjournal = jraw}
     Left err ->
       case ui of
         UIState{aScreen=ES _} -> ui{aScreen=esNew err}
@@ -183,10 +185,14 @@ uiReload copts d ui = liftIO $ do
 uiReloadIfFileChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadIfFileChanged copts d j ui = do
   ej <-
-    let copts1 = uiAdjustOpts (astartupopts ui) copts
-    in runExceptT $ journalReloadIfChanged copts1 d j
+    let copts1   = uiAdjustOpts (astartupopts ui) copts
+        loadopts = copts1{rawopts_ = setboolopt "lots" (rawopts_ copts1)}  -- keep lot detail; the UI collapses it for display
+    in runExceptT $ journalReloadIfChanged loadopts d j
   return $ case ej of
-    Right (j', _) -> regenerateScreens j' d ui
+    -- changed: save the uncollapsed journal; regenerateScreens derives the display journal from it
+    Right (jraw, True)  -> regenerateScreens d ui{auncollapsedjournal = jraw}
+    -- unchanged: nothing reloaded, refresh in place (opts/date may have changed), keep the journal
+    Right (_,    False) -> regenerateScreens d ui
     Left err -> case aScreen ui of
         ES _ -> ui{aScreen=esNew err}
         _    -> pushScreen (esNew err) ui

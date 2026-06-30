@@ -14,6 +14,8 @@ module Hledger.UI.UIState
 ,toggleEmpty
 ,toggleForecast
 ,toggleHistorical
+,toggleLots
+,uiDisplayJournal
 ,togglePending
 ,toggleUnmarked
 ,toggleReal
@@ -64,15 +66,39 @@ import Hledger.UI.UIUtils (showScreenId, showScreenStack)
 
 -- | Make an initial UI state with the given options, journal,
 -- parent screen stack if any, and starting screen.
+-- The provided journal should be the uncollapsed journal (with full lot detail);
+-- the display journal (ajournal) is derived from it according to the lots toggle.
 uiState :: UIOpts -> Journal -> [Screen] -> Screen -> UIState
 uiState uopts j prevscrs scr = UIState {
-   astartupopts  = uopts
-  ,aopts         = uopts
-  ,ajournal      = j
-  ,aMode         = Normal
-  ,aScreen      = scr
-  ,aPrevScreens = prevscrs
+   astartupopts        = uopts
+  ,aopts               = uopts
+  ,auncollapsedjournal = j
+  ,ajournal            = uiDisplayJournal uopts j
+  ,aMode               = Normal
+  ,aScreen             = scr
+  ,aPrevScreens        = prevscrs
   }
+
+-- | Derive the display journal (what screens show) from the uncollapsed journal:
+-- collapse lot detail unless the lots toggle (--lots) is on. Mirrors the CLI's
+-- maybeCollapseLotDetail, so UI and CLI agree (and --ignore-lots is honored).
+uiDisplayJournal :: UIOpts -> Journal -> Journal
+uiDisplayJournal uopts
+  | boolopt "lots" ro        = id
+  | boolopt "ignore-lots" ro = id
+  | otherwise                = journalCollapseLotDetail
+  where ro = rawopts_ $ uoCliOpts uopts
+
+-- | Toggle display of lot detail (lot subaccounts and synthetic lot postings), like the
+-- CLI's --lots flag. This only flips the option; 'regenerateScreens' then re-derives the
+-- display journal from the stored uncollapsed journal, in memory, without reloading from disk.
+toggleLots :: UIState -> UIState
+toggleLots ui = ui{aopts = uopts'}
+  where
+    copts  = uoCliOpts $ aopts ui
+    ro     = rawopts_ copts
+    ro'    = (if boolopt "lots" ro then unsetboolopt "lots" else setboolopt "lots") ro
+    uopts' = (aopts ui){uoCliOpts = copts{rawopts_ = ro'}}
 
 -- | Toggle between showing only unmarked items or all items.
 toggleUnmarked :: UIState -> UIState
@@ -370,34 +396,42 @@ popScreen ui = ui
 -- and return to the top screen, regenerating it with the startup options 
 -- and the provided reporting date.
 resetScreens :: Day -> UIState -> UIState
-resetScreens d ui@UIState{astartupopts=origopts, ajournal=j, aScreen=s,aPrevScreens=ss} =
-  ui{aopts=origopts, aPrevScreens=[], aScreen=topscreen', aMode=Normal}
+resetScreens d ui@UIState{astartupopts=origopts, auncollapsedjournal=jraw, aScreen=s,aPrevScreens=ss} =
+  ui{aopts=origopts, ajournal=jdisplay, aPrevScreens=[], aScreen=topscreen', aMode=Normal}
   where
-    topscreen' = screenUpdate origopts d j $ lastDef s ss
+    -- restore the startup lots state too, re-deriving the display journal from the uncollapsed one
+    jdisplay   = uiDisplayJournal origopts jraw
+    topscreen' = screenUpdate origopts d jdisplay $ lastDef s ss
 
--- | Given a new journal and reporting date, save the new journal in the ui state,
--- then regenerate the content of all screens in the stack
--- (using the ui state's current options), preserving the screen navigation history.
+-- | Regenerate the content of all screens in the stack from the ui state's current
+-- options and stored journal, preserving the screen navigation history.
 -- Note, does not save the reporting date.
+--
+-- This is the single place that establishes the display journal (ajournal) from the
+-- stored uncollapsed journal and the current options, so the two journals can never
+-- drift out of sync. To change the journal (eg on reload), set auncollapsedjournal and
+-- then call this. To change the lots toggle, flip the option (toggleLots) and call this.
 --
 -- Every screen regenerates from its own stored parameters (plus the options, date and journal),
 -- not from any other screen, so the whole stack refreshes uniformly here.
-regenerateScreens :: Journal -> Day -> UIState -> UIState
-regenerateScreens j d ui@UIState{aopts=opts, aScreen=s,aPrevScreens=ss} =
+regenerateScreens :: Day -> UIState -> UIState
+regenerateScreens d ui@UIState{aopts=opts, auncollapsedjournal=jraw, aScreen=s,aPrevScreens=ss} =
   -- Re-derive _rsQuery from the user's querystring_ and re-expand cur:
   -- terms against the (possibly reloaded) journal's commodity aliases.
   -- If re-derivation fails, fall back to the existing query.
-  let copts  = uoCliOpts opts
-      rspec  = reportspec_ copts
-      rspec' = case reportSpecExpandCurQueries j rspec of
-                 Right rs -> rs
-                 Left _   -> rspec
-      opts'  = opts{uoCliOpts = copts{reportspec_ = rspec'}}
+  let copts    = uoCliOpts opts
+      rspec    = reportspec_ copts
+      rspec'   = case reportSpecExpandCurQueries jraw rspec of
+                   Right rs -> rs
+                   Left _   -> rspec
+      opts'    = opts{uoCliOpts = copts{reportspec_ = rspec'}}
+      -- the display journal, derived here so it always matches the stored journal and options
+      jdisplay = uiDisplayJournal opts' jraw
       -- Regenerate the active screen and the whole hidden stack strictly, so no
       -- previous-generation screen/list/journal is retained after a reload (#1825).
-      s'  = screenUpdate opts' d j s
-      ss' = strictMapScreens (screenUpdate opts' d j) ss
-  in s' `seq` ss' `seq` ui{aopts=opts', ajournal=j, aScreen=s', aPrevScreens=ss'}
+      s'  = screenUpdate opts' d jdisplay s
+      ss' = strictMapScreens (screenUpdate opts' d jdisplay) ss
+  in s' `seq` ss' `seq` ui{aopts=opts', ajournal=jdisplay, aScreen=s', aPrevScreens=ss'}
 
 -- | Like @map@ over a screen stack, but strict in the list spine and in each regenerated
 -- screen (forced to WHNF), so the lazy-map accumulation of previous-generation screens is

@@ -187,6 +187,9 @@ Cost/value tips:
 - Either cost mode, or value mode, can be active, but not both at once. Cost mode takes precedence.
 - There's not yet any visual indicator that cost or value mode is active, other than the amount values.
 
+`L` toggles lot detail (like the `--lots` flag), showing or hiding lot subaccounts
+(such as `assets:broker:{2026-01-15, $50}`) and other per-lot detail.
+
 `q` quits the application.
 
 Additional screen-specific keys are described below.

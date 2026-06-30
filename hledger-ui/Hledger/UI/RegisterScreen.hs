@@ -149,6 +149,7 @@ rsDraw RSS{..} UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=r
 
               ,("H", renderToggle (not ishistorical) "historical" "period")
               ,("F", renderToggle1 (isJust . forecast_ . inputopts_ $ copts) "forecast")
+              ,("L", renderToggle1 (boolopt "lots" $ rawopts_ copts) "lots")
               -- ,("a", "add")
               -- ,("g", "reload")
               ,("?", str "help")
@@ -208,12 +209,12 @@ rsHandle sst@RSS{..} ev = do
         Minibuffer _ ed ->
           case ev of
             VtyEvent (EvKey KEsc   []) -> modify' closeMinibuffer
-            VtyEvent (EvKey KEnter []) -> put' $ regenerateScreens j d $
+            VtyEvent (EvKey KEnter []) -> put' $ regenerateScreens d $
                 case setFilter s $ closeMinibuffer ui of
                   Left bad -> showMinibuffer "Cannot compile regular expression" (Just bad) ui
                   Right ui' -> ui'
               where s = chomp . unlines . map strip $ getEditContents ed
-            -- VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer ui
+            -- VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens d $ showMinibuffer ui
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             VtyEvent e -> do
@@ -238,7 +239,7 @@ rsHandle sst@RSS{..} ev = do
 
             -- AppEvents arrive in --watch mode, see AccountsScreen
             AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-              put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+              put' $ regenerateScreens d $ setReportPeriod (DayPeriod d) ui
               where
                 p = reportPeriod ui
 
@@ -247,7 +248,7 @@ rsHandle sst@RSS{..} ev = do
             VtyEvent (EvKey (KChar 'I') []) -> uiToggleBalanceAssertions d ui
             VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
             VtyEvent (EvKey (KChar 'A') []) -> suspendAndResume $ void (runIadd (journalFilePath j)) >> uiReloadIfFileChanged copts d j ui
-            VtyEvent (EvKey (KChar 'T') []) -> put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+            VtyEvent (EvKey (KChar 'T') []) -> put' $ regenerateScreens d $ setReportPeriod (DayPeriod d) ui
             VtyEvent (EvKey (KChar 'E') []) -> suspendAndResume $ void (runEditor pos f) >> uiReloadIfFileChanged copts d j ui
               where
                 (pos,f) = case listSelectedElement _rssList of
@@ -256,16 +257,17 @@ rsHandle sst@RSS{..} ev = do
                               rsItemTransaction=Transaction{tsourcepos=(SourcePos f' l c,_)}}) -> (Just (unPos l, Just $ unPos c),f')
 
             -- display mode/query toggles
-            VtyEvent (EvKey (KChar 'B') []) -> rsCenterSelection (regenerateScreens j d $ toggleConversionOp ui) >>= put'
-            VtyEvent (EvKey (KChar 'V') []) -> rsCenterSelection (regenerateScreens j d $ toggleValue ui) >>= put'
-            VtyEvent (EvKey (KChar 'H') []) -> rsCenterSelection (regenerateScreens j d $ toggleHistorical ui) >>= put'
-            VtyEvent (EvKey (KChar 't') []) -> rsCenterSelection (regenerateScreens j d $ toggleTree ui) >>= put'
-            VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> rsCenterSelection (regenerateScreens j d $ toggleEmpty ui) >>= put'
-            VtyEvent (EvKey (KChar 'R') []) -> rsCenterSelection (regenerateScreens j d $ toggleReal ui) >>= put'
-            VtyEvent (EvKey (KChar 'U') []) -> rsCenterSelection (regenerateScreens j d $ toggleUnmarked ui) >>= put'
-            VtyEvent (EvKey (KChar 'P') []) -> rsCenterSelection (regenerateScreens j d $ togglePending ui) >>= put'
-            VtyEvent (EvKey (KChar 'C') []) -> rsCenterSelection (regenerateScreens j d $ toggleCleared ui) >>= put'
-            VtyEvent (EvKey (KChar 'F') []) -> rsCenterSelection (regenerateScreens j d $ toggleForecast d ui) >>= put'
+            VtyEvent (EvKey (KChar 'B') []) -> rsCenterSelection (regenerateScreens d $ toggleConversionOp ui) >>= put'
+            VtyEvent (EvKey (KChar 'V') []) -> rsCenterSelection (regenerateScreens d $ toggleValue ui) >>= put'
+            VtyEvent (EvKey (KChar 'H') []) -> rsCenterSelection (regenerateScreens d $ toggleHistorical ui) >>= put'
+            VtyEvent (EvKey (KChar 't') []) -> rsCenterSelection (regenerateScreens d $ toggleTree ui) >>= put'
+            VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> rsCenterSelection (regenerateScreens d $ toggleEmpty ui) >>= put'
+            VtyEvent (EvKey (KChar 'R') []) -> rsCenterSelection (regenerateScreens d $ toggleReal ui) >>= put'
+            VtyEvent (EvKey (KChar 'U') []) -> rsCenterSelection (regenerateScreens d $ toggleUnmarked ui) >>= put'
+            VtyEvent (EvKey (KChar 'P') []) -> rsCenterSelection (regenerateScreens d $ togglePending ui) >>= put'
+            VtyEvent (EvKey (KChar 'C') []) -> rsCenterSelection (regenerateScreens d $ toggleCleared ui) >>= put'
+            VtyEvent (EvKey (KChar 'F') []) -> rsCenterSelection (regenerateScreens d $ toggleForecast d ui) >>= put'
+            VtyEvent (EvKey (KChar 'L') []) -> rsCenterSelection (regenerateScreens d $ toggleLots ui) >>= put'
             VtyEvent (EvKey (KChar 'J') []) -> do
               let l' = listMoveBy 10 _rssList
               let l'' = if isBlankElement (listSelectedElement l')
@@ -276,12 +278,12 @@ rsHandle sst@RSS{..} ev = do
             VtyEvent (EvKey (KChar 'K') []) -> do
               let l' = listMoveBy (-10) _rssList
               put' ui{aScreen=RS sst{_rssList=l'}}
-            VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens j d $ showMinibuffer "filter" Nothing ui
-            VtyEvent (EvKey (KDown)     [MShift]) -> put' $ regenerateScreens j d $ shrinkReportPeriod d ui
-            VtyEvent (EvKey (KUp)       [MShift]) -> put' $ regenerateScreens j d $ growReportPeriod d ui
-            VtyEvent (EvKey (KRight)    [MShift]) -> put' $ regenerateScreens j d $ nextReportPeriod journalspan ui
-            VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens j d $ previousReportPeriod journalspan ui
-            VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens j d $ resetFilter ui)
+            VtyEvent (EvKey (KChar '/') []) -> put' $ regenerateScreens d $ showMinibuffer "filter" Nothing ui
+            VtyEvent (EvKey (KDown)     [MShift]) -> put' $ regenerateScreens d $ shrinkReportPeriod d ui
+            VtyEvent (EvKey (KUp)       [MShift]) -> put' $ regenerateScreens d $ growReportPeriod d ui
+            VtyEvent (EvKey (KRight)    [MShift]) -> put' $ regenerateScreens d $ nextReportPeriod journalspan ui
+            VtyEvent (EvKey (KLeft)     [MShift]) -> put' $ regenerateScreens d $ previousReportPeriod journalspan ui
+            VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> (put' $ regenerateScreens d $ resetFilter ui)
             VtyEvent (EvKey (KChar 'l') [MCtrl]) -> scrollSelectionToMiddle _rssList >> redraw
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
 
