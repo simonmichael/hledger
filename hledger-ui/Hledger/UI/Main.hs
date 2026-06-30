@@ -45,7 +45,7 @@ import System.Directory (canonicalizePath)
 import System.Environment (withProgName)
 import System.FilePath (takeDirectory)
 import System.FSNotify (Event(Added, Modified), watchDir, withManager, EventIsDirectory (IsFile))
-import Brick hiding (bsDraw)
+import Brick
 import Brick.BChan qualified as BC
 
 import Hledger
@@ -57,9 +57,6 @@ import Hledger.UI.UIState (uiState)
 import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
-import Hledger.UI.CashScreen
-import Hledger.UI.BalancesheetScreen
-import Hledger.UI.IncomestatementScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
@@ -255,10 +252,10 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
 
         where
           menuscr     = msNew
-          allacctsscr = asNew uopts today j Nothing
-          csacctsscr  = csNew uopts today j Nothing
-          bsacctsscr  = bsNew uopts today j Nothing
-          isacctsscr  = isNew uopts today j Nothing
+          allacctsscr = asNew AllAccounts             uopts today j Nothing
+          csacctsscr  = asNew CashAccounts            uopts today j Nothing
+          bsacctsscr  = asNew BalancesheetAccounts    uopts today j Nothing
+          isacctsscr  = asNew IncomestatementAccounts uopts today j Nothing
 
 
 runBrickUi :: UIOpts -> Journal -> IO ()
@@ -356,9 +353,6 @@ uiHandle ev = do
   case aScreen ui of
     MS _ -> msHandle ev
     AS _ -> asHandle ev
-    CS _ -> csHandle ev
-    BS _ -> bsHandle ev
-    IS _ -> isHandle ev
     RS _ -> rsHandle ev
     TS _ -> tsHandle ev
     ES _ -> esHandle ev
@@ -368,9 +362,6 @@ uiDraw ui =
   case aScreen ui of
     MS _ -> msDraw ui
     AS _ -> asDraw ui
-    CS _ -> csDraw ui
-    BS _ -> bsDraw ui
-    IS _ -> isDraw ui
     RS _ -> rsDraw ui
     TS _ -> tsDraw ui
     ES _ -> esDraw ui

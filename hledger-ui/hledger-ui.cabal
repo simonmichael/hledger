@@ -47,11 +47,8 @@ library
   exposed-modules:
       Hledger.UI
       Hledger.UI.AccountsScreen
-      Hledger.UI.BalancesheetScreen
-      Hledger.UI.CashScreen
       Hledger.UI.Editor
       Hledger.UI.ErrorScreen
-      Hledger.UI.IncomestatementScreen
       Hledger.UI.Main
       Hledger.UI.MenuScreen
       Hledger.UI.RegisterScreen

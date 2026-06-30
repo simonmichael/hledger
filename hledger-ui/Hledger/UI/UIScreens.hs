@@ -23,15 +23,11 @@ module Hledger.UI.UIScreens
 ,asNew
 ,asUpdate
 ,asItemIndex
-,csNew
-,csUpdate
 ,csItemIndex
-,bsNew
-,bsUpdate
 ,bsItemIndex
-,isNew
-,isUpdate
 ,isItemIndex
+,accountsScreenRoptsMod
+,accountsScreenQuery
 ,rsNew
 ,rsUpdate
 ,tsNew
@@ -62,9 +58,6 @@ screenUpdate opts d j = \case
   -- binding in each updater fires, severing references to the previous generation (#1825).
   MS sst -> MS $! msUpdate sst  -- opts d j ass
   AS sst -> AS $! asUpdate opts d j sst
-  CS sst -> CS $! csUpdate opts d j sst
-  BS sst -> BS $! bsUpdate opts d j sst
-  IS sst -> IS $! isUpdate opts d j sst
   RS sst -> RS $! rsUpdate opts d j sst
   TS sst -> TS $! tsUpdate opts d j sst
   ES sst -> ES $  esUpdate sst
@@ -93,10 +86,10 @@ msNew =
   where
     -- keep synced with: indexes below, initial screen stack setup in UI.Main
     items = [
-       MenuScreenItem "Cash accounts" CashScreen
-      ,MenuScreenItem "Balance sheet accounts" Balancesheet
-      ,MenuScreenItem "Income statement accounts" Incomestatement
-      ,MenuScreenItem "All accounts" Accounts
+       MenuScreenItem "Cash accounts" CashAccounts
+      ,MenuScreenItem "Balance sheet accounts" BalancesheetAccounts
+      ,MenuScreenItem "Income statement accounts" IncomestatementAccounts
+      ,MenuScreenItem "All accounts" AllAccounts
       ]
 
 -- keep synced with items above.
@@ -113,25 +106,44 @@ msNew =
 msUpdate :: MenuScreenState -> MenuScreenState
 msUpdate = dbgui "msUpdate"
 
-nullass macct = ASS {
-   _assSelectedAccount = fromMaybe "" macct
+nullass kind macct = ASS {
+   _assKind            = kind
+  ,_assSelectedAccount = fromMaybe "" macct
   ,_assList            = list AccountsList (V.fromList []) 1
   }
 
--- | Construct an accounts screen listing the appropriate set of accounts,
+-- | Construct an accounts-like screen (all accounts, cash, balance sheet or income
+-- statement, selected by the AccountsScreenKind), listing the appropriate set of accounts,
 -- with the appropriate one selected.
--- Screen-specific arguments: the account to select if any.
-asNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-asNew uopts d j macct = dbgui "asNew" $ AS $ asUpdate uopts d j $ nullass macct
+-- Screen-specific arguments: the kind of screen, and the account to select if any.
+asNew :: AccountsScreenKind -> UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
+asNew kind uopts d j macct = dbgui "asNew" $ AS $ asUpdate uopts d j $ nullass kind macct
 
--- | Update an accounts screen's state from these options, reporting date, and journal.
+-- | Update an accounts-like screen's state from these options, reporting date, and journal.
+-- The report is restricted and accumulated according to the screen's kind (_assKind).
 asUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-asUpdate uopts d = dbgui "asUpdate" .
-  asUpdateHelper rspec d copts roptsmod extraquery
+asUpdate uopts d j ass = dbgui "asUpdate" $
+  asUpdateHelper rspec d copts (accountsScreenRoptsMod kind) (accountsScreenQuery kind) j ass
   where
     UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
-    roptsmod       = id
-    extraquery     = Any
+    kind = _assKind ass
+
+-- | The report-options modifier for an accounts-like screen of the given kind:
+-- which balance accumulation it forces, if any.
+accountsScreenRoptsMod :: AccountsScreenKind -> ReportOpts -> ReportOpts
+accountsScreenRoptsMod kind ropts = case kind of
+  AllAccounts             -> ropts
+  CashAccounts            -> ropts{balanceaccum_=Historical}  -- always show historical end balances
+  BalancesheetAccounts    -> ropts{balanceaccum_=Historical}  -- always show historical end balances
+  IncomestatementAccounts -> ropts{balanceaccum_=PerPeriod}   -- always show period changes
+
+-- | The extra query restricting an accounts-like screen of the given kind to its account types.
+accountsScreenQuery :: AccountsScreenKind -> Query
+accountsScreenQuery kind = case kind of
+  AllAccounts             -> Any
+  CashAccounts            -> Type [Cash]
+  BalancesheetAccounts    -> Type [Asset,Liability,Equity]
+  IncomestatementAccounts -> Type [Revenue,Expense]
 
 -- | Update an accounts-like screen's state from this report spec, reporting date,
 -- cli options, report options modifier, extra query, and journal.
@@ -185,51 +197,6 @@ asUpdateHelper rspec0 d copts roptsModify extraquery j ass = dbgui "asUpdateHelp
                             ,asItemDisplayAccountName = ""
                             ,asItemMixedAmount        = Nothing
                             }
-
--- | Construct a balance sheet screen listing the appropriate set of accounts,
--- with the appropriate one selected.
--- Screen-specific arguments: the account to select if any.
-bsNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-bsNew uopts d j macct = dbgui "bsNew" $ BS $ bsUpdate uopts d j $ nullass macct
-
--- | Update a balance sheet screen's state from these options, reporting date, and journal.
-bsUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-bsUpdate uopts d = dbgui "bsUpdate" .
-  asUpdateHelper rspec d copts roptsmod extraquery
-  where
-    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
-    roptsmod ropts = ropts{balanceaccum_=Historical}  -- always show historical end balances
-    extraquery     = Type [Asset,Liability,Equity]    -- restrict to balance sheet accounts
-
--- | Construct a cash accounts screen listing the appropriate set of accounts,
--- with the appropriate one selected.
--- Screen-specific arguments: the account to select if any.
-csNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-csNew uopts d j macct = dbgui "csNew" $ CS $ csUpdate uopts d j $ nullass macct
-
--- | Update a balance sheet screen's state from these options, reporting date, and journal.
-csUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-csUpdate uopts d = dbgui "csUpdate" .
-  asUpdateHelper rspec d copts roptsmod extraquery
-  where
-    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
-    roptsmod ropts = ropts{balanceaccum_=Historical}  -- always show historical end balances
-    extraquery     = Type [Cash]    -- restrict to cash accounts
-
--- | Construct an income statement screen listing the appropriate set of accounts,
--- with the appropriate one selected.
--- Screen-specific arguments: the account to select if any.
-isNew :: UIOpts -> Day -> Journal -> Maybe AccountName -> Screen
-isNew uopts d j macct = dbgui "isNew" $ IS $ isUpdate uopts d j $ nullass macct
-
--- | Update an income statement screen's state from these options, reporting date, and journal.
-isUpdate :: UIOpts -> Day -> Journal -> AccountsScreenState -> AccountsScreenState
-isUpdate uopts d = dbgui "isUpdate" .
-  asUpdateHelper rspec d copts roptsmod extraquery
-  where
-    UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec}} = uopts
-    roptsmod ropts = ropts{balanceaccum_=PerPeriod}  -- always show historical end balances
-    extraquery     = Type [Revenue, Expense]         -- restrict to income statement accounts
 
 -- | Construct a register screen listing the appropriate set of transactions,
 -- with the appropriate one selected.

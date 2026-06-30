@@ -108,12 +108,13 @@ data Name =
   | TransactionEditor
   deriving (Ord, Show, Eq)
 
--- Unique names for screens the user can navigate to from the menu.
-data ScreenName =
-    Accounts
-  | CashScreen
-  | Balancesheet
-  | Incomestatement
+-- The kinds of accounts-like screen, selecting which accounts and balances it shows.
+-- Also used as the menu's screen names, since these are the screens reachable from the menu.
+data AccountsScreenKind =
+    AllAccounts
+  | CashAccounts
+  | BalancesheetAccounts
+  | IncomestatementAccounts
   deriving (Ord, Show, Eq)
 
 ----------------------------------------------------------------------------------------------------
@@ -173,12 +174,11 @@ data ScreenName =
 -- A new screen requires
 -- 1. a new constructor in the Screen type
 -- 2. a new screen state type if needed
--- 3. a new case in toAccountsLikeScreen if needed
--- 4. new cases in the uiDraw and uiHandle functions
--- 5. new constructor and updater functions in UIScreens, and a new case in screenUpdate
--- 6. a new module implementing draw and event-handling functions
--- 7. a call from any other screen which enters it (eg the menu screen, a new case in msEnterScreen)
--- 8. if it appears on the main menu: a new menu item in msNew
+-- 3. new cases in the uiDraw and uiHandle functions
+-- 4. new constructor and updater functions in UIScreens, and a new case in screenUpdate
+-- 5. a new module implementing draw and event-handling functions
+-- 6. a call from any other screen which enters it (eg the menu screen, a new case in msEnterScreen)
+-- 7. if it appears on the main menu: a new menu item in msNew
 
 -- cf https://github.com/jtdaugherty/brick/issues/379#issuecomment-1192000374
 -- | The various screens which a user can navigate to in hledger-ui,
@@ -186,31 +186,11 @@ data ScreenName =
 -- (The separate state types add code noise but seem to reduce partial code/invalid data a bit.)
 data Screen =
     MS MenuScreenState
-  | AS AccountsScreenState
-  | CS AccountsScreenState
-  | BS AccountsScreenState
-  | IS AccountsScreenState
+  | AS AccountsScreenState  -- ^ the all-accounts, cash, balance sheet and income statement screens; see _assKind
   | RS RegisterScreenState
   | TS TransactionScreenState
   | ES ErrorScreenState
   deriving (Show)
-
--- | A subset of the screens which reuse the account screen's state and logic.
--- Such Screens can be converted to and from this more restrictive type
--- for cleaner code.
-data AccountsLikeScreen = ALS (AccountsScreenState -> Screen) AccountsScreenState
-  deriving (Show)
-
-toAccountsLikeScreen :: Screen -> Maybe AccountsLikeScreen
-toAccountsLikeScreen scr = case scr of
-  AS ass -> Just $ ALS AS ass
-  CS ass -> Just $ ALS CS ass
-  BS ass -> Just $ ALS BS ass
-  IS ass -> Just $ ALS IS ass
-  _      -> Nothing
-
-fromAccountsLikeScreen :: AccountsLikeScreen -> Screen
-fromAccountsLikeScreen (ALS scons ass) = scons ass
 
 data MenuScreenState = MSS {
     -- view data:
@@ -218,10 +198,12 @@ data MenuScreenState = MSS {
   ,_mssUnused          :: ()                        -- ^ dummy field to silence warning
 } deriving (Show)
 
--- Used for the accounts screen and similar screens.
+-- Used for the all-accounts, cash, balance sheet and income statement screens,
+-- which differ only in which accounts and balances they show (selected by _assKind).
 data AccountsScreenState = ASS {
     -- screen parameters:
-   _assSelectedAccount :: AccountName                   -- ^ a copy of the account name from the list's selected item (or "")
+   _assKind            :: AccountsScreenKind                    -- ^ which accounts-like screen this is
+  ,_assSelectedAccount :: AccountName                   -- ^ a copy of the account name from the list's selected item (or "")
     -- view data derived from options, reporting date, journal, and screen parameters:
   ,_assList            :: List Name AccountsScreenItem  -- ^ list widget showing account names & balances
 } deriving (Show)
@@ -253,7 +235,7 @@ data ErrorScreenState = ESS {
 -- | An item in the menu screen's list of screens.
 data MenuScreenItem = MenuScreenItem {
    msItemScreenName :: Text                         -- ^ screen display name
-  ,msItemScreen     :: ScreenName                   -- ^ an internal name we can use to find the corresponding screen
+  ,msItemScreen     :: AccountsScreenKind                   -- ^ an internal name we can use to find the corresponding screen
   } deriving (Show)
 
 -- | An item in the accounts screen's list of accounts and balances.

@@ -173,9 +173,6 @@ selectedIndex :: UIState -> Maybe Int
 selectedIndex ui = case aScreen ui of
   MS s -> listSelected (_mssList s)
   AS s -> listSelected (_assList s)
-  CS s -> listSelected (_assList s)
-  BS s -> listSelected (_assList s)
-  IS s -> listSelected (_assList s)
   RS s -> listSelected (_rssList s)
   TS s -> Just $ fromInteger $ fst (_tssTransaction s)
   ES _ -> Nothing
@@ -186,9 +183,6 @@ selectedIndex ui = case aScreen ui of
 selectedAccount :: UIState -> Maybe AccountName
 selectedAccount ui = case aScreen ui of
   AS s -> Just (_assSelectedAccount s)
-  CS s -> Just (_assSelectedAccount s)
-  BS s -> Just (_assSelectedAccount s)
-  IS s -> Just (_assSelectedAccount s)
   _    -> Nothing
 
 -- | The account currently selected in the active accounts-like list (read live
@@ -196,9 +190,6 @@ selectedAccount ui = case aScreen ui of
 selectedItemAccount :: UIState -> Maybe AccountName
 selectedItemAccount ui = case aScreen ui of
   AS s -> acct (_assList s)
-  CS s -> acct (_assList s)
-  BS s -> acct (_assList s)
-  IS s -> acct (_assList s)
   _    -> Nothing
   where acct l = asItemAccountName . snd <$> listSelectedElement l
 

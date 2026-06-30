@@ -498,14 +498,19 @@ mapScreens f UIState{aPrevScreens, aScreen} = map f $ reverse $ aScreen : aPrevS
 -- Show a screen's compact id (first letter of its constructor).
 showScreenId :: Screen -> String
 showScreenId = \case
-  MS _ -> "M"  -- menu
-  AS _ -> "A"  -- all accounts
-  CS _ -> "C"  -- cash accounts
-  BS _ -> "B"  -- bs accounts
-  IS _ -> "I"  -- is accounts
-  RS _ -> "R"  -- menu
-  TS _ -> "T"  -- transaction
-  ES _ -> "E"  -- error
+  MS _             -> "M"  -- menu
+  AS ASS{_assKind} -> accountsScreenKindId _assKind
+  RS _             -> "R"  -- register
+  TS _             -> "T"  -- transaction
+  ES _             -> "E"  -- error
+
+-- | The compact id letter for an accounts-like screen of the given kind.
+accountsScreenKindId :: AccountsScreenKind -> String
+accountsScreenKindId = \case
+  AllAccounts             -> "A"  -- all accounts
+  CashAccounts            -> "C"  -- cash accounts
+  BalancesheetAccounts    -> "B"  -- balance sheet accounts
+  IncomestatementAccounts -> "I"  -- income statement accounts
 
 -- Show a screen's compact id, plus for register screens, the transaction descriptions.
 showScreenRegisterDescriptions :: Screen -> String
@@ -518,12 +523,9 @@ showScreenRegisterDescriptions scr = case scr of
 -- Show a screen's compact id, plus index of its selected list item if any.
 showScreenSelection :: Screen -> String
 showScreenSelection = \case
-  MS MSS{_mssList} -> "M" ++ (maybe "" show $ listSelected _mssList)  -- menu
-  AS ASS{_assList} -> "A" ++ (maybe "" show $ listSelected _assList)  -- all accounts
-  CS ASS{_assList} -> "C" ++ (maybe "" show $ listSelected _assList)  -- cash accounts
-  BS ASS{_assList} -> "B" ++ (maybe "" show $ listSelected _assList)  -- bs accounts
-  IS ASS{_assList} -> "I" ++ (maybe "" show $ listSelected _assList)  -- is accounts
-  RS RSS{_rssList} -> "R" ++ (maybe "" show $ listSelected _rssList)  -- menu
+  MS MSS{_mssList}          -> "M" ++ (maybe "" show $ listSelected _mssList)  -- menu
+  AS ASS{_assKind,_assList} -> accountsScreenKindId _assKind ++ (maybe "" show $ listSelected _assList)
+  RS RSS{_rssList}          -> "R" ++ (maybe "" show $ listSelected _rssList)  -- register
   TS _ -> "T"  -- transaction
   ES _ -> "E"  -- error
 

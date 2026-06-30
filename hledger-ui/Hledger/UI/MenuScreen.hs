@@ -204,7 +204,7 @@ msHandle ev = do
             -- RIGHT enters selected screen if there is one
             VtyEvent e | e `elem` moveRightEvents
                       , not $ isBlankElement $ listSelectedElement (_mssList sst) ->
-              msEnterScreen d (fromMaybe Accounts mselscr) ui
+              msEnterScreen d (fromMaybe AllAccounts mselscr) ui
 
             -- MouseDown is sometimes duplicated, https://github.com/jtdaugherty/brick/issues/347
             -- just use it to move the selection
@@ -258,15 +258,10 @@ msHandle ev = do
 
     _ -> dbguiEv "msHandle" >> errorWrongScreenType "msHandle"
 
-msEnterScreen :: Day -> ScreenName -> UIState -> EventM Name UIState ()
+msEnterScreen :: Day -> AccountsScreenKind -> UIState -> EventM Name UIState ()
 msEnterScreen d scrname ui@UIState{ajournal=j, aopts=uopts} = do
   dbguiEv "msEnterScreen"
-  let
-    scr = case scrname of
-      Accounts        -> asNew uopts d j Nothing
-      CashScreen      -> csNew uopts d j Nothing
-      Balancesheet    -> bsNew uopts d j Nothing
-      Incomestatement -> isNew uopts d j Nothing
+  let scr = asNew scrname uopts d j Nothing  -- scrname is also the accounts-like screen kind
   put' $ pushScreen scr ui
 
 -- | Set the selected list item on the menu screen. Has no effect on other screens.

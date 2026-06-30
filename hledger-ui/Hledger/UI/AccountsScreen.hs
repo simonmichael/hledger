@@ -56,11 +56,19 @@ import Safe (headDef)
 
 
 asDraw :: UIState -> [Widget Name]
-asDraw ui = dbgui "asDraw" $ asDrawHelper ui ropts' scrname
+asDraw ui@UIState{aScreen=AS ASS{_assKind=kind}} = dbgui "asDraw" $ asDrawHelper ui ropts' scrname
   where
-    ropts' = _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
-    scrname = "account " ++ if ishistorical then "balances" else "changes"
-      where ishistorical = balanceaccum_ ropts' == Historical
+    ropts'  = accountsScreenRoptsMod kind $ _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
+    scrname = accountsScreenName kind ropts'
+asDraw _ = dbgui "asDraw" $ errorWrongScreenType "asDraw"  -- PARTIAL:
+
+-- | The display name shown in an accounts-like screen's header, for the given kind.
+accountsScreenName :: AccountsScreenKind -> ReportOpts -> String
+accountsScreenName kind ropts = case kind of
+  AllAccounts             -> "account " ++ if balanceaccum_ ropts == Historical then "balances" else "changes"
+  CashAccounts            -> "cash balances"
+  BalancesheetAccounts    -> "balance sheet balances"
+  IncomestatementAccounts -> "income statement changes"
 
 -- | Help draw any accounts-like screen (all accounts, balance sheet, income statement..).
 -- The provided ReportOpts are used instead of the ones in the UIState.
@@ -68,9 +76,8 @@ asDraw ui = dbgui "asDraw" $ asDrawHelper ui ropts' scrname
 asDrawHelper :: UIState -> ReportOpts -> String -> [Widget Name]
 asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
   dbgui "asDrawHelper" $
-  case toAccountsLikeScreen scr of
-    Nothing          -> dbgui "asDrawHelper" $ errorWrongScreenType "asDrawHelper"  -- PARTIAL:
-    Just (ALS _ ass) -> case mode of
+  case scr of
+    AS ass -> case mode of
       Help -> [helpDialog, maincontent]
       _    -> [maincontent]
       where
@@ -149,10 +156,10 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                   -- ,("t", str "tree")
                   -- ,("l", str "list")
                   ,("-+", str "depth")
-                  ,case scr of
-                    BS _ -> ("", str "")
-                    IS _ -> ("", str "")
-                    _    -> ("H", renderToggle (not ishistorical) "end-bals" "changes")
+                  ,case _assKind ass of
+                    BalancesheetAccounts    -> ("", str "")
+                    IncomestatementAccounts -> ("", str "")
+                    _                       -> ("H", renderToggle (not ishistorical) "end-bals" "changes")
                   ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
                   --,("/", "filter")
                   --,("DEL", "unfilter")
@@ -162,6 +169,7 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                   ,("?", str "help")
                   -- ,("q", str "quit")
                   ]
+    _ -> dbgui "asDrawHelper" $ errorWrongScreenType "asDrawHelper"  -- PARTIAL:
 
 asDrawItem :: (Int,Int) -> Bool -> AccountsScreenItem -> Widget Name
 asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
@@ -188,20 +196,20 @@ asHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
 asHandle ev = do
   dbguiEv "asHandle"
   ui0@UIState{aScreen=scr, aMode=mode} <- get'
-  case toAccountsLikeScreen scr of
-    Nothing -> dbgui "asHandle" $ errorWrongScreenType "asHandle"  -- PARTIAL:
-    Just als@(ALS scons ass) -> do
+  case scr of
+    AS ass -> do
       -- save the currently selected account, in case we leave this screen and lose the selection
-      put' ui0{aScreen=scons ass{_assSelectedAccount=asSelectedAccount ass}}
+      put' ui0{aScreen=AS ass{_assSelectedAccount=asSelectedAccount ass}}
       case mode of
-        Normal          -> asHandleNormalMode als ev
+        Normal          -> asHandleNormalMode ass ev
         Minibuffer _ ed -> handleMinibufferMode ed ev
         Help            -> handleHelpMode ev
+    _ -> dbgui "asHandle" $ errorWrongScreenType "asHandle"  -- PARTIAL:
 
 -- | Handle events when in normal mode on any accounts-like screen.
--- The provided AccountsLikeScreen should correspond to the ui state's current screen.
-asHandleNormalMode :: AccountsLikeScreen -> BrickEvent Name AppEvent -> EventM Name UIState ()
-asHandleNormalMode (ALS scons ass) ev = do
+-- The provided state should be the ui state's current screen.
+asHandleNormalMode :: AccountsScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+asHandleNormalMode ass ev = do
   dbguiEv "asHandleNormalMode"
 
   ui@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j} <- get'
@@ -255,11 +263,11 @@ asHandleNormalMode (ALS scons ass) ev = do
       let l'' = if isBlankItem (listSelectedElement l')
                 then listMoveTo lastnonblankidx l'
                 else l'
-      put' ui{aScreen=scons ass{_assList=l''}}
+      put' ui{aScreen=AS ass{_assList=l''}}
 
     VtyEvent (EvKey (KChar 'K') []) -> do
       let l' = listMoveBy (-10) l
-      put' ui{aScreen=scons ass{_assList=l'}}
+      put' ui{aScreen=AS ass{_assList=l'}}
 
     -- adjust the period displayed:
     VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)
@@ -305,7 +313,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     -- MouseDown: this is not debounced and can repeat (https://github.com/jtdaugherty/brick/issues/347)
     -- so we only let it do something harmless: move the selection.
     MouseDown _n BLeft _mods Location{loc=(_,y)} | not $ isBlankItem clickeditem ->
-      put' ui{aScreen=scons ass'}
+      put' ui{aScreen=AS ass'}
       where
         clickeditem = (0,) <$> listElements l !? y
         ass' = ass{_assList=listMoveTo y l}
@@ -314,7 +322,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
       let scrollamt = if btn==BScrollUp then -1 else 1
       l' <- nestEventM' l $ listScrollPushingSelection name (asListSize l) scrollamt
-      put' ui{aScreen=scons ass{_assList=l'}}
+      put' ui{aScreen=AS ass{_assList=l'}}
 
     -- PGDOWN/END keys: handle with List's default handler, but restrict the selection to stop
     -- (and center) at the last non-blank item.
@@ -324,9 +332,9 @@ asHandleNormalMode (ALS scons ass) ev = do
       then do
         let l2 = listMoveTo lastnonblankidx l1
         scrollSelectionToMiddle l2
-        put' ui{aScreen=scons ass{_assList=l2}}
+        put' ui{aScreen=AS ass{_assList=l2}}
       else
-        put' ui{aScreen=scons ass{_assList=l1}}
+        put' ui{aScreen=AS ass{_assList=l1}}
 
     -- DOWN key when selection is at the last item: scroll instead of moving, until maximally scrolled
     VtyEvent e | e `elem` moveDownEvents, isBlankItem mnextelement -> vScrollBy (viewportScroll $ l^.listNameL) 1
@@ -335,7 +343,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     -- Any other vty event (UP, DOWN, PGUP etc): handle with List's default handler.
     VtyEvent e -> do
       l' <- nestEventM' l $ handleListEvent (normaliseMovementKeys e)
-      put' ui{aScreen=scons $ ass & assList .~ l' & assSelectedAccount .~ selacct}
+      put' ui{aScreen=AS $ ass & assList .~ l' & assSelectedAccount .~ selacct}
 
     -- Any other mouse/app event: ignore
     MouseDown{} -> return ()
@@ -398,8 +406,6 @@ asSetSelectedAccount :: AccountName -> Screen -> Screen
 asSetSelectedAccount acct scr =
   case scr of
     (AS ass) -> AS $ assSetSelectedAccount acct ass
-    (BS ass) -> BS $ assSetSelectedAccount acct ass
-    (IS ass) -> IS $ assSetSelectedAccount acct ass
     _        -> scr
     where
       assSetSelectedAccount a ass@ASS{_assList=l} =
