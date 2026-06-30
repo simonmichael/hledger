@@ -1,7 +1,6 @@
-{-# LANGUAGE CPP #-}
-{- |
-Module      : Hledger.UI.Main
-Copyright   : (c) 2012-2015, 2017-2024 Simon Michael <simon@joyful.com>
+{-|
+hledger-ui - a hledger add-on providing an efficient TUI.
+
 SPDX-License-Identifier: GPL-3.0-or-later
 Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
 
@@ -46,15 +45,12 @@ import Lens.Micro ((^.))
 import System.Directory (canonicalizePath)
 import System.Environment (withProgName)
 import System.FilePath (takeDirectory)
-import Hledger.UI.UITypes
-import Hledger.UI.UIUtils
+import System.FSNotify (Event(Added, Modified), watchDir, withManager, EventIsDirectory (IsFile))
+import Brick
+import Brick.BChan qualified as BC
 
-#if !MIN_VERSION_base(4,11,0)
-import Control.Monad (when)
-#endif
-
-----------------------------------------------------------------------
-
+import Hledger
+import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
@@ -192,21 +188,21 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
                }
             }
       -- 1. start a file watcher thread, which will update the tvar when the file changes
-      -- 2. start a second thread which waits for changes in the tvar and calls nextEvent
+      -- -- 2. start a second thread which waits for changes in the tvar and calls nextEvent
       -- 3. continue with brick as before, but now also handling AppEvent's
-      withManagerConf watch $ \mgr -> do
+      withManagerConf watchConfig $ \mgr -> do
         -- 1
         -- We watch the journal's parent directory, not the journal file itself,
         -- because editors may write the file indirectly, causing the watch to be lost.
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
-        -- https://github.com/simonmichael/hledger/issues/1617
-        let dir = takeDirectory $ T.unpack $ fst $ listToEFM $ filepaths $ _jopts $ cliopts opts
-        -- debug1 "watching for changes to" dir
-        watchDir'
-          mgr
-          dir
-          (const True)  -- predicate: ignore all events, or: accept all events
+    -- The journal collapsed for display per the current lots toggle; the initial screens
+    -- are built from it, while uiState keeps the uncollapsed journal for the L toggle.
+    jdisplay = uiDisplayJournal uopts j
+
+    -- Choose the initial screen to display.
+    -- We also set up a stack of previous screens, as if you had navigated down to it from the top.
+    -- Note the previous screens list is ordered nearest-first, with the top-most (menu) screen last.
     -- Keep all of this synced with msNew.
     rawopts = rawopts_ $ uoCliOpts $ uopts
     (prevscrs, currscr) =
@@ -216,22 +212,14 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
         | boolopt "cash" rawopts -> ([msSetSelectedScreen csItemIndex menuscr], csacctsscr)
         | boolopt "bs"   rawopts -> ([msSetSelectedScreen bsItemIndex menuscr], bsacctsscr)
         -- 3
-        runBrick ui0
+        run runBrick ui0
 
--- | A file watcher configuration that avoids accumulating resources.
--- The default config may leak watch descriptors over time.
--- We use a 1-second debounce to coalesce rapid events and reduce churn.
-watch :: WatchConfig
-watch = WatchConfig
-  { confDebounce = Debounce 1
-  , confUsePolling = False
-  , confPollInterval = 1000000  -- 1 second, unused when polling is off
+-- | Configuration for the file watcher that helps avoid resource leaks.
+-- The default configuration may accumulate resources over time.
+watchConfig :: WatchConfig
+watchConfig = defaultConfig
+  { confDebounce = Debounce 1  -- 1 second debounce to coalesce rapid events
   }
-
--- | A wrapper around watchDir that ensures we don't accumulate threads.
--- The key issue is that fsnotify can leak OS resources if not configured properly.
-watchDir' :: WatchManager -> FilePath -> ActionPredicate -> EventCallback -> IO StopWatching
-watchDir' mgr dir pred cb = watchDir mgr dir pred cb
 
 -- | Run brick.
 runBrick :: UIState -> IO ()
