@@ -1876,3 +1876,6 @@ ai-ccusagej-update:
 @ai-aij-bal *BALARGS:
     just ai-aij bal -NTA --transpose --layout=bare {{ BALARGS }}
 
+# Show today's current ai usage, updating on request
+@ai-today:
+    while true; do read -p "press enter to recalculate.."; echo $(date): $(just ai-ccusagej-update && just ai-ccusagej bal date:today -N -X kt); done
