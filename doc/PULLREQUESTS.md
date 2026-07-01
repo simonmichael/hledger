@@ -27,8 +27,8 @@ Thanks for your understanding! Here are the current hledger PR guidelines:
 
 6. You must not use OpenAI's models (GPT series, o-series, etc).
 
-7. Otherwise, you can use AI assistance.
-   You must disclose the provider, model(s), and a rough estimate of output tokens used.
+7. Otherwise, you can use AI assistance. For any non-trivial use,
+   you must disclose the provider, model(s), and a rough estimate of output tokens used.
    Eg, in your main commit: "AI usage: Claude Opus 4.8, ~50k output tokens."
 
 8. Review your work before submitting it.
