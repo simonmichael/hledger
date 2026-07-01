@@ -25,7 +25,7 @@ Thanks for your understanding! Here are the current hledger PR guidelines:
 
 5. Code intended for the legacy hledger1 branch (hledger 1.x) must not use AI.
 
-6. You must not use OpenAI's models.
+6. You must not use OpenAI's models (GPT series, o-series, etc).
 
 7. Otherwise, you can use AI assistance.
    You must disclose the provider, model(s), and a rough estimate of output tokens used.
