@@ -112,9 +112,9 @@ jobs:
       run: |
         $stack build --test --only-dependencies --verbosity=error
 
-    # - name: List dep versions
-    #   run: |
-    #     $stack exec -- ghc-pkg list
+    - name: List dep versions
+      run: |
+        $stack exec -- ghc-pkg list
 
     - name: Build hledger and test unit tests, doc tests
       run: |
