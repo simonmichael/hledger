@@ -5,7 +5,7 @@ Last updated: 2026-07
 ## Guidelines
 
 <!-- keep synced -->
-<https://github.com/simonmichael/hledger/blob/main/.github/pull_request_template.md>:
+From <https://github.com/simonmichael/hledger/blob/main/.github/pull_request_template.md?plain=1>:
 
 We welcome help, but we must also balance the cost and benefit of pull requests,
 especially AI-generated PRs, with available maintainer/reviewer time, and with our AI policy.
