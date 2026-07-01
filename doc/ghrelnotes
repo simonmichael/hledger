@@ -36,10 +36,9 @@ Or you can build it from source yourself.
 Or you can install up to date binaries from this page, by following the appropriate instructions below.
 If you find problems with these instructions, please [let us know](https://hledger.org/support).
 
-<!--
 Updates to binaries:
-- 2026-01-12: Fixed the hledger-linux-x64.tar.gz asset below, it previously contained a dev build. [#2526](https://github.com/simonmichael/hledger/issues/2526)
--->
+- 2026-07-01: Updated the hledger-windows-x64.zip asset to 1a8fc8921 ensuring haskeline 0.8.4.1,
+  fixing [#2410](https://github.com/simonmichael/hledger/issues/2410).
 
 <xdetails>
 <summary>
