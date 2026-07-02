@@ -60,9 +60,7 @@ import Data.Csv.Parser.Megaparsec qualified as CassavaMegaparsec
 import Data.Encoding (encodingFromStringExplicit, DynEncoding)
 import Data.Either (fromRight)
 import Data.Functor ((<&>))
-import Data.List (elemIndex, mapAccumL, nub, sortOn)
--- import Data.List (elemIndex, mapAccumL, nub, sortOn, isPrefixOf, sortBy)
--- import Data.Ord (Down(..), comparing)
+import Data.List (elemIndex, mapAccumL, nub, sortOn, isInfixOf, isPrefixOf)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -76,8 +74,7 @@ import Data.Text.IO qualified as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
 import Safe (atMay, headDef, headMay, lastMay, readMay)
-import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, removeFile)
--- import System.Directory (createDirectoryIfMissing, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, renameFile, doesDirectoryExist)
+import System.Directory (createDirectoryIfMissing, doesDirectoryExist, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, removeFile)
 import System.Exit      (ExitCode(..))
 import System.FilePath (isAbsolute, splitDirectories, stripExtension, takeBaseName, takeDirectory, takeExtension, (<.>), (</>))
 import System.IO       (Handle, hClose, hPutStrLn, stderr, hGetContents')
@@ -90,7 +87,6 @@ import Text.Printf (printf)
 import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp )
-import Hledger.Read.LatestDates (previousLatestDates, journalFilterSinceLatestDates)
 import Hledger.Write.Csv
 
 --- ** doctest setup
@@ -287,18 +283,22 @@ parse iopts rulesfile h = do
         . journalReverse
     >>= journalFinalise iopts{balancingopts_=(balancingopts_ iopts){ignore_assertions_=True}} rulesfile ""
 
-  -- 7. if non-empty, successfully read and converted, and we're doing a non-dry-run archiving import: archive the data
-  --  needs: import/archive/dryrun flags, rules directory, rules file, data file if any, clean data
-
-  -- Skip archiving if there is no new content to import (per the .latest file
-  -- recorded next to the rules file by previous imports). Otherwise this would
-  -- archive the same data on every run, especially in the data-generating-command
-  -- form of source where there is no input file to consume.
-  when (not (T.null cleandata) && import_ && archive && not dryrun) $ do
-    prevds <- liftIO $ previousLatestDates rulesfile
-    let (newj, _) = journalFilterSinceLatestDates prevds j
-    when (not (null (jtxns newj))) $
-      liftIO $ saveToArchive (datadir </> "archive") rulesfile mdatafile cleandata
+  -- 7. if non-empty, successfully read and converted, and we're doing a non-dry-run
+  --  archiving import: archive the data, then consume the source file.
+  --  needs: import/archive/dryrun flags, data dir, rules file, data file if any, clean data
+  when (not (T.null cleandata) && import_ && archive && not dryrun) $ liftIO $ do
+    let archivedir = datadir </> "archive"
+    -- Archive a copy of the data, unless the most recent archive already holds exactly
+    -- this data. That happens when re-running a data-generating command that produces
+    -- the same output, or processing a duplicate of an already-archived file; archiving
+    -- it again would just accumulate identical copies.
+    mprevarchive <- latestArchive archivedir rulesfile >>= maybe (return Nothing) (fmap Just . T.readFile)
+    when (mprevarchive /= Just cleandata) $
+      saveToArchive archivedir rulesfile mdatafile cleandata
+    -- Now that the data is safely archived (or was already), remove the original source
+    -- data file if any. This only runs if the archiving above did not raise an error,
+    -- and lets a later run advance to the next (newer) glob-matched file.
+    maybe (return ()) removeFile mdatafile
 
   return j
 
@@ -355,6 +355,7 @@ type DirPath = FilePath
 -- The archive file name will be RULESFILEBASENAME.DATAFILEMODDATEORCURRENTDATE.DATAFILEEXTORCSV.
 -- Note for a data generating command, where there's no data file, we use the current date
 -- and a .csv file extension (meaning "character-separated values" in this case).
+-- This does not remove the source data file; the caller does that once archiving has succeeded.
 saveToArchive :: DirPath -> FilePath -> Maybe FilePath -> Text -> IO ()
 saveToArchive archivedir rulesfile mdatafile cleandata = do
   createDirectoryIfMissing True archivedir
@@ -362,7 +363,22 @@ saveToArchive archivedir rulesfile mdatafile cleandata = do
   let cleanarchive = archivedir </> cleanname
   hPutStrLn stderr $ "archiving " <> cleanarchive
   T.writeFile cleanarchive cleandata
-  maybe (return ()) removeFile mdatafile
+
+-- | In the given archive directory, if it exists, find the most recently modified
+-- data file archived there for the given rules file, if any.
+--
+-- We don't know which extension the archived data files use, but they are named beginning
+-- with the rules file's base name followed by a dot (see 'archiveFileName'), which is normally
+-- good enough. Any ".orig." originals are ignored, so this returns a cleaned/generated copy.
+latestArchive :: DirPath -> FilePath -> IO (Maybe FilePath)
+latestArchive archivedir rulesfile = do
+  exists <- doesDirectoryExist archivedir
+  if not exists then return Nothing
+  else do
+    let prefix = takeBaseName rulesfile <> "."
+    fs <- listDirectory archivedir
+    let archives = [archivedir </> f | f <- fs, prefix `isPrefixOf` f, not (".orig." `isInfixOf` f)]
+    lastMay <$> sortByModTime archives
 
 -- | Figure out the file names to use when archiving, for the given rules file and the given data file if any.
 -- The second name is for the final (possibly cleaned) data; the first name has ".orig" added,
@@ -386,26 +402,6 @@ archiveFileName rulesfile mdatafile = do
          base <.> "orig" <.> curdate <.> ext
         ,base            <.> curdate <.> ext
         )
-
--- -- | In the given archive directory, if it exists, find the paths of data files saved for the given rules file.
--- -- They will be reverse sorted by name, ie newest first, assuming normal archive file names.
--- --
--- -- We don't know which extension the data files use, but we look for file names beginning with
--- -- the rules file's base name followed by .YYYY-MM-DD, which will normally be good enough.
--- --
--- archivesFor :: FilePath -> FilePath -> IO [FilePath]
--- archivesFor archivedir rulesfile = do
---   exists <- doesDirectoryExist archivedir
---   if not exists then return []
---   else do
---     let prefix = takeBaseName rulesfile <> "."
---     fs <- listDirectory archivedir
---     return $ map (archivedir </>) $ sortBy (comparing Down)
---       [f | f <- fs,
---         prefix `isPrefixOf` f,
---         let nextpart = takeWhile (/= '.') $ drop (length prefix) f,
---         isJust $ parsedate nextpart
---         ]
 
 --- ** reading rules files
 --- *** rules utilities

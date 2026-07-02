@@ -3578,7 +3578,7 @@ will archive each successfully processed data file or data command output in an 
 of the `data/` directory next to the main journal file.
 The archive file name will be based on the rules file and the data file's modification date and extension
 (or for a data-generating command, the current date and the ".csv" extension).
-The original data file, if any, will be removed.
+The original data file, once archived, will be removed.
 
 Also, in this mode `import` will prefer the oldest file matched by the `source` rule's glob pattern, not the newest.
 (So if there are multiple downloads, they will be imported and archived oldest first.)
