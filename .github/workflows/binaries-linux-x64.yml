@@ -20,7 +20,7 @@ jobs:
     steps:
 
     - name: Check out
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       # have to fetch everything for git describe for --version
       with:
         fetch-depth: 0  
@@ -33,7 +33,7 @@ jobs:
 
     - name: Cache - ~/.ghcup
       id:   ghcup
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ghcup
         key: ${{ runner.os }}-x64-ghcup-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
@@ -42,7 +42,7 @@ jobs:
 
     - name: Cache - ~/.cabal/store
       id:   cabal-store
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.cabal/store
         key: ${{ runner.os }}-x64-cabal-store-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
@@ -51,7 +51,7 @@ jobs:
 
     - name: Cache - ~/.cabal (excluding store)
       id:   cabal-config
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: |
           ~/.cabal
@@ -61,7 +61,7 @@ jobs:
              ${{ runner.os }}-x64-cabal-config-${{ env.ghcid }}
 
     - name: Cache - dist-newstyle
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: dist-newstyle
         key: ${{ runner.os }}-x64-dist-newstyle-${{ env.ghcid }}-${{ hashFiles('**/*.cabal', 'cabal.project*') }}
@@ -134,7 +134,7 @@ jobs:
     # https://github.com/actions/upload-artifact?tab=readme-ov-file#limitations
     # In release workflows, we repack these using the platform's native compression scheme.
     - name: Upload binaries
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: hledger-linux-x64
         path: tmp/hledger-linux-x64.tar

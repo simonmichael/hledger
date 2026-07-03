@@ -26,7 +26,7 @@ jobs:
         uname -a
 
     - name: Check out
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       # have to fetch everything for git describe for --version
       with: 
         fetch-depth: 0        
@@ -39,7 +39,7 @@ jobs:
 
     - name: Cache - stack-installed ~/.local/bin
       id:   stack-programs
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.local/bin
         key: ${{ runner.os }}-x64-stack-programs-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
@@ -48,7 +48,7 @@ jobs:
 
     - name: Cache - ~/.stack
       id:   stack-global
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.stack
         key: ${{ runner.os }}-x64-stack-global-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
@@ -56,7 +56,7 @@ jobs:
              ${{ runner.os }}-x64-stack-global-${{ env.ghcid }}
 
     - name: Cache - ./.stack-work
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: .stack-work
         key: ${{ runner.os }}-x64-stack-work-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
@@ -64,7 +64,7 @@ jobs:
              ${{ runner.os }}-x64-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-lib/.stack-work
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: hledger-lib/.stack-work
         key: ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-lib/package.yaml') }}
@@ -72,7 +72,7 @@ jobs:
              ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger/.stack-work
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: hledger/.stack-work
         key: ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger/package.yaml') }}
@@ -80,7 +80,7 @@ jobs:
              ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-ui/.stack-work
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: hledger-ui/.stack-work
         key: ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-ui/package.yaml') }}
@@ -88,7 +88,7 @@ jobs:
              ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-web/.stack-work
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: hledger-web/.stack-work
         key: ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-web/package.yaml') }}
@@ -162,7 +162,7 @@ jobs:
     # https://github.com/actions/upload-artifact?tab=readme-ov-file#limitations
     # In release workflows, we repack these using the platform's native compression scheme.
     - name: Upload binaries artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: hledger-mac-x64
         path: tmp/hledger-mac-x64.tar

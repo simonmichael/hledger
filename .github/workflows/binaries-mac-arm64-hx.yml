@@ -26,7 +26,7 @@ jobs:
         uname -a
 
     - name: Check out
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       # have to fetch everything for git describe for --version
       with:
         fetch-depth: 0
@@ -36,13 +36,13 @@ jobs:
         tools/checkembeddedfiles
 
     - name: Cache - hx toolchains (GHC bindist)
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.hx
         key: ${{ runner.os }}-arm64-hx-toolchain-${{ env.ghc }}
 
     - name: Cache - hx compiled dependency store
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/Library/Caches/io.raskell.hx
         key: ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
@@ -50,15 +50,23 @@ jobs:
              ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-
 
     - name: Cache - hx index and solver
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.cache/hx
         key: ${{ runner.os }}-arm64-hx-index-${{ hashFiles('hx.lock') }}
         restore-keys: |
              ${{ runner.os }}-arm64-hx-index-
 
+    - name: Cache - cabal Hackage index (used by the system cabal)
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/cabal
+        key: ${{ runner.os }}-arm64-cabal-index-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-arm64-cabal-index-
+
     - name: Cache - project build (.hx/cabal/dist-newstyle)
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: .hx/cabal/dist-newstyle
         key: ${{ runner.os }}-arm64-hx-dist-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
@@ -85,6 +93,9 @@ jobs:
       run: |
         hx toolchain install --set "$ghc"
         brew install cabal-install
+        # the system cabal has no Hackage index (hx's own ~/.cache/hx index isn't used by it),
+        # so download it, else dependency resolution fails with "unknown package".
+        cabal update
         hx toolchain status || true   # informational; hx build is the real check
 
     - name: List dependencies
@@ -145,7 +156,7 @@ jobs:
 
     # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
     - name: Upload binaries artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: hledger-mac-arm64-hx
         path: tmp/hledger-mac-arm64.tar
