@@ -17,6 +17,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}   # lets `gh release download` authenticate & dodge rate limits
       HX_AUTO_INSTALL: "true"         # install missing GHC toolchain without prompting (hx wants true/false, not 1)
       ghc: "9.14.1"                     # matches hx.toml [toolchain] ghc / stack.yaml compiler
+      cabal: "3.16.1.0"               # cabal-install version to fetch (official self-contained binary)
 
     steps:
 
@@ -65,6 +66,12 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-arm64-cabal-index-
 
+    - name: Cache - cabal binary
+      uses: actions/cache@v6
+      with:
+        path: ~/.local/bin/cabal
+        key: ${{ runner.os }}-arm64-cabal-bin-${{ env.cabal }}
+
     - name: Cache - project build (.hx/cabal/dist-newstyle)
       uses: actions/cache@v6
       with:
@@ -82,8 +89,7 @@ jobs:
       run: |
         # download the latest mac arm64 release asset (a bare `hx` binary in a tarball)
         mkdir -p /tmp/hxdl
-        gh release download --repo arcanist-sh/hx \
-          --pattern '*aarch64-apple-darwin.tar.gz' --dir /tmp/hxdl --clobber
+        gh release download --repo arcanist-sh/hx --pattern '*aarch64-apple-darwin.tar.gz' --dir /tmp/hxdl --clobber
         tar xzf /tmp/hxdl/*aarch64-apple-darwin.tar.gz -C /tmp/hxdl
         install -m 755 "$(find /tmp/hxdl -type f -name hx | head -1)" "$HOME/.local/bin/hx"
         hx --version
@@ -92,9 +98,20 @@ jobs:
     - name: Install GHC and cabal
       run: |
         hx toolchain install --set "$ghc"
-        brew install cabal-install
+        # hx can't install cabal without ghcup, so fetch the official cabal into
+        # ~/.local/bin - unless it's already there (restored from the cabal-binary cache).
+        # (The official cabal binary is self-contained and easier to cache than homebrew's binary.)
+        if ! command -v cabal >/dev/null; then
+          mkdir -p /tmp/cabaldl
+          curl -fsSL "https://downloads.haskell.org/cabal/cabal-install-$cabal/cabal-install-$cabal-aarch64-darwin.tar.xz" -o /tmp/cabaldl/cabal.tar.xz
+          tar xJf /tmp/cabaldl/cabal.tar.xz -C /tmp/cabaldl
+          install -m 755 "$(find /tmp/cabaldl -type f -name cabal | head -1)" "$HOME/.local/bin/cabal"
+        fi
+        cabal --version
         # the system cabal has no Hackage index (hx's own ~/.cache/hx index isn't used by it),
         # so download it, else dependency resolution fails with "unknown package".
+        # This should not be github-cached: it's incremental/cheap when cabal's ~/.cache/cabal is warm,
+        # and we want it to be fresh in case hx needs to find some newer dep.
         cabal update
         hx toolchain status || true   # informational; hx build is the real check
 
