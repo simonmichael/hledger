@@ -9,13 +9,12 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
-      # arch:  arm64
-      # image: https://github.com/actions/runner-images/blob/main/images/macos/macos-14-Readme.md
+    runs-on: macos-26
+      # https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
 
     env:
       stack: stack
-      ghcid: 9.12.2
+      ghcid: 9.14
 
     steps:
 
