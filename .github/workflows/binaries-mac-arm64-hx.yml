@@ -1,0 +1,151 @@
+# TRIGGER: Runs on any push to binaries-mac-arm64-hx or binaries branches.
+# ACTION: Builds, tests and saves mac arm64 dynamic binaries with hx,
+# using the ghc configured in hx.toml and the deps saved in hx.lock.
+
+name: binaries-mac-arm64-hx
+on:
+  push:
+    branches: [ binaries-mac-arm64-hx, binaries ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-26
+    # https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
+
+    env:
+      GH_TOKEN: ${{ github.token }}   # lets `gh release download` authenticate & dodge rate limits
+      HX_AUTO_INSTALL: "true"         # install missing GHC toolchain without prompting (hx wants true/false, not 1)
+      ghc: "9.14.1"                     # matches hx.toml [toolchain] ghc / stack.yaml compiler
+
+    steps:
+
+    - name: Show platform info
+      run: |
+        arch
+        uname -a
+
+    - name: Check out
+      uses: actions/checkout@v4
+      # have to fetch everything for git describe for --version
+      with:
+        fetch-depth: 0
+
+    - name: Check embedded files
+      run: |
+        tools/checkembeddedfiles
+
+    - name: Cache - hx toolchains (GHC bindist)
+      uses: actions/cache@v4
+      with:
+        path: ~/.hx
+        key: ${{ runner.os }}-arm64-hx-toolchain-${{ env.ghc }}
+
+    - name: Cache - hx compiled dependency store
+      uses: actions/cache@v4
+      with:
+        path: ~/Library/Caches/io.raskell.hx
+        key: ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-
+
+    - name: Cache - hx index and solver
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/hx
+        key: ${{ runner.os }}-arm64-hx-index-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-arm64-hx-index-
+
+    - name: Cache - project build (.hx/cabal/dist-newstyle)
+      uses: actions/cache@v4
+      with:
+        path: .hx/cabal/dist-newstyle
+        key: ${{ runner.os }}-arm64-hx-dist-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-arm64-hx-dist-${{ env.ghc }}-
+
+    - name: Ensure ~/.local/bin exists and is in PATH
+      run: |
+        mkdir -p "$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install hx (latest release)
+      run: |
+        # download the latest mac arm64 release asset (a bare `hx` binary in a tarball)
+        mkdir -p /tmp/hxdl
+        gh release download --repo arcanist-sh/hx \
+          --pattern '*aarch64-apple-darwin.tar.gz' --dir /tmp/hxdl --clobber
+        tar xzf /tmp/hxdl/*aarch64-apple-darwin.tar.gz -C /tmp/hxdl
+        install -m 755 "$(find /tmp/hxdl -type f -name hx | head -1)" "$HOME/.local/bin/hx"
+        hx --version
+        hx doctor || true
+
+    - name: Install GHC and cabal
+      run: |
+        hx toolchain install --set "$ghc"
+        brew install cabal-install
+        hx toolchain status || true   # informational; hx build is the real check
+
+    - name: List dependencies
+      run: |
+        hx list
+
+    - name: Build hledger (release) and run unit + doc tests
+      run: |
+        hx build --release
+        hx test
+
+    - name: Collect built binaries onto PATH
+      run: |
+        # hx builds via cabal into .hx/cabal/dist-newstyle; layout:
+        #   .hx/cabal/dist-newstyle/build/<arch>/ghc-<ver>/<pkg>-<ver>/x/<exe>/build/<exe>/<exe>
+        for exe in hledger hledger-ui hledger-web; do
+          bin=$(find .hx/cabal/dist-newstyle -type f -name "$exe" -path "*/x/$exe/build/$exe/$exe" | head -1)
+          echo "$exe -> $bin"
+          cp "$bin" "$HOME/.local/bin/$exe"
+        done
+        hledger --version
+
+    - name: Install shelltestrunner
+      run: |
+        brew install shelltestrunner
+        shelltest --version
+
+    - name: Test functional tests (excluding addons)
+      run: |
+        COLUMNS=80 shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
+
+    - name: Test haddock generation
+      run: |
+        hx docs
+
+    # artifacts:
+
+    - name: Gather binaries
+      run: |
+        mkdir tmp
+        cp ~/.local/bin/hledger tmp
+        cp ~/.local/bin/hledger-ui tmp
+        cp ~/.local/bin/hledger-web tmp
+        cp hledger/embeddedfiles/*.1 tmp
+        cp hledger/embeddedfiles/*.info tmp
+        cp hledger/shell-completion/hledger-completion.bash tmp
+        strip tmp/hledger
+        strip tmp/hledger-ui
+        strip tmp/hledger-web
+        cd tmp
+        gtar cvf hledger-mac-arm64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
+        otool -L hledger
+        otool -L hledger-ui
+        otool -L hledger-web
+        ./hledger --version
+        ./hledger-ui --version
+        ./hledger-web --version
+
+    # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
+    - name: Upload binaries artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: hledger-mac-arm64-hx
+        path: tmp/hledger-mac-arm64.tar
