@@ -1,0 +1,13 @@
+# for experimental build tool https://github.com/arcanist-sh/hx
+
+[project]
+name = "hledger"
+
+[toolchain]
+ghc = "9.14"
+
+[dependencies]
+aeson = "2.3.0.0"
+text-iso8601 = "0.2.0.0"
+haskeline = "0.8.4.1"
+yesod-core = "1.7.0.0"
