@@ -436,10 +436,12 @@ amountWizard previnput@PrevInput{..} state@AddState{..} = do
       -- Note, apply the journal's commodity display styles so default
       -- inputs match the journal's format even when summing amounts
       -- that were entered with different or missing styles (#2645).
-      -- NoRounding preserves the NaturalPrecision we set, so all
-      -- significant digits are shown.
+      -- displayForceDecimalMark ensures that if there are digit group marks,
+      -- a decimal mark will also be shown to avoid ambiguity and misparsing (#2656).
+      -- will be shown if needed to avoid ambiguity with a digit group mark
+      -- NoRounding ensures all significant digits are shown.
       showamt = wbUnpack
-              . showMixedAmountB defaultFmt
+              . showMixedAmountB defaultFmt{displayForceDecimalMark=True}
               . styleAmounts (journalCommodityStylesWith NoRounding asJournal)
               . mixedAmountSetPrecision
                   -- what should this be ?

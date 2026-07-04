@@ -300,6 +300,17 @@ $  printf '' >t$$.j; hledger -f t$$.j add 2026-01-01 --layout=hledger1 >/dev/nul
     b            -100
 >=
 
+# ** 22. Default amounts offered for completion have an unambiguous decimal mark,
+# so that they will be reparsed correctly. Eg if the default amount contains digit group marks,
+# a decimal mark is always shown. [#2645]
+<
+
+Gehalt
+
+$  printf '2026-07-02 Gehalt\n    assets:Sparkasse:Giro  -1.000,\n    expenses:HinzKunz  1.000,\n' >t$$.j; hledger -f t$$.j add; rm -f t$$.j
+> /Amount  1 \[-1\.000,\]/
+>2 //
+
 # ** . shouldn't add decimals if there aren't any
 # printf '\n\na\n1\nb\n' | hledger -f /dev/null add
 # <
