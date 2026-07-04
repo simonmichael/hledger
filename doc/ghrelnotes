@@ -70,12 +70,20 @@ Otherwise:
 <xdetails>
 <summary>
 
-### GNU/Linux, 64-bit Intel
+### GNU/Linux, 64-bit ARM or Intel
 
 </summary>
 
 At the command line:
 
+On ARM linux:
+```
+curl -fLOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-arm64.tar.gz | tar -xzv -f- -C/usr/local/bin hledger hledger-ui hledger-web
+hledger --version; hledger-ui --version; hledger-web --version    # should show $REL
+```
+(This binary is dynamically linked, unfortunately, so it won't work on all systems.)
+
+On Intel linux:
 ```
 curl -fLOC- https://github.com/simonmichael/hledger/releases/download/$REL/hledger-linux-x64.tar.gz | tar -xzv -f- -C/usr/local/bin hledger hledger-ui hledger-web
 hledger --version; hledger-ui --version; hledger-web --version    # should show $REL
@@ -132,6 +140,8 @@ This will allow you to start hledger-web by double-clicking on its icon if you w
 out-file -append -encoding ascii $HOME/.hledger.journal
 ```
 -->
+
+(ARM Windows will run the Intel binary by emulation.)
 
 </xdetails>
 <xdetails>
