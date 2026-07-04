@@ -1,0 +1,215 @@
+# TRIGGER: Runs on any push to binaries-linux-arm64-static-hx or binaries branches.
+# ACTION: Builds and saves linux arm64 static binaries with hx, in an Alpine (musl) container.
+#
+# EXPERIMENTAL - even more so than the x64 static build, because aarch64 lacks some musl prebuilts.
+# arm64-specific unknowns, on top of the shared static-linking assumptions (2/3):
+#   0a. hx ships no aarch64 musl binary (only aarch64-unknown-linux-gnu, a glibc build), so we run it
+#       in Alpine via gcompat (musl's glibc-compat shim). If gcompat can't run hx, this build can't work
+#       as-is (would need a musl hx binary, or building hx from source).
+#   0b. there is no aarch64 Alpine cabal bindist to download, so cabal is installed via ghcup (musl-aware).
+#   1.  GHC is installed via ghcup, which must provide an aarch64 musl (Alpine) GHC for this version.
+#   2.  hx passes hx.toml [build] ghc_flags through to cabal/ghc (needed for -optl-static).
+#   3.  -optl-static (+ the alpine *-static libs) is sufficient; the stack/cabal workflow instead
+#       uses cabal's --enable-executable-static, which hx build does not expose.
+
+name: binaries-linux-arm64-static-hx
+on:
+  push:
+    branches: [ binaries-linux-arm64-static-hx, binaries ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04-arm
+    container: alpine:latest   # provides musl, the statically-linkable libc
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      GH_TOKEN: ${{ github.token }}   # lets `gh release download` authenticate & dodge rate limits
+      HX_AUTO_INSTALL: "true"         # install missing GHC toolchain without prompting (hx wants true/false, not 1)
+      ghc: "9.14.1"                   # matches hx.toml [toolchain] ghc / stack.yaml compiler
+      cabal: "3.16.1.0"               # cabal-install version (installed via ghcup; no aarch64 Alpine bindist to curl)
+      hxasset: "aarch64-unknown-linux-gnu.tar.gz"   # hx ships no aarch64 musl build; this glibc one runs via gcompat
+
+    steps:
+
+    - name: Show platform info
+      # bash isn't in the Alpine container yet (the next step installs it), so use busybox sh
+      shell: sh
+      run: |
+        arch
+        uname -a
+
+    - name: Install system build deps (incl. static libs)
+      # still before bash exists, so run under sh. Installs bash (for later steps), nodejs
+      # (Alpine is musl; the JS actions below - checkout/cache/upload - need a musl-compatible node),
+      # github-cli (Alpine has no preinstalled gh; the "Install hx" step uses `gh release download`),
+      # and gcompat (glibc-compat shim so the glibc-only aarch64 hx binary can run).
+      shell: sh
+      run: |
+        apk --no-cache add \
+          bash nodejs github-cli gcompat ca-certificates curl xz tar git make perl file findutils \
+          gcc g++ binutils-gold \
+          gmp-dev gmp-static libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static
+
+    - name: Check out
+      uses: actions/checkout@v7
+      # have to fetch everything for git describe for --version
+      with:
+        fetch-depth: 0
+
+    - name: Check embedded files
+      run: |
+        tools/checkembeddedfiles
+
+    - name: Enable static linking in hx.toml (working copy only)
+      run: |
+        # Add static linker flags under [build]. This mutates the checked-out hx.toml only (disposable in CI),
+        # so the shared config used by the dynamic builds is unaffected.
+        # ASSUMPTION 2/3: hx forwards [build] ghc_flags to cabal, and -optl-static links statically.
+        sed -i '/^\[build\]/a ghc_flags = ["-optl-static", "-optl-pthread"]' hx.toml
+        cat hx.toml
+
+    - name: Cache - hx toolchains (GHC bindist)
+      uses: actions/cache@v6
+      with:
+        # ~/.ghcup too: GHC and cabal are both installed via ghcup here (no direct-download musl builds
+        # for aarch64), so they land in ~/.ghcup.
+        path: |
+          ~/.hx
+          ~/.ghcup
+        key: ${{ runner.os }}-arm64-static-hx-toolchain-${{ env.ghc }}
+
+    - name: Cache - hx compiled dependency store
+      uses: actions/cache@v6
+      with:
+        # hx's compiled-dep store on linux is ~/.cache/hx: the `directories` crate uses the bare app
+        # name under XDG, unlike macos which uses the reverse-DNS io.raskell.hx.
+        path: ~/.cache/hx
+        key: ${{ runner.os }}-arm64-static-hx-store-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-arm64-static-hx-store-${{ env.ghc }}-
+
+    - name: Cache - cabal Hackage index (used by the system cabal)
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/cabal
+        key: ${{ runner.os }}-arm64-static-cabal-index-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-arm64-static-cabal-index-
+
+    # NB: the project build (.hx/cabal/dist-newstyle) is deliberately NOT cached (stale --version commit otherwise).
+    # cabal itself is not cached separately here (unlike x64-static): it comes from ghcup, cached under ~/.ghcup above.
+
+    - name: Ensure ~/.local/bin exists and is in PATH
+      run: |
+        mkdir -p "$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install hx (latest release)
+      run: |
+        mkdir -p /tmp/hxdl
+        gh release download --repo arcanist-sh/hx --pattern "*$hxasset" --dir /tmp/hxdl --clobber
+        tar xzf /tmp/hxdl/*"$hxasset" -C /tmp/hxdl
+        install -m 755 "$(find /tmp/hxdl -type f -name hx | head -1)" "$HOME/.local/bin/hx"
+        # ASSUMPTION 0a: hx is a glibc build; this exercises it under gcompat and fails clearly if unsupported
+        hx --version
+        hx doctor || true
+
+    - name: Install ghcup (provides the musl GHC/cabal in Alpine)
+      run: |
+        # No aarch64 musl builds of GHC/cabal to direct-download here, so install ghcup and let it (and hx)
+        # provide musl-compatible toolchain components. ghcup itself ships a native aarch64 musl binary.
+        if ! command -v ghcup >/dev/null; then
+          curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | \
+            BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_MINIMAL=1 sh
+          echo "$HOME/.ghcup/bin" >> "$GITHUB_PATH"
+        fi
+        "$HOME/.ghcup/bin/ghcup" --version
+
+    - name: Install GHC and cabal
+      run: |
+        hx toolchain install --set "$ghc"     # delegates to ghcup for the aarch64 musl GHC
+        # cabal: no aarch64 Alpine bindist to curl, so install it via ghcup (musl-aware) too
+        command -v cabal >/dev/null || ghcup install cabal --set "$cabal"
+        cabal --version
+        cabal update
+        hx toolchain status || true
+
+    - name: Debug - confirm the installed GHC runs under Alpine musl (temporary; ASSUMPTION 1)
+      run: |
+        # a glibc GHC won't run in Alpine (musl) and would otherwise fail cryptically during `hx build`.
+        # Surface it here with a clear signal.
+        ghc=$(find "$HOME/.hx" "$HOME/.ghcup" -type f -name ghc 2>/dev/null | head -1)
+        echo "ghc: ${ghc:-<none found under ~/.hx or ~/.ghcup>}"
+        if [ -n "$ghc" ]; then
+          file "$ghc" || true
+          "$ghc" --version || echo ">>> GHC failed to run - incompatible with Alpine musl (ASSUMPTION 1 broken)"
+        else
+          find "$HOME/.hx" "$HOME/.ghcup" -maxdepth 4 -name 'ghc*' 2>/dev/null | head -20
+        fi
+
+    - name: List dependencies
+      run: |
+        hx list
+
+    - name: Build hledger
+      #and run unit + doc tests
+      run: |
+        hx build
+        # hx test
+
+    - name: Collect built binaries onto PATH
+      run: |
+        for exe in hledger hledger-ui hledger-web; do
+          bin=$(find .hx/cabal/dist-newstyle -type f -name "$exe" -path "*/x/$exe/*build/$exe/$exe" | head -1)
+          if [[ -z "$bin" ]]; then
+            echo "ERROR: $exe executable not found under .hx/cabal/dist-newstyle" >&2
+            find .hx/cabal/dist-newstyle -type f -name "$exe" >&2 || true
+            exit 1
+          fi
+          echo "$exe -> $bin"
+          cp "$bin" "$HOME/.local/bin/$exe"
+        done
+        hledger --version
+
+    - name: Install shelltestrunner
+      run: |
+        command -v shelltest >/dev/null || cabal install --overwrite-policy=always shelltestrunner-1.11
+        shelltest --version
+
+    - name: Test functional tests (excluding addons)
+      run: |
+        COLUMNS=80 shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
+
+    # artifacts:
+
+    - name: Gather binaries
+      run: |
+        mkdir tmp
+        cp ~/.local/bin/hledger tmp
+        cp ~/.local/bin/hledger-ui tmp
+        cp ~/.local/bin/hledger-web tmp
+        cp hledger/embeddedfiles/*.1 tmp
+        cp hledger/embeddedfiles/*.info tmp
+        cp hledger/shell-completion/hledger-completion.bash tmp
+        strip tmp/hledger
+        strip tmp/hledger-ui
+        strip tmp/hledger-web
+        cd tmp
+        tar cvf hledger-linux-arm64-static.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
+        for exe in hledger hledger-ui hledger-web; do
+          file "$exe"
+          if ldd "$exe" 2>&1 | grep -qi "not.*dynamic"; then echo "$exe: statically linked"; else echo "$exe dependencies:"; ldd "$exe"; fi
+          "./$exe" --version
+        done
+
+    # upload-artifact loses execute permissions, so we tar the binaries to preserve them.
+    - name: Upload binaries artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: hledger-linux-arm64-static
+        path: tmp/hledger-linux-arm64-static.tar
