@@ -16,7 +16,7 @@ jobs:
     env:
       GH_TOKEN: ${{ github.token }}   # lets `gh release download` authenticate & dodge rate limits
       HX_AUTO_INSTALL: "true"         # install missing GHC toolchain without prompting (hx wants true/false, not 1)
-      ghc: "9.14.1"                     # matches hx.toml [toolchain] ghc / stack.yaml compiler
+      ghc: "9.14.1"                   # matches hx.toml [toolchain] ghc / stack.yaml compiler
       cabal: "3.16.1.0"               # cabal-install version to fetch (official self-contained binary)
 
     steps:
@@ -76,7 +76,6 @@ jobs:
 
     - name: Install hx (latest release)
       run: |
-        # download the latest mac arm64 release asset (a bare `hx` binary in a tarball)
         mkdir -p /tmp/hxdl
         gh release download --repo arcanist-sh/hx --pattern '*aarch64-apple-darwin.tar.gz' --dir /tmp/hxdl --clobber
         tar xzf /tmp/hxdl/*aarch64-apple-darwin.tar.gz -C /tmp/hxdl
@@ -87,9 +86,7 @@ jobs:
     - name: Install GHC and cabal
       run: |
         hx toolchain install --set "$ghc"
-        # hx can't install cabal without ghcup, so fetch the official cabal into
-        # ~/.local/bin - unless it's already there (restored from the cabal-binary cache).
-        # (The official cabal binary is self-contained and easier to cache than homebrew's binary.)
+        # The official cabal binary is self-contained and easier to cache than homebrew's binary.
         if ! command -v cabal >/dev/null; then
           mkdir -p /tmp/cabaldl
           curl -fsSL "https://downloads.haskell.org/cabal/cabal-install-$cabal/cabal-install-$cabal-aarch64-darwin.tar.xz" -o /tmp/cabaldl/cabal.tar.xz
@@ -102,14 +99,14 @@ jobs:
         # This should not be github-cached: it's incremental/cheap when cabal's ~/.cache/cabal is warm,
         # and we want it to be fresh in case hx needs to find some newer dep.
         cabal update
-        hx toolchain status || true   # informational; hx build is the real check
+        hx toolchain status || true
 
     - name: List dependencies
       run: |
         hx list
 
     - name: Build hledger
-    # - name: Build hledger and run unit + doc tests
+      # and run unit + doc tests
       run: |
         # no --release: that forces -O2; we use hx.toml [build] optimization = 1 to match stack's -O1
         hx build -v
