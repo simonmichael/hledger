@@ -1,0 +1,154 @@
+# TRIGGER: Runs on any push to binaries-windows-x64-hx or binaries branches.
+# ACTION: Builds and saves windows x64 binaries with hx,
+# using the ghc configured in hx.toml and the deps saved in hx.lock.
+
+name: binaries-windows-x64-hx
+on:
+  push:
+    branches: [ binaries-windows-x64-hx, binaries ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    env:
+      GH_TOKEN: ${{ github.token }}   # lets `gh release download` authenticate & dodge rate limits
+      HX_AUTO_INSTALL: "true"         # install missing GHC toolchain without prompting (hx wants true/false, not 1)
+      ghc: "9.14.1"                   # matches hx.toml [toolchain] ghc / stack.yaml compiler
+      cabal: "3.16.1.0"               # cabal-install version to fetch (official binary)
+      hxasset: "x86_64-pc-windows-msvc.zip"   # hx release asset suffix for this platform (a .zip)
+      cabalarch: "x86_64-windows"             # cabal-install bindist arch for this platform (a .zip)
+
+    steps:
+
+    - name: Show platform info
+      run: |
+        uname -a
+
+    - name: Check out
+      uses: actions/checkout@v7
+      # have to fetch everything for git describe for --version
+      with:
+        fetch-depth: 0
+
+    - name: Check embedded files
+      run: |
+        tools/checkembeddedfiles
+
+    - name: Cache - hx toolchains (GHC bindist)
+      uses: actions/cache@v6
+      with:
+        # UNVERIFIED path on Windows
+        path: ~/.hx
+        key: ${{ runner.os }}-x64-hx-toolchain-${{ env.ghc }}
+
+    - name: Cache - hx compiled dependency store
+      uses: actions/cache@v6
+      with:
+        # UNVERIFIED path on Windows (likely %LOCALAPPDATA%\io.raskell.hx); adjust if the save warns "path does not exist".
+        path: ~/AppData/Local/io.raskell.hx
+        key: ${{ runner.os }}-x64-hx-store-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-x64-hx-store-${{ env.ghc }}-
+
+    - name: Cache - cabal Hackage index (used by the system cabal)
+      uses: actions/cache@v6
+      with:
+        # UNVERIFIED path on Windows (likely %APPDATA%\cabal)
+        path: ~/AppData/Roaming/cabal
+        key: ${{ runner.os }}-x64-cabal-index-${{ hashFiles('hx.lock') }}
+        restore-keys: |
+             ${{ runner.os }}-x64-cabal-index-
+
+    - name: Cache - cabal binary
+      uses: actions/cache@v6
+      with:
+        path: ~/.local/bin/cabal.exe
+        key: ${{ runner.os }}-x64-cabal-bin-${{ env.cabal }}
+
+    # NB: the project build (.hx/cabal/dist-newstyle) is deliberately NOT cached (stale --version commit otherwise).
+
+    - name: Ensure ~/.local/bin exists and is in PATH
+      run: |
+        mkdir -p "$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> $GITHUB_PATH
+
+    - name: Install hx (latest release)
+      run: |
+        mkdir -p /tmp/hxdl
+        gh release download --repo arcanist-sh/hx --pattern "*$hxasset" --dir /tmp/hxdl --clobber
+        7z x -y /tmp/hxdl/*"$hxasset" -o/tmp/hxdl
+        cp "$(find /tmp/hxdl -type f -iname 'hx.exe' | head -1)" "$HOME/.local/bin/hx.exe"
+        hx --version
+        hx doctor || true
+
+    - name: Install GHC and cabal
+      run: |
+        hx toolchain install --set "$ghc"
+        # hx can't install cabal itself here, so fetch the official cabal.exe into ~/.local/bin
+        # unless it's already there (restored from the cabal-binary cache).
+        if ! command -v cabal >/dev/null; then
+          mkdir -p /tmp/cabaldl
+          curl -fsSL "https://downloads.haskell.org/cabal/cabal-install-$cabal/cabal-install-$cabal-$cabalarch.zip" -o /tmp/cabaldl/cabal.zip
+          7z x -y /tmp/cabaldl/cabal.zip -o/tmp/cabaldl
+          cp "$(find /tmp/cabaldl -type f -iname 'cabal.exe' | head -1)" "$HOME/.local/bin/cabal.exe"
+        fi
+        cabal --version
+        cabal update
+        hx toolchain status || true
+
+    - name: List dependencies
+      run: |
+        hx list
+
+    - name: Build hledger
+      # and run unit + doc tests
+      run: |
+        hx build
+        # hx test
+
+    - name: Collect built binaries onto PATH
+      run: |
+        for exe in hledger hledger-ui hledger-web; do
+          bin=$(find .hx/cabal/dist-newstyle -type f -iname "$exe.exe" -path "*/x/$exe/*build/$exe/$exe.exe" | head -1)
+          if [[ -z "$bin" ]]; then
+            echo "ERROR: $exe.exe not found under .hx/cabal/dist-newstyle" >&2
+            find .hx/cabal/dist-newstyle -type f -iname "$exe.exe" >&2 || true
+            exit 1
+          fi
+          echo "$exe -> $bin"
+          cp "$bin" "$HOME/.local/bin/$exe.exe"
+        done
+        hledger --version
+
+    # Functional tests are skipped on Windows (as in the stack windows workflow).
+
+    # artifacts:
+
+    - name: Gather binaries
+      run: |
+        mkdir tmp
+        cp ~/.local/bin/hledger.exe tmp
+        cp ~/.local/bin/hledger-ui.exe tmp
+        cp ~/.local/bin/hledger-web.exe tmp
+        strip tmp/hledger.exe
+        strip tmp/hledger-ui.exe
+        strip tmp/hledger-web.exe
+        tmp/hledger.exe --version
+        tmp/hledger-ui.exe --version
+        tmp/hledger-web.exe --version
+      # Guessing man pages / info / completions are not likely to be used on windows.
+
+    - name: Upload binaries artifact
+      uses: actions/upload-artifact@v7
+      with:
+        name: hledger-windows-x64
+        path: |
+          tmp/hledger.exe
+          tmp/hledger-ui.exe
+          tmp/hledger-web.exe
