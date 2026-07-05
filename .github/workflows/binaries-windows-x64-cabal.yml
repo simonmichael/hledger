@@ -1,0 +1,98 @@
+# TRIGGER: Runs on any push to binaries-windows-x64-cabal or binaries branches.
+# ACTION: Builds, unit-tests and saves the windows x64 binaries with cabal (dynamically linked).
+# Part of the uniform binaries-*-cabal family. Windows is the fiddliest cabal platform (mingw toolchain);
+# haskell-actions/setup handles the ghcup/msys2 setup. Steps run under git-bash so they match the others.
+
+name: binaries-windows-x64-cabal
+on:
+  push:
+    branches: [ binaries-windows-x64-cabal, binaries ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash   # git-bash, so the build/gather steps match the unix workflows
+
+    env:
+      ghc:   "9.14.1"     # match stack.yaml / hx.toml
+      cabal: "3.16.1.0"
+
+    steps:
+
+    - name: Show platform info
+      run: |
+        uname -a
+
+    - name: Check out
+      uses: actions/checkout@v7
+      # have to fetch everything for git describe for --version
+      with:
+        fetch-depth: 0
+
+    - name: Check embedded files
+      run: |
+        tools/checkembeddedfiles
+
+    - name: Set up GHC and cabal
+      id: setup
+      uses: haskell-actions/setup@v2
+      with:
+        ghc-version: ${{ env.ghc }}
+        cabal-version: ${{ env.cabal }}
+      # the setup action installs & caches the ghc/cabal toolchain (incl. mingw) and runs `cabal update`.
+
+    # Cache the compiled dependencies (the expensive part). Like the hx workflows, we do NOT cache the
+    # project build (dist-newstyle) - keeps --version fresh.
+    - name: Cache - cabal store (compiled dependencies)
+      uses: actions/cache@v6
+      with:
+        path: ${{ steps.setup.outputs.cabal-store }}
+        key: ${{ runner.os }}-x64-cabal-store-${{ env.ghc }}-${{ hashFiles('cabal.project', '**/*.cabal') }}
+        restore-keys: |
+             ${{ runner.os }}-x64-cabal-store-${{ env.ghc }}-
+
+    - name: Cache - shelltestrunner binary (built once, then reused)
+      uses: actions/cache@v6
+      with:
+        path: ~/.local/bin/shelltest.exe
+        key: ${{ runner.os }}-x64-shelltest-1.11-${{ env.ghc }}
+
+    - name: Build with cabal
+      run: |
+        cabal build --ghc-options=-Werror hledger hledger-ui hledger-web
+
+    - name: Test (functional + unit tests via shelltest)
+      run: |
+        mkdir -p "$HOME/.local/bin"
+        export PATH="$HOME/.local/bin:$PATH"
+        cabal install --install-method=copy --overwrite-policy=always --installdir "$HOME/.local/bin" hledger hledger-ui hledger-web
+        command -v shelltest >/dev/null || cabal install --overwrite-policy=always --install-method=copy --installdir "$HOME/.local/bin" shelltestrunner-1.11
+        shelltest --version
+        # NB: hledger's functional tests are unix-oriented; on Windows (git-bash) expect some failures
+        # that may need exclusions (or reverting Windows to the built-in `hledger test` unit tests).
+        COLUMNS=80 shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
+
+    - name: Gather binaries
+      run: |
+        mkdir tmp
+        # install --installdir sidesteps Windows path juggling that `cp $(cabal list-bin)` would need
+        cabal install --install-method=copy --overwrite-policy=always --installdir=tmp hledger hledger-ui hledger-web
+        strip tmp/*.exe || true
+        cd tmp
+        for e in hledger hledger-ui hledger-web; do
+          file "$e.exe"
+          "./$e.exe" --version
+        done
+
+    - name: Upload binaries
+      uses: actions/upload-artifact@v7
+      with:
+        name: hledger-windows-x64
+        path: |
+          tmp/hledger.exe
+          tmp/hledger-ui.exe
+          tmp/hledger-web.exe
