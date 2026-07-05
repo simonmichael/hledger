@@ -5,7 +5,7 @@
 name: binaries-windows-x64
 on:
   push:
-    branches: [ binaries-windows-x64, binaries ]
+    branches: [ binaries-windows-x64-stack, binaries-stack ]
   workflow_dispatch:
 
 jobs:

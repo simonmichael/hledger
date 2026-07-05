@@ -1,22 +1,20 @@
-# TRIGGER: Runs on any push to binaries-mac-x64 or binaries branches.
-# ACTION: Builds, tests and saves mac x64 dynamic binaries with stack and the default ghc.
+# TRIGGER: Runs on any push to binaries-mac-arm64 or binaries branches.
+# ACTION: Builds, tests and saves mac arm64 dynamic binaries with stack and the default ghc.
 
-name: binaries-mac-x64
+name: binaries-mac-arm64
 on:
   push:
-    branches: [ binaries-mac-x64, binaries ]
+    branches: [ binaries-mac-arm64-stack, binaries-stack ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: macos-15-intel
-      # arch:  x64
-      # image: somewhere near https://github.com/actions/runner-images/blob/main/images/macos/macos-15-Readme.md
-      # https://github.com/actions/runner-images/issues/13046
+    runs-on: macos-26
+      # https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
 
     env:
       stack: stack
-      ghcid: 9.12.2
+      ghcid: 9.14
 
     steps:
 
@@ -42,58 +40,58 @@ jobs:
       uses: actions/cache@v6
       with:
         path: ~/.local/bin
-        key: ${{ runner.os }}-x64-stack-programs-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-arm64-stack-programs-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-programs-${{ env.ghcid }}
+             ${{ runner.os }}-arm64-stack-programs-${{ env.ghcid }}
 
     - name: Cache - ~/.stack
       id:   stack-global
       uses: actions/cache@v6
       with:
         path: ~/.stack
-        key: ${{ runner.os }}-x64-stack-global-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-arm64-stack-global-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-global-${{ env.ghcid }}
+             ${{ runner.os }}-arm64-stack-global-${{ env.ghcid }}
 
     - name: Cache - ./.stack-work
       uses: actions/cache@v6
       with:
         path: .stack-work
-        key: ${{ runner.os }}-x64-stack-work-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
+        key: ${{ runner.os }}-arm64-stack-work-${{ env.ghcid }}-${{ hashFiles('**.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-stack-work-${{ env.ghcid }}
+             ${{ runner.os }}-arm64-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-lib/.stack-work
       uses: actions/cache@v6
       with:
         path: hledger-lib/.stack-work
-        key: ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-lib/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-lib-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-lib/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-lib-stack-work-${{ env.ghcid }}
+             ${{ runner.os }}-arm64-hledger-lib-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger/.stack-work
       uses: actions/cache@v6
       with:
         path: hledger/.stack-work
-        key: ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-stack-work-${{ env.ghcid }}
+             ${{ runner.os }}-arm64-hledger-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-ui/.stack-work
       uses: actions/cache@v6
       with:
         path: hledger-ui/.stack-work
-        key: ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-ui/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-ui-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-ui/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-ui-stack-work-${{ env.ghcid }}
+             ${{ runner.os }}-arm64-hledger-ui-stack-work-${{ env.ghcid }}
 
     - name: Cache - hledger-web/.stack-work
       uses: actions/cache@v6
       with:
         path: hledger-web/.stack-work
-        key: ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-web/package.yaml') }}
+        key: ${{ runner.os }}-arm64-hledger-web-stack-work-${{ env.ghcid }}-${{ hashFiles('hledger-web/package.yaml') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hledger-web-stack-work-${{ env.ghcid }}
+             ${{ runner.os }}-arm64-hledger-web-stack-work-${{ env.ghcid }}
 
     # actions:
 
@@ -104,7 +102,7 @@ jobs:
 
     - name: Install haskell tools if needed
       run: |
-        if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/osx-x86_64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
+        if [[ ! -x ~/.local/bin/stack ]]; then curl -sL https://get.haskellstack.org/stable/osx-aarch64.tar.gz | gtar xz --wildcards --strip-components=1 -C ~/.local/bin '*/stack'; chmod a+x ~/.local/bin/stack; fi
         stack --version
         $stack setup --install-ghc --verbosity=error
 
@@ -134,6 +132,15 @@ jobs:
         export PATH=~/.local/bin:$PATH
         COLUMNS=80 $stack exec -- shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected # bin
 
+    # This is tested here rather than in the regular CI because it's slow,
+    # doesn't fail too often, and the cost of late detection and fixing is low.
+    - name: Test haddock generation
+      run: |
+        printf "haddock: "; stack exec -- haddock --version
+        time $stack build --fast --haddock --no-haddock-deps --no-haddock-hyperlink-source --haddock-arguments="--no-print-missing-docs"
+        # --no-haddock-hyperlink-source is 25% faster
+        # --no-print-missing-docs is 600% quieter
+
     # artifacts:
 
     - name: Gather binaries
@@ -149,7 +156,7 @@ jobs:
         strip tmp/hledger-ui
         strip tmp/hledger-web
         cd tmp
-        gtar cvf hledger-mac-x64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
+        gtar cvf hledger-mac-arm64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
         otool -L hledger
         otool -L hledger-ui
         otool -L hledger-web
@@ -164,6 +171,5 @@ jobs:
     - name: Upload binaries artifact
       uses: actions/upload-artifact@v7
       with:
-        name: hledger-mac-x64
-        path: tmp/hledger-mac-x64.tar
-
+        name: hledger-mac-arm64
+        path: tmp/hledger-mac-arm64.tar
