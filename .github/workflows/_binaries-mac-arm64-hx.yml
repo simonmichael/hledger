@@ -1,25 +1,23 @@
-# TRIGGER: Runs on any push to binaries-linux-arm64-hx or binaries branches.
-# ACTION: Builds, tests and saves linux arm64 DYNAMIC binaries with hx,
+# TRIGGER: Runs on any push to binaries-mac-arm64-hx branch.
+# ACTION: Builds, tests and saves mac arm64 dynamic binaries with hx,
 # using the ghc configured in hx.toml and the deps saved in hx.lock.
 
-name: binaries-linux-arm64-hx
+name: binaries-mac-arm64-hx
 on:
   push:
-    branches: [ binaries-linux-arm64-hx, binaries ]
+    branches: [ binaries-mac-arm64-hx ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04-arm
-    # https://github.com/actions/partner-runner-images/blob/main/images/arm-ubuntu-24-image.md
+    runs-on: macos-26
+    # https://github.com/actions/runner-images/blob/main/images/macos/macos-26-arm64-Readme.md
 
     env:
       GH_TOKEN: ${{ github.token }}   # lets `gh release download` authenticate & dodge rate limits
       HX_AUTO_INSTALL: "true"         # install missing GHC toolchain without prompting (hx wants true/false, not 1)
       ghc: "9.14.1"                   # matches hx.toml [toolchain] ghc / stack.yaml compiler
       cabal: "3.16.1.0"               # cabal-install version to fetch (official self-contained binary)
-      hxasset: "aarch64-unknown-linux-gnu.tar.gz"   # hx release asset suffix for this platform
-      cabalarch: "aarch64-linux-deb12"              # cabal-install bindist arch for this platform (deb12 = portable glibc)
 
     steps:
 
@@ -27,11 +25,6 @@ jobs:
       run: |
         arch
         uname -a
-
-    - name: Install system build deps
-      run: |
-        sudo apt-get update -qq
-        sudo apt-get install -y libgmp-dev zlib1g-dev libncurses-dev
 
     - name: Check out
       uses: actions/checkout@v7
@@ -46,18 +39,13 @@ jobs:
     - name: Cache - hx toolchains (GHC bindist)
       uses: actions/cache@v6
       with:
-        # ~/.ghcup too: on arm64 hx installs GHC via ghcup (its direct download lacks a checksum here), so GHC lands there
-        path: |
-          ~/.hx
-          ~/.ghcup
+        path: ~/.hx
         key: ${{ runner.os }}-arm64-hx-toolchain-${{ env.ghc }}
 
     - name: Cache - hx compiled dependency store
       uses: actions/cache@v6
       with:
-        # hx's compiled-dep store on linux is ~/.cache/hx: the `directories` crate uses the bare app
-        # name under XDG, unlike macos which uses the reverse-DNS io.raskell.hx. (~800 MB; confirmed on CI.)
-        path: ~/.cache/hx
+        path: ~/Library/Caches/io.raskell.hx
         key: ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
         restore-keys: |
              ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-
@@ -76,7 +64,10 @@ jobs:
         path: ~/.local/bin/cabal
         key: ${{ runner.os }}-arm64-cabal-bin-${{ env.cabal }}
 
-    # NB: the project build (.hx/cabal/dist-newstyle) is deliberately NOT cached (stale --version commit otherwise).
+    # NB: the project build (.hx/cabal/dist-newstyle) is deliberately NOT cached.
+    # hledger bakes the git commit into --version at compile time; a restored build
+    # is reused across commits (when hx.lock is unchanged), giving a stale commit.
+    # The expensive dependency compilation stays cached in the store above.
 
     - name: Ensure ~/.local/bin exists and is in PATH
       run: |
@@ -86,36 +77,27 @@ jobs:
     - name: Install hx (latest release)
       run: |
         mkdir -p /tmp/hxdl
-        gh release download --repo arcanist-sh/hx --pattern "*$hxasset" --dir /tmp/hxdl --clobber
-        tar xzf /tmp/hxdl/*"$hxasset" -C /tmp/hxdl
+        gh release download --repo arcanist-sh/hx --pattern '*aarch64-apple-darwin.tar.gz' --dir /tmp/hxdl --clobber
+        tar xzf /tmp/hxdl/*aarch64-apple-darwin.tar.gz -C /tmp/hxdl
         install -m 755 "$(find /tmp/hxdl -type f -name hx | head -1)" "$HOME/.local/bin/hx"
         hx --version
         hx doctor || true
 
-    - name: Install ghcup (arm64 runner lacks it; hx needs it for a verified GHC)
-      run: |
-        # Unlike the x64 ubuntu image, ubuntu-24.04-arm has no preinstalled ghcup. hx's direct GHC
-        # download is refused here (no published aarch64 checksum for this GHC), so it falls back to
-        # ghcup - which must be present. Install ghcup only (no GHC/cabal); hx then drives it.
-        if ! command -v ghcup >/dev/null; then
-          curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | \
-            BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_MINIMAL=1 sh
-          echo "$HOME/.ghcup/bin" >> "$GITHUB_PATH"
-        fi
-        "$HOME/.ghcup/bin/ghcup" --version
-
     - name: Install GHC and cabal
       run: |
-        hx toolchain install --set "$ghc"     # delegates to ghcup (installed above) for the verified aarch64 GHC
-        # fetch the official cabal binary unless already present (arm64 has no preinstalled cabal)
+        hx toolchain install --set "$ghc"
+        # The official cabal binary is self-contained and easier to cache than homebrew's binary.
         if ! command -v cabal >/dev/null; then
           mkdir -p /tmp/cabaldl
-          curl -fsSL "https://downloads.haskell.org/cabal/cabal-install-$cabal/cabal-install-$cabal-$cabalarch.tar.xz" -o /tmp/cabaldl/cabal.tar.xz
+          curl -fsSL "https://downloads.haskell.org/cabal/cabal-install-$cabal/cabal-install-$cabal-aarch64-darwin.tar.xz" -o /tmp/cabaldl/cabal.tar.xz
           tar xJf /tmp/cabaldl/cabal.tar.xz -C /tmp/cabaldl
           install -m 755 "$(find /tmp/cabaldl -type f -name cabal | head -1)" "$HOME/.local/bin/cabal"
         fi
         cabal --version
-        # the system cabal has no Hackage index yet, so download it (kept fresh each run, cheap when ~/.cache/cabal is warm)
+        # the system cabal has no Hackage index (hx's own ~/.cache/hx index isn't used by it),
+        # so download it, else dependency resolution fails with "unknown package".
+        # This should not be github-cached: it's incremental/cheap when cabal's ~/.cache/cabal is warm,
+        # and we want it to be fresh in case hx needs to find some newer dep.
         cabal update
         hx toolchain status || true
 
@@ -127,12 +109,15 @@ jobs:
       # and run unit + doc tests
       run: |
         # no --release: that forces -O2; we use hx.toml [build] optimization = 1 to match stack's -O1
-        hx build
-        # hx test
+        hx build -v
+        #hx test -v
 
     - name: Collect built binaries onto PATH
       run: |
-        # hx builds via cabal into .hx/cabal/dist-newstyle; the exe is under .../x/<exe>/{,opt/}build/<exe>/<exe>
+        # hx builds via cabal into .hx/cabal/dist-newstyle. The executable lands at
+        #   .../<pkg>-<ver>/x/<exe>/build/<exe>/<exe>          (default build), or
+        #   .../<pkg>-<ver>/x/<exe>/opt/build/<exe>/<exe>      (optimized/--release build),
+        # so the glob below (*build/) matches either.
         for exe in hledger hledger-ui hledger-web; do
           bin=$(find .hx/cabal/dist-newstyle -type f -name "$exe" -path "*/x/$exe/*build/$exe/$exe" | head -1)
           if [[ -z "$bin" ]]; then
@@ -147,12 +132,18 @@ jobs:
 
     - name: Install shelltestrunner
       run: |
-        command -v shelltest >/dev/null || cabal install --overwrite-policy=always shelltestrunner-1.11
+        # untap the runner's preinstalled aws/tap (unused) to silence brew's tap-trust warning
+        brew untap aws/tap 2>/dev/null || true
+        command -v shelltest >/dev/null || brew install shelltestrunner
         shelltest --version
 
     - name: Test functional tests (excluding addons)
       run: |
         COLUMNS=80 shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
+
+    # - name: Test haddock generation
+    #   run: |
+    #     hx docs
 
     # artifacts:
 
@@ -169,9 +160,10 @@ jobs:
         strip tmp/hledger-ui
         strip tmp/hledger-web
         cd tmp
-        tar cvf hledger-linux-arm64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
-        file hledger
-        ldd hledger || true
+        gtar cvf hledger-mac-arm64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
+        otool -L hledger
+        otool -L hledger-ui
+        otool -L hledger-web
         ./hledger --version
         ./hledger-ui --version
         ./hledger-web --version
@@ -180,5 +172,5 @@ jobs:
     - name: Upload binaries artifact
       uses: actions/upload-artifact@v7
       with:
-        name: hledger-linux-arm64
-        path: tmp/hledger-linux-arm64.tar
+        name: hledger-mac-arm64
+        path: tmp/hledger-mac-arm64.tar

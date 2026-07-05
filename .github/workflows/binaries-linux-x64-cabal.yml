@@ -6,7 +6,7 @@
 name: binaries-linux-x64-cabal
 on:
   push:
-    branches: [ binaries-linux-x64-cabal, binaries ]
+    branches: [ binaries-linux-x64-cabal, binaries-cabal, binaries ]
   workflow_dispatch:
 
 jobs:
@@ -29,7 +29,7 @@ jobs:
       run: |
         apk --no-cache add \
           gmp-dev gmp-static libffi-dev zlib-dev zlib-static ncurses-dev ncurses-static \
-          binutils-gold curl gcc g++ git make xz tar perl file
+          binutils-gold curl gcc g++ git make xz tar perl file bash
 
     - name: Check out
       uses: actions/checkout@v7

@@ -1,4 +1,4 @@
-# TRIGGER: Runs on any push to binaries-linux-x64-static-hx or binaries branches.
+# TRIGGER: Runs on any push to binaries-linux-x64-static-hx branch.
 # ACTION: Builds and saves linux x64 static binaries with hx, in an Alpine (musl) container.
 #
 # EXPERIMENTAL - the static-via-hx path has three unproven assumptions, flagged inline below:
@@ -11,7 +11,7 @@
 name: binaries-linux-x64-static-hx
 on:
   push:
-    branches: [ binaries-linux-x64-static-hx, binaries ]
+    branches: [ binaries-linux-x64-static-hx ]
   workflow_dispatch:
 
 jobs:

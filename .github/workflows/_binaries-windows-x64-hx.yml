@@ -1,11 +1,11 @@
-# TRIGGER: Runs on any push to binaries-windows-x64-hx or binaries branches.
+# TRIGGER: Runs on any push to binaries-windows-x64-hx branch.
 # ACTION: Builds and saves windows x64 binaries with hx,
 # using the ghc configured in hx.toml and the deps saved in hx.lock.
 
 name: binaries-windows-x64-hx
 on:
   push:
-    branches: [ binaries-windows-x64-hx, binaries ]
+    branches: [ binaries-windows-x64-hx ]
   workflow_dispatch:
 
 jobs:

@@ -6,7 +6,7 @@
 name: binaries-windows-x64-cabal
 on:
   push:
-    branches: [ binaries-windows-x64-cabal, binaries ]
+    branches: [ binaries-windows-x64-cabal, binaries-cabal, binaries ]
   workflow_dispatch:
 
 jobs:
@@ -55,26 +55,15 @@ jobs:
         restore-keys: |
              ${{ runner.os }}-x64-cabal-store-${{ env.ghc }}-
 
-    - name: Cache - shelltestrunner binary (built once, then reused)
-      uses: actions/cache@v6
-      with:
-        path: ~/.local/bin/shelltest.exe
-        key: ${{ runner.os }}-x64-shelltest-1.11-${{ env.ghc }}
-
     - name: Build with cabal
       run: |
         cabal build --ghc-options=-Werror hledger hledger-ui hledger-web
 
-    - name: Test (functional + unit tests via shelltest)
+    - name: Test (unit tests only)
       run: |
-        mkdir -p "$HOME/.local/bin"
-        export PATH="$HOME/.local/bin:$PATH"
-        cabal install --install-method=copy --overwrite-policy=always --installdir "$HOME/.local/bin" hledger hledger-ui hledger-web
-        command -v shelltest >/dev/null || cabal install --overwrite-policy=always --install-method=copy --installdir "$HOME/.local/bin" shelltestrunner-1.11
-        shelltest --version
-        # NB: hledger's functional tests are unix-oriented; on Windows (git-bash) expect some failures
-        # that may need exclusions (or reverting Windows to the built-in `hledger test` unit tests).
-        COLUMNS=80 shelltest --execdir -j16 hledger/test -x /_ -x /addons -x ledger-compat/ledger-baseline -x ledger-compat/ledger-regress -x ledger-compat/ledger-collected
+        # hledger's functional tests (shelltest) are unix-oriented - many rely on unix commands -
+        # so on Windows we skip them and run the built-in unit tests instead.
+        "$(cabal list-bin hledger)" test
 
     - name: Gather binaries
       run: |

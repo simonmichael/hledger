@@ -5,7 +5,7 @@
 name: binaries-mac-x64-cabal
 on:
   push:
-    branches: [ binaries-mac-x64-cabal, binaries ]
+    branches: [ binaries-mac-x64-cabal, binaries-cabal, binaries ]
   workflow_dispatch:
 
 jobs:

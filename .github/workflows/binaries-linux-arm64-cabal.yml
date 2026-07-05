@@ -10,7 +10,7 @@
 name: binaries-linux-arm64-cabal
 on:
   push:
-    branches: [ binaries-linux-arm64-cabal, binaries ]
+    branches: [ binaries-linux-arm64-cabal, binaries-cabal, binaries ]
   workflow_dispatch:
 
 jobs:

@@ -1,25 +1,25 @@
-# TRIGGER: Runs on any push to binaries-linux-x64-hx or binaries branches.
-# ACTION: Builds, tests and saves linux x64 DYNAMIC binaries with hx,
+# TRIGGER: Runs on any push to binaries-linux-arm64-hx branch.
+# ACTION: Builds, tests and saves linux arm64 DYNAMIC binaries with hx,
 # using the ghc configured in hx.toml and the deps saved in hx.lock.
 
-name: binaries-linux-x64-hx
+name: binaries-linux-arm64-hx
 on:
   push:
-    branches: [ binaries-linux-x64-hx, binaries ]
+    branches: [ binaries-linux-arm64-hx ]
   workflow_dispatch:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
-    # https://github.com/actions/runner-images/blob/main/images/ubuntu/Ubuntu2404-Readme.md
+    runs-on: ubuntu-24.04-arm
+    # https://github.com/actions/partner-runner-images/blob/main/images/arm-ubuntu-24-image.md
 
     env:
       GH_TOKEN: ${{ github.token }}   # lets `gh release download` authenticate & dodge rate limits
       HX_AUTO_INSTALL: "true"         # install missing GHC toolchain without prompting (hx wants true/false, not 1)
       ghc: "9.14.1"                   # matches hx.toml [toolchain] ghc / stack.yaml compiler
       cabal: "3.16.1.0"               # cabal-install version to fetch (official self-contained binary)
-      hxasset: "x86_64-unknown-linux-gnu.tar.gz"    # hx release asset suffix for this platform
-      cabalarch: "x86_64-linux-deb12"               # cabal-install bindist arch for this platform (deb12 = portable glibc)
+      hxasset: "aarch64-unknown-linux-gnu.tar.gz"   # hx release asset suffix for this platform
+      cabalarch: "aarch64-linux-deb12"              # cabal-install bindist arch for this platform (deb12 = portable glibc)
 
     steps:
 
@@ -46,8 +46,11 @@ jobs:
     - name: Cache - hx toolchains (GHC bindist)
       uses: actions/cache@v6
       with:
-        path: ~/.hx
-        key: ${{ runner.os }}-x64-hx-toolchain-${{ env.ghc }}
+        # ~/.ghcup too: on arm64 hx installs GHC via ghcup (its direct download lacks a checksum here), so GHC lands there
+        path: |
+          ~/.hx
+          ~/.ghcup
+        key: ${{ runner.os }}-arm64-hx-toolchain-${{ env.ghc }}
 
     - name: Cache - hx compiled dependency store
       uses: actions/cache@v6
@@ -55,23 +58,23 @@ jobs:
         # hx's compiled-dep store on linux is ~/.cache/hx: the `directories` crate uses the bare app
         # name under XDG, unlike macos which uses the reverse-DNS io.raskell.hx. (~800 MB; confirmed on CI.)
         path: ~/.cache/hx
-        key: ${{ runner.os }}-x64-hx-store-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
+        key: ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-${{ hashFiles('hx.lock') }}
         restore-keys: |
-             ${{ runner.os }}-x64-hx-store-${{ env.ghc }}-
+             ${{ runner.os }}-arm64-hx-store-${{ env.ghc }}-
 
     - name: Cache - cabal Hackage index (used by the system cabal)
       uses: actions/cache@v6
       with:
         path: ~/.cache/cabal
-        key: ${{ runner.os }}-x64-cabal-index-${{ hashFiles('hx.lock') }}
+        key: ${{ runner.os }}-arm64-cabal-index-${{ hashFiles('hx.lock') }}
         restore-keys: |
-             ${{ runner.os }}-x64-cabal-index-
+             ${{ runner.os }}-arm64-cabal-index-
 
     - name: Cache - cabal binary
       uses: actions/cache@v6
       with:
         path: ~/.local/bin/cabal
-        key: ${{ runner.os }}-x64-cabal-bin-${{ env.cabal }}
+        key: ${{ runner.os }}-arm64-cabal-bin-${{ env.cabal }}
 
     # NB: the project build (.hx/cabal/dist-newstyle) is deliberately NOT cached (stale --version commit otherwise).
 
@@ -89,10 +92,22 @@ jobs:
         hx --version
         hx doctor || true
 
+    - name: Install ghcup (arm64 runner lacks it; hx needs it for a verified GHC)
+      run: |
+        # Unlike the x64 ubuntu image, ubuntu-24.04-arm has no preinstalled ghcup. hx's direct GHC
+        # download is refused here (no published aarch64 checksum for this GHC), so it falls back to
+        # ghcup - which must be present. Install ghcup only (no GHC/cabal); hx then drives it.
+        if ! command -v ghcup >/dev/null; then
+          curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | \
+            BOOTSTRAP_HASKELL_NONINTERACTIVE=1 BOOTSTRAP_HASKELL_MINIMAL=1 sh
+          echo "$HOME/.ghcup/bin" >> "$GITHUB_PATH"
+        fi
+        "$HOME/.ghcup/bin/ghcup" --version
+
     - name: Install GHC and cabal
       run: |
-        hx toolchain install --set "$ghc"
-        # On ubuntu ghcup is preinstalled, so `hx toolchain install --cabal` may work; but mimic the other platforms
+        hx toolchain install --set "$ghc"     # delegates to ghcup (installed above) for the verified aarch64 GHC
+        # fetch the official cabal binary unless already present (arm64 has no preinstalled cabal)
         if ! command -v cabal >/dev/null; then
           mkdir -p /tmp/cabaldl
           curl -fsSL "https://downloads.haskell.org/cabal/cabal-install-$cabal/cabal-install-$cabal-$cabalarch.tar.xz" -o /tmp/cabaldl/cabal.tar.xz
@@ -154,7 +169,7 @@ jobs:
         strip tmp/hledger-ui
         strip tmp/hledger-web
         cd tmp
-        tar cvf hledger-linux-x64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
+        tar cvf hledger-linux-arm64.tar hledger hledger-ui hledger-web *.1 *.info hledger-completion.bash
         file hledger
         ldd hledger || true
         ./hledger --version
@@ -165,5 +180,5 @@ jobs:
     - name: Upload binaries artifact
       uses: actions/upload-artifact@v7
       with:
-        name: hledger-linux-x64
-        path: tmp/hledger-linux-x64.tar
+        name: hledger-linux-arm64
+        path: tmp/hledger-linux-arm64.tar
