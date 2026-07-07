@@ -1,6 +1,7 @@
-{-|
-hledger-ui - a hledger add-on providing an efficient TUI.
+{-# LANGUAGE CPP #-}
+{- |
 
+hledger-ui - a hledger add-on providing a curses-style interface.
 SPDX-License-Identifier: GPL-3.0-or-later
 Copyright (c) 2007-2025 (each year in this range) Simon Michael <simon@joyful.com> and contributors.
 
@@ -30,36 +31,41 @@ import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (withAsync)
 #if MIN_VERSION_base(4,20,0)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
-import Data.Maybe
+#endif
+import Control.Monad (forM_, void, when)
+import Data.Bifunctor (first)
+import Data.Function ((&))
+import Data.List (find)
 import qualified Data.Text as T
-import qualified Data.Text.IO as T
-import System.Directory
-import System.FilePath
-import System.FSNotify
-import System.IO (stderr)
-import Data.Maybe (fromMaybe)
-import Data.Text qualified as T
-import Graphics.Vty (Mode (Mouse), Vty (outputIface), Output (setMode))
-import Graphics.Vty.CrossPlatform (mkVty)
-import Lens.Micro ((^.))
+import Data.Time
+import qualified Data.Vector as V
+import qualified Data.Set as S
+import Graphics.Vty (mkVty, Mode (Mouse), outputIface, Vty (outputIface))
+import Graphics.Vty.Platform.Unix (mkVty)
+import Graphics.Vty.Platform.Unix.Output (UnixOutput (termUnix))  -- XXX for the custom output device feature. We should probably drop this.
 import System.Directory (canonicalizePath)
 import System.Environment (withProgName)
-import System.FilePath (takeDirectory)
-import System.FSNotify (Event(Added, Modified), watchDir, withManager, EventIsDirectory (IsFile))
-import Brick
-import Brick.BChan qualified as BC
+import System.FilePath
+import System.FSNotify
+import System.FSNotify.Devel
+import qualified System.FSNotify as FSNotify
+import Text.Printf
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
-import Hledger.UI.UIState (uiState, uiDisplayJournal)
-import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
-import Hledger.UI.MenuScreen
-import Hledger.UI.AccountsScreen
-import Hledger.UI.RegisterScreen
-import Hledger.UI.TransactionScreen
+import Hledger.UI.UITypes
+import Hledger.UI.UIUtils
+
+#if MIN_VERSION_fsnotify(0,4,0)
+import Control.Concurrent (threadDelay)
+#endif
+
+
+----------------------------------------------------------------------
+-- Command
 import Hledger.UI.ErrorScreen
 import Hledger.UI.UIScreens
 
@@ -187,13 +193,13 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
                declared_ = True  -- always show declared accounts even if unused
                }
             }
-      -- 1. start a file watcher thread, which will update the tvar when the file changes
-      -- -- 2. start a second thread which waits for changes in the tvar and calls nextEvent
-      -- 3. continue with brick as before, but now also handling AppEvent's
-      withManagerConf watchConfig $ \mgr -> do
-        -- 1
-        -- We watch the journal's parent directory, not the journal file itself,
-        -- because editors may write the file indirectly, causing the watch to be lost.
+         }
+      }
+      where
+        datespanfromargs = queryDateSpan (date2_ ropts) $ _rsQuery rspec
+        periodfromoptsandargs =
+          dateSpanAsPeriod $ spansIntersect [periodAsDateSpan $ period_ ropts, datespanfromargs]
+        filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
     -- The journal collapsed for display per the current lots toggle; the initial screens
@@ -211,19 +217,12 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
         -- An accounts screen is specified. Its previous screen will be the menu screen with it selected.
         | boolopt "cash" rawopts -> ([msSetSelectedScreen csItemIndex menuscr], csacctsscr)
         | boolopt "bs"   rawopts -> ([msSetSelectedScreen bsItemIndex menuscr], bsacctsscr)
-        -- 3
-        run runBrick ui0
+        | boolopt "is"   rawopts -> ([msSetSelectedScreen isItemIndex menuscr], isacctsscr)
+        | boolopt "all"  rawopts -> ([msSetSelectedScreen asItemIndex menuscr], allacctsscr)
 
--- | Configuration for the file watcher that helps avoid resource leaks.
--- The default configuration may accumulate resources over time.
-watchConfig :: WatchConfig
-watchConfig = defaultConfig
-  { confDebounce = Debounce 1  -- 1 second debounce to coalesce rapid events
-  }
-
--- | Run brick.
-runBrick :: UIState -> IO ()
-runBrick ui0 = do
+        -- A register screen is specified with --register=ACCT. The initial screen stack will be:
+        --
+        --   menu screen, with ACCTSSCR selected
         --    ACCTSSCR (the accounts screen containing ACCT), with ACCT selected
         --     register screen for ACCT
         --
@@ -253,39 +252,65 @@ runBrick ui0 = do
             -- The accounts screen containing acct.
             -- Keep these selidx values synced with the menu items in msNew.
             (acctsscr, selidx) =
-              case journalAccountType jdisplay acct of
-                Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
-                Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
-                _                                       -> (allacctsscr,0)
-              & first (asSetSelectedAccount acct)
-
+          -- 2. the file(s) to watch
+          -- 3. the event handler
+          -- 4. the action to run after stopping the watcher
+#if MIN_VERSION_fsnotify(0,4,0)
+          withManagerConf defaultConfig{confDebounce=NoDebounce} $ \mgr -> do
+            stop <- watchDir
+              mgr
             -- the menu screen
-            menuscr' = msSetSelectedScreen selidx menuscr
-          in ([acctsscr, menuscr'], regscr)
-
-        -- Otherwise, start on the menu screen.
-        | otherwise -> ([], menuscr)
-
+              (const True)
+              (\ev -> do
+                  -- debug logging
+                  -- hledger: ui: fsnotify event: ...
+                  when (debug_ $ cliopts_ uopts0) $ do
+                    here <- getCurrentDirectory
+                    hPutStrLn stderr $ "hledger: ui: fsnotify event: " ++ show ev
+                  -- try to avoid excessive reloading by ignoring events not involving our files
+                  let eventFile = case ev of
+                        FSNotify.Action event _ _ -> eventPath event
+                        FSNotify.Removed _ fp _ -> fp
+                        FSNotify.Unknown _ fp _ -> fp
+                  ourfiles <- readIORef jref >>= return . map (takeFileName . fst) . jfiles
+                  when (takeFileName eventFile `elem` ourfiles) $ do
+                    writeIORef changeref True
+                    writeBChan bchan (ReloadJournalOnChange $ Just ev)
+              )
+            return stop
+#else
+          withManagerConf defaultConfig{confDebounce=NoDebounce} $ \mgr -> do
+            stop <- watchDir
+              mgr
+              (takeDirectory $ fst $ head $ jfiles j)
+              (const True)
+              (\ev -> do
+                  -- debug logging
+                  -- hledger: ui: fsnotify event: ...
+                  when (debug_ $ cliopts_ uopts0) $ do
+                    here <- getCurrentDirectory
         where
           menuscr     = msNew
           allacctsscr = asNew AllAccounts             uopts today jdisplay Nothing
           csacctsscr  = asNew CashAccounts            uopts today jdisplay Nothing
           bsacctsscr  = asNew BalancesheetAccounts    uopts today jdisplay Nothing
-          isacctsscr  = asNew IncomestatementAccounts uopts today jdisplay Nothing
+                    writeBChan bchan (ReloadJournalOnChange $ Just ev)
+              )
+            return stop
+#endif
 
-
-runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts0 j =
-  do
+        -- And start a thread to wait for data changes and generate app events.
+        -- To avoid excessive reloading, we ignore events not involving our files.
   let
     ui  = uiInitialState uopts0 j
     app = brickApp (uoTheme uopts0)
-
-  -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
-
-  let
-    -- helper: make a Vty terminal controller with mouse support enabled
-    makevty = do
+        -- XXX does not catch all changes, eg with git
+        -- XXX should catch "journal file(s) changed" and show in UI
+        -- XXX catch exceptions, don't crash
+#if !MIN_VERSION_fsnotify(0,4,0)
+        -- XXX maybe use withAsync here
+        _ <- forkIO $
+          bracket
       v <- mkVty mempty
       setMode (outputIface v) Mouse True
       return v
@@ -301,12 +326,13 @@ runBrickUi uopts0 j =
 
     -- start a background thread reporting changes in the current date
     -- use async for proper child termination in GHCI
-    let
-      watchDate old = do
-        threadDelay 1000000 -- 1 s
-        new <- getCurrentDay
-        when (new /= old) $ do
-          let dc = DateChange old new
+              -- threadDelay 1000000
+              -- return ()
+            )
+#endif
+
+        -- Run the brick UI (with the terminal's output channel as a custom output device).
+        -- This blocks until the user quits.
           -- dbg1IO "datechange" dc -- XXX don't uncomment until dbg*IO fixed to use traceIO, GHC may block/end thread
           -- traceIO $ show dc
           writeChan eventChan dc
