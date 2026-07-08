@@ -20,36 +20,37 @@
     #{takeFileName (journalFilePath j)}
 
 $if elem ViewPermission perms
-  <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-    <input .empty-account-checkbox-mobile type="checkbox" id="hideEmptyAccountsMobile" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts&#10Keyboard shortcut: e">
-    <label for="hideEmptyAccountsMobile" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
-    <table .main-menu .table>
-      ^{accounts}
-
-<main#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
-  $maybe m <- msg
-    <div #message .alert.alert-info>#{m}
-  $if elem ViewPermission perms
-    <form#searchform.input-group method=GET>
-      <div .input-group-prepend>
-        $if not isJournalPage
-          <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j">
-            <span .bi.bi-house>
-      <input .form-control name=q value=#{qparam} placeholder="Search"
-        title="Enter hledger search patterns to filter the data below">
-      <div .input-group-append>
-        $if not (T.null qparam)
-          <a href=@{here} .btn .btn-default title="Clear search terms">
-            <span .bi.bi-x-circle>
-        <button .btn .btn-default type="button" onclick="addformShow()" title="Add a transaction&#10Keyboard shortcut: a">
-          <span .bi.bi-plus-square>
-        $if elem EditPermission perms
-          <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
-            <span .bi.bi-gear>
-        <button .btn .btn-default type=button data-bs-toggle="modal" data-bs-target="#helpmodal"
-           title="Show search and general help">
-          <span .bi.bi-question-circle>
-  ^{widget}
+  <div .page-container>
+    <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+      <input .empty-account-checkbox-mobile type="checkbox" id="hideEmptyAccountsMobile" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts&#10Keyboard shortcut: e">
+      <label for="hideEmptyAccountsMobile" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
+      <table .main-menu .table>
+        ^{accounts}
+    <div .resize-handle--x data-target="#sidebar-menu">
+    <main#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
+      $maybe m <- msg
+        <div#message .alert.alert-info>#{m}
+      $if elem ViewPermission perms
+        <form#searchform.input-group method=GET>
+          <div .input-group-prepend>
+            $if not isJournalPage
+              <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j">
+                <span .bi.bi-house>
+          <input .form-control name=q value=#{qparam} placeholder="Search"
+            title="Enter hledger search patterns to filter the data below">
+          <div .input-group-append>
+            $if not (T.null qparam)
+              <a href=@{here} .btn .btn-default title="Clear search terms">
+                <span .bi.bi-x-circle>
+            <button .btn .btn-default type="button" onclick="addformShow()" title="Add a transaction&#10Keyboard shortcut: a">
+              <span .bi.bi-plus-square>
+            $if elem EditPermission perms
+              <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
+                <span .bi.bi-gear>
+            <button .btn .btn-default type=button data-bs-toggle="modal" data-bs-target="#helpmodal"
+               title="Show search and general help">
+              <span .bi.bi-question-circle>
+        ^{widget}
 
 <div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel" aria-hidden="true">
   <div .modal-dialog .modal-lg>

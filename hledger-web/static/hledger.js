@@ -85,6 +85,9 @@ function hledgerInitGlobal() {
       });
     });
   });
+
+  // Initialize resizable sidebar
+  initResizableSidebar();
 }
 
 function isMobile() {
@@ -645,4 +648,33 @@ function getCookie(name) {
     if (c.indexOf(nameEQ) === 0) return c.substring(nameEQ.length, c.length);
   }
   return null;
+}
+
+//----------------------------------------------------------------------
+// RESIZABLE SIDEBAR
+
+function initResizableSidebar() {
+  var resizer = document.querySelector('.resize-handle--x');
+  var sidebar = document.querySelector('#sidebar-menu');
+  
+  if (!resizer || !sidebar) {
+    return;
+  }
+
+  resizer.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    
+    document.addEventListener('mousemove', resize);
+    document.addEventListener('mouseup', stopResize);
+  });
+
+  function resize(e) {
+    var size = e.clientX + 'px';
+    sidebar.style.width = size;
+  }
+
+  function stopResize() {
+    document.removeEventListener('mousemove', resize);
+    document.removeEventListener('mouseup', stopResize);
+  }
 }
