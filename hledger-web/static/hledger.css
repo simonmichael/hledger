@@ -73,6 +73,11 @@ ul {
     overflow-y:auto;
     border-right: 1px solid #ebebeb;
 }
+
+/* Override for resizable sidebar layout */
+.page-container #sidebar-menu {
+    max-height: 100vh;
+}
 #sidebar-menu .main-menu {
     table-layout: fixed;
     word-wrap: break-word;
@@ -465,6 +470,53 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     left: 0.5rem;
 }
 
+/* Resizable sidebar container - flexbox layout for independent scrolling */
+.page-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    align-content: stretch;
+    align-items: stretch;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.page-container > #sidebar-menu {
+    flex: 0 0 auto;
+    align-self: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-right: 1px solid #ebebeb;
+}
+
+.page-container > #main-content {
+    flex: 1 1 auto;
+    align-self: auto;
+    overflow-y: auto;
+    overflow-x: auto;
+}
+
+/* Resize handle */
+.resize-handle--x {
+    flex: 0 0 auto;
+    position: relative;
+    box-sizing: border-box;
+    width: 4px;
+    height: 100%;
+    background-color: #ddd;
+    cursor: col-resize;
+    user-select: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    transition: background-color 0.2s;
+}
+
+.resize-handle--x:hover {
+    background-color: #999;
+}
+
 @media screen and (max-width: 768px) {
     .row-offcanvas {
         position: relative;
@@ -523,5 +575,10 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
 
     #sidebar-menu .main-menu td {
         max-width: 200px;
+    }
+    
+    /* Hide resize handle on mobile */
+    .resize-handle--x {
+        display: none;
     }
 }
