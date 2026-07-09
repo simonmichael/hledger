@@ -164,8 +164,11 @@ parse iopts rulesfile h = do
 
   let
     args     = progArgs
-    import_  = dbg2 "import" $ any (`elem` args) ["import", "imp"]
-    dryrun   = dbg2 "dryrun" $ any (`elem` args) ["--dry-run", "--dry"]
+    import_  = any (`elem` args) ["import", "imp"]
+    dryrun   = any (`elem` args) ["--dry-run", "--dry"]
+    yn b = if b then "yes" else "no"
+  dbg2MsgIO $ "importing? " <> yn import_
+  when import_ $ dbg2MsgIO $ "dry run? " <> yn dryrun
 
   -- 2. parse the source and archive rules
   --  needs: rules file
@@ -181,7 +184,7 @@ parse iopts rulesfile h = do
     stripcomment = T.takeWhile (/= '#')
     stripspaces  = T.strip
     mpatandcmd = T.breakOn "|" . stripspaces . stripcomment <$> msourcearg
-    mpat = dbg2 "file pattern" $  -- a non-empty file pattern, or nothing
+    mpat =  -- a non-empty file pattern, or nothing
       case T.unpack . stripspaces . fst <$> mpatandcmd of
         Just s | not $ null s -> Just s
         _ -> Nothing
@@ -199,10 +202,12 @@ parse iopts rulesfile h = do
   -- The data/ directory lives next to the main journal file.
   -- This is the same directory used by the get command and by the archive rule below.
   let
-    journaldir = fromMaybe (takeDirectory rulesfile) $ _journaldir iopts
-    datadir    = journaldir </> dataDirName
+    journaldir = fromMaybe (takeDirectory $ dbg2 "rulesfile" rulesfile) $ dbg2 "input file directory" $ _journaldir iopts
+    datadir    = dbg2 "data directory" $ journaldir </> dataDirName
+    datacmddesc = if isJust mpat then "data cleaning command" else "data generating command"
 
-  (mdatafile, datafiledesc) <- dbg2 "data file found ?" <$> case (mpat, mcmd) of
+  (mdatafile, datafiledesc) <- dbg2 "data file found ?" <$>
+    case (journaldir `seq` datadir `seq` dbg2 "file pattern" mpat, dbg2 datacmddesc mcmd) of
     (Nothing, Nothing) -> error' $ "to make " ++ rulesfile ++ " readable,\n please add a 'source' rule with a non-empty file pattern or command"
     (Nothing, Just _) -> return (Nothing, "")
     (Just pat, _) -> do
@@ -217,20 +222,21 @@ parse iopts rulesfile h = do
           isAbsoluteOrTilde = isAbsolute pat || firstSeg == "~"
           plainRelative = not anchoredToRulesDir && not isAbsoluteOrTilde
           primarydir = if anchoredToRulesDir then takeDirectory rulesfile else datadir
-          primarydesc | anchoredToRulesDir = " relative to rules file"
-                      | otherwise          = " in data directory"
-      (fs, dirdesc) <- liftIO $ do
+          primarydesc | anchoredToRulesDir = "relative to rules directory"
+                      | otherwise          = "in data directory"
+      fs <- liftIO $ do
         primaryfs <- expandGlob primarydir pat >>= sortByModTime
+        dbg2IO ("matched files "<>primarydesc<>", oldest first") primaryfs
         if not (null primaryfs) || not plainRelative
-          then return (primaryfs, primarydesc)
+          then return primaryfs
           else do
             dlfs <- expandGlob dldir pat >>= sortByModTime
-            return (dlfs, " in download directory")
-      let fs' = dbg2 ("matched files"<>dirdesc<>", oldest first") fs
+            dbg2IO ("matched files in "<>dldir<>", oldest first") dlfs
+            return dlfs
       return $
         if import_ && archive
-        then (headMay fs', " oldest file")
-        else (lastMay fs', " newest file")
+        then (headMay fs, " oldest file")
+        else (lastMay fs, " newest file")
 
   -- 4. log which file we are reading/importing/cleaning/generating
   --  needs: data file, data file description, import flag
