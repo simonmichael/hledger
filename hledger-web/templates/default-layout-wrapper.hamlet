@@ -26,7 +26,6 @@ $newline never
 
     <body>
         <div .container-fluid>
-            <div .row .row-offcanvas .row-offcanvas-left>
               ^{pageBody pc}
             <footer>
               #{extraCopyright $ appExtra $ settings master}
