@@ -1,11 +1,3 @@
-<h2>
-  #{title'}
-
-$if elem AddPermission perms
-  <a #addformlink href="#" role="button" style="cursor:pointer; margin-top:1em;"
-     data-bs-toggle="modal" data-bs-target="#addmodal" title="Add a new transaction to the journal">
-    Add a transaction
-
 <section .table-responsive>
   <table .transactionsreport .table .table-condensed>
     <thead>

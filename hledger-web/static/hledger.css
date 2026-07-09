@@ -60,6 +60,7 @@ ul {
 
 #main-content {
     padding-left: 30px;
+    z-index: 1001;
 }
 
 #message {
@@ -150,19 +151,82 @@ ul {
     display: none !important;
 }
 
+/* Prevent body scroll to allow independent column scrolling */
+body, html {
+    height: 100%;
+    overflow: hidden;
+    background-color: white;
+}
+
+.row {
+    overflow: visible;
+}
+
+.container-fluid {
+    overflow: visible;
+}
+
 #top-left-controls {
-    position: absolute;
-    top: 10px;
+    position: fixed;
+    top: 0;
     left: 10px;
-    z-index: 1000;
+    z-index: 3000;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 0.3rem;
+    padding: 0.2rem;
+    height: 3rem;
+    max-width: 17rem;
 }
 
 #topbar h1 {
     margin-left: 30px;
 }
+
+/* Sticky header inside scrollable main content */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    background-color: white;
+    padding: 0.3rem;
+    z-index: 2000;
+}
+
+.header-flex {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    margin-bottom: 1rem;
+}
+
+.sticky-header h1 {
+    margin: 0 0 0.3rem 0;
+    font-size: 2.5rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.sticky-header #searchform {
+    margin: 0;
+}
+
+.sticky-header .input-group {
+    height: 2rem;
+}
+
+.sticky-header .form-control {
+    height: 2rem;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.9rem;
+}
+
+.sticky-header .btn {
+    height: 2rem;
+    padding: 0.2rem 0.5rem;
+    font-size: 0.9rem;
+}
+
+
 
 .home-btn {
     margin-right: 1vw;
@@ -488,6 +552,7 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     overflow-y: auto;
     overflow-x: hidden;
     border-right: 1px solid #ebebeb;
+    margin-top: 3rem;
 }
 
 .page-container > #main-content {
@@ -582,3 +647,6 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         display: none;
     }
 }
+-btn.btn.btn-default type="button" onclick="sidebarToggle()" title="Open Sidebar">
+      <span .bi.bi-list>
+ 
