@@ -4,16 +4,18 @@
     <span .bi.bi-arrow-left>
   <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keyboard shortcut: s">
     <span .bi.bi-layout-text-sidebar-reverse>
-  <input .empty-account-checkbox type="checkbox" id="hideEmptyAccountsDesktop" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Toggles Empty Accounts&#10Keyboard shortcut: e">
+  <input .empty-account-checkbox type="checkbox" id="hideEmptyAccountsDesktop" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox(event)" title="Toggles Empty Accounts&#10Keyboard shortcut: e">
   <label for="hideEmptyAccountsDesktop" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
 
+<button .btn.btn-default.mobile-menu-btn type="button" onclick="sidebarToggle()" title="Open Sidebar">
+  <span .bi.bi-list>
 <button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar">
   <span .bi.bi-arrow-left>
 
 $if elem ViewPermission perms
   <div .page-container>
     <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-      <input .empty-account-checkbox-mobile type="checkbox" id="hideEmptyAccountsMobile" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox()" title="Show Empty Accounts&#10Keyboard shortcut: e">
+      <input .empty-account-checkbox-mobile type="checkbox" id="hideEmptyAccountsMobile" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox(event)" title="Show Empty Accounts&#10Keyboard shortcut: e">
       <label for="hideEmptyAccountsMobile" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
       <table .main-menu .table>
         ^{accounts}
