@@ -226,6 +226,7 @@ function hledgerInitPage() {
   var sidebar = document.getElementById('sidebar-menu');
   var mainContent = document.getElementById('main-content');
   var spacer = document.getElementById('spacer');
+  var resizeHandle = document.getElementById('sidebar-resize-handle');
   if (sidebar && mainContent && spacer) {
     if (mobile || showSidebarCookie === 'false') {
       // sidebar should be hidden
@@ -235,6 +236,10 @@ function hledgerInitPage() {
       mainContent.classList.add('col-md-12', 'col-sm-12');
       spacer.classList.remove('col-md-4', 'col-sm-4');
       spacer.classList.add('col-any-0');
+      // Hide resize handle when sidebar is hidden on desktop
+      if (resizeHandle && !mobile) {
+        resizeHandle.style.visibility = 'hidden';
+      }
     } else {
       // sidebar should be visible
       sidebar.classList.add('col-md-4', 'col-sm-4');
@@ -243,6 +248,10 @@ function hledgerInitPage() {
       mainContent.classList.remove('col-md-12', 'col-sm-12');
       spacer.classList.add('col-md-4', 'col-sm-4');
       spacer.classList.remove('col-any-0');
+      // Show resize handle when sidebar is visible on desktop
+      if (resizeHandle && !mobile) {
+        resizeHandle.style.visibility = 'visible';
+      }
     }
   }
 }
@@ -542,6 +551,7 @@ function sidebarToggle() {
     // Desktop: toggle grid classes
     // Check state BEFORE toggling to determine new state
     var wasHidden = sidebar && sidebar.classList.contains('col-any-0');
+    var resizeHandle = document.getElementById('sidebar-resize-handle');
     
     if (sidebar) {
       sidebar.classList.toggle('col-md-4');
@@ -563,6 +573,15 @@ function sidebarToggle() {
     // After toggle: if it was hidden, now it's open
     var showSidebar = wasHidden ? 'true' : 'false';
     setCookie('showsidebar', showSidebar, 365);
+    
+    // Toggle resize handle visibility based on sidebar state
+    if (resizeHandle) {
+      if (showSidebar === 'true') {
+        resizeHandle.style.visibility = 'visible';
+      } else {
+        resizeHandle.style.visibility = 'hidden';
+      }
+    }
     
     // Update body classes to match new state
     if (showSidebar === 'true') {

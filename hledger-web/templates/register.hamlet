@@ -2,7 +2,7 @@
   #{header}
 
 <section>
-  ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items}
+  $#{-- ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items} }
 
 <section.table-responsive>
   <table .table.table-striped.table-condensed>

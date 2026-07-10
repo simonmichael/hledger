@@ -9,10 +9,9 @@
 
 module Hledger.Web.Handler.RegisterR where
 
-import Data.List (intersperse, nub, partition)
+import Data.List (nub, partition)
 import Data.Text qualified as T
 import Safe (tailSafe)
-import Text.Hamlet (hamletFile)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -21,7 +20,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, mixedAmountAsHtml,
-              transactionFragment, removeDates, removeInacct, replaceInacct)
+              transactionFragment, removeInacct, replaceInacct)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -49,6 +48,7 @@ getRegisterR = do
       items =
         styleAmounts (journalCommodityStylesWith HardRounding j) $
         accountTransactionsReport rspec{_rsQuery=q} j acctQuery
+      balancelabel :: String
       balancelabel
         | isJust (inAccount qopts), balanceaccum_ (_rsReportOpts rspec) == Historical = "Historical Total"
         | isJust (inAccount qopts) = "Period Total"
@@ -101,18 +101,18 @@ decorateLinks = concatMap $ \(acct, (name, comma)) ->
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "AccountTransactionsReportItem"s.
-registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
-registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
- -- have to make sure plot is not called when our container (maincontent)
- -- is hidden, eg with add form toggled
- where
-   charttitle = if null title then "" else title ++ ":"
-   colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
-   commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
-   simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts . mixedAmountStripCosts
-   showZeroCommodity = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=False,displayZeroCommodity=True}
-   shownull c = if null c then " " else c
-   nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
+-- registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
+-- registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
+--  -- have to make sure plot is not called when our container (maincontent)
+--  -- is hidden, eg with add form toggled
+--  where
+--    charttitle = if null title then "" else title ++ ":"
+--    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
+--    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
+--    simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts . mixedAmountStripCosts
+--    showZeroCommodity = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=False,displayZeroCommodity=True}
+--    shownull c = if null c then " " else c
+--    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
 
 -- | Makes a unix timestamp (milliseconds since epoch) corresponding to noon on the given date in UTC.
 dayToUtcNoonTimestamp :: Day -> Integer
