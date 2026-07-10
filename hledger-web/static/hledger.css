@@ -235,6 +235,11 @@ body, html {
 
 .mobile-menu-btn {
     display: none;
+    position: fixed;
+    top: 0.3rem;
+    left: 0.3rem;
+    transform: scale(1.5);
+    z-index: 3000;
 }
 
 #top-left-controls .empty-account-checkbox {
@@ -256,14 +261,17 @@ body, html {
     display: none;
     position: relative;
     top: 13px;
+    left: 1rem;
     transform: scale(1.5);
+    z-index: 2000;
 }
 
 #sidebar-menu label[for="hideEmptyAccountsMobile"] {
     display: none;
     position: relative;
-    left: 25px;
+    left: 3rem;
     bottom: 2px;
+    z-index: 2000;
 }
 
 #top-left-controls .close-sidebar-arrow-desktop {
@@ -348,9 +356,10 @@ body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
 .close-sidebar-arrow-mobile {
     display: none;
     position: fixed;
-    top: 10px;
-    left: 44vw;
+    top: 0.6rem;
+    right: 1vw;
     transform: scale(2);
+    z-index: 3000;
 }
 
 body.sidebar-hidden #top-left-controls .empty-account-checkbox {
@@ -387,11 +396,25 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     }
 
     #sidebar-menu .empty-account-checkbox-mobile {
-        display: block;
+        display: inline-block;
+        position: relative;
+        top: 0;
+        left: 0;
+        transform: scale(1.5);
+        z-index: 2000;
+        margin: 0.5rem 0 0.5rem 1rem;
+        cursor: pointer;
     }
 
     #sidebar-menu label[for="hideEmptyAccountsMobile"] {
-        display: block;
+        display: inline-block;
+        position: relative;
+        top: 0;
+        left: 0;
+        z-index: 2000;
+        margin: 0.5rem 0 0.5rem 0.5rem;
+        cursor: pointer;
+        vertical-align: middle;
     }
 
     body.sidebar-hidden .close-sidebar-arrow-mobile {
@@ -637,6 +660,7 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         background: white !important;
         overflow-y: auto !important;
         box-shadow: 2px 0 5px rgba(0,0,0,0.1) !important;
+        margin-top: 0 !important;
     }
     
     #sidebar-menu.sidebar-offcanvas.active {
