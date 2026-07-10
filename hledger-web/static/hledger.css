@@ -208,20 +208,17 @@ body, html {
 
 .sticky-header #searchform {
     margin: 0;
+    align-items: center;
 }
 
 .sticky-header .input-group {
-    height: 2rem;
+    height: 2.5rem;
+    align-items: center;
+    display: flex;
 }
 
 .sticky-header .form-control {
-    height: 2rem;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.9rem;
-}
-
-.sticky-header .btn {
-    height: 2rem;
+    height: 2.5rem;
     padding: 0.2rem 0.5rem;
     font-size: 0.9rem;
 }
@@ -230,7 +227,10 @@ body, html {
 
 .home-btn {
     margin-right: 1vw;
-    transform: scale(1.82);
+    height: 2.5rem;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    border-radius: 0;
 }
 
 .mobile-menu-btn {
@@ -281,27 +281,32 @@ body, html {
 
 #searchform button[onclick="addformShow()"],
 #searchform a[title="Clear search terms"],
+#searchform a[href="@{ManageR}"],
 #searchform button[data-bs-target="#helpmodal"] {
     position: relative;
-    bottom: 0.5rem;
-    width: 4rem;
-    height: 4rem;
+    width: 2.5rem;
+    height: 2.5rem;
     padding: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-}
-
-#searchform button[onclick="addformShow()"],
-#searchform button[data-bs-target="#helpmodal"] {
-    bottom: 1.4rem;
-    margin-left: 1rem;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+    border-radius: 0;
 }
 
 #searchform button[onclick="addformShow()"] .bi,
 #searchform a[title="Clear search terms"] .bi,
-#searchform button[data-bs-target="#helpmodal"] .bi {
-    transform: scale(2.89);
+#searchform button[data-bs-target="#helpmodal"] .bi,
+#searchform .home-btn .bi {
+    transform: scale(1.5);
+    vertical-align: unset !important;
+    display: inline-flex;
+}
+
+#searchform .input-group-prepend {
+    display: flex;
+    align-items: center;
 }
 
 #searchform .input-group-append {
@@ -310,7 +315,7 @@ body, html {
 }
 
 #searchform input.form-control {
-    height: 3rem;
+    height: 2.5rem;
 }
 
 #addmodal .btn-close {
