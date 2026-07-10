@@ -187,7 +187,7 @@ body, html {
 .sticky-header {
     position: sticky;
     top: 0;
-    background-color: white;
+    background-color: #e0e0e0;
     padding: 0.3rem;
     z-index: 2000;
 }
@@ -652,6 +652,3 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         display: none;
     }
 }
--btn.btn.btn-default type="button" onclick="sidebarToggle()" title="Open Sidebar">
-      <span .bi.bi-list>
- 

@@ -52,9 +52,10 @@ extra-source-files:
     static/hledger.css
     static/hledger.js
     static/js/bootstrap.bundle.min.js
+    static/js/chart.umd.min.js
+    static/js/chartjs-adapter-date-fns.bundle.min.js
     templates/add-form.hamlet
     templates/balance-report.hamlet
-    templates/chart.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
     templates/edit-form.hamlet

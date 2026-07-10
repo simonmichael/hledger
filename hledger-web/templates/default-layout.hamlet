@@ -17,7 +17,7 @@ $if elem ViewPermission perms
       <label for="hideEmptyAccountsMobile" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
       <table .main-menu .table>
         ^{accounts}
-    <div .resize-handle--x data-target="#sidebar-menu">
+    <div #sidebar-resize-handle .resize-handle--x data-target="#sidebar-menu">
     <main#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
       <header .sticky-header>
         <div .header-flex>
