@@ -4,6 +4,7 @@ Show full journal entries, representing transactions.
 
 ```flags
 Flags:
+     --oneline              show transaction dates and descriptions only
   -a --all                  show all details (--explicit --lots
                             --verbose-tags)
   -x --explicit             show all inferred info explicitly
@@ -181,6 +182,10 @@ If there is no similar-enough match,
 no transaction will be shown and the program exit code will be non-zero.
 
 With `--locations`, print adds the source file and line number to every transaction, as a tag.
+
+With `--oneline`, print shows only each transaction's first line
+(the date, status, code, description, and any same-line comment),
+This gives a compact overview. It affects the default `txt` output only.
 
 ### print output format
 

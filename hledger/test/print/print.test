@@ -138,3 +138,20 @@ $ hledger -f- print --layout=hledger1
 
 >=
 
+# ** 10. --oneline shows only each transaction's first line (date, status, code,
+# description, and same-line comment), suppressing comment and posting lines.
+<
+2024-01-01 * (123) opening  ; a note
+    a    1
+    b
+
+2024-01-02 lunch
+    ; a full-line comment
+    c    2
+    d
+
+$ hledger -f- print --oneline
+2024-01-01 * (123) opening  ; a note
+2024-01-02 lunch
+>=
+
