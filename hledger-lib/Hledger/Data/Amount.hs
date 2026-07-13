@@ -387,8 +387,10 @@ transformAmount f a@Amount{aquantity=q,acost=p} = a{aquantity=f q, acost=f' <$> 
     f' p' = p'
 
 -- | Divide an amount's quantity (and total cost, if any) by some number.
+-- Returns the amount unchanged when the divisor is zero.
 divideAmount :: Quantity -> Amount -> Amount
-divideAmount n = transformAmount (/n)
+divideAmount 0 a = a
+divideAmount n a = transformAmount (/n) a
 
 -- | Multiply an amount's quantity (and its total cost, if it has one) by a constant.
 multiplyAmount :: Quantity -> Amount -> Amount
@@ -987,8 +989,10 @@ maAddAmounts :: (Foldable t) => MixedAmount -> t Amount -> MixedAmount
 maAddAmounts = foldl' maAddAmount
 
 -- | Divide a mixed amount's quantities (and total costs, if any) by a constant.
+-- Returns the mixed amount unchanged when the divisor is zero.
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
-divideMixedAmount n = transformMixedAmount (/n)
+divideMixedAmount 0 ma = ma
+divideMixedAmount n ma = transformMixedAmount (/n) ma
 
 -- | Multiply a mixed amount's quantities (and total costs, if any) by a constant.
 multiplyMixedAmount :: Quantity -> MixedAmount -> MixedAmount
