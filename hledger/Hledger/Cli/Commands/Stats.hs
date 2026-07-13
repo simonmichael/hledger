@@ -42,7 +42,7 @@ import Hledger.Cli.Version (packageversion, versionStringWith)
 
 statsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Stats.txt")
-  [ flagNone ["1"] (setboolopt "") "show a single line of output"
+  [ flagNone ["oneline"] (setboolopt "oneline") "show a single line of output"
       -- Cli.hs converts -1 to --depth=1, no point giving it another name here
   , flagNone ["verbose","v"] (setboolopt "verbose") "show more detailed output"
   ,flagReq  ["output-file","o"] (\s opts -> Right $ setopt "output-file" s opts) "FILE" "write output to FILE."
