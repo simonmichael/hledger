@@ -55,6 +55,7 @@ import Hledger.Data.Types
 import Hledger.Data.AccountName (isAccountNamePrefixOf)
 import Hledger.Data.Amount
 import Hledger.Data.Journal
+import Hledger.Data.Lots (lotBaseAccount)
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 import Hledger.Data.Errors
@@ -722,6 +723,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
       diffstr  -- their difference
       (T.unpack (regexEscape (paccount p)) ++ if isinclusive then "" else "$")  -- query matching the account(s) postings
       (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack (regexEscape (assertedcomm)))))  -- query matching the commodity(ies)
+      lotSubHint  -- lot subaccount hint (empty for non-lot accounts)
 
       where
         acct = T.unpack $ paccount p
@@ -734,7 +736,18 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
           showAmountsDistinctly fmt assertedcommbalcostless actualcommbalcostless
         diffstr     = showAmountWith fmt $ assertedcommbalcostless - actualcommbalcostless
         pad = fitText (Just w) Nothing False False . T.pack where w = max (length assertedstr) (length actualstr)
-
+        -- If this is a lot subaccount assertion, remind that balance assertions generally
+        -- don't work on lot subaccounts. (#2659)
+        lotSubHint
+          | isLotSub =
+              "\n\nNote '" ++ T.unpack assertedacct ++ "' is a lot subaccount.\n"
+              ++ "Balance assertions aren't supported here unless all postings\n"
+              ++ "to this lot mention the lot subaccount name explicitly.\n"
+              ++ "So it's probably best to avoid using balance assertions on this account.\n"
+              ++ "If needed, you could assert the parent account's balance instead."
+          | otherwise = ""
+          where
+            isLotSub = assertedacct /= lotBaseAccount assertedacct
 
   unless pass $ throwError errmsg
 {- XXX

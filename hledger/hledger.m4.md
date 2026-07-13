@@ -1916,6 +1916,17 @@ In hledger you can make "**subaccount-inclusive balance assertions**" by adding 
   assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 ```
 
+### Assertions and lot subaccounts
+
+[Lot subaccounts](#lot-subaccounts) (a special kind of subaccount for tracking lots, discussed in "Lot reporting" below)
+have limited support for balance assertions.
+
+You can write balance assertions on a lot, only all postings involving
+that lot write the lot subaccount explicitly. Always-explicit lot
+subaccounts is not the norm, so it's better to avoid writing balance
+assertions on individual lots. (The `close` command also follows this rule.)
+If needed, you can usually write aggregate balance assertions on the parent account instead.
+
 ### Assertions and status
 
 Balance assertions always consider postings of all [statuses](#status) (unmarked, pending, or cleared);
