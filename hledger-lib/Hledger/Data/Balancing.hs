@@ -720,7 +720,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
         <> if debugLevel >= 2 then " (with costs: " <> T.pack (showMixedAmountWith fmt actualcommbal) <> ")" else ""
       )
       diffstr  -- their difference
-      (acct ++ if isinclusive then "" else "$")  -- query matching the account(s) postings
+      (T.unpack (regexEscape (paccount p)) ++ if isinclusive then "" else "$")  -- query matching the account(s) postings
       (if istotal then "" else (" cur:" ++ quoteForCommandLine (T.unpack (regexEscape (assertedcomm)))))  -- query matching the commodity(ies)
 
       where
