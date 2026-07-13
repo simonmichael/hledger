@@ -423,3 +423,54 @@ $ hledger -f- check basis
 $ hledger -f- check basis
 >2 /differs from its transacted cost/
 >=1
+
+# *** 32. When the per-unit cost inferred from `@@ TotalCost` has more
+# decimal digits than the total's display precision, the derived
+# per-unit cost is displayed with the extra digits (not truncated to
+# the total's display precision). #2659
+<
+commodity AAAA ; lots:
+
+2026-01-01
+    assets       100.00 AAAA @@ 250 €
+    cash
+
+$ hledger -f- print -a
+2026-01-01
+    assets:{2026-01-01, 2.5 €}                   100.00 AAAA {2.5 €} @@ 250 €  ; ptype: acquire
+    cash                                        -250 €
+
+>=
+
+# *** 33. A non-terminating per-unit quotient is displayed capped at
+# 'defaultMaxDisplayPrecision' (8) decimal places, without further
+# trailing digits.
+<
+commodity AAAA ; lots:
+
+2026-01-01
+    assets       3 AAAA @@ 10 €
+    cash
+
+$ hledger -f- print -a
+2026-01-01
+    assets:{2026-01-01, 3.33333333 €}              3 AAAA {3.33333333 €} @@ 10 €  ; ptype: acquire
+    cash                                         -10 €
+
+>=
+
+# *** 34. An exact-integer per-unit quotient is displayed without
+# trailing decimal zeros.
+<
+commodity AAAA ; lots:
+
+2026-01-01
+    assets       4 AAAA @@ 20 €
+    cash
+
+$ hledger -f- print -a
+2026-01-01
+    assets:{2026-01-01, 5 €}                       4 AAAA {5 €} @@ 20 €  ; ptype: acquire
+    cash                                         -20 €
+
+>=

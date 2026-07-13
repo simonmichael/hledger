@@ -122,7 +122,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountsDistinctly)
+import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
@@ -1504,11 +1504,11 @@ pairIndexedTransferPostings t froms tos = do
 
 -- | Extract a per-unit cost Amount from an AmountCost, normalising TotalCost by quantity.
 -- If quantity is zero, returns the TotalCost amount as-is (avoiding division by zero).
+-- Uses 'divideAmountAndUpdatePrecision' so the derived unit cost renders with the
+-- quotient's digits rather than inheriting the total cost's narrower display style.
 amountCostToUnitCost :: Quantity -> AmountCost -> Amount
 amountCostToUnitCost _   (UnitCost c)  = c
-amountCostToUnitCost qty (TotalCost c)
-  | qty == 0  = c
-  | otherwise = c{aquantity = aquantity c / qty}
+amountCostToUnitCost qty (TotalCost c) = divideAmountAndUpdatePrecision qty c
 
 -- | Normalize an amount's transacted cost to UnitCost form (converting TotalCost by dividing by quantity).
 -- Returns Nothing if the amount has no transacted cost.

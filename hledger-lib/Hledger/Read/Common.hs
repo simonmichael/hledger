@@ -1139,13 +1139,9 @@ lotcostp postingqty =
       pure $ CostBasis Nothing Nothing ma
 
     -- Divide with full Decimal precision (so `{{T}}` and `@@T` give equal
-    -- per-unit Decimals for the strict basis check), but widen display
-    -- precision to show the quotient's digits (capped at
-    -- 'defaultMaxDisplayPrecision' for non-terminating decimals).
-    convertToUnitCost lotamt
-      | postingqty /= 0 = amountSetFullPrecisionUpTo (Just defaultMaxDisplayPrecision) $
-                          lotamt{aquantity = aquantity lotamt / postingqty}
-      | otherwise       = lotamt
+    -- per-unit Decimals for the strict basis check), and widen display
+    -- precision to show the quotient's digits.
+    convertToUnitCost = divideAmountAndUpdatePrecision postingqty
 
 -- Parse a Ledger-style [LOTDATE].
 lotdatep :: JournalParser m Day

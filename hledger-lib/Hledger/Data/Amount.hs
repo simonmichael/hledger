@@ -68,6 +68,7 @@ module Hledger.Data.Amount (
   amountLooksZero,
   amountSetQuantity,
   divideAmount,
+  divideAmountAndUpdatePrecision,
   multiplyAmount,
   invertAmount,
   -- ** styles
@@ -144,6 +145,7 @@ module Hledger.Data.Amount (
   maMinus,
   maSum,
   divideMixedAmount,
+  divideMixedAmountAndUpdatePrecision,
   multiplyMixedAmount,
   averageMixedAmounts,
   sumAndAverageMixedAmounts,
@@ -391,6 +393,19 @@ transformAmount f a@Amount{aquantity=q,acost=p} = a{aquantity=f q, acost=f' <$> 
 divideAmount :: Quantity -> Amount -> Amount
 divideAmount 0 a = a
 divideAmount n a = transformAmount (/n) a
+
+-- | Like 'divideAmount', but sets the display precision to exactly the number
+-- of significant decimal digits in the quotient (capped at
+-- 'defaultMaxDisplayPrecision'), so the quotient's digits stay visible without
+-- adding trailing zeros. Use this when the quotient is intended for display in
+-- a journal entry (eg per-unit cost derived from a total cost); for aggregate
+-- report cells, prefer 'divideAmount' to keep the report's chosen precision.
+divideAmountAndUpdatePrecision :: Quantity -> Amount -> Amount
+divideAmountAndUpdatePrecision 0 a = a
+divideAmountAndUpdatePrecision n a = amountSetPrecision (Precision p) a'
+  where
+    a' = divideAmount n a
+    p  = min defaultMaxDisplayPrecision (amountInternalPrecision a')
 
 -- | Multiply an amount's quantity (and its total cost, if it has one) by a constant.
 multiplyAmount :: Quantity -> Amount -> Amount
@@ -993,6 +1008,17 @@ maAddAmounts = foldl' maAddAmount
 divideMixedAmount :: Quantity -> MixedAmount -> MixedAmount
 divideMixedAmount 0 ma = ma
 divideMixedAmount n ma = transformMixedAmount (/n) ma
+
+-- | Like 'divideMixedAmount', but sets each component amount's display
+-- precision to exactly the number of significant decimal digits in the
+-- quotient (capped at 'defaultMaxDisplayPrecision'), so the quotient's
+-- digits stay visible without adding trailing zeros. Use this when the
+-- quotient is intended for display in a journal entry; for aggregate
+-- report cells, prefer 'divideMixedAmount'.
+divideMixedAmountAndUpdatePrecision :: Quantity -> MixedAmount -> MixedAmount
+divideMixedAmountAndUpdatePrecision 0 ma = ma
+divideMixedAmountAndUpdatePrecision n ma =
+  mapMixedAmountUnsafe (divideAmountAndUpdatePrecision n) ma
 
 -- | Multiply a mixed amount's quantities (and total costs, if any) by a constant.
 multiplyMixedAmount :: Quantity -> MixedAmount -> MixedAmount
