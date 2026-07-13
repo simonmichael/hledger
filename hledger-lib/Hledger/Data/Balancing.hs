@@ -706,7 +706,7 @@ checkBalanceAssertionOneCommodityB p@Posting{paccount=assertedacct} assertedcomm
         "but the calculated balance is:  %s",
         "(difference: %s)",
         "To troubleshoot, check this account's running balance with assertions disabled, eg:",
-        "hledger reg --ignore-assertions '%s'%s%s"
+        "hledger reg -E --ignore-assertions '%s'%s%s"
       ])
 
       (sourcePosPretty pos)  -- position
