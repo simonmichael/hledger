@@ -474,3 +474,22 @@ $ hledger -f- print -a
     cash                                         -20 €
 
 >=
+
+# *** 35. When the commodity has a declared display precision, an
+# inferred per-unit cost widens to at least that precision (eg
+# 'commodity 1.00 €' shows 2.5 as 2.50). User-written explicit costs
+# retain their own precision.
+<
+commodity AAAA ; lots:
+commodity 1.00 €
+
+2026-01-01
+    assets       100.00 AAAA @@ 250 €
+    cash
+
+$ hledger -f- print -a
+2026-01-01
+    assets:{2026-01-01, 2.50 €}                  100.00 AAAA {2.50 €} @@ 250 €  ; ptype: acquire
+    cash                                        -250 €
+
+>=
