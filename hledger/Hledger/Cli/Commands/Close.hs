@@ -245,10 +245,14 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
             concat [
               posting{paccount          = a
                     ,pamount           = mixedAmount $ precise b
+                    -- lot subaccounts are skipped: assertions run before lot
+                    -- calculation, so the subaccount balance would be wrong
+                    -- when re-read (mirrors the close branch above)
                     ,pbalanceassertion =
                         case mcommoditysum of
-                          Just s  -> Just assertion{baamount=precise s{acost=Nothing}}
-                          Nothing -> Nothing
+                          Just s | not (isLotSubaccount a) ->
+                            Just assertion{baamount=precise s{acost=Nothing}}
+                          _ -> Nothing
                     }
               : [posting{paccount=openacct, pamount=mixedAmount . precise $ negate b} | interleaved]
 

@@ -88,3 +88,27 @@ $ hledger -f- print --lots --verbose-tags
     equity:start
 
 >=
+
+# ** 5. `close --clopen --lots` output round-trips: no per-lot-subaccount
+# balance assertions are emitted on opening or closing postings, since
+# assertions run before lot calculation. Non-lot postings still get their
+# usual = 0 / = X assertion. #2659
+<
+commodity avocados ; lots:
+
+2026-07-12 Buy avocados
+    assets:fruit        100.00 avocados @@ 250 €
+    assets:cash
+
+$ hledger -f- close --clopen --lots
+2026-07-12 closing balances  ; clopen:
+    assets:cash                                  250 €           = 0 €
+    assets:fruit:{2026-07-12, 2.5 €}            -100.00 avocados
+    equity:opening/closing balances
+
+2026-07-13 opening balances  ; clopen:
+    assets:cash                                 -250 €           = -250 €
+    assets:fruit:{2026-07-12, 2.5 €}             100.00 avocados
+    equity:opening/closing balances
+
+>=
