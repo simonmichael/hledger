@@ -70,10 +70,7 @@ printmode = hledgerCommandMode
   ,outputFileFlag
   ])
   cligeneralflagsgroups1
-  (hiddenflags ++
-  -- this works already as a unique abbreviation, but declare here in case it ever becomes nonunique
-  [flagNone ["location"] (setboolopt "locations") "deprecated, use --locations instead"
-  ])
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 roundFlag = flagReq  ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
