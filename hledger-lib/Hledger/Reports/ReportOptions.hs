@@ -148,6 +148,7 @@ data ReportOpts = ReportOpts {
     ,date2_            :: Bool
     ,empty_            :: Bool
     ,no_elide_         :: Bool
+    ,full_path_        :: Bool
     ,real_             :: Bool
     ,format_           :: StringFormat
     ,balance_base_url_ :: Maybe T.Text
@@ -217,6 +218,7 @@ defreportopts = ReportOpts
     , date2_            = False
     , empty_            = False
     , no_elide_         = False
+    , full_path_        = False
     , real_             = False
     , format_           = def
     , balance_base_url_ = Nothing
@@ -291,6 +293,7 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,date2_            = boolopt "date2" rawopts
           ,empty_            = boolopt "empty" rawopts
           ,no_elide_         = boolopt "no-elide" rawopts
+          ,full_path_        = boolopt "full-path" rawopts
           ,real_             = boolopt "real" rawopts
           ,format_           = format
           ,balance_base_url_ = T.pack <$> maybestringopt "base-url" rawopts
