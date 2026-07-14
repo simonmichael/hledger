@@ -94,13 +94,13 @@ $ hledger -f- print --lots --verbose-tags
 # assertions run before lot calculation. Non-lot postings still get their
 # usual = 0 / = X assertion. #2659
 <
-commodity avocados ; lots:
+commodity avocados  ; lots:
 
 2026-07-12 Buy avocados
     assets:fruit        100.00 avocados @@ 250 €
     assets:cash
 
-$ hledger -f- close --clopen --lots
+$ hledger -f- close --clopen --lots -e 2026-07-13
 2026-07-12 closing balances  ; clopen:
     assets:cash                                  250 €           = 0 €
     assets:fruit:{2026-07-12, 2.5 €}            -100.00 avocados
