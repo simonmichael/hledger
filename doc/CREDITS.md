@@ -24,7 +24,7 @@ and innumerable other benefactors.
 
 15393 commits in 19 years by 194 people as of 2026-07-16:
 
-|                 Author                         | Notes ([chat](#footer) me with updates!)                                                                                                                                                      |
+|                 Author                         | Notes
 |------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | **10k+**                                       |
 | <!-- 13594 -->  Simon Michael                  | founder, project leader, lead developer                                                                                                                                                       |
