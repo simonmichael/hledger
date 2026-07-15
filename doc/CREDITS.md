@@ -26,7 +26,7 @@ and innumerable other benefactors.
 
 |                 Author                         | Notes
 |------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **5-digit committers+**                                       |
+| **5-digit&nbsp;committers**                                       |
 | <!-- 13594 -->  Simon Michael                  | founder, project leader, lead developer                                                                                                                                                       |
 | **4-digit committers**                                        |
 | **3-digit committers**                                       |
