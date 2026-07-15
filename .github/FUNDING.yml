@@ -3,7 +3,7 @@
 github: [simonmichael]
 custom: [
   "https://hledger.org/sponsor.html",
-  "https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY&ssrt=1784130281894"
+  "https://www.paypal.com/donate?hosted_button_id=5J33NLXYXCYAY"
 ]
-liberapay: [simonmichael, hledger]
+liberapay: hledger
 open_collective: hledger
