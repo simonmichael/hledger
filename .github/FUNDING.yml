@@ -1,6 +1,9 @@
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
 
 github: [simonmichael]
-liberapay: simonmichael
+custom: [
+  "https://hledger.org/sponsor.html",
+  "https://www.paypal.com/donate/?cmd=_s-xclick&hosted_button_id=5J33NLXYXCYAY&ssrt=1784130281894"
+]
+liberapay: [simonmichael, hledger]
 open_collective: hledger
-custom: ["https://hledger.org/sponsor.html"]
