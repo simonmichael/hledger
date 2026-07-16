@@ -1,34 +1,30 @@
 # CREDITS
 
-hledger is brought to you by...\
-the Issue wranglers,
-Bug hunters,
-Design dreamers,
-Code slingers,
-Doc poets,
-Package marshals,
-Helping hands,
-Good news preachers,
-Bank rollers,
-Broom pushers,
-the pioneer John Wiegley,
+hledger is brought to you by the
+Issue wranglers..
+Bug hunters..
+Design dreamers..
+Code slingers..
+Doc poets..
+Package marshals..
+Helping hands..
+Good news preachers..
+Bank rollers..
+Broom pushers..
+the pioneer John Wiegley..
 and innumerable other benefactors.
 
 ## Commit authors 
 
-<a href="https://github.com/simonmichael/hledger/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=simonmichael/hledger&max=9999" />
-</a>
+Stats as of 2026-07-16: **15393 commits in 19 years by 194 people**
 
-<https://github.com/simonmichael/hledger/graphs/contributors>
-
-15393 commits in 19 years by 194 people as of 2026-07-16:
+[hledger repo > Insights > Contributors](https://github.com/simonmichael/hledger/graphs/contributors)
 
 <style>
 table td:first-child, table th:first-child { white-space: nowrap; text-align:right; }
 </style>
 
-| Author                                         | Notes                                                                                                                                                                                      |
+| Author                                        :|: Notes                                                                                                                                                                                     |
 |------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | <h3>5 digits</h3>                              |
 | <!-- 13594 -->  Simon Michael                  | founder, project leader, lead developer                                                                                                                                                    |
@@ -230,3 +226,6 @@ table td:first-child, table th:first-child { white-space: nowrap; text-align:rig
 | <!-- 1 -->      n0vdd                          | hledger-web openapi.yaml update                                                                                                                                                            |
 | <!-- 1 -->      savanto                        | areg machine-readable output fix                                                                                                                                                           |
 | <!-- 1 -->      zieone                         | FreeBSD resolver update                                                                                                                                                                    |
+
+<br>
+<img src="https://contrib.rocks/image?repo=simonmichael/hledger&max=9999" />
