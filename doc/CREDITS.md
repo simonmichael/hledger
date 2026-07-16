@@ -22,9 +22,10 @@ Stats as of 2026-07-16: **15393 commits in 19 years by 194 people**
 
 <style>
 table td:first-child, table th:first-child { white-space: nowrap; text-align:right; }
+table td:nth-child(2), table th:nth-child(2) { text-align:left; }
 </style>
 
-| Author                                        :|: Notes                                                                                                                                                                                     |
+| Author                                         | Notes                                                                                                                                                                                      |
 |------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | <h3>5 digits</h3>                              |
 | <!-- 13594 -->  Simon Michael                  | founder, project leader, lead developer                                                                                                                                                    |
