@@ -30,13 +30,13 @@ table td:first-child, table th:first-child { white-space: nowrap; text-align:rig
 
 | Author                                         | Notes                                                                                                                                                                                      |
 |------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <h3>5 digit</h3>                               |
+| <h3>5 digits</h3>                              |
 | <!-- 13594 -->  Simon Michael                  | founder, project leader, lead developer                                                                                                                                                    |
-| <h3>4 digit</h3>                               |
-| <h3>3 digit</h3>                               |
+| <h3>4 digits</h3>                              |
+| <h3>3 digits</h3>                              |
 | <!-- 477 -->    Stephen Morgan                 | performance, code cleanup, runtime error removal, cli/ui output, periodic transactions, parsing, deps, valuation, --gain report, regex depth queries, --summary-only, hlint, lensification |
 | <!-- 216 -->    Dmitry Astapov                 | roi, files, run/repl commands; --transpose; --budget; --forecast/--auto; docker packaging; TWR rework; improved CSV parsing, balancing, periodic transactions, close, parsing, docs, tests |
-| <h3>2 digit</h3>                               |
+| <h3>2 digits</h3>                              |
 | <!-- 99 -->     Henning Thielemann             | hledger-web improvements, quarter periods, code cleanup; spreadsheet output engine (HTML/CSV/FODS export for balance, budget, aregister, print); aregister --invert/--cumulative           |
 | <!-- 81 -->     Vladimir Zhelezov              | new bash shell completions                                                                                                                                                                 |
 | <!-- 72 -->     Alex Chen                      | parsing improvements, code cleanups, better error messages; dep updates                                                                                                                    |
