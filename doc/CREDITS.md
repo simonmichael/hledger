@@ -23,17 +23,18 @@ Stats as of 2026-07-16: **15393 commits in 19 years by 194 people**
 <style>
 table td:first-child, table th:first-child { white-space: nowrap; text-align:right; }
 table td:nth-child(2), table th:nth-child(2) { text-align:left; }
+table td:first-child a { text-decoration:none; }
 </style>
 
 | Author                                         | Notes                                                                                                                                                                                      |
 |------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| <h3>5 digits</h3>                              |
+| <h3><a name=five-digits href="#five-digits">5 digits</a></h3>                              |
 | <!-- 13594 -->  Simon Michael                  | founder, project leader, lead developer                                                                                                                                                    |
-| <h3>4 digits</h3>                              |
-| <h3>3 digits</h3>                              |
+| <h3><a name=four-digits href="#four-digits">4 digits</a></h3>                              |
+| <h3><a name=three-digits href="#three-digits">3 digits</a></h3>                              |
 | <!-- 477 -->    Stephen Morgan                 | performance, code cleanup, runtime error removal, cli/ui output, periodic transactions, parsing, deps, valuation, --gain report, regex depth queries, --summary-only, hlint, lensification |
 | <!-- 216 -->    Dmitry Astapov                 | roi, files, run/repl commands; --transpose; --budget; --forecast/--auto; docker packaging; TWR rework; improved CSV parsing, balancing, periodic transactions, close, parsing, docs, tests |
-| <h3>2 digits</h3>                              |
+| <h3><a name=two-digits href="#two-digits">2 digits</a></h3>                              |
 | <!-- 99 -->     Henning Thielemann             | hledger-web improvements, quarter periods, code cleanup; spreadsheet output engine (HTML/CSV/FODS export for balance, budget, aregister, print); aregister --invert/--cumulative           |
 | <!-- 81 -->     Vladimir Zhelezov              | new bash shell completions                                                                                                                                                                 |
 | <!-- 72 -->     Alex Chen                      | parsing improvements, code cleanups, better error messages; dep updates                                                                                                                    |
@@ -60,7 +61,7 @@ table td:nth-child(2), table th:nth-child(2) { text-align:left; }
 | <!-- 11 -->     Trygve Laugstøl                | hledger-web improvements; --format; CSV --rules-file, stdin support, separate in/out fields, interpolated description; test updates                                                        |
 | <!-- 10 -->     Julien Moutinho                | print CSV output; hledger-equity, hledger-rewrite, hledger-web, parsing improvements; hledger-check-dates addon                                                                            |
 | <!-- 10 -->     Nick Ingolia                   | include directive, account directive; parsing improvements (second code contributor, 2008-12                                                                                               |
-| <h3>1 digit</h3>                               |
+| <h3><a name=one-digit href="#one-digit">1 digit</a></h3>                               |
 | <!-- 9 -->      Chris Lemaire                  | generalised boolean queries (expr:); account directive validation; forecast source positions                                                                                               |
 | <!-- 9 -->      Eli Flanagan                   | hledger-web date picker; build, doc updates                                                                                                                                                |
 | <!-- 9 -->      Ryan Desfosses                 | warnings, docs, hledger-web fixes                                                                                                                                                          |
@@ -126,7 +127,7 @@ table td:nth-child(2), table th:nth-child(2) { text-align:left; }
 | <!-- 2 -->      crocket                        | improve hledger-ui editor support                                                                                                                                                          |
 | <!-- 2 -->      gwern                          | whitespace, Haskell98 cleanups                                                                                                                                                             |
 | <!-- 2 -->      jungle-boogie                  | tutorial updates                                                                                                                                                                           |
-| <h3>Single commits</h3>                        |
+| <h3><a name=single-commits href="#single-commits">Single commits</a></h3>                        |
 | <!-- 1 -->      Adam Sardo                     | widen default balance amount column                                                                                                                                                        |
 | <!-- 1 -->      Aerex                          | neovim editor support in hledger-ui                                                                                                                                                        |
 | <!-- 1 -->      Aiken Cairncross               | code cleanup                                                                                                                                                                               |
