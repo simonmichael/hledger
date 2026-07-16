@@ -23,7 +23,8 @@ Stats as of 2026-07-16: **15393 commits in 19 years by 194 people**
 <style>
 table td:first-child, table th:first-child { white-space: nowrap; text-align:right; }
 table td:nth-child(2), table th:nth-child(2) { text-align:left; }
-table td:first-child a { text-decoration:none; }
+table td:first-child a { text-decoration:none; color:inherit; }
+table td:first-child h3 { margin:0; }
 </style>
 
 | Author                                         | Notes                                                                                                                                                                                      |
