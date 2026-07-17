@@ -6296,9 +6296,7 @@ $ hledger print
 
 ```
 
-If this is a problem (eg when [exporting to Ledger](/ledger.md#hledger-to-ledger)),
-you can avoid it by disabling digit group marks, eg with [-c/--commodity](#commodity-styles)
-(for each affected commodity):
+You can avoid this by disabling digit group marks, eg temporarily with [-c/--commodity](#commodity-styles):
 
 ```cli
 $ hledger print -c '$1000.00'
@@ -6307,7 +6305,7 @@ $ hledger print -c '$1000.00'
 
 ```
 
-or by forcing print to always show decimal digits, with [--round](#print-amount-style):
+or by forcing print to show some decimal digits, with [--round](#print-amount-style):
 
 ```cli
 $ hledger print -c '$1,000.00' --round=soft
