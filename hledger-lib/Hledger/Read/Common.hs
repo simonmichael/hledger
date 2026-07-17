@@ -320,7 +320,7 @@ initialiseAndParseJournal parser iopts f txt = do
     prettyParseErrors $ runParserT (evalStateT parser (initJournal cf)) f txt
   where
     y = first3 . toGregorian $ _ioDay iopts
-    initJournal cf = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [(f, cf)]}
+    initJournal cf = nulljournal{jparsedefaultyear = Just y, jparseincludefilestack = [(f, cf)]}
     -- Flatten parse errors and final parse errors, and output each as a pretty String.
     prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text HledgerParseErrorData) a)
                       -> ExceptT String IO a

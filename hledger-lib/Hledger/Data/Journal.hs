@@ -221,7 +221,7 @@ journalDbg j@Journal{..} = chomp $ unlines $
   ,"jparseparentaccounts: "      <> shw jparseparentaccounts
   ,"jparsealiases: "             <> shw jparsealiases
   -- ,"jparsetimeclockentries: " <> shw jparsetimeclockentries
-  ,"jincludefilestack: "         <> shw jincludefilestack
+  ,"jparseincludefilestack: "    <> shw jparseincludefilestack
   ,"jdeclaredpayees: "           <> shw jdeclaredpayees
   ,"jdeclaredtags: "             <> shw jdeclaredtags
   ,"jdeclaredaccounts: "         <> shw jdeclaredaccounts
@@ -267,7 +267,7 @@ journalConcat :: Journal -> Journal -> Journal
 journalConcat j1 j2 =
   let
     f1 = takeFileName $ journalFilePath j1
-    f2 = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jincludefilestack j2  -- XXX more accurate than journalFilePath for some reason
+    f2 = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jparseincludefilestack j2  -- XXX more accurate than journalFilePath for some reason
   in
     dbgJournalAcctDeclOrder ("journalConcat: " <> f1 <> " <> " <> f2 <> ", acct decls renumbered: ") $
     journalRenumberAccountDeclarations $
@@ -280,7 +280,7 @@ journalConcat j1 j2 =
     ,jparsealiases              = jparsealiases              j2
     -- ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
     ,jparsetimeclockentries     = jparsetimeclockentries     j1 <> jparsetimeclockentries     j2
-    ,jincludefilestack          = jincludefilestack j2
+    ,jparseincludefilestack     = jparseincludefilestack j2
     ,jdeclaredpayees            = jdeclaredpayees            j1 <> jdeclaredpayees            j2
     ,jdeclaredtags              = jdeclaredtags              j1 <> jdeclaredtags              j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
@@ -362,7 +362,7 @@ nulljournal = Journal {
   ,jparsealiases              = []
   -- ,jparsetransactioncount     = 0
   ,jparsetimeclockentries     = []
-  ,jincludefilestack          = []
+  ,jparseincludefilestack     = []
   ,jdeclaredpayees            = []
   ,jdeclaredtags              = []
   ,jdeclaredaccounts          = []
