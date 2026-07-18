@@ -2,8 +2,7 @@
 
 Shortcut: [regressions.hledger.org](https://regressions.hledger.org)
 
-A regression is "something that used to work, that broke", or "an unintended not-good change"
-in a released version of hledger.
+A regression is "something that used to work, that broke, without notice", in a released version of hledger.
 
 We don't like regressions. We want to detect them quickly, repair them quickly, and reduce their frequency.
 You can help by finding them, or fixing them! 
