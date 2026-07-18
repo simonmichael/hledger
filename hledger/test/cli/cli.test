@@ -213,3 +213,26 @@ $ hledger balance -m
 $ hledger balance -m foo
 >2 /Unknown flag: -m/
 >= 1
+
+# ** 38. help with no viewer flag is non-interactive here (stdout is a pipe), so it
+# prints the plain text manual.
+$ hledger help
+> /hledger User Manuals/
+
+# help accepts -p, -m and -i as valueless flags selecting a viewer. Appending -h makes
+# hledger print the command's help and exit before launching any (possibly interactive)
+# viewer, so these tests check only that the flags parse - ie that the required-value
+# pre-check does not wrongly reject them as "needs a value" (the bug these guard against).
+# The pre-check runs before -h takes effect, so a regression would still be caught here.
+
+# ** 39.
+$ hledger help -p -h
+> /Show the hledger user manual/
+
+# ** 40.
+$ hledger help -m -h
+> /Show the hledger user manual/
+
+# ** 41.
+$ hledger help -i -h
+> /Show the hledger user manual/
