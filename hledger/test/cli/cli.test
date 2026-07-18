@@ -199,3 +199,17 @@ $ printf '' | hledger -f csv:- balance
 $ hledger --file=--weird.csv balance
 >2 /--weird.csv/
 >= 1
+
+# ** 36. Ambiguous flags are required-value in some commands (eg -m is --match for print/register)
+# but valueless in others (eg -m selects man for help), so the required-value pre-check can't judge
+# them before the command is known and skips them. A command lacking the flag then reports "Unknown
+# flag" consistently, with or without a following value (the no-value form previously wrongly said
+# "-m needs a value").
+$ hledger balance -m
+>2 /Unknown flag: -m/
+>= 1
+
+# ** 37.
+$ hledger balance -m foo
+>2 /Unknown flag: -m/
+>= 1

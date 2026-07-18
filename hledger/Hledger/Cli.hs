@@ -517,12 +517,16 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal (checkReqValFlagArg
 -- A bare "-" (commonly used to mean stdin), and prefixed forms like "csv:-", are allowed as values.
 -- Values that start with "-" but are not known flags (eg "-date" as a register --sort key) are also
 -- allowed, so we don't break legitimate dash-prefixed value syntax.
+-- Flags whose value-ness varies by command (ambiguousFlagArgs, eg -m/-p) are not checked here,
+-- since the command is not yet known; cmdargs validates them per-command.
 checkReqValFlagArgsHaveValues :: [String] -> [String]
 checkReqValFlagArgsHaveValues = go
   where
     -- --debug is declared as flagReq but treated as optional-value via ensureDebugFlagHasVal,
     -- so don't validate it here.
-    checkable a = a `elem` reqValFlagArgs && a /= "--debug"
+    -- Ambiguous flags (required-value in some commands, valueless in others, eg -m/-p) are also
+    -- skipped, since we can't know here which command's meaning applies; cmdargs will check them.
+    checkable a = a `elem` reqValFlagArgs && a /= "--debug" && a `notElem` ambiguousFlagArgs
     knownFlags = noValFlagArgs `union` reqValFlagArgs `union` optValFlagArgs
     looksLikeKnownFlag b =
          b `elem` knownFlags
@@ -691,6 +695,18 @@ optValCommandFlagNames = [f | (f,i) <- concatMap toFlagInfos commandFlags, isOpt
 noValFlagArgs  = map toFlagArg $ noValGeneralFlagNames  `union` (noValCommandFlagNames  \\ generalFlagNames)
 reqValFlagArgs = map toFlagArg $ reqValGeneralFlagNames `union` (reqValCommandFlagNames \\ generalFlagNames)
 optValFlagArgs = map toFlagArg $ optValGeneralFlagNames `union` (optValCommandFlagNames \\ generalFlagNames)
+
+-- Flag args whose value-ness is ambiguous across commands: required-value in some command(s)
+-- but valueless (no-value) in others. Their meaning can't be known before the command is
+-- identified, so the pre-cmdargs required-value check (checkReqValFlagArgsHaveValues) skips them,
+-- deferring to cmdargs' per-command parsing. Eg -m is --match (required value) for print/register
+-- but a valueless "use man" flag for help; -p is --period (required value) generally but a valueless
+-- "use pager" flag for help. Derived from the reflected flag sets, so it stays correct as flags change.
+-- Computed from the raw per-source name lists (before general/command deduplication), so a name that
+-- is valueless only as a command flag shadowed by a same-named general flag (eg help's -p) is still seen.
+ambiguousFlagArgs = map toFlagArg $
+  (reqValGeneralFlagNames `union` reqValCommandFlagNames) `intersect`
+  (noValGeneralFlagNames  `union` noValCommandFlagNames)
 
 -- Short flag args that expect a required value.
 shortReqValFlagArgs = filter isShortFlagArg reqValFlagArgs
