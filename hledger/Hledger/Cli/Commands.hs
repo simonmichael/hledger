@@ -190,6 +190,7 @@ accent
 -- and short descriptions. This is modified at runtime, as follows:
 --
 -- progversion is the program name and version.
+-- builtin is True when showing only built-in commands.
 --
 -- Lines beginning with a space represent builtin commands, with format:
 --  COMMAND (ALIASES) DESCRIPTION
@@ -204,50 +205,49 @@ accent
 --
 -- TODO: generate more of this automatically.
 -- 
-commandsList :: String -> [String] -> [String]
-commandsList progversion othercmds =
-  map (bold'.accent) _banner_smslant ++   -- XXX not showing bold, why ?
-  [
+commandsList :: String -> Bool -> [String] -> [String]
+commandsList progversion builtin othercmds =
+  bannerWithVersion ++   -- XXX not showing bold, why ?
   -- Keep the following synced with:
   --  commands.m4
   --  hledger.m4.md -> Commands
   --  commandsFromCommandsList. Only commands should begin with space or plus.
-  -- IN PARTICULAR KEEP SYNCED WITH commandsListExtractCommands, 
+  -- IN PARTICULAR KEEP SYNCED WITH commandsListExtractCommands,
   -- it needs checking/updating after any wording/layout changes here
-   "-------------------------------------------------------------------------------"
-  ,progversion
+  [
+  "-------------------------------------------------------------------------------"
+  ,""
   ,"Usage: hledger [COMMAND] [OPTIONS] [ARGS]"
+  ,""
   -- ,"Commands (builtins + addons):"  -- XXX adapt for commands --builtin
-  ,"Commands:"
+  ,"Commands (" <> (if builtin then "showing built-in only" else "including installed addons") <> "):"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "HELP (docs, demos..)"
-  ," commands                 show the commands list (default)"
+  ,bold' "HELP"
+  ," commands                 show this commands list (default)"
+  ," --tldr    [COMMAND]      show brief command examples [for COMMAND]"
+  ," --help/-h [COMMAND]      show full command line help [for COMMAND]"
+  ," help [-i|-m|-p] [TOPIC]  show the hledger manual     [for TOPIC]"
   ," demo [DEMO]              show brief demos in the terminal"
-  ," help [-i|-m|-p] [TOPIC]  show the hledger manual with info/man/pager"
-  ," --tldr    [COMMAND]      show command examples   [for command] with tldr"
-  ," --help/-h [COMMAND]      show command line help  [for command]"
-  ," --info    [COMMAND]      show the hledger manual [for command] with info"
-  ," --man     [COMMAND]      show the hledger manual [for command] with man"
-  ,"                          more help: https://hledger.org"
+  -- ,"                          for more help, see https://hledger.org"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "USER INTERFACES (alternate UIs)"
+  ,bold' "USER INTERFACES"
   ," repl                     run commands from an interactive prompt"
-  ," run                      run command scripts from files or arguments"
+  ," run                      run a sequence of commands efficiently"
   ,"+ui                       run a terminal UI (hledger-ui)"
   ,"+web                      run a web UI (hledger-web)"
                                                                                      -- see also: MoLe, https://hledger.org/mobile.html
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "ENTERING DATA (add or edit transactions)"
+  ,bold' "ENTERING DATA"
   ," add                      add transactions using interactive prompts"
   ,"+iadd                     add transactions using a TUI (hledger-iadd)"
   ," import                   add new transactions from other files, eg CSV files"
   ,"+edit                     edit specific transactions with $EDITOR"               -- hledger-utils
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "BASIC REPORTS (simple lists)"
+  ,bold' "BASIC REPORTS"
   ," accounts                 show account names"
   ," codes                    show transaction codes"
   ," commodities              show commodity/currency symbols"
@@ -260,7 +260,7 @@ commandsList progversion othercmds =
   ," tags                     show tag names"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "STANDARD REPORTS (the most useful financial reports)"
+  ,bold' "STANDARD REPORTS"
   ," print                    show full transaction entries, or export journal data"
   ," aregister (areg)         show transactions & running balance in one account"
   ," register (reg)           show postings & running total in one or more accounts"
@@ -270,19 +270,19 @@ commandsList progversion othercmds =
   ," incomestatement (is)     show revenues and expenses"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "ADVANCED REPORTS (more versatile/advanced reports)"
+  ,bold' "ADVANCED REPORTS"
   ," balance (bal)            show balance changes, end balances, gains, budgets.."
   ,"+lots                     show a commodity's lots"                               -- hledger-lots
   ," roi                      show return on investments"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "CHARTS (bar charts, line graphs..)"
+  ,bold' "CHARTS"
   ," activity                 show posting counts as a bar chart"
   ,"+bar                      show balances or changes as a bar chart"               -- hledger-bar
   ,"+plot                     show advanced matplotlib charts as gui/svg/png/pdf.."  -- hledger-utils
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "GENERATING DATA (generate or download journal entries; less common)"
+  ,bold' "GENERATING DATA"
   ,"+autosync                 download/deduplicate/show OFX data as transactions"    -- ledger-autosync
   ," close                    generate transactions to zero/restore/assert balances"
   ," get                      fetch transactions then market prices via helper scripts"
@@ -292,7 +292,7 @@ commandsList progversion othercmds =
   ," rewrite                  add postings to transactions, like print --auto"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "MAINTENANCE (error checking, data management..)"
+  ,bold' "MAINTENANCE"
   ," check                    run any of hledger's built-in correctness checks"
   ,"+check-fancyassertions    check more powerful balance assertions"                -- hledger-check-fancyassertions
   ,"+check-tagfiles           check that files referenced in tag values exist"       -- hledger-check-tagfiles
@@ -303,10 +303,19 @@ commandsList progversion othercmds =
   ," test                     run some self tests"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "OTHER ADDONS (more hledger-* commands found in PATH):"
+  ,bold' "OTHER ADDONS"
   ]
   ++ map (' ':) (lines $ multicol 79 othercmds)
   ++ [""]
+  where
+    -- The ascii banner, with the version and website url right-aligned
+    -- to the right margin.
+    bannerWithVersion = zipWith annotate _banner_smslant (["", version, "https://hledger.org"] ++ repeat "")
+      where
+        version = unwords $ drop 1 $ words progversion
+        rightmargin = 79  -- the width of the separator lines below
+        annotate b ""  = (bold'.accent) b
+        annotate b ann = (bold'.accent) (formatString True (Just (rightmargin - length ann)) Nothing b) <> ann
 
 -- | Extract just the command names from the default commands list above,
 -- (the first word of lines between "Usage:" and "OTHER" beginning with a space or plus sign),
@@ -336,8 +345,9 @@ commandsmode =
 -- | Display the commands list.
 commands :: CliOpts -> Journal -> IO ()
 commands opts _ = do
-  addons <- if boolopt "builtin" (rawopts_ opts) then return [] else addonCommandNames
-  printCommandsList prognameandversion addons
+  let builtin = boolopt "builtin" (rawopts_ opts)
+  addons <- if builtin then return [] else addonCommandNames
+  printCommandsList prognameandversion builtin addons
 
 {- | Print the commands list, with a pager if appropriate, customising the
 commandsList template above with the given version string and the installed addons.
@@ -345,8 +355,8 @@ Uninstalled known addons will be removed from the list,
 installed known addons will have the + prefix removed,
 and installed unknown addons will be added under Misc.
 -}
-printCommandsList :: String -> [String] -> IO ()
-printCommandsList progversion installedaddons =
+printCommandsList :: String -> Bool -> [String] -> IO ()
+printCommandsList progversion builtin installedaddons =
   seq (length $ dbg8 "uninstalledknownaddons" uninstalledknownaddons) $ -- for debug output
     seq (length $ dbg8 "installedknownaddons" installedknownaddons) $
       seq (length $ dbg8 "installedunknownaddons" installedunknownaddons) $
@@ -354,7 +364,7 @@ printCommandsList progversion installedaddons =
           unlines $
             map unplus $
               filter (not . isuninstalledaddon) $
-                commandsList progversion installedunknownaddons
+                commandsList progversion builtin installedunknownaddons
  where
   knownaddons = knownAddonCommandNames
   uninstalledknownaddons = knownaddons \\ installedaddons
@@ -375,7 +385,7 @@ printCommandsList progversion installedaddons =
 -- | Canonical names of all commands which have a slot in the commands list, in alphabetical order.
 -- These include the builtin commands and the known addon commands.
 knownCommands :: [String]
-knownCommands = nubSort . commandsListExtractCommands False $ commandsList progname []
+knownCommands = nubSort . commandsListExtractCommands False $ commandsList progname False []
 
 -- | All names and aliases of the builtin commands.
 builtinCommandNames :: [String]
@@ -389,7 +399,7 @@ findBuiltinCommand cmdname = find (elem cmdname . modeNames . fst) builtinComman
 in alphabetical order.
 -}
 knownAddonCommandNames :: [String]
-knownAddonCommandNames = nubSort . commandsListExtractCommands True $ commandsList progname []
+knownAddonCommandNames = nubSort . commandsListExtractCommands True $ commandsList progname False []
 
 -- Search PATH for names of addon commands, that aren't shadowed by builtin commands.
 addonCommandNames :: IO [String]
