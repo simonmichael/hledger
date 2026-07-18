@@ -2619,25 +2619,23 @@ A line containing just `end comment` ends the effect of a preceding [comment dir
 
 ## `commodity` directive
 
-`commodity` directives declare commodity symbols, which enables useful [error checking](#commodity-error-checking).
-Eg to declare `$` or `USD`, you could write `commodity $` or `commodity USD`.
+`commodity` directives declare commodity symbols (for [error checking](#commodity-error-checking))
+and their preferred [display style](#commodity-display-style) (digit group marks, decimal digits, and symbol position).
+Eg:
+```
+commodity $1,000.00
+commodity 1000,00 EUR
+commodity ₹ 1,00,00,000.00
+commodity 1000.   ; the no-symbol commodity
+```
 
-But normally you should also write a sample amount:
-eg `commodity $1,000.00` or `commodity 1000.00 USD` or `commodity ₹ 1,00,00,000.00`.
-This also declares:
+The sample amount must include a decimal mark (even if there are no decimal digits after it).
+This tells the parser which decimal mark (period or comma) is used for this commodity in the journal file,
+which can be useful in case of ambiguous digit group marks.
+This effect lasts until the end of the current file tree (from a single `-f` or `LEDGER_FILE`),
+and it can be overridden by by a `decimal-mark` directive.
 
-- The [decimal mark](#decimal-marks) (period or comma) used for parsing this commodity's amounts,
-  from this directive until end of current file (actually: until end of current -f file tree),
-  unless overridden by a `decimal-mark` directive).
-- The preferred [commodity display style](#commodity-display-style) to show in reports.
-  Eg the symbol's position, the digit group marks if any, and the number of decimal digits.
-
-The sample amount must include a decimal mark. So write it even if you want to show no decimal digits:
-`commodity $1,000.` or `commodity 1000. USD`.
-
-You can also declare the no-symbol commodity: `commodity 1000.00` (or `commodity "" 1000.00`).
-
-Commodity display styles can be [overridden](#commodity-styles) by the `-c/--commodity-style` command line option.
+<!-- Commodity display styles can be [overridden](#commodity-styles) by the `-c/--commodity-style` command line option. -->
 
 ### Commodity directive syntax
 
