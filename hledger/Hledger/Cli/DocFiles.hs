@@ -24,6 +24,7 @@ import Data.ByteString (ByteString)
 import Data.ByteString.Char8 qualified as BC
 import Data.Maybe (fromMaybe)
 import Data.String
+import System.Directory (findExecutable)
 import System.Environment (setEnv)
 import System.IO
 import System.IO.Temp
@@ -156,17 +157,23 @@ runTldrForPage :: TldrPage -> IO ()
 runTldrForPage name =
   case tldr name of
     Nothing -> error' $ "sorry, there's no " <> name <> " tldr page yet"
-    Just b -> (do
-      withSystemTempFile (name++".md") $ \f h -> do
-        BC.hPutStrLn h b
-        hClose h
-        -- tldr clients tend to auto-update their data, try to discourage that here
-        -- tealdeer - doesn't auto-update by default
-        -- tlrc - ?
-        -- tldr-node-client - undocumented env var suggested in output
-        setEnv "TLDR_AUTO_UPDATE_DISABLED" "1"
-        callCommand $ dbg1 "tldr command" $ "tldr --render " <> shellQuoteIfNeeded f
-      ) `catch` (\(_e::IOException) -> do
-        hPutStrLn stderr $ "Warning: could not run tldr --render, using fallback viewer instead.\n"
-        BC.putStrLn b
-      )
+    Just b -> do
+      let fallback = do
+            hPutStrLn stderr "Warning: could not run tldr --render, using fallback viewer instead.\n"
+            BC.putStrLn b
+      -- Check for a tldr client first, so we can fall back quietly without the
+      -- shell printing a "command not found" error.
+      mtldr <- findExecutable "tldr"
+      case mtldr of
+        Nothing -> fallback
+        Just _ -> (do
+          withSystemTempFile (name++".md") $ \f h -> do
+            BC.hPutStrLn h b
+            hClose h
+            -- tldr clients tend to auto-update their data, try to discourage that here
+            -- tealdeer - doesn't auto-update by default
+            -- tlrc - ?
+            -- tldr-node-client - undocumented env var suggested in output
+            setEnv "TLDR_AUTO_UPDATE_DISABLED" "1"
+            callCommand $ dbg1 "tldr command" $ "tldr --render " <> shellQuoteIfNeeded f
+          ) `catch` (\(_e::IOException) -> fallback)
