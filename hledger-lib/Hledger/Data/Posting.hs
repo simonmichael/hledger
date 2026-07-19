@@ -770,8 +770,14 @@ postingCommodities = map acommodity . filter (not . isMissingAmount) . amountsRa
   where isMissingAmount a = acommodity a == "AUTO"
 
 -- | Tags for this posting including any inherited from its parent transaction.
+-- Explicitly-set posting tags override inherited transaction tags with the same name.
 postingAllTags :: Posting -> [Tag]
-postingAllTags p = ptags p ++ maybe [] ttags (ptransaction p)
+postingAllTags p = postingTags ++ filteredTxnTags
+  where
+    postingTags = ptags p
+    txnTags = maybe [] ttags (ptransaction p)
+    postingTagNames = map fst postingTags
+    filteredTxnTags = filter ((`notElem` postingTagNames) . fst) txnTags
 
 -- | Tags for this transaction including any from its postings (which includes any from the postings' accounts).
 transactionAllTags :: Transaction -> [Tag]
