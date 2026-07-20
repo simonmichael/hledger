@@ -14,7 +14,7 @@ Thanks for your understanding! Here are the current hledger PR guidelines:
 
 3. You can have one hledger PR open at a time (unless you have collaborator access).
 
-4. First-time hledger contributors should not use AI to generate PRs.
+4. First-time hledger contributors must not use AI to generate PRs.
    New-contributor PRs that seem AI-generated will be closed.
 
 5. Code intended for the legacy hledger1 branch (hledger 1.x) must not use AI.
