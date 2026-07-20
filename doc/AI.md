@@ -48,28 +48,30 @@ Here are our current policies for AI use in hledger.
 1. hledger does not use AI at runtime.
 
 2. hledger 1.x (2007..2025) was developed without AI assistance.
+   New commits intended for the legacy hledger1 branch may not use AI.
 
-3. hledger 2.x (2026..) is developed with careful AI assistance.
+3. hledger 2.x (2026..) is developed with careful AI assistance,
+   in ways that increase quality and human maintainability.
+   At any time we can stop using AI and keep moving forward.
 
-4. We aim to increase quality and maintainability, not decrease them.
+4. We require disclosure of non-trivial AI usage, including
+  the provider, model, and a rough estimate of output tokens used.
+  Eg, in your main commit: "AI usage: Claude Opus 4.8, ~10k output tokens."
+  See also "Measuring usage" below.
+  
+5. We try to use the more principled/trustworthy tools and providers,
+  such as local LLMs, Ecosia, Anthropic.
+  We don't use OpenAI models (GPT series, o-series, etc).
 
-5. The human committer is responsible for everything in their commits.
+6. First-time hledger contributors may not use AI to generate PRs.
 
-6. The codebase remains human maintainable. At any time we can stop using AI and keep moving forward.
+7. The human committer is responsible for everything in their commits.
+   Review your work before submitting it.
 
-7. PRs require human review; if they are hard to review, they don't get merged, as always.
-
-8. We want to use only the more principled/trustworthy/sustainable tools and providers.
-  Currently this means we try to use only Anthropic, Ecosia, local LLMs, and such, and we avoid OpenAI.
-  We'll review/update the list when needed.
+8. PRs require review by maintainers; if they are hard to review, they don't get merged, as always.
 
 9. We track, optimise, and limit our AI resource usage as a project.
-  When there is (non-trivial) AI usage, contributors should disclose, eg in a commit message,
-  which providers/models were used, and a rough estimate of the output tokens, or time spent interacting with/running AI.
-  See also "Measuring usage" below.
-
-10. We monitor the impact of AI tools on the project, ourselves, and the planet, and make adjustments when needed.
-
+   We monitor the impacts of AI usage, and make adjustments when needed.
 
 ## More discussion / thoughts
 
