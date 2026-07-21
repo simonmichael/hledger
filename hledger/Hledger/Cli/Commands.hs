@@ -59,7 +59,7 @@ where
 import Data.Char (isAlphaNum, isSpace, toLower)
 import Data.Either (isRight)
 import Data.List
-import Data.List.Extra (groupSortOn, nubSort)
+import Data.List.Extra (groupSortOn, nubOrdOn, nubSort)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar
@@ -74,6 +74,7 @@ import Text.Megaparsec.Char
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Conf (CommandAlias, CommandLine, confAliases, getConf')
 import Hledger.Cli.Commands.Accounts
 import Hledger.Cli.Commands.Activity
 import Hledger.Cli.Commands.Add
@@ -228,10 +229,13 @@ gradientStr intensity h w row col0 s
 -- OTHER is replaced with additional command lines (without descriptions)
 -- for any unknown addon commands found in $PATH at runtime.
 --
+-- cmdaliases are the command aliases defined in the config file, if any;
+-- they are shown in a ALIASES group at the end.
+--
 -- TODO: generate more of this automatically.
--- 
-commandsList :: String -> Bool -> [String] -> [String]
-commandsList progversion builtin othercmds =
+--
+commandsList :: String -> Bool -> [String] -> [(CommandAlias,CommandLine)] -> [String]
+commandsList progversion builtin othercmds cmdaliases =
   bannerWithVersion ++   -- XXX not showing bold, why ?
   -- Keep the following synced with:
   --  commands.m4
@@ -331,8 +335,13 @@ commandsList progversion builtin othercmds =
   ,bold' "OTHER ADDONS"
   ]
   ++ map (' ':) (lines $ multicol 79 othercmds)
+  ++ (if null cmdaliases then [] else
+      "" :
+      bold' "ALIASES" :
+      [" " <> padright 24 a <> " = " <> def | (a,def) <- cmdaliases])
   ++ [""]
   where
+    padright w s = s <> replicate (w - length s) ' '
     version = unwords $ drop 1 $ words progversion
     rightmargin = 79  -- the width of the separator line / the right margin
     -- The diagonal gradient spans a grid of the banner rows plus the separator
@@ -369,7 +378,7 @@ commandsmode =
     [flagNone ["builtin"] (setboolopt "builtin")  "show only builtin commands, not addons"
     ]
     [(helpflagstitle, helpflags)]
-    []
+    hiddenflags  -- accept --conf/--no-conf, to show/hide command aliases defined in a config file
     -- flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
 
     ([], Nothing)
@@ -379,16 +388,24 @@ commands :: CliOpts -> Journal -> IO ()
 commands opts _ = do
   let builtin = boolopt "builtin" (rawopts_ opts)
   addons <- if builtin then return [] else addonCommandNames
-  printCommandsList prognameandversion builtin addons
+  cmdaliases <-
+    if builtin then return []
+    else do
+      (conf,_) <- getConf' $ rawopts_ opts
+      -- show each alias's effective (last) definition
+      return $ reverse $ nubOrdOn fst $ reverse
+        [(a, unwords args) | (a,args) <- confAliases conf]
+  printCommandsList prognameandversion builtin addons cmdaliases
 
 {- | Print the commands list, with a pager if appropriate, customising the
-commandsList template above with the given version string and the installed addons.
+commandsList template above with the given version string, the installed addons,
+and any command aliases defined in the config file.
 Uninstalled known addons will be removed from the list,
 installed known addons will have the + prefix removed,
 and installed unknown addons will be added under Misc.
 -}
-printCommandsList :: String -> Bool -> [String] -> IO ()
-printCommandsList progversion builtin installedaddons =
+printCommandsList :: String -> Bool -> [String] -> [(CommandAlias,CommandLine)] -> IO ()
+printCommandsList progversion builtin installedaddons cmdaliases =
   seq (length $ dbg8 "uninstalledknownaddons" uninstalledknownaddons) $ -- for debug output
     seq (length $ dbg8 "installedknownaddons" installedknownaddons) $
       seq (length $ dbg8 "installedunknownaddons" installedunknownaddons) $
@@ -396,7 +413,7 @@ printCommandsList progversion builtin installedaddons =
           unlines $
             map unplus $
               filter (not . isuninstalledaddon) $
-                commandsList progversion builtin installedunknownaddons
+                commandsList progversion builtin installedunknownaddons cmdaliases
  where
   knownaddons = knownAddonCommandNames
   uninstalledknownaddons = knownaddons \\ installedaddons
@@ -417,7 +434,7 @@ printCommandsList progversion builtin installedaddons =
 -- | Canonical names of all commands which have a slot in the commands list, in alphabetical order.
 -- These include the builtin commands and the known addon commands.
 knownCommands :: [String]
-knownCommands = nubSort . commandsListExtractCommands False $ commandsList progname False []
+knownCommands = nubSort . commandsListExtractCommands False $ commandsList progname False [] []
 
 -- | All names and aliases of the builtin commands.
 builtinCommandNames :: [String]
@@ -431,7 +448,7 @@ findBuiltinCommand cmdname = find (elem cmdname . modeNames . fst) builtinComman
 in alphabetical order.
 -}
 knownAddonCommandNames :: [String]
-knownAddonCommandNames = nubSort . commandsListExtractCommands True $ commandsList progname False []
+knownAddonCommandNames = nubSort . commandsListExtractCommands True $ commandsList progname False [] []
 
 -- Search PATH for names of addon commands, that aren't shadowed by builtin commands.
 addonCommandNames :: IO [String]

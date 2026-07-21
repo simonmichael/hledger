@@ -1,0 +1,97 @@
+# * command aliases (custom commands) defined in config files
+# See https://hledger.org/dev/hledger.html#command-aliases
+
+# ** 1. An [alias] section line defines a custom command.
+$  printf '[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf -f /dev/null list; rm -f $$.conf
+/dev/null
+
+# ** 2. The alias's arguments are used.
+<
+2026-01-01
+  a:x  1
+  a:y  1
+  b   -2
+$  printf '[alias]\nmybal = balance --tree -N\n' >$$.conf; hledger --conf $$.conf -f- mybal; rm -f $$.conf
+                   2  a
+                   1    x
+                   1    y
+                  -2  b
+
+# ** 3. Extra options/arguments written after the alias name are added at the end,
+# so they can override the alias's arguments.
+<
+2026-01-01
+  a:x  1
+  a:y  1
+  b   -2
+$  printf '[alias]\nmybal = balance --tree -N\n' >$$.conf; hledger --conf $$.conf -f- mybal --flat; rm -f $$.conf
+                   1  a:x
+                   1  a:y
+                  -2  b
+
+# ** 4. An [alias NAME] section also defines a custom command, with its
+# command line written below, possibly on multiple lines, possibly with
+# some lines commented out.
+<
+2026-01-01
+  a:x  1
+  a:y  1
+  b   -2
+$  printf '[alias mybal]\nbalance --tree\n# --flat\n-N\n' >$$.conf; hledger --conf $$.conf -f- mybal; rm -f $$.conf
+                   2  a
+                   1    x
+                   1    y
+                  -2  b
+
+# ** 5. If the same alias name is defined more than once, the last definition wins.
+<
+2026-01-01
+  a:x  1
+  a:y  1
+  b   -2
+$  printf '[alias]\nmybal = balance --tree -N\nmybal = balance --flat -N\n' >$$.conf; hledger --conf $$.conf -f- mybal; rm -f $$.conf
+                   1  a:x
+                   1  a:y
+                  -2  b
+
+# ** 6. Command aliases can not override builtin command names.
+$  printf '[alias]\nfiles = stats\n' >$$.conf; hledger --conf $$.conf -f /dev/null files; rm -f $$.conf
+/dev/null
+
+# ** 7. Command aliases do override addon commands with the same name.
+$ mkdir -p $$d; printf '#!/bin/sh\necho ADDON RAN\n' >$$d/hledger-zzzz; chmod +x $$d/hledger-zzzz; printf '[alias]\nzzzz = files\n' >$$.conf; PATH=$$d:$PATH hledger --conf $$.conf -f /dev/null zzzz; rm -rf $$d $$.conf
+/dev/null
+
+# ** 8. An alias can refer to itself; the name is then resolved as an addon command.
+# This allows adding default options to an addon command.
+$ mkdir -p $$d; printf '#!/bin/sh\necho ADDON RAN: $@\n' >$$d/hledger-zzzz; chmod +x $$d/hledger-zzzz; printf '[alias]\nzzzz = zzzz --extra\n' >$$.conf; PATH=$$d:$PATH hledger --conf $$.conf -f /dev/null zzzz; rm -rf $$d $$.conf
+> /ADDON RAN: --extra/
+
+# ** 9. An alias can refer to another alias.
+$  printf '[alias]\nlist2 = list1\nlist1 = files\n' >$$.conf; hledger --conf $$.conf -f /dev/null list2; rm -f $$.conf
+/dev/null
+
+# ** 10. An alias whose command is unrecognised gives a helpful error.
+$  printf '[alias]\nbadalias = nosuchcmd --foo\n' >$$.conf; hledger --conf $$.conf -f /dev/null badalias; s=$?; rm -f $$.conf; exit $s
+>2 /command nosuchcmd \(expanded from the badalias command alias\) is not recognised/
+>= 1
+
+# ** 11. An [alias] section line without an equals sign gives a helpful error.
+$  printf '[alias]\nbadline\n' >$$.conf; hledger --conf $$.conf -f /dev/null files; s=$?; rm -f $$.conf; exit $s
+>2 /an \[alias\] section line should look like/
+>= 1
+
+# ** 12. Command aliases are shown in the commands list.
+$  printf '[alias]\nnetworth = bse -H --tree\n' >$$.conf; hledger --conf $$.conf commands | grep -A1 '^ALIASES'; rm -f $$.conf
+ALIASES
+ networth                 = bse -H --tree
+
+# ** 13. --no-conf disables command aliases.
+$  printf '[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf -n -f /dev/null list; s=$?; rm -f $$.conf; exit $s
+>2 /command list is not recognised/
+>= 1
+
+# ** 14. A --no-conf flag inside the config file (which is ignored, see cli.test)
+# does not hide the file's aliases from the commands list.
+$  printf -- '--no-conf\n\n[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf commands | grep -c '^ALIASES'; rm -f $$.conf
+1

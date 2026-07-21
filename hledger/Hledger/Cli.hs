@@ -107,7 +107,7 @@ import Data.Either (isRight)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List
-import Data.Maybe (isJust, fromMaybe, fromJust)
+import Data.Maybe (isJust, isNothing, fromMaybe, fromJust)
 import Data.Text (pack, Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
@@ -290,13 +290,29 @@ main = handleExit $ withGhcDebug' $ do
     cmdarg = if not $ null confcmdarg then confcmdarg else clicmdarg
     nocmdprovided = null cmdarg
 
+    -- The argument may be a command alias (a custom command) defined in the config file.
+    -- If so, expand it to the real command name and the extra arguments to prepend.
+    -- Command aliases never override exact builtin command names, and later definitions win.
+    cmdaliases = reverse $ confAliases conf  -- reversed so that lookup finds the last definition
+    expandAlias :: [CommandAlias] -> String -> (String, [String])
+    expandAlias seen name
+      | name `notElem` seen
+      , isNothing $ findBuiltinCommand name
+      , Just (realcmd:defargs) <- lookup name cmdaliases =
+          -- aliases can refer to other aliases; a repeated name (self-reference or cycle) stops the recursion
+          let (realcmd', defargs') = expandAlias (name:seen) realcmd
+          in (realcmd', defargs' <> defargs)
+      | otherwise = (name, [])
+    (effectivecmdarg, aliasargs) = second replaceNumericFlags $ expandAlias [] cmdarg
+    isaliascmd = effectivecmdarg /= cmdarg || not (null aliasargs)
+
     -- The argument may be an abbreviated command name, which we need to expand.
 
     -- Run cmdargs on conf + cli args to get the full command name.
-    -- If no command argument was provided, or if cmdargs fails because 
+    -- If no command argument was provided, or if cmdargs fails because
     -- the command line contains a bad flag or wrongly present/missing flag value,
     -- cmdname will be "".
-    args = [confcmdarg | not $ null confcmdarg] <> cliargswithcmdfirstwithoutclispecific
+    args = [effectivecmdarg | not $ null effectivecmdarg] <> cliargswithcmdfirstwithoutclispecific
     -- Actually, only scan the first non-flag argument, to avoid flag errors at this stage.
     possiblecmdarg = take 1 $ dropWhile isFlagArg args
     cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) possiblecmdarg
@@ -312,6 +328,8 @@ main = handleExit $ withGhcDebug' $ do
     unless (null confcmdarg) $
       dbg1IO "using command name argument from config file" confcmdarg
   dbgio "cli args with command first and no cli-specific opts" cliargswithcmdfirstwithoutclispecific
+  when isaliascmd $
+    dbg1IO "expanded command alias" (cmdarg, (effectivecmdarg, aliasargs))
   dbg1IO "command found" cmdname
   dbgio "no command provided" nocmdprovided
   dbgio "bad command provided" badcmdprovided
@@ -322,7 +340,8 @@ main = handleExit $ withGhcDebug' $ do
     let (srcnote, hint) = case (not (null confcmdarg), mconffile) of
           (True, Just f) -> (" (from config file " <> f <> ")", "")
           _              -> ("", " Run with no command to see a list.")
-    error' $ "command " <> cmdarg <> srcnote <> " is not recognised." <> hint
+        aliasnote = if effectivecmdarg /= cmdarg then " (expanded from the " <> cmdarg <> " command alias)" else ""
+    error' $ "command " <> effectivecmdarg <> aliasnote <> srcnote <> " is not recognised." <> hint
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
@@ -356,9 +375,10 @@ main = handleExit $ withGhcDebug' $ do
 
   let
     finalargs =
-      [cmdarg | not $ null cmdarg]
+      [effectivecmdarg | not $ null effectivecmdarg]
         <> supportedgenargsfromconf
         <> confcmdargs
+        <> aliasargs
         <> [clicmdarg | not $ null clicmdarg, not $ null confcmdarg]
         <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
@@ -455,7 +475,7 @@ main = handleExit $ withGhcDebug' $ do
     -- are not passed since we can't be sure they're supported.
     | isaddoncmd -> do
         let
-          addonargs0 = filter (/="--") $ supportedgenargsfromconf <> confcmdargs <> cliargswithoutcmd
+          addonargs0 = filter (/="--") $ supportedgenargsfromconf <> confcmdargs <> aliasargs <> cliargswithoutcmd
           addonargs = dropCliSpecificOpts addonargs0
           shellcmd = printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine addonargs) :: String
         dbgio "addon command selected" cmdname

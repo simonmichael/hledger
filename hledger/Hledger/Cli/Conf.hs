@@ -9,10 +9,13 @@ Read extra CLI arguments from a hledger config file.
 module Hledger.Cli.Conf (
    Conf
   ,SectionName
+  ,CommandAlias
+  ,CommandLine
   ,getConf
   ,getConf'
   ,nullconf
   ,confLookup
+  ,confAliases
   ,activeConfFile
   ,activeLocalConfFile
   ,activeUserConfFile
@@ -26,6 +29,7 @@ import Control.Exception (handle)
 import Control.Monad (void, forM)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
+import Data.List (stripPrefix)
 import Data.Map qualified as M
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
@@ -65,6 +69,13 @@ type SectionName = String
 -- If it contains spaces, those are treated as part of a single argument, as with CMD a "b c".
 type Arg = String
 
+-- | The name of a command alias (a custom command) defined in a config file.
+type CommandAlias = String
+
+-- | A command line (a command name followed by arguments), as a single string.
+-- Eg the command line which a command alias expands to.
+type CommandLine = String
+
 nullconf = Conf {
    confFile = ""
   ,confFormat = 1
@@ -96,6 +107,25 @@ confLookup cmd Conf{confSections} =
   maybe [] (concatMap words') $  -- XXX PARTIAL
   M.lookup cmd $
   M.fromList [(csName,csArgs) | ConfSection{csName,csArgs} <- confSections]
+
+-- | Get the command aliases (custom commands) defined in this config file,
+-- in order of definition. They are defined git-style by lines in an @[alias]@
+-- section, like @NAME = CMDLINE@; or by @[alias NAME]@ sections, whose lines
+-- are joined to form the command line. If a name is defined more than once,
+-- the last definition should win (callers can rely on the ordering here).
+-- An [alias] section line without an @=@ raises a usage error.
+confAliases :: Conf -> [(CommandAlias, [Arg])]
+confAliases Conf{confFile, confSections} = concatMap sectionaliases confSections
+  where
+    sectionaliases ConfSection{csName, csArgs}
+      | csName == "alias" = map aliasline csArgs
+      | Just name <- stripPrefix "alias " csName = [(strip name, concatMap words' csArgs)]
+      | otherwise = []
+    aliasline l = case break (=='=') l of
+      (name, '=':cmdline) | not $ null $ strip name -> (strip name, words' $ strip cmdline)
+      _ -> error' $ "in config file " <> confFile
+           <> ",\nan [alias] section line should look like: NAME = COMMAND [ARGS..]"
+           <> "\nbut is: " <> l
 
 -- | Try to read a hledger config from a config file specified by --conf,
 -- or the first config file found in any of several default file paths.
@@ -130,13 +160,14 @@ readConfFile f = handle (\(e::IOError) -> return $ Left $ show e) $ do
       ecs <- readFile f <&> parseConf f . T.pack
       case ecs of
         Left err -> return $ Left $ errorBundlePretty err -- customErrorBundlePretty err
-        Right cs -> return $ Right (nullconf{
-          confFile     = f
-          ,confFormat   = 1
-          ,confSections = cs
-          },
-          Just f
-          )
+        Right cs -> do
+          let conf = nullconf{
+                 confFile     = f
+                ,confFormat   = 1
+                ,confSections = cs
+                }
+          -- validate any command alias definitions now, so a bad one is reported promptly
+          return $ foldr seq (Right (conf, Just f)) (confAliases conf)
 
 -- -- | Like readConf, but throw an error on failure.
 -- readConfFile' :: FilePath -> IO (Conf, Maybe FilePath)

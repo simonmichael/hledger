@@ -78,3 +78,22 @@
 # --source SRCACCT
 # --target DSTACCT
 # ACCT
+
+
+# 3. Command aliases: your own custom commands, which expand to a longer
+# command line, similar to git aliases. Extra options/arguments written
+# after the alias name are added at the end.
+# https://hledger.org/dev/hledger.html#command-aliases
+
+#[alias]
+#rev10 = balance type:R -2 -X$ -p 'every 10 years from 2000'
+
+# Or define one alias per section, with its command line written below,
+# possibly on multiple lines:
+#[alias rev10]
+#balance
+#type:R
+#-2
+#-X$
+#-p 'every 10 years from 2000'
+## --drop 1

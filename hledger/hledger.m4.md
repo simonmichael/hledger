@@ -546,76 +546,117 @@ $ hledger bal @cash.args
 ```
 
 
-
-
 ## Config files
 
-With hledger 1.40+, you can save extra command line options and arguments
-in a more featureful hledger config file. Here's a small example:
+You can configure default command line options and arguments conveniently in a hledger config file.
+(Since 1.40.)
+Config file options will be inserted near the start of your command line,
+so you can override them with command line options.
+
+You can specify a config file with the `--conf` option.
+Otherwise, hledger will search for a default config file, in this order:
+
+- `hledger.conf` in the current directory or above
+- `.hledger.conf` in your home directory
+- `hledger.conf` in your XDG config (`~/.config/hledger/hledger.conf`).
+
+Only one config file is used. Here's a small example:
 
 ```conf
-# General options are listed first, and used with hledger commands that support them.
+# General options, used with all hledger commands that support them.
 --pretty
 
-# Options following a `[COMMAND]` heading are used with that hledger command only.
+# Command-specific options.
 [print]
 --explicit --infer-costs
 ```
 
-To use a config file, specify it with the `--conf` option.
-Its options will be inserted near the start of your command line,
-so you can override them with command line options if needed.
-
-Or, you can set up an automatic config file that is used whenever you run hledger,
-by creating `hledger.conf` in the current directory or above,
-or `.hledger.conf` in your home directory (`~/.hledger.conf`),
-or `hledger.conf` in your XDG config directory (`~/.config/hledger/hledger.conf`).
-
-Here is another example config you could start with:
+And here is a commented starter config file:
 <https://github.com/simonmichael/hledger/blob/main/hledger.conf.sample>
 
 You can put not only options, but also arguments in a config file.
-If the first word in a config file's top (general) section does not begin with a dash
-(eg: `print`), it is treated as the command argument
-(overriding any argument on the command line).
 
-On unix machines, you can add a shebang line at the top of a config file, set executable permission on the file, and use it like a script.
+As a special case, if the first word in a config file's top (general options) section
+does not begin with a dash (`-`), it is treated as the command to run,
+overriding any command argument on the command line.
+
+On unix machines, you can add a shebang line at the top of a config file, 
+make the file executable with `chmod +x FILE`, and use it like a script.
 Eg (the `-S` is needed on some operating systems):
 ```
 #!/usr/bin/env -S hledger --conf
 ```
 
-You can ignore config files by adding the `-n`/`--no-conf` flag to the command line.
-This is useful when using hledger in scripts, or when troubleshooting.
+You can ignore all config files by adding the `-n`/`--no-conf` flag to the command line.
+This is recommended when using hledger in scripts.
 When both `--conf` and `--no-conf` options are used, the right-most wins.
 
-To inspect the processing of config files, use `--debug` or `--debug=8`.
-Or, run the `setup` command, which will display any active config files.
-(`setup` is not affected by config files itself, unlike other commands.)
+### Command aliases
 
-**Warning!**
+In a config file you can also define command aliases: your own custom commands,
+which expand to a longer command line (similar to git's aliases). (Since 1.99.4.)
+Eg:
 
-There aren't many hledger features that need a warning, but this is one!
+```conf
+[alias]
+p     = print
+p1    = print --oneline
+rev10 = balance type:R -2 -X$ -p 'every 10 years from 2000'
+```
 
-Automatic config files, while convenient, also make hledger less predictable and dependable.
-It's easy to make a config file that changes a report's behaviour,
-or breaks your hledger-using scripts/applications,
-in ways that will surprise you later.
+With this in your config file, you'll see a `rev10` command in the `hledger commands` list,
+and `hledger rev10` will run the balance command above.
+Options or arguments written at the command line will be added at the end, usually overriding those in the alias;
+eg `hledger rev10 -X €` will convert to `€` instead of `$`.
 
-If you don't want this,
+Each line in an `[alias]` section should look like `NAME = COMMAND [ARGS..]`.
+Or, you can define a single alias with an `[alias NAME]` section,
+writing its command line below it, on one or more lines.
+This form can be easier to read, and lets you comment out individual lines. Eg:
 
-1. Just don't create a hledger.conf file on your machine.
-2. Also be alert to downloaded directories which may contain a hledger.conf file.
-3. Also if you are sharing scripts or examples or support, consider that others may have a hledger.conf file.
+```conf
+[alias rev10]
+balance
+type:R
+-2
+-X$
+-p 'every 10 years from 2000'
+# --drop 1
+```
 
-Conversely, once you decide to use this feature, try to remember:
+Command aliases override addon commands with the same name,
+but they can't override builtin command names or abbreviations like `balance` or `bal`.
+If the same alias name is defined more than once, the last definition wins.
 
-1. Whenever a hledger command does not work as expected, try it again with `-n` (`--no-conf`) to see if a config file was to blame.
-2. Whenever you call hledger from a script, consider whether that call should use `-n` or not.
-3. Be conservative about what you put in your config file; try to consider the effect on all your reports.
-4. To troubleshoot the effect of config files, run with `--debug` or `--debug 8`.
+An alias's command can be a hledger builtin command, addon command, or another alias.
+If there's a `[COMMAND]` options section for an alias's resolved builtin command, that will also be applied.
 
-The config file feature was added in hledger 1.40.
+### Config file troubleshooting
+
+There aren't many hledger features that need a warning, but here is one!\
+A default config file (the kind that hledger runs automatically, without needing a --conf option)
+is very convenient. But, it complicates command line processing and can surprise you -
+eg quietly changing report output, or breaking your hledger-using scripts/applications,
+which you might not notice until much later.
+
+This mainly arises when you are first using config files.
+And once you discover this kind of problem, it will be easy to fix.
+Here are some tips:
+
+1. Be mindful about what you put in your config file; consider the effect on all your reports.
+2. If a hledger command isn't doing what you expect, try it again with `-n`, to see if a config file is to blame.
+3. Run `hledger setup` to list the currently active config file. (`setup` is not affected by config files.)
+4. Add `--debug` or `--debug=8` to any command to see config/command line debug output.
+
+When you are writing scripts, or sharing examples with other people,
+keep in mind that there could be a config file changing hledger's behaviour,
+so you might want to add `-n` to make your hledger commands more robust.
+
+If you prefer to just avoid this feature:
+
+- Don't use a default config file.
+- If you download hledger data from elsewhere, watch out for directories containing a hledger.conf file.
+- If you're feeling paranoid, use the `-n/--no-conf` flag always, eg by running hledger via a script or alias.
 
 ## Shell completions
 
@@ -623,7 +664,7 @@ If you use the bash or zsh shells, you can optionally set up context-sensitive a
 Try pressing `hledger<SPACE><TAB><TAB>` (should list all hledger commands)
 or `hledger reg acct:<TAB><TAB>` (should list your top-level account names).
 If completions aren't working, or for more details, see [Install > Shell completions](install.html#shell-completions).
-
+˜
 # Output
 
 ## Output destination
@@ -738,7 +779,7 @@ You can override this by setting the `NO_COLOR` environment variable to disable 
 or by using the `--color/--colour` option, perhaps in your config file,
 with a `y`/`yes` or `n`/`no` value to force it on or off.
 
-#### Paging
+#### Paging˜
 
 In unix-like environments, when displaying large output (in any output format) in the terminal,
 hledger tries to use a pager when appropriate.
@@ -773,8 +814,8 @@ and when colour output is enabled:
 
 You can prevent this by setting your preferred options in the `HLEDGER_LESS` variable, which will be used instead of `LESS`.
 
-
-### HTML output
+˜
+### HTML output˜˜
 
 HTML output can be styled by an optional `hledger.css` file in the same directory.
 
@@ -5477,7 +5518,7 @@ For example, if the journal's last transaction is on february 20th,
 - `hledger register --monthly --end 2/14` also will end the report at the end of february (overriding the requested end date).
 - `hledger register --monthly --begin 1/5 --end 2/14` will end the report on march 4th [1].
 
-[1] Since hledger 1.29.
+[1] Since 1.29.
 
 ## Period expressions
 
@@ -6676,7 +6717,7 @@ To be safe, specify the valuation commmodity, eg:
 - `--value=then,EUR --infer-market-prices`, not `--value=then --infer-market-prices`
 
 Signed costs and market prices can be confusing.
-For reference, here is the current behaviour, since hledger 1.25.
+For reference, here is the current behaviour (since 1.25).
 (If you think it should work differently, see [#1870](https://github.com/simonmichael/hledger/issues/1870).)
 
 ```journal
