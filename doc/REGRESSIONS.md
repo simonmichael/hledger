@@ -214,7 +214,7 @@ But,
 - The regression finder bounty was therefore somewhat redundant. Regressions get reported for free, because users want them fixed.
 - From 2026, bounties strongly increase the rate of AI-assisted or fully AI-generated-and-discussed submissions, often of low quality, duplicative, or not following our AI policy.
 - Managing bounties, and AI submissions, consumes maintainer (and contributor) time that can be better spent elsewhere.
-- Finding/fixing regressions isn't our bottleneck; reviewing new code is. So we should use our funds for that instead.
+- Finding/fixing regressions isn't our bottleneck; reviewing new code is. So we should use our funds for incentivising that instead.
 
 Here's the old description of the regression bounties, for the record:
 
