@@ -58,6 +58,8 @@ module Hledger.Cli.CliOptions (
   getHledgerCliOpts,
   getHledgerCliOpts',
   rawOptsToCliOpts,
+  generalRawOpts,
+  insertRawOpts,
   cliOptsDropArgs,
   argsAddDoubleDash,
   outputFormats,
@@ -667,6 +669,27 @@ rawOptsToCliOpts rawopts = do
              ,width_           = maybestringopt "width" rawopts
              ,available_width_ = availablewidth
              }
+
+-- | The names of the general flags that run/repl propagate to the commands they run:
+-- all input, output/report, and terminal flags. Excludes --file (handled separately, as
+-- the default journal) and the help-action flags (which just show help and exit).
+propagatedGeneralFlagNames :: [String]
+propagatedGeneralFlagNames =
+  filter (`notElem` (["file","f"] ++ helpactionflags))
+    $ concatMap flagNames (inputflags ++ reportflags ++ helpflags)
+  where helpactionflags = ["help","h","tldr","info","man","version"]
+
+-- | Extract the propagated general flags from these raw options, as a raw option
+-- association list, for passing to run/repl subcommands.
+generalRawOpts :: RawOpts -> [(String,String)]
+generalRawOpts = collectopts $ \kv ->
+  if fst kv `elem` propagatedGeneralFlagNames then Just kv else Nothing
+
+-- | Prepend some extra raw options into a subcommand's options, as defaults that
+-- the subcommand's own options take precedence over, recomputing the derived
+-- CliOpts fields (inputopts_, file_, reportspec_..) so they stay consistent.
+insertRawOpts :: [(String,String)] -> CliOpts -> IO CliOpts
+insertRawOpts extraopts subopts = rawOptsToCliOpts $ overRawOpts (extraopts ++) (rawopts_ subopts)
 
 -- | Drop the arguments ("args") from this CliOpts' rawopts field.
 cliOptsDropArgs :: CliOpts -> CliOpts

@@ -18,6 +18,11 @@ Also like `run`, the input file(s) specified for the `repl` command will be the 
 You can override this temporarily by specifying an `-f` option in particular commands.
 But note that commands will not see any changes made to input files (eg by `add`) until you exit and restart the REPL.
 
+Any other general flags given to `repl` - input, reporting, or display flags such as
+`-I`, `--strict`, `--alias`, `-b`/`-e`, `--depth`, `--cost`, `--value`, `--color` -
+are also applied to every command you run.
+A command can still override them by specifying its own flags.
+
 The command syntax is the same as with `run`:
 
 - enter one hledger command at a time, without the usual `hledger` first word

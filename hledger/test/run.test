@@ -193,3 +193,53 @@ Till Mar
                                 assets                         $-1             0
 2025-02-26 Buy soylent green    ex:food:not people              $1            $1
                                 assets                         $-1             0
+
+# ** 13. Run propagates its general input flags (eg -I) to the commands it runs
+<
+2017-01-01
+   assets:cash  $10 = $999
+   equity
+$ hledger run -f- -I -- balance
+                 $10  assets:cash
+                $-10  equity
+--------------------
+                   0  
+
+# ** 14. A command's own input flags override run's (eg --strict overrides -I)
+<
+2017-01-01
+   assets:cash  $10 = $999
+   equity
+$ hledger run -f- -I -- balance --strict
+>2 /Balance assertion failed in assets:cash/
+>=1
+
+# ** 15. Run propagates other general input flags too (eg --pivot)
+<
+2017-01-01 shop  ; cat:groceries
+   expenses  $10
+   assets
+$ hledger run -f- --pivot cat -- accounts
+groceries
+
+# ** 16. Run propagates general output/report flags too (eg --depth)
+<
+2017-01-01
+   a:b  $1
+   c
+$ hledger run -f- --depth 1 -- balance
+                  $1  a
+                 $-1  c
+--------------------
+                   0  
+
+# ** 17. A command's own report flags override run's (eg --depth 2 overrides --depth 1)
+<
+2017-01-01
+   a:b  $1
+   c
+$ hledger run -f- --depth 1 -- balance --depth 2
+                  $1  a:b
+                 $-1  c
+--------------------
+                   0  

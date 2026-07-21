@@ -21,6 +21,11 @@ Then it runs each command in turn, each using the same input data.
 But if you want a particular command to use different input, you can specify an `-f` option within that command.
 This will override (not add to) the default input, just for that command.
 
+Any other general flags given to `run` - input, reporting, or display flags such as
+`-I`, `--strict`, `--alias`, `-b`/`-e`, `--depth`, `--cost`, `--value`, `--color` -
+are also applied to every command it runs.
+A command can still override them by specifying its own flags.
+
 Each input file (more precisely, each combination of input file and input options) is parsed only once.
 This means that commands will not see any changes made to these files, until the next run.
 But the commands will run more quickly than if run individually (typically about twice as fast).
