@@ -241,3 +241,9 @@ $ hledger help -i -h
 # on the command line, no spurious empty argument is passed to the command.
 $  printf 'files\n' >$$.conf; hledger -f /dev/null --conf $$.conf; rm -f $$.conf
 /dev/null
+
+# ** 43. --conf/--no-conf flags inside a config file are ignored:
+# they can't affect which config file is used, since that was decided before reading the file.
+# Here the config file is still used (its command argument still applies) despite its --no-conf.
+$  printf -- 'files\n--no-conf\n' >$$.conf; hledger -f /dev/null --conf $$.conf; rm -f $$.conf
+/dev/null

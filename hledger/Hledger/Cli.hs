@@ -279,9 +279,14 @@ main = handleExit $ withGhcDebug' $ do
     confallgenargs = confLookup "general" conf & replaceNumericFlags
     -- we don't try to move flags/values preceding a command argument here;
     -- if a command name is written in the config file, it must be first
-    (confcmdarg, confothergenargs) = case confallgenargs of
+    (confcmdarg, confothergenargs0) = case confallgenargs of
       a:as | not $ isFlagArg a -> (a,as)
       as                       -> ("",as)
+    -- Drop any --conf/--no-conf flags found in the config file:
+    -- they can't have their usual effect (which config file to use was decided before
+    -- reading it), and leaving them in rawopts could confuse later config file reads.
+    confothergenargs   = dropConfFlags confothergenargs0
+    confdroppedgenargs = confothergenargs0 \\ confothergenargs
     cmdarg = if not $ null confcmdarg then confcmdarg else clicmdarg
     nocmdprovided = null cmdarg
 
@@ -339,6 +344,8 @@ main = handleExit $ withGhcDebug' $ do
           & if isaddoncmd then ("--":) else id
 
   when (isJust mconffile) $ do
+    unless (null confdroppedgenargs) $
+      dbg1IO "ignored conf-selecting flags from config file" confdroppedgenargs
     dbg1IO "using general args from config file" confothergenargs
     unless (null excludedgenargsfromconf) $
       dbg1IO "excluded general args from config file, not supported by this command" excludedgenargsfromconf
@@ -540,6 +547,16 @@ checkReqValFlagArgsHaveValues = go
       | checkable a, looksLikeKnownFlag b =
           usageError $ a <> " needs a value, but the next argument is another flag: " <> b
       | otherwise = a : go (b:rest)
+
+-- | Remove any --conf/--no-conf/-n flags, and any --conf value, from these args.
+dropConfFlags :: [String] -> [String]
+dropConfFlags = go
+  where
+    go []              = []
+    go ("--conf":as)   = go $ drop 1 as
+    go (a:as)
+      | a `elem` ["-n","--no-conf"] || "--conf=" `isPrefixOf` a = go as
+      | otherwise                                               = a : go as
 
 -- | cmdargs does not allow options to appear before the subcommand argument.
 -- We prefer to hide this restriction from the user, providing a more forgiving CLI.
