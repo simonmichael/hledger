@@ -236,3 +236,8 @@ $ hledger help -m -h
 # ** 41.
 $ hledger help -i -h
 > /Show the hledger user manual/
+
+# ** 42. When the command comes from the config file and no command is written
+# on the command line, no spurious empty argument is passed to the command.
+$  printf 'files\n' >$$.conf; hledger -f /dev/null --conf $$.conf; rm -f $$.conf
+/dev/null

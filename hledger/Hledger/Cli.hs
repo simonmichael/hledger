@@ -352,7 +352,7 @@ main = handleExit $ withGhcDebug' $ do
       [cmdarg | not $ null cmdarg]
         <> supportedgenargsfromconf
         <> confcmdargs
-        <> [clicmdarg | not $ null confcmdarg]
+        <> [clicmdarg | not $ null clicmdarg, not $ null confcmdarg]
         <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
 
