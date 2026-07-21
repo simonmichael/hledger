@@ -132,6 +132,11 @@ fi
 TMPFILE=$(mktemp)
 trap 'rm -f "$TMPFILE"' EXIT
 CMD="pricehist fetch -o ledger --fmt-time '' -s $START -e $END $SOURCE $PAIR | sed -e 's|[-/]$BASECUR||'"
+
+# some providers work better with a delay
+# echo "sleeping for 1" >&2
+sleep 0.5
+
 echo "$CMD" >&2
 if ! eval "$CMD" 2>"$TMPFILE"; then
     sed -E 's/^(CRITICAL )?/error: /' "$TMPFILE" >&2
