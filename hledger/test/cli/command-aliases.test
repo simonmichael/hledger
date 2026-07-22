@@ -141,3 +141,42 @@ $  printf '[alias]\nbadalias = nosuchcmd\n' >$$.conf; hledger --conf $$.conf run
 $  printf '[alias r3]\nrun\n-- echo ran: -- stats\n' >$$.conf; printf '2026-01-01\n  a  1\n  b\n' >$$.j; LEDGER_FILE=$$.j hledger --conf $$.conf r3 | grep -E 'ran:|Txns span'; rm -f $$.conf $$.j
 ran:
 Txns span           : 2026-01-01 to 2026-01-02 (1 days)
+
+# ** 20. An alias whose command line begins with ! runs a shell command.
+# (--conf makes this config file trusted, so the shell alias is allowed.)
+$  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf hi; rm -f $$.conf
+hello
+
+# ** 21. Arguments written after the alias name are appended to the shell command.
+$  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf hi there; rm -f $$.conf
+hello there
+
+# ** 22. A shell alias also works in the [alias NAME] section form.
+$  printf '[alias hi]\n!echo hello\n' >$$.conf; hledger --conf $$.conf hi; rm -f $$.conf
+hello
+
+# ** 23. The shell command's exit code is propagated.
+$  printf '[alias]\nbad = !false\n' >$$.conf; hledger --conf $$.conf bad; s=$?; rm -f $$.conf; exit $s
+>= 1
+
+# ** 24. Shell aliases are shown in the commands list, with their ! definition.
+$  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf commands | grep -A1 '^ALIASES'; rm -f $$.conf
+ALIASES
+ hi                       = !echo hello
+
+# ** 25. Shell aliases work in run command scripts too.
+$  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf run -f /dev/null -- hi; rm -f $$.conf
+hello
+
+# ** 26. Trust gate: a shell alias in your user config file (~/.hledger.conf) is allowed.
+# HOME/XDG are set so config discovery is contained and the dev's real config is not used.
+# We run from a subdirectory (cwd != HOME) so the user config isn't also seen as a local one.
+$  d=$(mktemp -d); mkdir $d/work; printf '[alias]\nhi = !echo hello\n' >$d/.hledger.conf; (cd $d/work && HOME=$d XDG_CONFIG_HOME=$d/.config hledger hi); rm -rf $d
+hello
+
+# ** 27. Trust gate: a shell alias in an automatically-found local hledger.conf is refused.
+# The config is in cwd, which is a subdirectory of HOME so it is treated as a local
+# (non-user) config. (If cwd == HOME, the file would be looked up as ~/.hledger.conf.)
+$  d=$(mktemp -d); mkdir $d/work; printf '[alias]\nevil = !echo pwned\n' >$d/work/hledger.conf; (cd $d/work && HOME=$d XDG_CONFIG_HOME=$d/.config hledger evil); s=$?; rm -rf $d; exit $s
+>2 /only allowed from your user config file/
+>= 1

@@ -115,7 +115,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Explicit as CmdArgsWithoutName hiding (Name)
 import System.Environment
 import System.Exit
-import System.Process
+import System.Process (system)
 import Text.Megaparsec (optional, takeWhile1P, eof)
 import Text.Megaparsec.Char (char)
 import Text.Printf
@@ -268,6 +268,9 @@ main = handleExit $ withGhcDebug' $ do
     if clicmdarg=="setup"  -- the setup command checks config files, but never uses one itself
       then return (nullconf,Nothing)
       else getConf' cliconfrawopts
+  -- Whether !-prefixed shell command aliases from this config file are allowed to run
+  -- (only from a trusted config file: one given with --conf, or a user-level config file).
+  shellaliasesallowed <- confFileIsTrusted cliconfrawopts mconffile
 
   ---------------------------------------------------------------
   dbgio "\n3. Identify a command name if possible; handle version/help flags" ()
@@ -295,8 +298,10 @@ main = handleExit $ withGhcDebug' $ do
     -- If so, expand it to the real command name and the extra arguments to prepend.
     -- Command aliases never override exact builtin command names, and later definitions win.
     cmdaliases = reverse $ confAliases conf  -- reversed so that lookup finds the last definition
-    (effectivecmdarg, aliasargs) = second replaceNumericFlags $
-      expandCommandAlias (isJust . findBuiltinCommand) cmdaliases cmdarg
+    aliasexpansion = expandCommandAlias (isJust . findBuiltinCommand) cmdaliases cmdarg
+    (effectivecmdarg, aliasargs) = case aliasexpansion of
+      HledgerCommand c as -> (c, replaceNumericFlags as)
+      ShellCommand   _    -> (cmdarg, [])  -- handled separately below
     isaliascmd = effectivecmdarg /= cmdarg || not (null aliasargs)
 
     -- The argument may be an abbreviated command name, which we need to expand.
@@ -327,6 +332,22 @@ main = handleExit $ withGhcDebug' $ do
   dbgio "no command provided" nocmdprovided
   dbgio "bad command provided" badcmdprovided
   dbgio "is addon command" isaddoncmd
+
+  -- If the command is a !-prefixed shell command alias, run it now (if allowed) and exit.
+  -- This happens before the badcmdprovided check, since the alias name is not a real command.
+  case aliasexpansion of
+    ShellCommand shcmd
+      | shellaliasesallowed -> do
+          -- append any arguments written after the alias name (not hledger's own options)
+          let fullcmd = unwords $ shcmd : map quoteForCommandLine cliargsaftercmd
+          dbg1IO "running shell command alias" fullcmd
+          system fullcmd >>= exitWith
+      | otherwise -> error' $
+          "the command alias '" <> cmdarg <> "' runs a shell command (! " <> shcmd <> ")"
+          <> maybe "" (\f -> ",\ndefined in " <> f) mconffile <> ".\n"
+          <> "Shell command aliases are only allowed from your user config file (~/.hledger.conf or XDG),\n"
+          <> "or a config file given with --conf; refusing to run it from an automatically-found config file."
+    _ -> return ()
 
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $ do
@@ -451,8 +472,8 @@ main = handleExit $ withGhcDebug' $ do
           withPossibleJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
-        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons cmdaliases opts
-        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases opts
+        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons cmdaliases shellaliasesallowed opts
+        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases shellaliasesallowed opts
 
         -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction

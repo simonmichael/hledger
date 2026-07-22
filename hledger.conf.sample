@@ -84,8 +84,8 @@
 # https://hledger.org/dev/hledger.html#command-aliases
 
 # [alias]
-# p = print
-# p1 = print --oneline
+# p     = print
+# p1    = print --oneline
 # rev10 = bal type:R -2 -X$ -p 'every 10 years from 2000'
 
 # Or define an alias in its own section, using multiple lines:
@@ -101,3 +101,10 @@
 # -- echo bchecking: -- forecast bchecking #-e 2months
 # -- echo pchecking: -- forecast pchecking #-e 2months
 # -- echo ichecking: -- forecast ichecking #-e 2months
+
+# An alias beginning with ! runs a shell command (only from a trusted config file:
+# one specified with --conf, or your user config file):
+
+# [alias]
+# commit = ! git commit -p -- `hledger files`
+# commit = ! jj commit `hledger files` -m

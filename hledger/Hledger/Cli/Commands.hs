@@ -393,8 +393,7 @@ commands opts _ = do
     else do
       (conf,_) <- getConf' $ rawopts_ opts
       -- show each alias's effective (last) definition
-      return $ reverse $ nubOrdOn fst $ reverse
-        [(a, unwords args) | (a,args) <- confAliases conf]
+      return $ reverse $ nubOrdOn fst $ reverse $ confAliases conf
   printCommandsList prognameandversion builtin addons cmdaliases
 
 {- | Print the commands list, with a pager if appropriate, customising the

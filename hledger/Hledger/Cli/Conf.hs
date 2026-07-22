@@ -16,7 +16,9 @@ module Hledger.Cli.Conf (
   ,nullconf
   ,confLookup
   ,confAliases
+  ,ResolvedCommand(..)
   ,expandCommandAlias
+  ,confFileIsTrusted
   ,activeConfFile
   ,activeLocalConfFile
   ,activeUserConfFile
@@ -115,35 +117,59 @@ confLookup cmd Conf{confSections} =
 -- are joined to form the command line. If a name is defined more than once,
 -- the last definition should win (callers can rely on the ordering here).
 -- An [alias] section line without an @=@ raises a usage error.
-confAliases :: Conf -> [(CommandAlias, [Arg])]
+confAliases :: Conf -> [(CommandAlias, CommandLine)]
 confAliases Conf{confFile, confSections} = concatMap sectionaliases confSections
   where
     sectionaliases ConfSection{csName, csArgs}
       | csName == "alias" = map aliasline csArgs
-      | Just name <- stripPrefix "alias " csName = [(strip name, concatMap words' csArgs)]
+      | Just name <- stripPrefix "alias " csName = [(strip name, unwords csArgs)]
       | otherwise = []
     aliasline l = case break (=='=') l of
-      (name, '=':cmdline) | not $ null $ strip name -> (strip name, words' $ strip cmdline)
+      (name, '=':cmdline) | not $ null $ strip name -> (strip name, strip cmdline)
       _ -> error' $ "in config file " <> confFile
            <> ",\nan [alias] section line should look like: NAME = COMMAND [ARGS..]"
            <> "\nbut is: " <> l
 
--- | Expand a command name which may be a command alias, giving the real command name
--- and any arguments to prepend. Aliases can refer to other aliases; a name that is an
--- exact builtin command name (per the given predicate), or already seen during this
--- expansion (a self-reference or cycle), stops the recursion. If a name is defined
--- more than once, the first definition in the given list wins (callers wanting the
--- config file's last-definition-wins behaviour should pass @reverse (confAliases conf)@).
-expandCommandAlias :: (String -> Bool) -> [(CommandAlias,[Arg])] -> String -> (String,[Arg])
+-- | The result of resolving a command name that may be a command alias.
+data ResolvedCommand
+  = HledgerCommand String [Arg]  -- ^ a resolved hledger command name, and arguments to prepend
+  | ShellCommand String          -- ^ a shell command line (from a !-prefixed alias, ! stripped)
+  deriving (Eq,Show)
+
+-- | Resolve a command name which may be a command alias, to either a real hledger command
+-- (with any arguments to prepend) or a shell command line (for a @!@-prefixed alias).
+-- Aliases can refer to other aliases; a name that is an exact builtin command name (per the
+-- given predicate), or already seen during this expansion (a self-reference or cycle), stops
+-- the recursion. If a name is defined more than once, the first definition in the given list
+-- wins (callers wanting the config file's last-definition-wins behaviour should pass
+-- @reverse (confAliases conf)@). This does not enforce the shell-alias trust policy; callers do.
+expandCommandAlias :: (String -> Bool) -> [(CommandAlias, CommandLine)] -> String -> ResolvedCommand
 expandCommandAlias isbuiltincmd cmdaliases = go []
   where
     go seen name
       | name `notElem` seen
       , not $ isbuiltincmd name
-      , Just (realcmd:defargs) <- lookup name cmdaliases =
-          let (realcmd', defargs') = go (name:seen) realcmd
-          in (realcmd', defargs' <> defargs)
-      | otherwise = (name, [])
+      , Just cmdline <- lookup name cmdaliases =
+          case strip cmdline of
+            '!':shellcmd -> ShellCommand (strip shellcmd)
+            hledgercmd   -> case words' hledgercmd of
+              (realcmd:defargs) -> case go (name:seen) realcmd of
+                HledgerCommand realcmd' defargs' -> HledgerCommand realcmd' (defargs' <> defargs)
+                ShellCommand shellcmd            -> ShellCommand (unwords $ shellcmd : defargs)
+              [] -> HledgerCommand name []
+      | otherwise = HledgerCommand name []
+
+-- | Is the active config file trusted enough to run its @!@-prefixed shell command aliases?
+-- True if the config file was given explicitly with --conf, or is a user-level config file
+-- (~/.hledger.conf or the XDG hledger.conf). False for a config file found automatically in the
+-- current directory or a parent (which could come from an untrusted downloaded/shared directory),
+-- or when there is no config file.
+confFileIsTrusted :: RawOpts -> Maybe FilePath -> IO Bool
+confFileIsTrusted _ Nothing = return False
+confFileIsTrusted rawopts (Just f) =
+  case confFileSpecFromRawOpts rawopts of
+    SomeConfFile _ -> return True
+    _              -> (f `elem`) <$> userConfFiles
 
 -- | Try to read a hledger config from a config file specified by --conf,
 -- or the first config file found in any of several default file paths.

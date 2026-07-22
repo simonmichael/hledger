@@ -608,6 +608,7 @@ With this in your config file, you'll see a `rev10` command in the `hledger comm
 and `hledger rev10` will run the balance command above.
 Options or arguments written at the command line will be added at the end, usually overriding those in the alias;
 eg `hledger rev10 -X €` will convert to `€` instead of `$`.
+Command aliases can also be used in `run` command scripts and at the `repl` prompt.
 
 Each line in an `[alias]` section should look like `NAME = COMMAND [ARGS..]`.
 Or, you can define a single alias with an `[alias NAME]` section,
@@ -631,11 +632,24 @@ If the same alias name is defined more than once, the last definition wins.
 An alias's command can be a hledger builtin command, addon command, or another alias.
 If there's a `[COMMAND]` options section for an alias's resolved builtin command, that will also be applied.
 
-Command aliases can also be used in `run` command scripts and at the `repl` prompt.
+Or if an alias's command line begins with `!`, the rest is run as a shell command
+(with any extra command line arguments appended). Eg:
+
+```conf
+[alias]
+git-commit = ! git commit -p
+jj-commit  = ! jj commit -i
+```
+
+For safety, shell command aliases run only if defined in a trusted config file:
+one you gave explicitly with `--conf`, or your user config file (`~/.hledger.conf`
+or the XDG `hledger.conf`). Shell commands in a nearby automatically-found `hledger.conf`,
+in the current directory or a parent directory, will not run - this prevents a config file
+from an untrusted downloaded or shared directory from running arbitrary shell commands.
 
 ### Config file troubleshooting
 
-There aren't many hledger features that need a warning, but here is one!\
+There aren't many hledger features that need a warning, but this is one !\
 A default config file (the kind that hledger runs automatically, without needing a --conf option)
 is very convenient. But, it complicates command line processing and can surprise you -
 eg quietly changing report output, or breaking your hledger-using scripts/applications,
