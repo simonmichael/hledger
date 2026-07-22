@@ -52,7 +52,7 @@ $if elem ViewPermission perms
         <div#message .alert.alert-info>#{m}
       ^{widget}
 
-<div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel" aria-hidden="true">
+<div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel">
   <div .modal-dialog .modal-lg>
     <div .modal-content>
       <div .modal-header>

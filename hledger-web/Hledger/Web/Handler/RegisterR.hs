@@ -112,65 +112,76 @@ registerChartHtml q title percommoditytxnreports = do
         object ["label" .= commodity
                ,"data" .= map (\item -> 
                   object ["x" .= dayToUtcNoonTimestamp (triDate item)
-                        ,"y" .= simpleMixedAmountQuantity (triAmount item)]) items
+                        ,"y" .= (realToFrac (simpleMixedAmountQuantity (triAmount item)) :: Double)]) items
                ,"borderColor" .= ("hsl(" ++ show (colorForCommodity commodity * 60) ++ ", 70%, 50%)")
                ,"backgroundColor" .= ("hsl(" ++ show (colorForCommodity commodity * 60) ++ ", 70%, 50%, 0.1)")
                ,"tension" .= (0.1 :: Double)
                ,"fill" .= False
+               ,"pointRadius" .= (5 :: Int)
+               ,"pointHoverRadius" .= (7 :: Int)
                ]) percommoditytxnreports
       chartDataJson = Aeson.encode chartData
       chartDataStr = T.unpack $ TL.toStrict $ TLE.decodeUtf8With lenientDecode chartDataJson
   $(whamletFile "templates/chart.hamlet")
-  toWidget [julius|
+  toWidgetHead [julius|
     // Wait for Chart.js to be loaded
-    if (typeof Chart !== 'undefined') {
-      (function() {
-        var ctx = document.getElementById('balanceChart');
-        if (!ctx) return;
-        
-        var chartDataStr = ctx.getAttribute('data-chart');
-        var datasets = JSON.parse(chartDataStr);
-        
-        var chart = new Chart(ctx, {
-          type: 'line',
-          data: {
-            datasets: datasets
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: {
-                type: 'time',
-                time: {
-                  unit: 'day'
-                },
-                title: {
-                  display: true,
-                  text: 'Date'
-                }
-              },
-              y: {
-                title: {
-                  display: true,
-                  text: #{charttitle}
-                }
-              }
+    document.addEventListener('DOMContentLoaded', function() {
+      if (typeof Chart !== 'undefined') {
+        (function() {
+          var ctx = document.getElementById('balanceChart');
+          if (!ctx) return;
+          
+          var chartDataStr = ctx.getAttribute('data-chart');
+          var datasets = JSON.parse(chartDataStr);
+          
+          console.log('Chart datasets:', datasets);
+          
+          // For single data points, use scatter instead of line
+          var hasMultiplePoints = datasets.some(function(ds) { return ds.data.length > 1; });
+          var chartType = hasMultiplePoints ? 'line' : 'scatter';
+          
+          var chart = new Chart(ctx, {
+            type: chartType,
+            data: {
+              datasets: datasets
             },
-            plugins: {
-              legend: {
-                display: true,
-                position: 'top'
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              scales: {
+                x: {
+                  type: 'time',
+                  time: {
+                    unit: 'day'
+                  },
+                  title: {
+                    display: true,
+                    text: 'Date'
+                  }
+                },
+                y: {
+                  beginAtZero: true,
+                  title: {
+                    display: true,
+                    text: #{charttitle}
+                  }
+                }
               },
-              tooltip: {
-                mode: 'index',
-                intersect: false
+              plugins: {
+                legend: {
+                  display: true,
+                  position: 'top'
+                },
+                tooltip: {
+                  mode: 'index',
+                  intersect: false
+                }
               }
             }
-          }
-        });
-      })();
-    }
+          });
+        })();
+      }
+    });
   |]
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
