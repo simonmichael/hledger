@@ -232,7 +232,7 @@ main = handleExit $ withGhcDebug' $ do
 
   -- Naming notes:
   -- "arg" often has the most general meaning, including things like: -f, --flag, flagvalue, arg, >file, &, etc.
-  -- confcmdarg, clicmdarg = the first non-flag argument, from config file or cli = the subcommand name
+  -- clicmdarg = the first non-flag argument on the command line = the subcommand name
   -- cmdname = the full unabbreviated command name, or ""
   -- confcmdargs = arguments for the subcommand, from config file
 
@@ -275,23 +275,16 @@ main = handleExit $ withGhcDebug' $ do
   ---------------------------------------------------------------
   dbgio "\n3. Identify a command name if possible; handle version/help flags" ()
 
-  -- Try to identify the subcommand name,
-  -- from the first non-flag general argument in the config file,
-  -- or if there is none, from the first non-flag argument on the command line.
+  -- Try to identify the subcommand name, from the first non-flag argument on the command line.
 
   let
     confallgenargs = confLookup "general" conf & replaceNumericFlags
-    -- we don't try to move flags/values preceding a command argument here;
-    -- if a command name is written in the config file, it must be first
-    (confcmdarg, confothergenargs0) = case confallgenargs of
-      a:as | not $ isFlagArg a -> (a,as)
-      as                       -> ("",as)
     -- Drop any --conf/--no-conf flags found in the config file:
     -- they can't have their usual effect (which config file to use was decided before
     -- reading it), and leaving them in rawopts could confuse later config file reads.
-    confothergenargs   = dropConfFlags confothergenargs0
-    confdroppedgenargs = confothergenargs0 \\ confothergenargs
-    cmdarg = if not $ null confcmdarg then confcmdarg else clicmdarg
+    confothergenargs = dropConfFlags confallgenargs
+    confdroppedgenargs = confallgenargs \\ confothergenargs
+    cmdarg = clicmdarg
     nocmdprovided = null cmdarg
 
     -- The argument may be a command alias (a custom command) defined in the config file.
@@ -322,9 +315,6 @@ main = handleExit $ withGhcDebug' $ do
     mbuiltincmdaction = findBuiltinCommand cmdname
     effectivemode = maybe (mainmode []) fst mbuiltincmdaction
 
-  when (isJust mconffile) $ do
-    unless (null confcmdarg) $
-      dbg1IO "using command name argument from config file" confcmdarg
   dbgio "cli args with command first and no cli-specific opts" cliargswithcmdfirstwithoutclispecific
   when isaliascmd $
     dbg1IO "expanded command alias" (cmdarg, (effectivecmdarg, aliasargs))
@@ -351,11 +341,8 @@ main = handleExit $ withGhcDebug' $ do
 
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $ do
-    let (srcnote, hint) = case (not (null confcmdarg), mconffile) of
-          (True, Just f) -> (" (from config file " <> f <> ")", "")
-          _              -> ("", " Run with no command to see a list.")
-        aliasnote = if effectivecmdarg /= cmdarg then " (expanded from the " <> cmdarg <> " command alias)" else ""
-    error' $ "command " <> effectivecmdarg <> aliasnote <> srcnote <> " is not recognised." <> hint
+    let aliasnote = if effectivecmdarg /= cmdarg then " (expanded from the " <> cmdarg <> " command alias)" else ""
+    error' $ "command " <> effectivecmdarg <> aliasnote <> " is not recognised. Run with no command to see a list."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
@@ -393,7 +380,6 @@ main = handleExit $ withGhcDebug' $ do
         <> supportedgenargsfromconf
         <> confcmdargs
         <> aliasargs
-        <> [clicmdarg | not $ null clicmdarg, not $ null confcmdarg]
         <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
       & argsAddDoubleDash                  -- protect run/repl's first -- from cmdargs (also for an aliased run)

@@ -158,11 +158,10 @@ $ hledger --debug -f /dev/null --conf /dev/null --no-conf >/dev/null
 $  echo '--pretty' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
 /dev/null
 
-# ** 27. An initial non-flag general argument in a conf file is used as the command.
-$  echo 'files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
-
-# ** 28. A non-flag general argument that's not first in the conf file is note used as the command.
-$  echo '--pretty files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
+# ** 27. A non-flag argument in a config file's general section is NOT treated as the command
+# (that feature was removed); it is just passed to the command as an argument.
+# Here the command run is the one on the command line (stats), not the config's "balance".
+$  printf 'balance\n' >$$.conf; printf '2026-01-01\n  a  1\n  b\n' | hledger stats -f- --conf $$.conf; rm -f $$.conf
 > /Runtime stats/
 
 # ** 29. A required-value flag followed by another flag is rejected with a clear error.
@@ -237,13 +236,7 @@ $ hledger help -m -h
 $ hledger help -i -h
 > /Show the hledger user manual/
 
-# ** 42. When the command comes from the config file and no command is written
-# on the command line, no spurious empty argument is passed to the command.
-$  printf 'files\n' >$$.conf; hledger -f /dev/null --conf $$.conf; rm -f $$.conf
-/dev/null
-
-# ** 43. --conf/--no-conf flags inside a config file are ignored:
-# they can't affect which config file is used, since that was decided before reading the file.
-# Here the config file is still used (its command argument still applies) despite its --no-conf.
-$  printf -- 'files\n--no-conf\n' >$$.conf; hledger -f /dev/null --conf $$.conf; rm -f $$.conf
-/dev/null
+# ** 42. --conf/--no-conf flags inside a config file are ignored: which config file to use
+# was decided before reading it, so they are dropped from the config's general arguments.
+$  printf -- '--no-conf\n' >$$.conf; hledger --debug=1 files -f /dev/null --conf $$.conf 2>&1 >/dev/null | grep -o 'ignored conf-selecting flags from config file'; rm -f $$.conf
+ignored conf-selecting flags from config file

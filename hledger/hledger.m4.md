@@ -576,17 +576,6 @@ And here is a commented starter config file:
 
 You can put not only options, but also arguments in a config file.
 
-As a special case, if the first word in a config file's top (general options) section
-does not begin with a dash (`-`), it is treated as the command to run,
-overriding any command argument on the command line.
-
-On unix machines, you can add a shebang line at the top of a config file, 
-make the file executable with `chmod +x FILE`, and use it like a script.
-Eg (the `-S` is needed on some operating systems):
-```
-#!/usr/bin/env -S hledger --conf
-```
-
 You can ignore all config files by adding the `-n`/`--no-conf` flag to the command line.
 This is recommended when using hledger in scripts.
 When both `--conf` and `--no-conf` options are used, the right-most wins.
