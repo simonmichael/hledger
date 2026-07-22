@@ -20,6 +20,11 @@ temporarily by specifying an -f option in particular commands. But note
 that commands will not see any changes made to input files (eg by add)
 until you exit and restart the REPL.
 
+Any other general flags given to repl - input, reporting, or display
+flags such as -I, --strict, --alias, -b/-e, --depth, --cost, --value,
+--color - are also applied to every command you run. A command can still
+override them by specifying its own flags.
+
 The command syntax is the same as with run:
 
 - enter one hledger command at a time, without the usual hledger first
@@ -39,7 +44,8 @@ can navigate in the usual ways:
 Generally repl command lines should feel much like the normal hledger
 CLI, but you may find differences. repl is a little stricter; eg it
 requires full command names or official abbreviations (as seen in the
-commands list).
+commands list). Command aliases defined in a config file can also be
+used.
 
 The commands and help commands, and the command help flags (CMD --tldr,
 CMD -h/--help, CMD --info, CMD --man), can be useful.
