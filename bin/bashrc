@@ -5,6 +5,9 @@ export YEAR="${YEAR:-$(date +%Y)}"
 export FINDIR=~/finance
 export LEDGER_FILE=$FINDIR/$YEAR/$YEAR.journal
 
+alias hl='hledger'
+alias hlc='hledger --conf=~/.hledger.conf'
+
 alias all='hledger -f $FINDIR/all.journal'
 alias 2020='hledger -f $FINDIR/2020/2020.journal'
 alias 2021='hledger -f $FINDIR/2021/2021.journal'
@@ -53,7 +56,6 @@ alias web='hledger web'
 
 alias bser='hledger -f $LEDGER_FILE -f <(hledger close --retain) bse'
 alias f=$FINDIR/Justfile
-alias hl='hledger'
 
 # query hledger with sqlite
 hq() {
