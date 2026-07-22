@@ -240,3 +240,12 @@ $ hledger help -i -h
 # was decided before reading it, so they are dropped from the config's general arguments.
 $  printf -- '--no-conf\n' >$$.conf; hledger --debug=1 files -f /dev/null --conf $$.conf 2>&1 >/dev/null | grep -o 'ignored conf-selecting flags from config file'; rm -f $$.conf
 ignored conf-selecting flags from config file
+
+# ** 43. Leading whitespace (indentation) on a config file line is ignored,
+# whether before a general argument or before a [section] header and its arguments.
+$  printf '  --pretty\n  [files]\n\t--pretty\n' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
+/dev/null
+
+# ** 44. A blank last line with trailing whitespace and no final newline is tolerated.
+$  printf '  --pretty\n  ' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
+/dev/null

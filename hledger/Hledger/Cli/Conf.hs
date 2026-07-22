@@ -306,7 +306,9 @@ dp = const $ return ()  -- no-op
 
 whitespacep, commentlinesp, restoflinep :: TextParser Identity ()
 whitespacep   = void $ {- dp "whitespacep"   >> -} many spacenonewline
-commentlinesp = void $ {- dp "commentlinesp" >> -} many (emptyorcommentlinep2 "#")
+-- Uses try so that a non-empty, non-comment line (possibly indented) is left for
+-- another parser instead of failing here after consuming its leading whitespace.
+commentlinesp = void $ {- dp "commentlinesp" >> -} many (try $ emptyorcommentlinep2 "#")
 restoflinep   = void $ {- dp "restoflinep"   >> -} whitespacep >> emptyorcommentlinep2 "#"
 
 confp :: TextParser Identity [ConfSection]  -- a monadic TextParser to allow reusing other hledger parsers
@@ -319,6 +321,7 @@ confp = do
     (n, ma) <- sectionstartp
     as <- many arglinep
     return $ ConfSection n (maybe as (:as) ma)
+  whitespacep  -- tolerate trailing whitespace with no final newline (a blank last line)
   eof
   return $ s:ss
 
@@ -326,6 +329,7 @@ confp = do
 sectionstartp :: TextParser Identity (String, Maybe String)
 sectionstartp = do
   dp "sectionstartp"
+  try (whitespacep <* lookAhead (char '['))  -- ignore any leading whitespace before the [
   char '['
   n <- fmap strip $ some $ noneOf "]#\n"
   char ']'
@@ -340,12 +344,14 @@ sectionstartp = do
   -- dp "sectionstartp6"
   return (n, ma)
 
+-- Uses try so that an indented section header ([..]) is left for sectionstartp
+-- rather than failing here after consuming its leading whitespace.
 arglinep :: TextParser Identity String
-arglinep = do
+arglinep = try $ do
   dp "arglinep"
-  notFollowedBy $ char '['
+  whitespacep  -- ignore any leading whitespace
   -- dp "arglinep2"
-  whitespacep
+  notFollowedBy $ char '['  -- an indented section header is not an argument line
   -- dp "arglinep3"
   a <- some $ noneOf "#\n"
   -- dp "arglinep4"

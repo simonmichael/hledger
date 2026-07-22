@@ -180,3 +180,8 @@ hello
 $  d=$(mktemp -d); mkdir $d/work; printf '[alias]\nevil = !echo pwned\n' >$d/work/hledger.conf; (cd $d/work && HOME=$d XDG_CONFIG_HOME=$d/.config hledger evil); s=$?; rm -rf $d; exit $s
 >2 /only allowed from your user config file/
 >= 1
+
+# ** 28. Leading whitespace is ignored, so an indented [alias] section header and
+# indented alias definition (including the [alias NAME] multi-line form) still work.
+$  printf '  [alias hi]\n  files\n' >$$.conf; hledger --conf $$.conf -f /dev/null hi; rm -f $$.conf
+/dev/null
