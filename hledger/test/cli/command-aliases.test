@@ -95,3 +95,41 @@ $  printf '[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf -n -f /dev/
 # does not hide the file's aliases from the commands list.
 $  printf -- '--no-conf\n\n[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf commands | grep -c '^ALIASES'; rm -f $$.conf
 1
+
+# ** 15. Command aliases can be used in run's command line arguments.
+<
+2026-01-01
+  a:x  1
+  a:y  1
+  b   -2
+$  printf '[alias]\nmybal = balance --tree -N\n' >$$.conf; hledger --conf $$.conf run -f- -- mybal; rm -f $$.conf
+                   2  a
+                   1    x
+                   1    y
+                  -2  b
+
+# ** 16. Command aliases can be used in a run command script,
+# and extra arguments written after the alias name are added at the end.
+<
+2026-01-01
+  a:x  1
+  a:y  1
+  b   -2
+$  printf '[alias]\nmybal = balance --tree -N\n' >$$.conf; printf 'mybal --flat\n' >$$.script; hledger --conf $$.conf run -f- $$.script; rm -f $$.conf $$.script
+                   1  a:x
+                   1  a:y
+                  -2  b
+
+# ** 17. Command aliases can be used in run/repl commands read from stdin.
+<
+mybal
+$  printf '[alias]\nmybal = balance --tree -N\n' >$$.conf; printf '2026-01-01\n  a:x  1\n  a:y  1\n  b   -2\n' >$$.j; hledger --conf $$.conf run -f $$.j; rm -f $$.conf $$.j
+                   2  a
+                   1    x
+                   1    y
+                  -2  b
+
+# ** 18. In run, an alias whose command is unrecognised gives a helpful error.
+$  printf '[alias]\nbadalias = nosuchcmd\n' >$$.conf; hledger --conf $$.conf run -f /dev/null -- badalias; s=$?; rm -f $$.conf; exit $s
+>2 /Unrecognized command \(expanded from the badalias command alias\): nosuchcmd/
+>= 1

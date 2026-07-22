@@ -43,6 +43,8 @@ If that gives an error, use `#!/usr/bin/env -S hledger run`.
 
 It's ok to use the `run` command recursively within a command script.
 
+Command aliases defined in a config file can also be used in command scripts.
+
 You may find some differences in behaviour between `run` command lines and normal hledger command lines.
 `run` is a little stricter;
 eg it requires full command names or official abbreviations (as seen in the commands list),

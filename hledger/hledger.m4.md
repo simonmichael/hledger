@@ -631,6 +631,8 @@ If the same alias name is defined more than once, the last definition wins.
 An alias's command can be a hledger builtin command, addon command, or another alias.
 If there's a `[COMMAND]` options section for an alias's resolved builtin command, that will also be applied.
 
+Command aliases can also be used in `run` command scripts and at the `repl` prompt.
+
 ### Config file troubleshooting
 
 There aren't many hledger features that need a warning, but here is one!\

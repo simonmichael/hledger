@@ -16,6 +16,7 @@ module Hledger.Cli.Conf (
   ,nullconf
   ,confLookup
   ,confAliases
+  ,expandCommandAlias
   ,activeConfFile
   ,activeLocalConfFile
   ,activeUserConfFile
@@ -126,6 +127,23 @@ confAliases Conf{confFile, confSections} = concatMap sectionaliases confSections
       _ -> error' $ "in config file " <> confFile
            <> ",\nan [alias] section line should look like: NAME = COMMAND [ARGS..]"
            <> "\nbut is: " <> l
+
+-- | Expand a command name which may be a command alias, giving the real command name
+-- and any arguments to prepend. Aliases can refer to other aliases; a name that is an
+-- exact builtin command name (per the given predicate), or already seen during this
+-- expansion (a self-reference or cycle), stops the recursion. If a name is defined
+-- more than once, the first definition in the given list wins (callers wanting the
+-- config file's last-definition-wins behaviour should pass @reverse (confAliases conf)@).
+expandCommandAlias :: (String -> Bool) -> [(CommandAlias,[Arg])] -> String -> (String,[Arg])
+expandCommandAlias isbuiltincmd cmdaliases = go []
+  where
+    go seen name
+      | name `notElem` seen
+      , not $ isbuiltincmd name
+      , Just (realcmd:defargs) <- lookup name cmdaliases =
+          let (realcmd', defargs') = go (name:seen) realcmd
+          in (realcmd', defargs' <> defargs)
+      | otherwise = (name, [])
 
 -- | Try to read a hledger config from a config file specified by --conf,
 -- or the first config file found in any of several default file paths.

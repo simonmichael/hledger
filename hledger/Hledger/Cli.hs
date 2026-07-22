@@ -107,7 +107,7 @@ import Data.Either (isRight)
 import Data.Function ((&))
 import Data.Functor ((<&>))
 import Data.List
-import Data.Maybe (isJust, isNothing, fromMaybe, fromJust)
+import Data.Maybe (isJust, fromMaybe, fromJust)
 import Data.Text (pack, Text)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import Safe
@@ -294,16 +294,8 @@ main = handleExit $ withGhcDebug' $ do
     -- If so, expand it to the real command name and the extra arguments to prepend.
     -- Command aliases never override exact builtin command names, and later definitions win.
     cmdaliases = reverse $ confAliases conf  -- reversed so that lookup finds the last definition
-    expandAlias :: [CommandAlias] -> String -> (String, [String])
-    expandAlias seen name
-      | name `notElem` seen
-      , isNothing $ findBuiltinCommand name
-      , Just (realcmd:defargs) <- lookup name cmdaliases =
-          -- aliases can refer to other aliases; a repeated name (self-reference or cycle) stops the recursion
-          let (realcmd', defargs') = expandAlias (name:seen) realcmd
-          in (realcmd', defargs' <> defargs)
-      | otherwise = (name, [])
-    (effectivecmdarg, aliasargs) = second replaceNumericFlags $ expandAlias [] cmdarg
+    (effectivecmdarg, aliasargs) = second replaceNumericFlags $
+      expandCommandAlias (isJust . findBuiltinCommand) cmdaliases cmdarg
     isaliascmd = effectivecmdarg /= cmdarg || not (null aliasargs)
 
     -- The argument may be an abbreviated command name, which we need to expand.
@@ -457,8 +449,8 @@ main = handleExit $ withGhcDebug' $ do
           withPossibleJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
-        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons opts
-        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons opts
+        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons cmdaliases opts
+        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases opts
 
         -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction

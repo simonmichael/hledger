@@ -40,6 +40,7 @@ While it is running, the REPL remembers your command history, and you can naviga
 Generally `repl` command lines should feel much like the normal hledger CLI, but you may find differences.
 `repl` is a little stricter;
 eg it requires full command names or official abbreviations (as seen in the commands list).
+Command aliases defined in a config file can also be used.
 
 The `commands` and `help` commands, and the command help flags
 (`CMD --tldr`, `CMD -h/--help`, `CMD --info`, `CMD --man`), can be useful.
