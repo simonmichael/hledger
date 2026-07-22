@@ -712,7 +712,9 @@ function initResizableSidebar() {
   });
 
   function resize(e) {
-    var size = e.clientX + 'px';
+    var maxWidth = window.innerWidth * 0.8; // Max 80% of viewport width
+    var minWidth = 200; // Min 200px
+    var size = Math.max(minWidth, Math.min(e.clientX, maxWidth)) + 'px';
     sidebar.style.width = size;
   }
 

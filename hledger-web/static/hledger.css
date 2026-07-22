@@ -60,12 +60,12 @@ ul {
 
 #main-content {
     padding-left: 30px;
-    z-index: 1001;
 }
 
 #message {
     white-space: pre;
     overflow-x: auto;
+    z-index: 100;
 }
 
 #sidebar-menu {
@@ -73,6 +73,8 @@ ul {
     overflow-x:hidden;
     overflow-y:auto;
     border-right: 1px solid #ebebeb;
+    padding: 0;
+    margin: 0;
 }
 
 /* Override for resizable sidebar layout */
@@ -82,20 +84,23 @@ ul {
 #sidebar-menu .main-menu {
     table-layout: fixed;
     word-wrap: break-word;
+    margin: 0;
+    padding: 0;
+    border-collapse: collapse;
+    border-spacing: 0;
+    width: 100%;
 }
 
 #sidebar-menu .main-menu td {
-    padding: 1px !important;
-    border-top: 1px solid #ebebeb;
-    overflow: hidden;
+    padding: 0;
+    overflow: visible;
     white-space:nowrap;
-    text-overflow:ellipsis;
     font-size: 16px;
+    vertical-align: top;
 }
 
 #sidebar-menu .main-menu .ff-wrapper { /* This wrapper is needed because firefox won't apply overflow to a td-tag */
-    overflow:hidden;
-    text-overflow:ellipsis;
+    overflow:visible;
 }
 
 #sidebar-menu .main-menu .top {
@@ -103,13 +108,23 @@ ul {
 }
 
 #sidebar-menu .main-menu a {
-    display: inline;
+    display: inline-block;
     font-size: 16px;
     font-weight: 500;
     color: #2F2F2F;
-    padding: 4px 20px;
+    padding: 0.25rem 0.5rem;
     text-decoration: none;
+    width: fit-content;
 }
+
+#sidebar-menu .main-menu .acct-name {
+    border-bottom: 1px solid #ebebeb;
+}
+
+#sidebar-menu .main-menu .amount a {
+    border-bottom: 1px solid #ebebeb;
+}
+
 
 #sidebar-menu .main-menu a:hover {
     color: #11427D;
@@ -126,15 +141,7 @@ ul {
     visibility: visible;
 }
 
-#sidebar-menu .main-menu tr:not(.total):hover {
-    background-color: #f5f5f5;
-}
 
-#sidebar-menu .main-menu .inacct, #sidebar-menu .main-menu .inacct .acct-name {
-    font-weight: bold;
-    color: #11427D;
-    background-color: #f9f9f9;
-}
 
 #sidebar-menu .main-menu .amount {
     float: right;
@@ -170,7 +177,7 @@ body, html {
     position: fixed;
     top: 0;
     left: 10px;
-    z-index: 3000;
+    z-index: 30;
     display: flex;
     align-items: center;
     gap: 0.3rem;
@@ -189,7 +196,7 @@ body, html {
     top: 0;
     background-color: #e0e0e0;
     padding: 0.3rem;
-    z-index: 2000;
+    z-index: 50;
 }
 
 .header-flex {
@@ -204,6 +211,16 @@ body, html {
     font-size: 2.5rem;
     font-weight: 500;
     line-height: 1.2;
+}
+
+.sticky-header h1 a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.sticky-header h1 a:hover {
+    color: inherit;
+    text-decoration: none;
 }
 
 .sticky-header #searchform {
@@ -239,7 +256,7 @@ body, html {
     top: 0.3rem;
     left: 0.3rem;
     transform: scale(1.5);
-    z-index: 3000;
+    z-index: 30;
 }
 
 #top-left-controls .empty-account-checkbox {
@@ -247,14 +264,14 @@ body, html {
     left: 13px;
     top: 8px;
     transform: scale(1.72);
-    z-index: 1000;
+    z-index: 10;
 }
 
 #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     position: relative;
     top: 8px;
     left: 15px;
-    z-index: 2000;
+    z-index: 20;
 }
 
 #sidebar-menu .empty-account-checkbox-mobile {
@@ -263,7 +280,7 @@ body, html {
     top: 13px;
     left: 1rem;
     transform: scale(1.5);
-    z-index: 2000;
+    z-index: 20;
 }
 
 #sidebar-menu label[for="hideEmptyAccountsMobile"] {
@@ -271,7 +288,7 @@ body, html {
     position: relative;
     left: 3rem;
     bottom: 2px;
-    z-index: 2000;
+    z-index: 20;
 }
 
 #top-left-controls .close-sidebar-arrow-desktop {
@@ -359,7 +376,7 @@ body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
     top: 0.6rem;
     right: 1vw;
     transform: scale(2);
-    z-index: 3000;
+    z-index: 30;
 }
 
 body.sidebar-hidden #top-left-controls .empty-account-checkbox {
@@ -401,7 +418,7 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         top: 0;
         left: 0;
         transform: scale(1.5);
-        z-index: 2000;
+        z-index: 20;
         margin: 0.5rem 0 0.5rem 1rem;
         cursor: pointer;
     }
@@ -411,7 +428,7 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         position: relative;
         top: 0;
         left: 0;
-        z-index: 2000;
+        z-index: 20;
         margin: 0.5rem 0 0.5rem 0.5rem;
         cursor: pointer;
         vertical-align: middle;
@@ -555,11 +572,26 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     }
 }
 
-/* Position close button in top left of modal header */
+/* Position close button in top right of modal header */
 .modal-header .btn-close {
     position: absolute;
     top: 0.5rem;
-    left: 0.5rem;
+    right: 0.5rem;
+}
+
+/* Center modal title */
+.modal-title {
+    text-align: left;
+    padding-left: 2rem;
+}
+
+/* Ensure modal is above all content */
+.modal {
+    z-index: 1000 !important;
+}
+
+.modal-backdrop {
+    z-index: 999 !important;
 }
 
 /* Resizable sidebar container - flexbox layout for independent scrolling */
@@ -655,7 +687,7 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         left: -90% !important;
         width: 90% !important;
         height: 100vh !important;
-        z-index: 1050 !important;
+        z-index: 40 !important;
         transition: left 0.3s ease-out !important;
         background: white !important;
         overflow-y: auto !important;
