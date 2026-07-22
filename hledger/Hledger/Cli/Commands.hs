@@ -332,8 +332,8 @@ commandsList progversion builtin othercmds cmdaliases =
   ," test                     run some self tests"
   ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "OTHER ADDONS"
   ]
+  ++ [bold' "OTHER ADDONS" | not builtin]
   ++ map (' ':) (lines $ multicol 79 othercmds)
   ++ (if null cmdaliases then [] else
       let aliasw = maximum (map (length.fst) cmdaliases)
