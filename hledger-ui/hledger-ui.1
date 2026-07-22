@@ -1,5 +1,5 @@
 
-.TH "HLEDGER\-UI" "1" "May 2026" "hledger-ui-1.99 " "hledger User Manuals"
+.TH "HLEDGER\-UI" "1" "June 2026" "hledger-ui-1.99 " "hledger User Manuals"
 
 
 
@@ -306,6 +306,10 @@ Cost mode takes precedence.
 \- There\(aqs not yet any visual indicator that cost or value mode is
 active, other than the amount values.
 .PP
+\f[CR]L\f[R] toggles lot detail (like the \f[CR]\-\-lots\f[R] flag),
+showing or hiding lot subaccounts (such as
+\f[CR]assets:broker:{2026\-01\-15, $50}\f[R]) and other per\-lot detail.
+.PP
 \f[CR]q\f[R] quits the application.
 .PP
 Additional screen\-specific keys are described below.
@@ -461,20 +465,11 @@ It may not detect changes made from outside a virtual machine, ie by an
 editor running on the host system.
 .IP \(bu 2
 It may not detect file changes on certain less common filesystems.
-.IP \(bu 2
-It may use increasing CPU and RAM over time, especially with large
-files.
-(This is probably not \-\-watch specific, you may be able to reproduce
-it by pressing \f[CR]g\f[R] repeatedly.)
-(#1825)
 .PP
 Tips/workarounds:
 .IP \(bu 2
 If \-\-watch won\(aqt work for you, press \f[CR]g\f[R] to reload data
 manually instead.
-.IP \(bu 2
-If \-\-watch is leaking resources over time, quit and restart (or
-suspend and resume) hledger\-ui when you\(aqre not using it.
 .IP \(bu 2
 When running hledger\-ui inside a VM, also make file changes inside the
 VM.

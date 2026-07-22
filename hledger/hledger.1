@@ -1,6 +1,6 @@
 .\"t
 
-.TH "HLEDGER" "1" "May 2026" "hledger-1.99 " "hledger User Manuals"
+.TH "HLEDGER" "1" "June 2026" "hledger-1.99 " "hledger User Manuals"
 
 
 
@@ -821,95 +821,157 @@ cur:\(rs$
 $ hledger bal \(atcash.args
 .EE
 .SS Config files
-With hledger 1.40+, you can save extra command line options and
-arguments in a more featureful hledger config file.
+You can configure default command line options and arguments
+conveniently in a hledger config file.
+(Since 1.40.)
+Config file options will be inserted near the start of your command
+line, so you can override them with command line options.
+.PP
+You can specify a config file with the \f[CR]\-\-conf\f[R] option.
+Otherwise, hledger will search for a default config file, in this order:
+.IP \(bu 2
+\f[CR]hledger.conf\f[R] in the current directory or above
+.IP \(bu 2
+\f[CR].hledger.conf\f[R] in your home directory
+.IP \(bu 2
+\f[CR]hledger.conf\f[R] in your XDG config
+(\f[CR]\(ti/.config/hledger/hledger.conf\f[R]).
+.PP
+Only one config file is used.
 Here\(aqs a small example:
 .IP
 .EX
-\f[I]# General options are listed first, and used with hledger commands that support them.\f[R]
+\f[I]# General options, used with all hledger commands that support them.\f[R]
 \-\-pretty
 
-\f[I]# Options following a \(ga[COMMAND]\(ga heading are used with that hledger command only.\f[R]
+\f[I]# Command\-specific options.\f[R]
 \f[B][print]\f[R]
 \-\-explicit \-\-infer\-costs
 .EE
 .PP
-To use a config file, specify it with the \f[CR]\-\-conf\f[R] option.
-Its options will be inserted near the start of your command line, so you
-can override them with command line options if needed.
-.PP
-Or, you can set up an automatic config file that is used whenever you
-run hledger, by creating \f[CR]hledger.conf\f[R] in the current
-directory or above, or \f[CR].hledger.conf\f[R] in your home directory
-(\f[CR]\(ti/.hledger.conf\f[R]), or \f[CR]hledger.conf\f[R] in your XDG
-config directory (\f[CR]\(ti/.config/hledger/hledger.conf\f[R]).
-.PP
-Here is another example config you could start with:
+And here is a commented starter config file:
 https://github.com/simonmichael/hledger/blob/main/hledger.conf.sample
 .PP
 You can put not only options, but also arguments in a config file.
-If the first word in a config file\(aqs top (general) section does not
-begin with a dash (eg: \f[CR]print\f[R]), it is treated as the command
-argument (overriding any argument on the command line).
 .PP
-On unix machines, you can add a shebang line at the top of a config
-file, set executable permission on the file, and use it like a script.
-Eg (the \f[CR]\-S\f[R] is needed on some operating systems):
-.IP
-.EX
-#!/usr/bin/env \-S hledger \-\-conf
-.EE
-.PP
-You can ignore config files by adding the
+You can ignore all config files by adding the
 \f[CR]\-n\f[R]/\f[CR]\-\-no\-conf\f[R] flag to the command line.
-This is useful when using hledger in scripts, or when troubleshooting.
+This is recommended when using hledger in scripts.
 When both \f[CR]\-\-conf\f[R] and \f[CR]\-\-no\-conf\f[R] options are
 used, the right\-most wins.
+.SS Command aliases
+In a config file you can also define command aliases: your own custom
+commands, which expand to a longer command line (similar to git\(aqs
+aliases).
+(Since 1.99.4.)
+Eg:
+.IP
+.EX
+\f[B][alias]\f[R]
+p     = print
+p1    = print \-\-oneline
+rev10 = balance type\f[B]:\f[R]R \-2 \-X\f[B]$\f[R] \-p \(aqevery 10 years from 2000\(aq
+.EE
 .PP
-To inspect the processing of config files, use \f[CR]\-\-debug\f[R] or
-\f[CR]\-\-debug=8\f[R].
-Or, run the \f[CR]setup\f[R] command, which will display any active
-config files.
-(\f[CR]setup\f[R] is not affected by config files itself, unlike other
-commands.)
+With this in your config file, you\(aqll see a \f[CR]rev10\f[R] command
+in the \f[CR]hledger commands\f[R] list, and \f[CR]hledger rev10\f[R]
+will run the balance command above.
+Options or arguments written at the command line will be added at the
+end, usually overriding those in the alias; eg
+\f[CR]hledger rev10 \-X €\f[R] will convert to \f[CR]€\f[R] instead of
+\f[CR]$\f[R].
+Command aliases can also be used in \f[CR]run\f[R] command scripts and
+at the \f[CR]repl\f[R] prompt.
 .PP
-\f[B]Warning!\f[R]
+Each line in an \f[CR][alias]\f[R] section should look like
+\f[CR]NAME = COMMAND [ARGS..]\f[R].
+Or, you can define a single alias with an \f[CR][alias NAME]\f[R]
+section, writing its command line below it, on one or more lines.
+This form can be easier to read, and lets you comment out individual
+lines.
+Eg:
+.IP
+.EX
+\f[B][alias\f[R] \f[B]rev10]\f[R]
+balance
+type\f[B]:\f[R]R
+\-2
+\-X\f[B]$\f[R]
+\-p \(aqevery 10 years from 2000\(aq
+\f[I]# \-\-drop 1\f[R]
+.EE
 .PP
+Command aliases override addon commands with the same name, but they
+can\(aqt override builtin command names or abbreviations like
+\f[CR]balance\f[R] or \f[CR]bal\f[R].
+If the same alias name is defined more than once, the last definition
+wins.
+.PP
+An alias\(aqs command can be a hledger builtin command, addon command,
+or another alias.
+If there\(aqs a \f[CR][COMMAND]\f[R] options section for an alias\(aqs
+resolved builtin command, that will also be applied.
+.PP
+Or if an alias\(aqs command line begins with \f[CR]!\f[R], the rest is
+run as a shell command (with any extra command line arguments appended).
+Eg:
+.IP
+.EX
+\f[B][alias]\f[R]
+git\-commit = \f[B]!\f[R] git commit \-p
+jj\-commit  = \f[B]!\f[R] jj commit \-i
+.EE
+.PP
+For safety, shell command aliases run only if defined in a trusted
+config file: one you gave explicitly with \f[CR]\-\-conf\f[R], or your
+user config file (\f[CR]\(ti/.hledger.conf\f[R] or the XDG
+\f[CR]hledger.conf\f[R]).
+Shell commands in a nearby automatically\-found \f[CR]hledger.conf\f[R],
+in the current directory or a parent directory, will not run \- this
+prevents a config file from an untrusted downloaded or shared directory
+from running arbitrary shell commands.
+.SS Config file troubleshooting
 There aren\(aqt many hledger features that need a warning, but this is
-one!
+one !
+.PD 0
+.P
+.PD
+A default config file (the kind that hledger runs automatically, without
+needing a \-\-conf option) is very convenient.
+But, it complicates command line processing and can surprise you \- eg
+quietly changing report output, or breaking your hledger\-using
+scripts/applications, which you might not notice until much later.
 .PP
-Automatic config files, while convenient, also make hledger less
-predictable and dependable.
-It\(aqs easy to make a config file that changes a report\(aqs behaviour,
-or breaks your hledger\-using scripts/applications, in ways that will
-surprise you later.
-.PP
-If you don\(aqt want this,
+This mainly arises when you are first using config files.
+And once you discover this kind of problem, it will be easy to fix.
+Here are some tips:
 .IP "1." 3
-Just don\(aqt create a hledger.conf file on your machine.
+Be mindful about what you put in your config file; consider the effect
+on all your reports.
 .IP "2." 3
-Also be alert to downloaded directories which may contain a hledger.conf
-file.
+If a hledger command isn\(aqt doing what you expect, try it again with
+\f[CR]\-n\f[R], to see if a config file is to blame.
 .IP "3." 3
-Also if you are sharing scripts or examples or support, consider that
-others may have a hledger.conf file.
-.PP
-Conversely, once you decide to use this feature, try to remember:
-.IP "1." 3
-Whenever a hledger command does not work as expected, try it again with
-\f[CR]\-n\f[R] (\f[CR]\-\-no\-conf\f[R]) to see if a config file was to
-blame.
-.IP "2." 3
-Whenever you call hledger from a script, consider whether that call
-should use \f[CR]\-n\f[R] or not.
-.IP "3." 3
-Be conservative about what you put in your config file; try to consider
-the effect on all your reports.
+Run \f[CR]hledger setup\f[R] to list the currently active config file.
+(\f[CR]setup\f[R] is not affected by config files.)
 .IP "4." 3
-To troubleshoot the effect of config files, run with
-\f[CR]\-\-debug\f[R] or \f[CR]\-\-debug 8\f[R].
+Add \f[CR]\-\-debug\f[R] or \f[CR]\-\-debug=8\f[R] to any command to see
+config/command line debug output.
 .PP
-The config file feature was added in hledger 1.40.
+When you are writing scripts, or sharing examples with other people,
+keep in mind that there could be a config file changing hledger\(aqs
+behaviour, so you might want to add \f[CR]\-n\f[R] to make your hledger
+commands more robust.
+.PP
+If you prefer to just avoid this feature:
+.IP \(bu 2
+Don\(aqt use a default config file.
+.IP \(bu 2
+If you download hledger data from elsewhere, watch out for directories
+containing a hledger.conf file.
+.IP \(bu 2
+If you\(aqre feeling paranoid, use the \f[CR]\-n/\-\-no\-conf\f[R] flag
+always, eg by running hledger via a script or alias.
 .SS Shell completions
 If you use the bash or zsh shells, you can optionally set up
 context\-sensitive autocompletion for hledger command lines.
@@ -918,7 +980,7 @@ hledger commands) or \f[CR]hledger reg acct:<TAB><TAB>\f[R] (should list
 your top\-level account names).
 If completions aren\(aqt working, or for more details, see Install >
 Shell completions.
-.SH Output
+˜ # Output
 .SS Output destination
 hledger commands send their output to the terminal by default.
 You can of course redirect this, eg into a file, using standard shell
@@ -1163,7 +1225,7 @@ You can override this by setting the \f[CR]NO_COLOR\f[R] environment
 variable to disable it, or by using the \f[CR]\-\-color/\-\-colour\f[R]
 option, perhaps in your config file, with a \f[CR]y\f[R]/\f[CR]yes\f[R]
 or \f[CR]n\f[R]/\f[CR]no\f[R] value to force it on or off.
-.SS Paging
+.SS Paging˜
 In unix\-like environments, when displaying large output (in any output
 format) in the terminal, hledger tries to use a pager when appropriate.
 (You can disable this with the \f[CR]\-\-pager=no\f[R] option, perhaps
@@ -1203,7 +1265,9 @@ and when colour output is enabled:
 You can prevent this by setting your preferred options in the
 \f[CR]HLEDGER_LESS\f[R] variable, which will be used instead of
 \f[CR]LESS\f[R].
-.SS HTML output
+.PP
+˜ ### HTML output˜˜
+.PP
 HTML output can be styled by an optional \f[CR]hledger.css\f[R] file in
 the same directory.
 .PP
@@ -2064,17 +2128,11 @@ separators), this means that a number like \f[CR]1,000\f[R] or
 In such cases, hledger by default assumes it is a decimal mark, and will
 parse both of those as 1.
 .PP
-To help hledger parse such ambiguous numbers more accurately, if you use
+To help hledger parse such ambiguous numbers accurately, if you use
 digit group marks, we recommend declaring the decimal mark explicitly.
-The best way is to add a \f[CR]decimal\-mark\f[R] directive at the top
-of each data file, like this:
-.IP
-.EX
-decimal\-mark .
-.EE
-.PP
-Or you can declare it per commodity with \f[CR]commodity\f[R]
-directives, described below.
+You can declare it per commodity with \f[CR]commodity\f[R] directives,
+or per file with a \f[CR]decimal\-mark\f[R] directive at the top of each
+journal file (described below).
 .PP
 hledger also accepts numbers like \f[CR]10.\f[R] with no digits after
 the decimal mark (and will sometimes display numbers that way to
@@ -2436,6 +2494,23 @@ assertions\f[R]\(dq by adding a star after the equals (\f[CR]=*\f[R] or
   assets:savings   $10
   assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 .EE
+.SS Assertions and lot subaccounts
+Lot subaccounts (a special kind of subaccount for tracking lots,
+discussed in \(dqLot reporting\(dq below) have only limited support for
+balance assertions: the assertions will be checked correctly only if all
+postings to that lot mention the subaccount name explicitly.
+.PP
+Since it\(aqs common practice to leave lot subaccounts implicit,
+generally you should avoid writing balance assertions on individual
+lots.
+(\f[CR]close \-\-lots\f[R] also follows this rule.)
+If you forget, the balance assertion failure message will remind you.
+If you really need a balance assertion, you can usually write it on the
+parent account instead.
+.PP
+(The restriction is because transaction balancing amounts, balance
+assignments, and balance assertions must be calculated and checked
+before lot movements are known.)
 .SS Assertions and status
 Balance assertions always consider postings of all statuses (unmarked,
 pending, or cleared); they are not affected by the
@@ -2763,7 +2838,7 @@ them at the start of the main file, before any \f[CR]include\f[R]s.
 .PP
 .TS
 tab(@);
-lw(6.8n) lw(58.5n) lw(4.8n).
+lw(5.6n) lw(60.0n) lw(4.4n).
 T{
 directive
 T}@T{
@@ -2782,7 +2857,6 @@ T{
 T}@T{
 Rewrites account names, in following entries until
 \f[CR]end aliases\f[R] or file end.
-Command line equivalent: \f[CR]\-\-alias\f[R]
 T}@T{
 Y
 T}
@@ -2806,7 +2880,6 @@ T{
 \f[B]\f[CB]include\f[B]\f[R]
 T}@T{
 Includes entries from another file, as if they were written inline.
-Command line alternative: multiple \f[CR]\-f/\-\-file\f[R]
 T}@T{
 T}
 T{
@@ -2831,9 +2904,8 @@ the commodity\(aqs display style 3.
 optional commodity aliases and lotfulness, and 4.
 the decimal mark for parsing this commodity, until file end (overridden
 by \f[CR]decimal\-mark\f[R]).
-Command line equivalent: \f[CR]\-c/\-\-commodity\-style\f[R]
 T}@T{
-N N N Y
+N N N N
 T}
 T{
 \f[B]\f[CB]payee\f[B]\f[R]
@@ -2895,12 +2967,12 @@ T}
 T{
 \f[CR]D\f[R]
 T}@T{
-Sets 1.a default commodity to use for no\-symbol amounts in this file
-and subfiles, and 2.
-its parsing decimal mark and display style (overridden by
+Sets 1.a default commodity to use for no\-symbol amounts 2.
+the decimal mark for parsing it 3.
+the display style for showing it (these are overridden by
 \f[CR]commodity\f[R] or \f[CR]decimal\-mark\f[R]).
 T}@T{
-Y, Y, N
+Y, N, N
 T}
 T{
 \f[CR]Y\f[R]
@@ -3439,48 +3511,31 @@ be ignored, until an end comment directive or file end.
 A line containing just \f[CR]end comment\f[R] ends the effect of a
 preceding comment directive.
 .SS \f[CR]commodity\f[R] directive
-The \f[CR]commodity\f[R] directive performs several functions:
-.IP "1." 3
-It declares which commodity symbols may be used in the journal, enabling
-useful error checking with strict mode or the check command.
-See Commodity error checking below.
-.IP "2." 3
-It declares how all amounts in this commodity should be displayed, eg
-how many decimals to show.
-See Commodity display style above.
-.IP "3." 3
-(If no \f[CR]decimal\-mark\f[R] directive is in effect:) It sets the
-decimal mark to expect (period or comma) when parsing amounts in this
-commodity, in this file and files it includes, from the directive until
-end of current file.
-See Decimal marks above.
-.IP "4." 3
-It declares the precision with which this commodity\(aqs amounts should
-be compared when checking for balanced transactions, anywhere in this
-file and files it includes, until end of current file.
+\f[CR]commodity\f[R] directives declare commodity symbols (for error
+checking) and their preferred display style (digit group marks, decimal
+digits, and symbol position).
+Eg:
+.IP
+.EX
+commodity $1,000.00
+commodity 1000,00 EUR
+commodity ₹ 1,00,00,000.00
+commodity 1000.   ; the no\-symbol commodity
+.EE
 .PP
-Declaring commodities solves several common parsing/display problems, so
-we recommend it.
-.PP
-Note that effects 3 and 4 above end at the end of the directive\(aqs
-file, and will not affect sibling or parent files.
-So if you are relying on them (especially 4) and using multiple files,
-placing your commodity directives in a top\-level parent file might be
-important.
-Or, keep your decimal marks unambiguous and your entries well balanced
-and precise.
-.PP
-Omitting the commodity symbol will set the display style for just the
-no\-symbol commodity, not all commodities.
-.PP
-Commodity styles can be overridden by the
-\f[CR]\-c/\-\-commodity\-style\f[R] command line option.
-.PP
-(Related: #793)
+The sample amount must include a decimal mark (even if there are no
+decimal digits after it).
+This tells the parser which decimal mark (period or comma) is used for
+this commodity in the journal file, which can be useful in case of
+ambiguous digit group marks.
+This effect lasts until the end of the current file tree (from a single
+\f[CR]\-f\f[R] or \f[CR]LEDGER_FILE\f[R]), and it can be overridden by
+by a \f[CR]decimal\-mark\f[R] directive.
 .SS Commodity directive syntax
+In more detail.
 A commodity directive is normally the word \f[CR]commodity\f[R] followed
-by a sample amount, and optionally a comment.
-Only the amount\(aqs symbol and the number\(aqs format is significant.
+by a sample amount (only its format is significant), and optionally a
+comment.
 Eg:
 .IP
 .EX
@@ -3489,9 +3544,8 @@ commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no\-symbol commodity
 .EE
 .PP
-A commodity directive\(aqs sample amount must always include a period or
-comma decimal mark (this rule helps disambiguate decimal marks and digit
-group marks).
+A commodity directive\(aqs sample amount must always include a decimal
+mark (period or comma).
 If you don\(aqt want to show any decimal digits, write the decimal mark
 at the end:
 .IP
@@ -3573,10 +3627,13 @@ an undeclared commodity symbol is used.
 commodity symbol.)
 It works like account error checking (described above).
 .SS \f[CR]decimal\-mark\f[R] directive
-You can use a \f[CR]decimal\-mark\f[R] directive \- usually one per
-file, at the top of the file \- to declare which character represents a
-decimal mark when parsing amounts in this file.
-It can look like
+You can use a \f[CR]decimal\-mark\f[R] directive to declare
+unambiguously which character (period or comma) represents a decimal
+mark, for all subsequent amounts until the end of the current file.
+This helps when parsing ambiguous numbers (like \f[CR]1.000\f[R] or
+\f[CR]1,000\f[R] where you mean one thousand, not one).
+.PP
+Eg, at the top of each journal file:
 .IP
 .EX
 decimal\-mark .
@@ -3588,9 +3645,10 @@ or
 decimal\-mark ,
 .EE
 .PP
-This prevents any ambiguity when parsing numbers in the file, so we
-recommend it, especially if the file contains digit group marks (eg
-thousands separators).
+This directive only affects parsing, and it takes precedence over
+\f[CR]commodity\f[R] directives.
+So you can declare preferred decimal marks for display, which may be
+different from the decimal mark(s) used in the data files.
 .SS \f[CR]include\f[R] directive
 You can pull in the content of additional files by writing an include
 directive, like this:
@@ -4592,7 +4650,7 @@ command output in an \f[CR]archive/\f[R] subdirectory of the
 The archive file name will be based on the rules file and the data
 file\(aqs modification date and extension (or for a data\-generating
 command, the current date and the \(dq.csv\(dq extension).
-The original data file, if any, will be removed.
+The original data file, once archived, will be removed.
 .PP
 Also, in this mode \f[CR]import\f[R] will prefer the oldest file matched
 by the \f[CR]source\f[R] rule\(aqs glob pattern, not the newest.
@@ -6734,7 +6792,7 @@ report at the end of february (overriding the requested end date).
 \f[CR]hledger register \-\-monthly \-\-begin 1/5 \-\-end 2/14\f[R] will
 end the report on march 4th [1].
 .PP
-[1] Since hledger 1.29.
+[1] Since 1.29.
 .SS Period expressions
 The \f[CR]\-p/\-\-period\f[R] option specifies a period expression,
 which is a compact way of expressing a start date, end date, and/or
@@ -8053,9 +8111,8 @@ $ hledger print
     (a)        $1,000.
 .EE
 .PP
-If this is a problem (eg when exporting to Ledger), you can avoid it by
-disabling digit group marks, eg with \-c/\-\-commodity (for each
-affected commodity):
+You can avoid this by disabling digit group marks, eg temporarily with
+\-c/\-\-commodity:
 .IP
 .EX
 $ hledger print \-c \(aq$1000.00\(aq
@@ -8063,7 +8120,7 @@ $ hledger print \-c \(aq$1000.00\(aq
     (a)          $1000
 .EE
 .PP
-or by forcing print to always show decimal digits, with \-\-round:
+or by forcing print to show some decimal digits, with \-\-round:
 .IP
 .EX
 $ hledger print \-c \(aq$1,000.00\(aq \-\-round=soft
@@ -8514,7 +8571,7 @@ To be safe, specify the valuation commmodity, eg:
 \f[CR]\-\-value=then \-\-infer\-market\-prices\f[R]
 .PP
 Signed costs and market prices can be confusing.
-For reference, here is the current behaviour, since hledger 1.25.
+For reference, here is the current behaviour (since 1.25).
 (If you think it should work differently, see #1870.)
 .IP
 .EX
@@ -10137,6 +10194,13 @@ in particular commands.
 But note that commands will not see any changes made to input files (eg
 by \f[CR]add\f[R]) until you exit and restart the REPL.
 .PP
+Any other general flags given to \f[CR]repl\f[R] \- input, reporting, or
+display flags such as \f[CR]\-I\f[R], \f[CR]\-\-strict\f[R],
+\f[CR]\-\-alias\f[R], \f[CR]\-b\f[R]/\f[CR]\-e\f[R],
+\f[CR]\-\-depth\f[R], \f[CR]\-\-cost\f[R], \f[CR]\-\-value\f[R],
+\f[CR]\-\-color\f[R] \- are also applied to every command you run.
+A command can still override them by specifying its own flags.
+.PP
 The command syntax is the same as with \f[CR]run\f[R]:
 .IP \(bu 2
 enter one hledger command at a time, without the usual
@@ -10164,6 +10228,7 @@ Generally \f[CR]repl\f[R] command lines should feel much like the normal
 hledger CLI, but you may find differences.
 \f[CR]repl\f[R] is a little stricter; eg it requires full command names
 or official abbreviations (as seen in the commands list).
+Command aliases defined in a config file can also be used.
 .PP
 The \f[CR]commands\f[R] and \f[CR]help\f[R] commands, and the command
 help flags (\f[CR]CMD \-\-tldr\f[R], \f[CR]CMD \-h/\-\-help\f[R],
@@ -10234,6 +10299,13 @@ specify an \f[CR]\-f\f[R] option within that command.
 This will override (not add to) the default input, just for that
 command.
 .PP
+Any other general flags given to \f[CR]run\f[R] \- input, reporting, or
+display flags such as \f[CR]\-I\f[R], \f[CR]\-\-strict\f[R],
+\f[CR]\-\-alias\f[R], \f[CR]\-b\f[R]/\f[CR]\-e\f[R],
+\f[CR]\-\-depth\f[R], \f[CR]\-\-cost\f[R], \f[CR]\-\-value\f[R],
+\f[CR]\-\-color\f[R] \- are also applied to every command it runs.
+A command can still override them by specifying its own flags.
+.PP
 Each input file (more precisely, each combination of input file and
 input options) is parsed only once.
 This means that commands will not see any changes made to these files,
@@ -10263,6 +10335,9 @@ If that gives an error, use \f[CR]#!/usr/bin/env \-S hledger run\f[R].
 .PP
 It\(aqs ok to use the \f[CR]run\f[R] command recursively within a
 command script.
+.PP
+Command aliases defined in a config file can also be used in command
+scripts.
 .PP
 You may find some differences in behaviour between \f[CR]run\f[R]
 command lines and normal hledger command lines.
@@ -11127,7 +11202,7 @@ Show journal and performance statistics.
 .IP
 .EX
 Flags:
-  \-1                        show a single line of output
+     \-\-oneline              show a single line of output
   \-v \-\-verbose              show more detailed output
   \-o \-\-output\-file=FILE     write output to FILE.
 .EE
@@ -11231,6 +11306,7 @@ Show full journal entries, representing transactions.
 .IP
 .EX
 Flags:
+     \-\-oneline              show transaction dates and descriptions only
   \-a \-\-all                  show all details (\-\-explicit \-\-lots
                             \-\-verbose\-tags)
   \-x \-\-explicit             show all inferred info explicitly
@@ -11438,6 +11514,11 @@ the program exit code will be non\-zero.
 .PP
 With \f[CR]\-\-locations\f[R], print adds the source file and line
 number to every transaction, as a tag.
+.PP
+With \f[CR]\-\-oneline\f[R], print shows only each transaction\(aqs
+first line (the date, status, code, description, and any same\-line
+comment), This gives a compact overview.
+It affects the default \f[CR]txt\f[R] output only.
 .SS print output format
 This command also supports the output destination and output format
 options The output formats supported are \f[CR]txt\f[R],

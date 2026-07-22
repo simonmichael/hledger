@@ -483,4 +483,4 @@ LICENSE
 SEE ALSO
      hledger(1), hledger-ui(1), hledger-web(1), ledger(1)
 
-hledger-web-1.99                    May 2026                      HLEDGER-WEB(1)
+hledger-web-1.99                    June 2026                     HLEDGER-WEB(1)
