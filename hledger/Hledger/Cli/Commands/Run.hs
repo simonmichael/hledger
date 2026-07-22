@@ -44,6 +44,7 @@ import Safe (headMay)
 import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
 import Hledger.Cli.Utils (journalTransform)
 import Text.Printf (printf)
+import System.FilePath (takeBaseName)
 import System.Process (system)
 
 -- | Command line options for this command.
@@ -185,13 +186,15 @@ runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdal
 
 -- | Run an interactive REPL.
 runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> IO ()
-runREPL defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed = do
+runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed = do
   isTerminal <- isStdinTerminal
+  -- Use the main input file's base name as the prompt.
+  let prompt = takeBaseName (snd $ splitReaderPrefix $ NE.head jpaths) ++ "> "
   if not isTerminal
     then runInputT defaultSettings (loop False "")
     else do
       putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
-      runInputT defaultSettings (loop True "% ")
+      runInputT defaultSettings (loop True prompt)
   where
   loop :: Bool -> String -> InputT IO ()
   loop interactive prompt = do

@@ -55,13 +55,13 @@ Start the REPL and enter some commands:
 ```cli
 $ hledger repl 
 Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
-% stats
+2025> stats
 Main file           : .../2025.journal
 ...
-% stats -f 2024/2024.journal 
+2025> stats -f 2024/2024.journal 
 Main file           : .../2024.journal
 ...
-% stats
+2025> stats
 Main file           : .../2025.journal
 ...
 ```
@@ -70,10 +70,10 @@ or:
 ```cli
 $ hledger repl -f some.journal
 Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
-% bs
+some> bs
 ...
-% print -b 'last week'
+some> print -b 'last week'
 ...
-% bs -f other.journal
+some> bs -f other.journal
 ...
 ```
