@@ -1244,6 +1244,14 @@ tests_Query = testGroup "Query" [
       assertBool "" $ not $ (Tag (toRegex' " foo ") (Just $ toRegex' "a")) `matchesPosting` nullposting{ptags=[("foo","bar")]}
       assertBool "" $ not $ (Tag (toRegex' "foo foo") (Just $ toRegex' " ar ba ")) `matchesPosting` nullposting{ptags=[("foo foo","bar bar")]}
     ,testCase "a tag match on a posting also sees inherited tags" $ assertBool "" $ (Tag (toRegex' "txntag") Nothing) `matchesPosting` nullposting{ptransaction=Just nulltransaction{ttags=[("txntag","")]}}
+    ,testCase "posting tags override inherited transaction tag values" $ do
+      let postingWithOverriddenTag =
+            nullposting{
+              ptags=[("concerns","you")],
+              ptransaction=Just nulltransaction{ttags=[("concerns","me")]}
+            }
+      assertBool "" $ (Tag (toRegex' "concerns") (Just $ toRegex' "you")) `matchesPosting` postingWithOverriddenTag
+      assertBool "" $ not $ (Tag (toRegex' "concerns") (Just $ toRegex' "me")) `matchesPosting` postingWithOverriddenTag
     ,testCase "cur:" $ do
       let toSym = fst . either error' id . parseQueryTerm (fromGregorian 2000 01 01) . ("cur:"<>)
       assertBool "" $ not $ toSym "$" `matchesPosting` nullposting{pamount=mixedAmount $ usd 1} -- becomes "^$$", ie testing for null symbol
