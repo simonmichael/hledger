@@ -240,7 +240,8 @@ main = handleExit $ withGhcDebug' $ do
   cliargs <- getArgs
     >>= expandArgsAt         -- interpolate @ARGFILEs
     <&> replaceNumericFlags  -- convert -NUM to --depth=NUM
-    <&> argsAddDoubleDash    -- repeat the first -- arg, as a cmdargs workaround
+    -- the -- cmdargs workaround (argsAddDoubleDash) is applied later, to finalargs,
+    -- so that a -- introduced by a command alias is also protected
   let
     (clicmdarg, cliargswithoutcmd, cliargswithcmdfirst) = moveFlagsAfterCommand cliargs
     cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst
@@ -374,6 +375,7 @@ main = handleExit $ withGhcDebug' $ do
         <> [clicmdarg | not $ null clicmdarg, not $ null confcmdarg]
         <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
+      & argsAddDoubleDash                  -- protect run/repl's first -- from cmdargs (also for an aliased run)
 
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
   dbg1IO "final args" finalargs

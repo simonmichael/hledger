@@ -133,3 +133,11 @@ $  printf '[alias]\nmybal = balance --tree -N\n' >$$.conf; printf '2026-01-01\n 
 $  printf '[alias]\nbadalias = nosuchcmd\n' >$$.conf; hledger --conf $$.conf run -f /dev/null -- badalias; s=$?; rm -f $$.conf; exit $s
 >2 /Unrecognized command \(expanded from the badalias command alias\): nosuchcmd/
 >= 1
+
+# ** 19. An alias running "run" with inline commands needs only a single --
+# separator (the extra -- that cmdargs consumes is added automatically).
+# LEDGER_FILE points run (and its inline commands) at our test journal, so the
+# result doesn't depend on the environment's default journal.
+$  printf '[alias r3]\nrun\n-- echo ran: -- stats\n' >$$.conf; printf '2026-01-01\n  a  1\n  b\n' >$$.j; LEDGER_FILE=$$.j hledger --conf $$.conf r3 | grep -E 'ran:|Txns span'; rm -f $$.conf $$.j
+ran:
+Txns span           : 2026-01-01 to 2026-01-02 (1 days)
