@@ -336,9 +336,10 @@ commandsList progversion builtin othercmds cmdaliases =
   ]
   ++ map (' ':) (lines $ multicol 79 othercmds)
   ++ (if null cmdaliases then [] else
-      "" :
-      bold' "ALIASES" :
-      [" " <> padright 24 a <> " = " <> def | (a,def) <- cmdaliases])
+      let aliasw = maximum (map (length.fst) cmdaliases)
+      in  "" :
+          bold' "ALIASES" :
+          [" " <> padright aliasw a <> " = " <> def | (a,def) <- cmdaliases])
   ++ [""]
   where
     padright w s = s <> replicate (w - length s) ' '

@@ -84,7 +84,7 @@ $  printf '[alias]\nbadline\n' >$$.conf; hledger --conf $$.conf -f /dev/null fil
 # ** 12. Command aliases are shown in the commands list.
 $  printf '[alias]\nnetworth = bse -H --tree\n' >$$.conf; hledger --conf $$.conf commands | grep -A1 '^ALIASES'; rm -f $$.conf
 ALIASES
- networth                 = bse -H --tree
+ networth = bse -H --tree
 
 # ** 13. --no-conf disables command aliases.
 $  printf '[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf -n -f /dev/null list; s=$?; rm -f $$.conf; exit $s
@@ -162,7 +162,7 @@ $  printf '[alias]\nbad = !false\n' >$$.conf; hledger --conf $$.conf bad; s=$?; 
 # ** 24. Shell aliases are shown in the commands list, with their ! definition.
 $  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf commands | grep -A1 '^ALIASES'; rm -f $$.conf
 ALIASES
- hi                       = !echo hello
+ hi = !echo hello
 
 # ** 25. Shell aliases work in run command scripts too.
 $  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf run -f /dev/null -- hi; rm -f $$.conf
