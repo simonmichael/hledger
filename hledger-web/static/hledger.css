@@ -117,15 +117,6 @@ ul {
     width: fit-content;
 }
 
-#sidebar-menu .main-menu .acct-name {
-    border-bottom: 1px solid #ebebeb;
-}
-
-#sidebar-menu .main-menu .amount a {
-    border-bottom: 1px solid #ebebeb;
-}
-
-
 #sidebar-menu .main-menu a:hover {
     color: #11427D;
     text-decoration: none;

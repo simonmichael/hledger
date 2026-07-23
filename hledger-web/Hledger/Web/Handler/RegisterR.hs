@@ -9,13 +9,8 @@
 
 module Hledger.Web.Handler.RegisterR where
 
-import Data.Aeson ((.=))
-import Data.Aeson qualified as Aeson
-import Data.List (nub, partition)
+import Data.List (intersperse, nub, partition)
 import Data.Text qualified as T
-import Data.Text.Encoding.Error (lenientDecode)
-import Data.Text.Lazy qualified as TL
-import Data.Text.Lazy.Encoding qualified as TLE
 import Safe (tailSafe)
 
 import Hledger
@@ -25,7 +20,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, mixedAmountAsHtml,
-              transactionFragment, removeInacct, replaceInacct, removeDates)
+              transactionFragment, removeDates, removeInacct, replaceInacct)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -104,85 +99,10 @@ decorateLinks :: [(acct, ([char], [char]))] -> [(Maybe acct, char)]
 decorateLinks = concatMap $ \(acct, (name, comma)) ->
     map (Just acct,) name ++ map (Nothing,) comma
 
--- | Generate javascript/html for a register balance line chart based on
+--- | Generate javascript/html for a register balance line chart based on
 -- the provided "AccountTransactionsReportItem"s.
 registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> Widget
-registerChartHtml q title percommoditytxnreports = do
-  let chartData = map (\(commodity, items) -> 
-        object ["label" .= commodity
-               ,"data" .= map (\item -> 
-                  object ["x" .= dayToUtcNoonTimestamp (triDate item)
-                        ,"y" .= (realToFrac (simpleMixedAmountQuantity (triAmount item)) :: Double)]) items
-               ,"borderColor" .= ("hsl(" ++ show (colorForCommodity commodity * 60) ++ ", 70%, 50%)")
-               ,"backgroundColor" .= ("hsl(" ++ show (colorForCommodity commodity * 60) ++ ", 70%, 50%, 0.1)")
-               ,"tension" .= (0.1 :: Double)
-               ,"fill" .= False
-               ,"pointRadius" .= (5 :: Int)
-               ,"pointHoverRadius" .= (7 :: Int)
-               ]) percommoditytxnreports
-      chartDataJson = Aeson.encode chartData
-      chartDataStr = T.unpack $ TL.toStrict $ TLE.decodeUtf8With lenientDecode chartDataJson
-  $(whamletFile "templates/chart.hamlet")
-  toWidgetHead [julius|
-    // Wait for Chart.js to be loaded
-    document.addEventListener('DOMContentLoaded', function() {
-      if (typeof Chart !== 'undefined') {
-        (function() {
-          var ctx = document.getElementById('balanceChart');
-          if (!ctx) return;
-          
-          var chartDataStr = ctx.getAttribute('data-chart');
-          var datasets = JSON.parse(chartDataStr);
-          
-          console.log('Chart datasets:', datasets);
-          
-          // For single data points, use scatter instead of line
-          var hasMultiplePoints = datasets.some(function(ds) { return ds.data.length > 1; });
-          var chartType = hasMultiplePoints ? 'line' : 'scatter';
-          
-          var chart = new Chart(ctx, {
-            type: chartType,
-            data: {
-              datasets: datasets
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  type: 'time',
-                  time: {
-                    unit: 'day'
-                  },
-                  title: {
-                    display: true,
-                    text: 'Date'
-                  }
-                },
-                y: {
-                  beginAtZero: true,
-                  title: {
-                    display: true,
-                    text: #{charttitle}
-                  }
-                }
-              },
-              plugins: {
-                legend: {
-                  display: true,
-                  position: 'top'
-                },
-                tooltip: {
-                  mode: 'index',
-                  intersect: false
-                }
-              }
-            }
-          });
-        })();
-      }
-    });
-  |]
+registerChartHtml q title percommoditytxnreports = $(whamletFile "templates/chart.hamlet")
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  where
@@ -190,6 +110,15 @@ registerChartHtml q title percommoditytxnreports = do
    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
    simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts . mixedAmountStripCosts
+   showZeroCommodity = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=False,displayZeroCommodity=True}
+   shownull c = if null c then " " else c
+   nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
+   triDate (_,tacct,_,_,_,_) = tdate tacct
+   triAmount (_,_,_,_,a,_) = a
+   triBalance (_,_,_,_,_,a) = a
+   triOrigTransaction (torig,_,_,_,_,_) = torig
+   triCommodityAmount c = filterMixedAmountByCommodity c . triAmount
+   triCommodityBalance c = filterMixedAmountByCommodity c . triBalance
 
 -- | Makes a unix timestamp (milliseconds since epoch) corresponding to noon on the given date in UTC.
 dayToUtcNoonTimestamp :: Day -> Integer

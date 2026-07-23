@@ -1,6 +1,9 @@
 
-<script type="text/javascript" src="/static/js/chart.umd.min.js">
-<script type="text/javascript" src="/static/js/chartjs-adapter-date-fns.bundle.min.js">
+<script src="https://code.jquery.com/jquery-3.6.0.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.time.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.selection.min.js">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/flot/0.8.3/jquery.flot.tooltip.min.js">
 
 <div#top-left-controls>
   <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keyboard shortcut: s">
