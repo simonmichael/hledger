@@ -90,6 +90,7 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
   let
     args = dbg1 "args" $ listofstringopt "args" rawopts
     rungeneralopts = generalRawOpts rawopts  -- general flags we will propagate to each command
+    addonfileargs = concatMap (\f -> ["-f", f]) $ file_ cliopts  -- the session's explicit -f files, to pass through to addons
   isTerminal <- isStdinTerminal
   if args == [] && not isTerminal
     then do
@@ -97,13 +98,13 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
       let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
       if journalFromStdin
       then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
-      else runREPL jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing True
+      else runREPL jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing True
     else do
       -- Check if arguments start with "--".
       -- If not, assume that they are files with commands
         case args of
-          "--":_ -> runFromArgs  jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed args
-          _      -> runFromFiles jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed args
+          "--":_ -> runFromArgs  jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
+          _      -> runFromFiles jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
 
 -- | The actual repl command. mconfinfo is the active config file and the raw options
 -- needed to re-read it, used to auto-reload command aliases when the config file changes.
@@ -113,25 +114,26 @@ repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String
 repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons cliopts = do
   jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault Nothing cliopts
   let watch = not $ boolopt "no-watch" $ rawopts_ cliopts  -- reload changed files/aliases/addons unless --no-watch
-  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch
+      addonfileargs = concatMap (\f -> ["-f", f]) $ file_ cliopts  -- the session's explicit -f files, to pass through to addons
+  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch
 
 -- | Run commands from files given to "run".
-runFromFiles :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
-runFromFiles defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed inputfiles = do
+runFromFiles :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
+runFromFiles defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed inputfiles = do
   dbg1IO "inputfiles" inputfiles
   -- read commands from all the inputfiles
   commands <- (flip concatMapM) inputfiles $ \f -> do
     dbg1IO "reading commands" f
     lines . T.unpack <$> T.readFile f
 
-  forM_ commands (runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed . parseCommand)
+  forM_ commands (runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed . parseCommand)
 
 -- | Run commands from command line arguments given to "run".
-runFromArgs :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
-runFromArgs defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed args = do
+runFromArgs :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
+runFromArgs defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args = do
   -- read commands from all the inputfiles
   let commands = dbg1 "commands from args" $ splitAtElement "--" args
-  forM_ commands (runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed)
+  forM_ commands (runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed)
 
 -- When commands are passed on the command line, shell will parse them for us
 -- When commands are read from file, we need to split the line into command and arguments
@@ -141,8 +143,9 @@ parseCommand line =
   takeWhile (not. ((Just '#')==) . headMay) $  words' (strip line)
 
 -- | Take a single command line (from file, or REPL, or "--"-surrounded block of the args), and run it.
-runCommand :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
-runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed cmdline = do
+-- addonfileargs are -f options (the session's explicit input files) to pass through to addon commands.
+runCommand :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
+runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed cmdline = do
   dbg1IO "runCommand for" cmdline
   case cmdline of
     "echo":args -> putStrLn $ unwords $ args
@@ -186,7 +189,9 @@ runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdal
                       then run (Just jpaths) findBuiltinCommand addons cmdaliases shellaliasesallowed opts
                       else cmdaction opts j
         Nothing | cmdname `elem` addons ->
-          system (printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine args)) >>= exitWith
+          -- Pass the session's explicit input files to the addon, so it uses the same journal
+          -- (as the CLI does by forwarding its -f options to addons).
+          system (printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine $ addonfileargs <> args)) >>= exitWith
         Nothing ->
           error' $ "Unrecognized command" ++ aliasnote ++ ": " ++ unwords (cmdname:args)
     [] -> return ()
@@ -197,8 +202,8 @@ runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdal
 -- addon command list when PATH's contents change. Either being Nothing disables that reload
 -- (eg for a non-interactive "run").
 -- watch enables the automatic reloading of changed files/aliases/addons (disabled by --no-watch).
-runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> Bool -> IO ()
-runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch = do
+runREPL :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> Bool -> IO ()
+runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch = do
   isTerminal <- isStdinTerminal
   -- Use the main input file's base name as the prompt.
   let prompt = takeBaseName (snd $ splitReaderPrefix $ NE.head jpaths) ++ "> "
@@ -234,7 +239,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBui
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
+                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
         liftIO $ if interactive
           then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)
