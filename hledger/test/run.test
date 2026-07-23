@@ -297,17 +297,20 @@ b
                    0  
 >2 /\(reloading /
 
-# ** 21. repl forwards the session's explicit -f input files to addon commands.
-# hledger-showargs is a fake addon echoing its arguments; it should receive -f FILE.
+# ** 21. repl -f propagation, part 1:
+# If repl was started with explicit -f options, it passes them through when running addon commands.
+# (hledger-showargs is a fake addon echoing its arguments; it should receive -f FILE.)
 <
 showargs expenses:
 $ sh -c 'D=$(mktemp -d "${TMPDIR:-/tmp}/hledger-addon.XXXXXX"); J=$(mktemp "${TMPDIR:-/tmp}/hledger-addonj.XXXXXX"); printf "#!/bin/sh\necho SHOWARGS: \"\$@\"\n" > "$D/hledger-showargs"; chmod +x "$D/hledger-showargs"; printf "2017-01-01 x\n  a  1\n  b\n" > "$J"; PATH="$D:$PATH" hledger repl --no-conf -f "$J"; rm -rf "$D" "$J"'
 > /SHOWARGS: -f .* expenses:/
 
-# ** 22. repl does not inject -f for addons when using the default journal.
+# ** 22. repl -f propagation, part 2:
+# If repl was started without -f options, it does not pass -f to addon commands.
+# (In this mode a default journal is required, so we provide one.)
 <
 showargs expenses:
-$ sh -c 'D=$(mktemp -d "${TMPDIR:-/tmp}/hledger-addon.XXXXXX"); printf "#!/bin/sh\necho SHOWARGS: \"\$@\"\n" > "$D/hledger-showargs"; chmod +x "$D/hledger-showargs"; PATH="$D:$PATH" hledger repl --no-conf; rm -rf "$D"'
+$ sh -c 'D=$(mktemp -d "${TMPDIR:-/tmp}/hledger-addon.XXXXXX"); J=$(mktemp "${TMPDIR:-/tmp}/hledger-addonj.XXXXXX"); printf "#!/bin/sh\necho SHOWARGS: \"\$@\"\n" > "$D/hledger-showargs"; chmod +x "$D/hledger-showargs"; printf "2017-01-01 x\n  a  1\n  b\n" > "$J"; PATH="$D:$PATH" LEDGER_FILE="$J" hledger repl --no-conf; rm -rf "$D" "$J"'
 >
 SHOWARGS: expenses:
 
