@@ -21,6 +21,7 @@ module Hledger.Cli.Utils
      journalReload,
      journalReloadIfChanged,
      journalFileIsNewer,
+     maybeFileModificationTime,
      openBrowserOn,
      writeFileWithBackup,
      writeFileWithBackupIfChanged,

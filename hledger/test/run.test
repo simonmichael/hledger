@@ -280,3 +280,19 @@ $ sh -c 'export HLEDGER_RELTEST=$(mktemp "${TMPDIR:-/tmp}/hledger-reltest.XXXXXX
 --------------------
                    0  
 >2 /\(reloading /
+
+# ** 20. repl auto-reloads config-file command aliases when the config file changes.
+# foo is an alias for accounts, changed to balance mid-session; the second foo runs balance.
+<
+foo
+! printf '[alias]\nfoo = balance\n' > "$HLEDGER_RELCONF"
+foo
+$ sh -c 'export HLEDGER_RELCONF=$(mktemp "${TMPDIR:-/tmp}/hledger-relconf.XXXXXX"); J=$(mktemp "${TMPDIR:-/tmp}/hledger-relj.XXXXXX"); printf "[alias]\nfoo = accounts\n" > "$HLEDGER_RELCONF"; printf "2017-01-01 x\n  a  1\n  b\n" > "$J"; hledger repl --conf "$HLEDGER_RELCONF" -f "$J"; rm -f "$HLEDGER_RELCONF" "$J"'
+>
+a
+b
+                   1  a
+                  -1  b
+--------------------
+                   0  
+>2 /\(reloading /

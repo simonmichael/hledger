@@ -25,13 +25,15 @@ import Data.Text.IO qualified as T
 import System.Console.CmdArgs.Explicit as C ( Mode )
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Conf (CommandAlias, CommandLine, ResolvedCommand(..), expandCommandAlias)
+import Hledger.Cli.Conf (CommandAlias, CommandLine, ResolvedCommand(..), expandCommandAlias, getConf, confAliases)
 
 import Control.Exception
 import Control.Concurrent.MVar
 import Control.Monad (forM_, void, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM, anyM)
+import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Data.Time.Clock.POSIX (POSIXTime)
 
 import System.Exit (ExitCode, exitWith)
 import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames)
@@ -39,10 +41,10 @@ import System.IO (stdin, stderr, hIsTerminalDevice, hIsOpen, hPutStrLn, hFlush)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
-import Data.Maybe (isJust)
+import Data.Maybe (isJust, fromMaybe, catMaybes)
 import Safe (headMay)
 import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
-import Hledger.Cli.Utils (journalTransform, journalFileIsNewer)
+import Hledger.Cli.Utils (journalTransform, journalFileIsNewer, maybeFileModificationTime)
 import Text.Printf (printf)
 import System.FilePath (takeBaseName)
 import System.Process (system)
@@ -94,7 +96,7 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
       let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
       if journalFromStdin
       then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
-      else runREPL jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed
+      else runREPL jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing
     else do
       -- Check if arguments start with "--".
       -- If not, assume that they are files with commands
@@ -102,11 +104,12 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
           "--":_ -> runFromArgs  jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed args
           _      -> runFromFiles jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed args
 
--- | The actual repl command.
-repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> CliOpts -> IO ()
-repl findBuiltinCommand addons cmdaliases shellaliasesallowed cliopts = do
+-- | The actual repl command. mconfinfo is the active config file and the raw options
+-- needed to re-read it, used to auto-reload command aliases when the config file changes.
+repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> CliOpts -> IO ()
+repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo cliopts = do
   jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault Nothing cliopts
-  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) findBuiltinCommand addons cmdaliases shellaliasesallowed
+  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo
 
 -- | Run commands from files given to "run".
 runFromFiles :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
@@ -184,35 +187,42 @@ runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdal
           error' $ "Unrecognized command" ++ aliasnote ++ ": " ++ unwords (cmdname:args)
     [] -> return ()
 
--- | Run an interactive REPL.
-runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> IO ()
-runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed = do
+-- | Run an interactive REPL. mconfinfo is the active config file and the raw options
+-- needed to re-read it, used to auto-reload command aliases when the config file changes
+-- (Nothing to disable this, eg for a non-interactive "run").
+runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> IO ()
+runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo = do
   isTerminal <- isStdinTerminal
   -- Use the main input file's base name as the prompt.
   let prompt = takeBaseName (snd $ splitReaderPrefix $ NE.head jpaths) ++ "> "
+  -- Mutable alias state, so config-file command aliases can be reloaded when the file changes.
+  confmtime0 <- maybe (return 0) (fmap (fromMaybe 0) . maybeFileModificationTime . fst) mconfinfo
+  aliasesRef <- newIORef (confmtime0, cmdaliases)
   if not isTerminal
-    then runInputT defaultSettings (loop False "")
+    then runInputT defaultSettings (loop aliasesRef False "")
     else do
       putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
-      runInputT defaultSettings (loop True prompt)
+      runInputT defaultSettings (loop aliasesRef True prompt)
   where
-  loop :: Bool -> String -> InputT IO ()
-  loop interactive prompt = do
+  loop :: IORef (POSIXTime,[(CommandAlias,CommandLine)]) -> Bool -> String -> InputT IO ()
+  loop aliasesRef interactive prompt = do
     minput <- getInputLine prompt
     case minput of
       Nothing -> return ()
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        -- Reload any changed input files, then run the command. Both are guarded by
-        -- the handlers below (interactively), so a control-C during either returns to
-        -- the prompt rather than exiting the REPL.
+        -- Reload any changed input files or config aliases, then run the command. All are
+        -- guarded by the handlers below (interactively), so a control-C during any of them
+        -- returns to the prompt rather than exiting the REPL.
         let action = do
               refreshStaleJournals
+              refreshStaleAliases mconfinfo aliasesRef
+              (_, cmdaliases') <- readIORef aliasesRef
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
+                _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases' shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
         liftIO $ if interactive
           then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)
@@ -221,7 +231,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBui
                   ,Handler (\UserInterrupt  -> hPutStrLn stderr "(interrupted)")
                   ]
           else action
-        loop interactive prompt
+        loop aliasesRef interactive prompt
 
 isStdinTerminal = do
   op <- hIsOpen stdin
@@ -238,6 +248,24 @@ stdinCache :: MVar (Maybe T.Text)
 stdinCache = unsafePerformIO $ newMVar Nothing
 {-# NOINLINE stdinCache #-}
 
+-- | A changed file F is being reloaded: print a "(reloading F)" notice, read the new value
+-- with the given action (catching synchronous errors so an async exception such as a control-C
+-- still propagates), then either apply it with onSuccess, or on failure print
+-- "could not reload F, keeping previous THING" and run onKeepPrevious. Shared by the journal-data
+-- and config-alias reloads to keep their notices and error handling identical.
+reloadChanged :: FilePath -> String -> IO (Either String a) -> (a -> IO ()) -> IO () -> IO ()
+reloadChanged fp thing readNew onSuccess onKeepPrevious = do
+  hPutStrLn stderr $ "(reloading " ++ fp ++ ")"
+  hFlush stderr
+  enew <- readNew `catches`
+            [Handler (\(e::IOError)   -> return $ Left $ show e)
+            ,Handler (\(e::ErrorCall) -> return $ Left $ show e)]
+  case enew of
+    Right new -> onSuccess new
+    Left err  -> do
+      hPutStrLn stderr $ "could not reload " ++ fp ++ ", keeping previous " ++ thing ++ ":\n" ++ err
+      onKeepPrevious
+
 -- | Re-read any cached journals whose files (main or included) have changed on
 -- disk since they were last read, updating the cache in place. Called at the top
 -- of each REPL loop iteration so that commands see the latest file contents.
@@ -248,18 +276,43 @@ refreshStaleJournals = do
   cache <- readMVar journalCache
   forM_ (Map.toList cache) $ \((iopts,fp), j) -> do
     changed <- anyM (journalFileIsNewer j) (journalFilePaths j)
-    when changed $ do
-      -- Announce before reading, and flush, so the message appears before any slow reparse.
-      hPutStrLn stderr $ "(reloading " ++ fp ++ ")"
-      hFlush stderr
-      -- Catch only synchronous read/parse errors (eg a mid-edit unparseable file),
-      -- so that an async exception such as a control-C still propagates.
-      ej <- runExceptT (readJournalFile iopts fp) `catches`
-              [Handler (\(e::IOError)   -> return $ Left $ show e)
-              ,Handler (\(e::ErrorCall) -> return $ Left $ show e)]
-      case ej of
-        Right j' -> modifyMVar_ journalCache $ return . Map.insert (iopts,fp) j'
-        Left err -> hPutStrLn stderr $ "could not reload " ++ fp ++ ", keeping previous version:\n" ++ err
+    when changed $
+      reloadChanged fp "version" (runExceptT $ readJournalFile iopts fp)
+        (\j' -> modifyMVar_ journalCache $ return . Map.insert (iopts,fp) j')
+        -- On failure advance the cached journal's read time past its current files, so we report
+        -- the error once and stay quiet until a file changes again.
+        (do newest <- maximum . (jlastreadtime j :) . catMaybes <$> mapM maybeFileModificationTime (journalFilePaths j)
+            modifyMVar_ journalCache $ return . Map.adjust (journalSetLastReadTime newest) (iopts,fp))
+
+-- | If the config file has changed on disk since its command aliases were last read,
+-- re-read them into the given ref. Prints a "(reloading CONFFILE)" notice before reading and,
+-- if the file no longer parses, keeps the previous aliases and prints the error - consistent
+-- with the journal data reload.
+refreshStaleAliases :: Maybe (FilePath, RawOpts) -> IORef (POSIXTime,[(CommandAlias,CommandLine)]) -> IO ()
+refreshStaleAliases Nothing _ = return ()
+refreshStaleAliases (Just (conffile, rawopts)) ref = do
+  mmtime <- maybeFileModificationTime conffile
+  case mmtime of
+    Nothing    -> return ()  -- config file no longer exists; keep current aliases
+    Just mtime -> do
+      (lastseen, oldaliases) <- readIORef ref
+      when (mtime > lastseen) $
+        reloadChanged conffile "aliases" readAliases
+          (\as -> writeIORef ref (mtime, as))
+          -- On failure advance the marker but keep the old aliases, so we report the error once
+          -- and stay quiet until the file changes again.
+          (writeIORef ref (mtime, oldaliases))
+  where
+    -- Re-read the config file's command aliases, forcing them so any error in a malformed
+    -- [alias] line is raised here (and caught by reloadChanged) rather than later during expansion.
+    readAliases = do
+      econf <- getConf rawopts
+      case econf of
+        Left e          -> return $ Left e
+        Right (conf, _) -> do
+          let as = reverse $ confAliases conf
+          mapM_ evaluate as
+          return $ Right as
 
 -- | Get the journal(s) to read, either from the defaultJournalOverride or from the cliopts
 journalFilePathFromOptsOrDefault :: Maybe DefaultRunJournal -> CliOpts -> IO (NE.NonEmpty PrefixedFilePath)
