@@ -61,7 +61,8 @@ module Hledger.Cli.CliOptions (
   generalRawOpts,
   insertRawOpts,
   cliOptsDropArgs,
-  argsAddDoubleDash,
+  argsMarkRunCommands,
+  runCommandsMarker,
   outputFormats,
   defaultOutputFormat,
   CommandHelpStr,
@@ -695,12 +696,23 @@ insertRawOpts extraopts subopts = rawOptsToCliOpts $ overRawOpts (extraopts ++) 
 cliOptsDropArgs :: CliOpts -> CliOpts
 cliOptsDropArgs copts@CliOpts{rawopts_} = copts{rawopts_ = dropRawOpt "args" rawopts_}
 
--- | cmdargs eats the first double-dash (--) argument when parsing a command line,
--- which causes problems for the run and repl commands.
--- Sometimes we work around this by duplicating that first -- argument.
--- This doesn't break anything that we know of yet.
-argsAddDoubleDash args'
-  | "--" `elem` args' = let (as,bs) = break (=="--") args' in as <> ["--"] <> bs
+-- | The name of a hidden marker flag used internally by the run command to
+-- recognise inline commands. run reads inline commands (rather than command
+-- files) when its arguments contain a "--". But cmdargs consumes the first "--"
+-- while parsing, so run can't detect it directly. Instead, before parsing we
+-- insert this marker flag just before the first "--" (with 'argsMarkRunCommands');
+-- cmdargs then parses it like any normal flag, leaving it in the options for run
+-- to check. This replaces an older, more fragile workaround which duplicated the
+-- first "--" so that one copy survived cmdargs.
+runCommandsMarker :: String
+runCommandsMarker = "_runcommands"
+
+-- | If these arguments contain a "--" (run's inline-commands introducer), insert
+-- the hidden 'runCommandsMarker' flag just before it, so the run command can tell
+-- it was given inline commands rather than command files. See 'runCommandsMarker'.
+argsMarkRunCommands :: [String] -> [String]
+argsMarkRunCommands args'
+  | "--" `elem` args' = let (as,bs) = break (=="--") args' in as <> ["--" <> runCommandsMarker] <> bs
   | otherwise = args'
 
 -- | A helper for addon commands: this parses options and arguments from

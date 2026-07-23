@@ -57,7 +57,9 @@ runmode = hledgerCommandMode
   []
   )
   cligeneralflagsgroups1
-  hiddenflags
+  -- A hidden marker flag, inserted before run's first -- (see argsMarkRunCommands), letting run
+  -- detect it was given inline commands rather than command files. Not for direct use.
+  (flagNone [runCommandsMarker] (setboolopt runCommandsMarker) "" : hiddenflags)
   ([], Just $ argsFlag "[COMMANDS_FILE1 COMMANDS_FILE2 ...] OR [-- command1 args... -- command2 args... -- command3 args...]")
 
 replmode = hledgerCommandMode
@@ -92,19 +94,20 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
     rungeneralopts = generalRawOpts rawopts  -- general flags we will propagate to each command
     addonfileargs = concatMap (\f -> ["-f", f]) $ file_ cliopts  -- the session's explicit -f files, to pass through to addons
   isTerminal <- isStdinTerminal
-  if args == [] && not isTerminal
-    then do
-      inputFiles <- journalFilePathFromOpts cliopts
-      let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
-      if journalFromStdin
-      then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
-      else runREPL jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing True
-    else do
-      -- Check if arguments start with "--".
-      -- If not, assume that they are files with commands
-        case args of
-          "--":_ -> runFromArgs  jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
-          _      -> runFromFiles jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
+  if
+    -- Inline commands (a -- was present, flagged by the marker): split and run them.
+    | boolopt runCommandsMarker rawopts ->
+        runFromArgs jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
+    -- No arguments and stdin is not a terminal: read commands from stdin.
+    | args == [] && not isTerminal -> do
+        inputFiles <- journalFilePathFromOpts cliopts
+        let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
+        if journalFromStdin
+        then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
+        else runREPL jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing True
+    -- Otherwise the arguments are files to read commands from.
+    | otherwise ->
+        runFromFiles jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
 
 -- | The actual repl command. mconfinfo is the active config file and the raw options
 -- needed to re-read it, used to auto-reload command aliases when the config file changes.
@@ -160,10 +163,10 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
        -- Otherwise an hledger command, with the alias's arguments preceding this line's own arguments.
        HledgerCommand cmdname defargs ->
         let
-          -- run's first -- must be protected from cmdargs (which eats one). Do it here, after alias
-          -- expansion, so it works whether "run ... -- ..." was typed directly or reached via a
-          -- command alias (or a nested run in a commands file).
-          args = (if cmdname == "run" then argsAddDoubleDash else id) $ defargs <> args0
+          -- Mark run's inline commands (see argsMarkRunCommands), after alias expansion, so it
+          -- works whether "run ... -- ..." was typed directly or reached via a command alias
+          -- (or a nested run in a commands file).
+          args = (if cmdname == "run" then argsMarkRunCommands else id) $ defargs <> args0
           aliasnote = if cmdname /= cmdname0 then " (expanded from the " ++ cmdname0 ++ " command alias)" else ""
         in
         case findBuiltinCommand cmdname of
