@@ -29,20 +29,20 @@ import Hledger.Cli.Conf (CommandAlias, CommandLine, ResolvedCommand(..), expandC
 
 import Control.Exception
 import Control.Concurrent.MVar
-import Control.Monad (forM_, void)
+import Control.Monad (forM_, void, when)
 import Control.Monad.IO.Class (liftIO)
-import Control.Monad.Extra (concatMapM)
+import Control.Monad.Extra (concatMapM, anyM)
 
 import System.Exit (ExitCode, exitWith)
 import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames)
-import System.IO (stdin, hIsTerminalDevice, hIsOpen)
+import System.IO (stdin, stderr, hIsTerminalDevice, hIsOpen, hPutStrLn, hFlush)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
 import Data.Maybe (isJust)
 import Safe (headMay)
 import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
-import Hledger.Cli.Utils (journalTransform)
+import Hledger.Cli.Utils (journalTransform, journalFileIsNewer)
 import Text.Printf (printf)
 import System.FilePath (takeBaseName)
 import System.Process (system)
@@ -204,16 +204,21 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBui
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        let action = case strip input of
-              "!"       -> return ()           -- a bare !, do nothing
-              '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-              _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
+        -- Reload any changed input files, then run the command. Both are guarded by
+        -- the handlers below (interactively), so a control-C during either returns to
+        -- the prompt rather than exiting the REPL.
+        let action = do
+              refreshStaleJournals
+              case strip input of
+                "!"       -> return ()           -- a bare !, do nothing
+                '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
+                _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
         liftIO $ if interactive
           then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)
                   ,Handler (\(e::IOError)   -> putStrLn $ rstrip $ show e)
                   ,Handler (\(_::ExitCode)  -> return ())
-                  ,Handler (\UserInterrupt  -> return ())
+                  ,Handler (\UserInterrupt  -> hPutStrLn stderr "(interrupted)")
                   ]
           else action
         loop interactive prompt
@@ -232,6 +237,29 @@ journalCache = unsafePerformIO $ newMVar Map.empty
 stdinCache :: MVar (Maybe T.Text)
 stdinCache = unsafePerformIO $ newMVar Nothing
 {-# NOINLINE stdinCache #-}
+
+-- | Re-read any cached journals whose files (main or included) have changed on
+-- disk since they were last read, updating the cache in place. Called at the top
+-- of each REPL loop iteration so that commands see the latest file contents.
+-- Prints a visible notice on stderr for each reload, and, if a changed file no
+-- longer parses, keeps the previous version and prints the error.
+refreshStaleJournals :: IO ()
+refreshStaleJournals = do
+  cache <- readMVar journalCache
+  forM_ (Map.toList cache) $ \((iopts,fp), j) -> do
+    changed <- anyM (journalFileIsNewer j) (journalFilePaths j)
+    when changed $ do
+      -- Announce before reading, and flush, so the message appears before any slow reparse.
+      hPutStrLn stderr $ "(reloading " ++ fp ++ ")"
+      hFlush stderr
+      -- Catch only synchronous read/parse errors (eg a mid-edit unparseable file),
+      -- so that an async exception such as a control-C still propagates.
+      ej <- runExceptT (readJournalFile iopts fp) `catches`
+              [Handler (\(e::IOError)   -> return $ Left $ show e)
+              ,Handler (\(e::ErrorCall) -> return $ Left $ show e)]
+      case ej of
+        Right j' -> modifyMVar_ journalCache $ return . Map.insert (iopts,fp) j'
+        Left err -> hPutStrLn stderr $ "could not reload " ++ fp ++ ", keeping previous version:\n" ++ err
 
 -- | Get the journal(s) to read, either from the defaultJournalOverride or from the cliopts
 journalFilePathFromOptsOrDefault :: Maybe DefaultRunJournal -> CliOpts -> IO (NE.NonEmpty PrefixedFilePath)

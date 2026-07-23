@@ -1,7 +1,7 @@
 ## repl
 
-Start an interactive prompt, where you can run any of hledger's commands.
-Data files are parsed just once, so the commands run faster.
+Start an interactive prompt for running hledger commands.
+Input files are reloaded only when they change, so commands run faster.
 
 ```flags
 Flags:
@@ -16,7 +16,8 @@ so commands will run more quickly than if you ran them individually at the comma
 
 Also like `run`, the input file(s) specified for the `repl` command will be the default input for all interactive commands.
 You can override this temporarily by specifying an `-f` option in particular commands.
-But note that commands will not see any changes made to input files (eg by `add`) until you exit and restart the REPL.
+
+Before running a command, any input files which have changed on disk are automatically reloaded.
 
 Any other general flags given to `repl` - input, reporting, or display flags such as
 `-I`, `--strict`, `--alias`, `-b`/`-e`, `--depth`, `--cost`, `--value`, `--color` -

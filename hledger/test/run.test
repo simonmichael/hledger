@@ -262,3 +262,21 @@ income:salary
 liabilities:debts
 bye
 >=0
+
+# ** 19. repl auto-reloads an input file after it changes on disk (using ! to modify it mid-session).
+# The reload notice is printed on stderr; a bad edit keeps the previous version.
+<
+balance
+! printf '\n2017-02-02 y\n  a  5\n  b\n' >> "$HLEDGER_RELTEST"
+balance
+$ sh -c 'export HLEDGER_RELTEST=$(mktemp "${TMPDIR:-/tmp}/hledger-reltest.XXXXXX"); printf "2017-01-01 x\n  a  1\n  b\n" > "$HLEDGER_RELTEST"; hledger repl -f "$HLEDGER_RELTEST"; rm -f "$HLEDGER_RELTEST"'
+>
+                   1  a
+                  -1  b
+--------------------
+                   0  
+                   6  a
+                  -6  b
+--------------------
+                   0  
+>2 /\(reloading /
