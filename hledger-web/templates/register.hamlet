@@ -15,7 +15,10 @@
         <th style="text-align:left;">To/From Account(s)
         <th style="text-align:right; white-space:normal;">Amount Out/In
         <th style="text-align:right; white-space:normal;">
-          #{balancelabel}
+          $if balancelabel == "Period Total"
+            <strong>#{balancelabel}
+          $else
+            #{balancelabel}
 
     <tbody>
       $forall (torig, tacct, split, _acct, amt, bal) <- items
