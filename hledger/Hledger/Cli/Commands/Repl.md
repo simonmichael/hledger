@@ -20,6 +20,9 @@ You can override this temporarily by specifying an `-f` option in particular com
 Before running a command, any input files which have changed on disk are automatically reloaded.
 Also command aliases are reloaded if the config file has changed,
 and addon commands are re-detected if PATH's contents have changed.
+The `--no-watch` flag disables all of this reloading,
+so as to work with a stable snapshot of the data,
+or to avoid file/directory polling on a slow network drive.
 
 Any other general flags given to `repl` - input, reporting, or display flags such as
 `-I`, `--strict`, `--alias`, `-b`/`-e`, `--depth`, `--cost`, `--value`, `--color` -

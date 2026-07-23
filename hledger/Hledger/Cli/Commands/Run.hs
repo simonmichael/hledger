@@ -36,7 +36,7 @@ import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 
 import System.Exit (ExitCode, exitWith)
-import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames)
+import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames, flagNone)
 import System.IO (stdin, stderr, hIsTerminalDevice, hIsOpen, hPutStrLn, hFlush)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
@@ -63,7 +63,7 @@ runmode = hledgerCommandMode
 replmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Repl.txt")
   (
-  []
+  [flagNone ["no-watch"] (setboolopt "no-watch") "disable automatic reloading of changed input files, config aliases and addon commands"]
   )
   cligeneralflagsgroups1
   hiddenflags
@@ -97,7 +97,7 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
       let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
       if journalFromStdin
       then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
-      else runREPL jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing
+      else runREPL jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing True
     else do
       -- Check if arguments start with "--".
       -- If not, assume that they are files with commands
@@ -112,7 +112,8 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
 repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> CliOpts -> IO ()
 repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons cliopts = do
   jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault Nothing cliopts
-  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons
+  let watch = not $ boolopt "no-watch" $ rawopts_ cliopts  -- reload changed files/aliases/addons unless --no-watch
+  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch
 
 -- | Run commands from files given to "run".
 runFromFiles :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
@@ -195,8 +196,9 @@ runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdal
 -- mrescanAddons is an action that re-scans PATH for addon commands, used to auto-reload the
 -- addon command list when PATH's contents change. Either being Nothing disables that reload
 -- (eg for a non-interactive "run").
-runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> IO ()
-runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons = do
+-- watch enables the automatic reloading of changed files/aliases/addons (disabled by --no-watch).
+runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> Bool -> IO ()
+runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch = do
   isTerminal <- isStdinTerminal
   -- Use the main input file's base name as the prompt.
   let prompt = takeBaseName (snd $ splitReaderPrefix $ NE.head jpaths) ++ "> "
@@ -223,9 +225,10 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBui
         -- All are guarded by the handlers below (interactively), so a control-C during any of them
         -- returns to the prompt rather than exiting the REPL.
         let action = do
-              refreshStaleJournals
-              refreshStaleAliases mconfinfo aliasesRef
-              refreshStaleAddons mrescanAddons addonsRef
+              when watch $ do
+                refreshStaleJournals
+                refreshStaleAliases mconfinfo aliasesRef
+                refreshStaleAddons mrescanAddons addonsRef
               (_, cmdaliases') <- readIORef aliasesRef
               (_, addons')     <- readIORef addonsRef
               case strip input of
