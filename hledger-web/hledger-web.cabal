@@ -54,6 +54,11 @@ extra-source-files:
     static/js/bootstrap.bundle.min.js
     static/js/chart.umd.min.js
     static/js/chartjs-adapter-date-fns.bundle.min.js
+    static/js/jquery.flot.min.js
+    static/js/jquery.flot.selection.min.js
+    static/js/jquery.flot.time.min.js
+    static/js/jquery.flot.tooltip.min.js
+    static/js/jquery.min.js
     templates/add-form.hamlet
     templates/balance-report.hamlet
     templates/chart.hamlet
