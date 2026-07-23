@@ -29,7 +29,7 @@ import Hledger.Cli.Conf (CommandAlias, CommandLine, ResolvedCommand(..), expandC
 
 import Control.Exception
 import Control.Concurrent.MVar
-import Control.Monad (forM_)
+import Control.Monad (forM_, void)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM)
 
@@ -204,15 +204,18 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBui
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        let cmd = runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
+        let action = case strip input of
+              "!"       -> return ()           -- a bare !, do nothing
+              '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
+              _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
         liftIO $ if interactive
-          then cmd `catches`
+          then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)
                   ,Handler (\(e::IOError)   -> putStrLn $ rstrip $ show e)
                   ,Handler (\(_::ExitCode)  -> return ())
                   ,Handler (\UserInterrupt  -> return ())
                   ]
-          else cmd
+          else action
         loop interactive prompt
 
 isStdinTerminal = do

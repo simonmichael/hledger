@@ -47,6 +47,9 @@ The `commands` and `help` commands, and the command help flags
 
 You can type control-C to cancel a long-running command (but only once; typing it a second time will exit the REPL).
 
+To run a single shell command without leaving the REPL, type `! SHELLCMD`
+(eg `! ls` or `! git status`).
+
 And in most shells you can type control-Z to temporarily exit to the shell (and then `fg` to return to the REPL).
 
 ### Examples

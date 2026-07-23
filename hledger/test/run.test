@@ -243,3 +243,22 @@ $ hledger run -f- --depth 1 -- balance --depth 2
                  $-1  c
 --------------------
                    0  
+
+# ** 18. repl (and run reading commands from stdin) supports the ! shell escape
+<
+! echo hello
+accounts
+! echo bye
+$ hledger repl -f sample.journal
+>
+hello
+assets:bank:checking
+assets:bank:saving
+assets:cash
+expenses:food
+expenses:supplies
+income:gifts
+income:salary
+liabilities:debts
+bye
+>=0
