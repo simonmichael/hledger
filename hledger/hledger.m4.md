@@ -779,6 +779,7 @@ This is a good flag to add to your hledger config file.
 
 hledger tries to automatically detect ANSI colour and text styling support and use it when appropriate.
 (Currently, it is used rather minimally: some reports show negative numbers in red, and help output uses bold text for emphasis.)
+Colour is not used when the `TERM` environment variable is `dumb`, or `NO_COLOR` is set, or output is not going to a colour-capable terminal.
 
 You can override this by setting the `NO_COLOR` environment variable to disable it,
 or by using the `--color/--colour` option, perhaps in your config file,
