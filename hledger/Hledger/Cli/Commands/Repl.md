@@ -5,7 +5,8 @@ Input files are reloaded only when they change, so commands run faster.
 
 ```flags
 Flags:
-no command-specific flags
+     --no-watch             disable automatic reloading of changed input
+                            files, config aliases and addon commands
 ```
 
 This command is experimental and could change in the future.
