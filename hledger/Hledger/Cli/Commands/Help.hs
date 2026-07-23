@@ -17,6 +17,7 @@ module Hledger.Cli.Commands.Help (
 
   ) where
 
+import Data.Char (toLower)
 import Data.Maybe
 import Safe (headMay)
 import System.Console.CmdArgs.Explicit
@@ -44,12 +45,15 @@ helpmode = hledgerCommandMode
 -- | Display the hledger manual in various formats.
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager` flags.
 -- Otherwise it will use the first available of: info, man, $PAGER, less, stdout
--- (and always stdout if output is non-interactive).
+-- (and always stdout if output is non-interactive or the terminal is dumb).
 help' :: CliOpts -> Journal -> IO ()
 help' opts _ = do
   exes <- likelyExecutablesInPath
   pagerprog <- fromMaybe "less" <$> lookupEnv "PAGER"
   interactive <- hIsTerminalDevice stdout
+  -- A dumb terminal (eg TERM=dumb, as in emacs shells) can't run info, and
+  -- degrades man/less, so fall back to plain text there like the non-interactive case.
+  dumbterminal <- ((== "dumb") . map toLower . fromMaybe "") <$> lookupEnv "TERM"
   let
     args = take 1 $ listofstringopt "args" $ rawopts_ opts
     mtopic = headMay args
@@ -59,7 +63,7 @@ help' opts _ = do
       | boolopt "help-i" $ rawopts_ opts = info
       | boolopt "help-m" $ rawopts_ opts = man
       | boolopt "help-p" $ rawopts_ opts = pager
-      | not interactive                  = cat
+      | not interactive || dumbterminal  = cat
       | "info"    `elem` exes            = info
       | "man"     `elem` exes            = man
       | pagerprog `elem` exes            = pager
