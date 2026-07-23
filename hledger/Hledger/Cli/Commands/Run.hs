@@ -33,7 +33,7 @@ import Control.Monad (forM_, void, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM, anyM)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
-import Data.Time.Clock.POSIX (POSIXTime)
+import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 
 import System.Exit (ExitCode, exitWith)
 import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames)
@@ -46,7 +46,8 @@ import Safe (headMay)
 import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
 import Hledger.Cli.Utils (journalTransform, journalFileIsNewer, maybeFileModificationTime)
 import Text.Printf (printf)
-import System.FilePath (takeBaseName)
+import System.FilePath (takeBaseName, getSearchPath)
+import System.Directory (doesDirectoryExist, getModificationTime)
 import System.Process (system)
 
 -- | Command line options for this command.
@@ -96,7 +97,7 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
       let journalFromStdin = any (== "-") $ map (snd . splitReaderPrefix) $ NE.toList inputFiles
       if journalFromStdin
       then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
-      else runREPL jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing
+      else runREPL jpaths rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing
     else do
       -- Check if arguments start with "--".
       -- If not, assume that they are files with commands
@@ -106,10 +107,12 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
 
 -- | The actual repl command. mconfinfo is the active config file and the raw options
 -- needed to re-read it, used to auto-reload command aliases when the config file changes.
-repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> CliOpts -> IO ()
-repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo cliopts = do
+-- mrescanAddons is an action that re-scans PATH for addon commands, used to auto-reload the
+-- addon command list when PATH's contents change.
+repl :: (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> CliOpts -> IO ()
+repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons cliopts = do
   jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault Nothing cliopts
-  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo
+  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons
 
 -- | Run commands from files given to "run".
 runFromFiles :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
@@ -188,41 +191,47 @@ runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdal
     [] -> return ()
 
 -- | Run an interactive REPL. mconfinfo is the active config file and the raw options
--- needed to re-read it, used to auto-reload command aliases when the config file changes
--- (Nothing to disable this, eg for a non-interactive "run").
-runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> IO ()
-runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo = do
+-- needed to re-read it, used to auto-reload command aliases when the config file changes.
+-- mrescanAddons is an action that re-scans PATH for addon commands, used to auto-reload the
+-- addon command list when PATH's contents change. Either being Nothing disables that reload
+-- (eg for a non-interactive "run").
+runREPL :: DefaultRunJournal -> [(String,String)] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> IO ()
+runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons = do
   isTerminal <- isStdinTerminal
   -- Use the main input file's base name as the prompt.
   let prompt = takeBaseName (snd $ splitReaderPrefix $ NE.head jpaths) ++ "> "
-  -- Mutable alias state, so config-file command aliases can be reloaded when the file changes.
+  -- Mutable alias and addon state, so these can be reloaded when their sources change on disk.
   confmtime0 <- maybe (return 0) (fmap (fromMaybe 0) . maybeFileModificationTime . fst) mconfinfo
   aliasesRef <- newIORef (confmtime0, cmdaliases)
+  pathmtime0 <- maybe (return 0) (const maxSearchPathMtime) mrescanAddons
+  addonsRef  <- newIORef (pathmtime0, addons)
   if not isTerminal
-    then runInputT defaultSettings (loop aliasesRef False "")
+    then runInputT defaultSettings (loop aliasesRef addonsRef False "")
     else do
       putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
-      runInputT defaultSettings (loop aliasesRef True prompt)
+      runInputT defaultSettings (loop aliasesRef addonsRef True prompt)
   where
-  loop :: IORef (POSIXTime,[(CommandAlias,CommandLine)]) -> Bool -> String -> InputT IO ()
-  loop aliasesRef interactive prompt = do
+  loop :: IORef (POSIXTime,[(CommandAlias,CommandLine)]) -> IORef (POSIXTime,[String]) -> Bool -> String -> InputT IO ()
+  loop aliasesRef addonsRef interactive prompt = do
     minput <- getInputLine prompt
     case minput of
       Nothing -> return ()
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
-        -- Reload any changed input files or config aliases, then run the command. All are
-        -- guarded by the handlers below (interactively), so a control-C during any of them
+        -- Reload any changed input files, config aliases or addon commands, then run the command.
+        -- All are guarded by the handlers below (interactively), so a control-C during any of them
         -- returns to the prompt rather than exiting the REPL.
         let action = do
               refreshStaleJournals
               refreshStaleAliases mconfinfo aliasesRef
+              refreshStaleAddons mrescanAddons addonsRef
               (_, cmdaliases') <- readIORef aliasesRef
+              (_, addons')     <- readIORef addonsRef
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons cmdaliases' shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
+                _         -> runCommand defaultJournalOverride rungeneralopts findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
         liftIO $ if interactive
           then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)
@@ -231,7 +240,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts findBui
                   ,Handler (\UserInterrupt  -> hPutStrLn stderr "(interrupted)")
                   ]
           else action
-        loop aliasesRef interactive prompt
+        loop aliasesRef addonsRef interactive prompt
 
 isStdinTerminal = do
   op <- hIsOpen stdin
@@ -313,6 +322,35 @@ refreshStaleAliases (Just (conffile, rawopts)) ref = do
           let as = reverse $ confAliases conf
           mapM_ evaluate as
           return $ Right as
+
+-- | If a PATH directory has changed since the addon command list was last scanned,
+-- re-scan for addon commands with the given action and update the ref. Prints a
+-- "(reloaded addons)" notice only when the set of addon commands actually changed
+-- (a PATH directory's mtime can change without affecting which hledger-* executables exist).
+refreshStaleAddons :: Maybe (IO [String]) -> IORef (POSIXTime,[String]) -> IO ()
+refreshStaleAddons Nothing _ = return ()
+refreshStaleAddons (Just rescan) ref = do
+  mtime <- maxSearchPathMtime
+  (lastseen, oldaddons) <- readIORef ref
+  when (mtime > lastseen) $ do
+    newaddons <- rescan
+    writeIORef ref (mtime, newaddons)
+    when (newaddons /= oldaddons) $ hPutStrLn stderr "(reloaded addons)"
+
+-- | The most recent modification time among the existing directories on the PATH.
+-- A directory's mtime changes when entries are added or removed, so this detects when
+-- the set of installed addon commands may have changed.
+maxSearchPathMtime :: IO POSIXTime
+maxSearchPathMtime = do
+  dirs <- getSearchPath
+  mtimes <- mapM maybeDirModificationTime dirs
+  return $ maximum (0 : catMaybes mtimes)
+
+-- | The last modified time of the specified directory, if it exists.
+maybeDirModificationTime :: FilePath -> IO (Maybe POSIXTime)
+maybeDirModificationTime d = do
+  exists <- doesDirectoryExist d
+  if exists then Just . utcTimeToPOSIXSeconds <$> getModificationTime d else return Nothing
 
 -- | Get the journal(s) to read, either from the defaultJournalOverride or from the cliopts
 journalFilePathFromOptsOrDefault :: Maybe DefaultRunJournal -> CliOpts -> IO (NE.NonEmpty PrefixedFilePath)

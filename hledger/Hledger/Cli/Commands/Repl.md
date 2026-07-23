@@ -18,7 +18,8 @@ Also like `run`, the input file(s) specified for the `repl` command will be the 
 You can override this temporarily by specifying an `-f` option in particular commands.
 
 Before running a command, any input files which have changed on disk are automatically reloaded.
-Command aliases are likewise reloaded when the config file changes.
+Also command aliases are reloaded if the config file has changed,
+and addon commands are re-detected if PATH's contents have changed.
 
 Any other general flags given to `repl` - input, reporting, or display flags such as
 `-I`, `--strict`, `--alias`, `-b`/`-e`, `--depth`, `--cost`, `--value`, `--color` -

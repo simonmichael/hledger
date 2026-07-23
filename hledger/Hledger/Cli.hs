@@ -460,9 +460,10 @@ main = handleExit $ withGhcDebug' $ do
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
         | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons cmdaliases shellaliasesallowed opts
         | cmdname == "repl" ->
-          -- the config file (if any) and the opts to re-read it with, so repl can auto-reload aliases
+          -- the config file (if any) and the opts to re-read it with, so repl can auto-reload aliases;
+          -- and the addon-rescan action, so repl can auto-reload the addon command list
           let mconfinfo = (\f -> (f, cliconfrawopts)) <$> mconffile
-          in Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo opts
+          in Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo (Just addonCommandNames) opts
 
         -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
