@@ -18,6 +18,7 @@ module Hledger.Cli.Commands.Help (
   ) where
 
 import Data.Char (toLower)
+import Data.List (isInfixOf)
 import Data.Maybe
 import Safe (headMay)
 import System.Console.CmdArgs.Explicit
@@ -45,7 +46,8 @@ helpmode = hledgerCommandMode
 -- | Display the hledger manual in various formats.
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager` flags.
 -- Otherwise it will use the first available of: info, man, $PAGER, less, stdout
--- (and always stdout if output is non-interactive or the terminal is dumb).
+-- (and always stdout if output is non-interactive, the terminal is dumb, or we are
+-- in an Emacs buffer that can't render fullscreen viewers, eg shell/comint or eshell).
 help' :: CliOpts -> Journal -> IO ()
 help' opts _ = do
   exes <- likelyExecutablesInPath
@@ -54,6 +56,11 @@ help' opts _ = do
   -- A dumb terminal (eg TERM=dumb, as in emacs shells) can't run info, and
   -- degrades man/less, so fall back to plain text there like the non-interactive case.
   dumbterminal <- ((== "dumb") . map toLower . fromMaybe "") <$> lookupEnv "TERM"
+  -- Inside Emacs, only its terminal-emulator modes (term/ansi-term/vterm, whose
+  -- INSIDE_EMACS mode contains "term") can render fullscreen viewers like info/man/less;
+  -- other modes (shell/comint, eshell) are line-oriented and would garble them, so fall
+  -- back to plain text there like the dumb/non-interactive case.
+  emacsnonterm <- (\m -> not (null m) && not ("term" `isInfixOf` m)) . fromMaybe "" <$> lookupEnv "INSIDE_EMACS"
   let
     args = take 1 $ listofstringopt "args" $ rawopts_ opts
     mtopic = headMay args
@@ -63,7 +70,7 @@ help' opts _ = do
       | boolopt "help-i" $ rawopts_ opts = info
       | boolopt "help-m" $ rawopts_ opts = man
       | boolopt "help-p" $ rawopts_ opts = pager
-      | not interactive || dumbterminal  = cat
+      | not interactive || dumbterminal || emacsnonterm = cat
       | "info"    `elem` exes            = info
       | "man"     `elem` exes            = man
       | pagerprog `elem` exes            = pager
