@@ -160,7 +160,10 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
        -- Otherwise an hledger command, with the alias's arguments preceding this line's own arguments.
        HledgerCommand cmdname defargs ->
         let
-          args = defargs <> args0
+          -- run's first -- must be protected from cmdargs (which eats one). Do it here, after alias
+          -- expansion, so it works whether "run ... -- ..." was typed directly or reached via a
+          -- command alias (or a nested run in a commands file).
+          args = (if cmdname == "run" then argsAddDoubleDash else id) $ defargs <> args0
           aliasnote = if cmdname /= cmdname0 then " (expanded from the " ++ cmdname0 ++ " command alias)" else ""
         in
         case findBuiltinCommand cmdname of
@@ -239,7 +242,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ argsAddDoubleDash $ parseCommand input
+                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ parseCommand input
         liftIO $ if interactive
           then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)

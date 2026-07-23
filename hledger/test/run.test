@@ -310,3 +310,10 @@ showargs expenses:
 $ sh -c 'D=$(mktemp -d "${TMPDIR:-/tmp}/hledger-addon.XXXXXX"); printf "#!/bin/sh\necho SHOWARGS: \"\$@\"\n" > "$D/hledger-showargs"; chmod +x "$D/hledger-showargs"; PATH="$D:$PATH" hledger repl --no-conf; rm -rf "$D"'
 >
 SHOWARGS: expenses:
+
+# ** 23. A command alias that expands to "run -- CMD" works (the run command's first -- is protected).
+<
+exphl
+$ sh -c 'C=$(mktemp "${TMPDIR:-/tmp}/hledger-exphl.XXXXXX"); J=$(mktemp "${TMPDIR:-/tmp}/hledger-exphlj.XXXXXX"); printf "[alias]\nexphl = run -- echo %sNonreimbursed expenses:%s\n" "'"'"'" "'"'"'" > "$C"; printf "2017-01-01 x\n  a  1\n  b\n" > "$J"; hledger repl --conf "$C" -f "$J"; rm -f "$C" "$J"'
+>
+Nonreimbursed expenses:
