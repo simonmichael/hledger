@@ -1877,5 +1877,5 @@ ai-ccusagej-update:
     just ai-aij bal -NTA --transpose --layout=bare {{ BALARGS }}
 
 # Show today's current ai usage, updating on request
-@ai-today:
-    while true; do echo; just ai-ccusagej-update && just ai-ccusagej bal -p '-5days..tomorrow' -DENX kt -c "'1,000. kt'" --title "'AI usage, $(date)'"; echo; read -p "press enter to update.."; done
+@ai-today *BALARGS:
+    while true; do echo; just ai-ccusagej-update && just ai-ccusagej bal -p '-5days..tomorrow' -DENX kt -c "'1,000. kt'" --title "'AI usage, $(date)'" {{ BALARGS }}; echo; read -p "press enter to update.."; done
