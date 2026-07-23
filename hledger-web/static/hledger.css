@@ -339,8 +339,8 @@ body, html {
 }
 
 #addmodal .modal-title {
-    margin-top: -1.2rem;
-    margin-bottom: 1rem;
+    margin-top: -1.15rem;
+    margin-left: -2rem;
 }
 
 
@@ -563,26 +563,15 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     }
 }
 
-/* Position close button in top right of modal header */
+
 .modal-header .btn-close {
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
 }
 
-/* Center modal title */
 .modal-title {
-    text-align: left;
-    padding-left: 2rem;
-}
-
-/* Ensure modal is above all content */
-.modal {
-    z-index: 1000 !important;
-}
-
-.modal-backdrop {
-    z-index: 999 !important;
+    margin-left: 10rem;
 }
 
 /* Resizable sidebar container - flexbox layout for independent scrolling */
