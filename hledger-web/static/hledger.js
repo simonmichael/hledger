@@ -144,13 +144,13 @@ function hledgerInitPage() {
         var topLevel = parts[0];
         if (parts.length === 1) {
           if (topLevel === 'assets') {
-            acctLink.style.color = '#32CD32'; // lime green
+            acctLink.style.color = '#006400'; // dark green
           } else if (topLevel === 'liabilities') {
             acctLink.style.color = '#0000FF'; // hyperlink blue
           } else if (topLevel === 'equity') {
             acctLink.style.color = '#800080'; // purple
           } else if (topLevel === 'income') {
-            acctLink.style.color = '#FFD700'; // yellow
+            acctLink.style.color = '#8B4500'; // dark orange
           } else if (topLevel === 'expenses') {
             acctLink.style.color = '#FF0000'; // red
           } else {

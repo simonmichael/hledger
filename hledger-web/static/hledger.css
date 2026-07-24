@@ -272,7 +272,7 @@ body.sidebar-hidden .sticky-header h1 {
     position: relative;
     left: 13px;
     top: 8px;
-    transform: scale(1.72);
+    transform: scale(2);
     z-index: 10;
 }
 
@@ -288,7 +288,7 @@ body.sidebar-hidden .sticky-header h1 {
     position: relative;
     top: 13px;
     left: 1rem;
-    transform: scale(1.5);
+    transform: scale(1.8);
     z-index: 20;
 }
 
