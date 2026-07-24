@@ -3,17 +3,17 @@
 <script src="/static/js/chartjs-adapter-date-fns.bundle.min.js">
 
 <div#top-left-controls>
-  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keyboard shortcut: s">
-    <span .bi.bi-arrow-left>
-  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keyboard shortcut: s">
-    <span .bi.bi-layout-text-sidebar-reverse>
+  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keyboard shortcut: s" aria-label="Close Sidebar">
+    <span .bi.bi-arrow-left aria-hidden="true">
+  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keyboard shortcut: s" aria-label="Open Sidebar">
+    <span .bi.bi-layout-text-sidebar-reverse aria-hidden="true">
   <input .empty-account-checkbox type="checkbox" id="hideEmptyAccountsDesktop" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox(event)" title="Toggles Empty Accounts&#10Keyboard shortcut: e">
   <label for="hideEmptyAccountsDesktop" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
 
-<button .btn.btn-default.mobile-menu-btn type="button" onclick="sidebarToggle()" title="Open Sidebar">
-  <span .bi.bi-list>
-<button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar">
-  <span .bi.bi-arrow-left>
+<button .btn.btn-default.mobile-menu-btn type="button" onclick="sidebarToggle()" title="Open Sidebar" aria-label="Open Sidebar">
+  <span .bi.bi-list aria-hidden="true">
+<button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar" aria-label="Close Sidebar">
+  <span .bi.bi-arrow-left aria-hidden="true">
 
 $if elem ViewPermission perms
   <div .page-container>
@@ -32,22 +32,22 @@ $if elem ViewPermission perms
             <form#searchform.input-group method=GET>
               <div .input-group-prepend>
                 $if not isJournalPage
-                  <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j">
-                    <span .bi.bi-house>
+                  <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j" aria-label="Go to Journal">
+                    <span .bi.bi-house aria-hidden="true">
               <input .form-control name=q value=#{qparam} placeholder="Search"
                 title="Enter hledger search patterns to filter the data below">
               <div .input-group-append>
                 $if not (T.null qparam)
-                  <a href=@{here} .btn .btn-default title="Clear search terms">
-                    <span .bi.bi-x-circle>
-                <button .btn .btn-default type="button" onclick="addformShow()" title="Add a transaction&#10Keyboard shortcut: a">
-                  <span .bi.bi-plus-square>
+                  <a href=@{here} .btn .btn-default title="Clear search terms" aria-label="Clear Search">
+                    <span .bi.bi-x-circle aria-hidden="true">
+                <button .btn .btn-default type="button" onclick="addformShow()" title="Add a transaction&#10Keyboard shortcut: a" aria-label="Add Transaction">
+                  <span .bi.bi-plus-square aria-hidden="true">
                 $if elem EditPermission perms
-                  <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
-                    <span .bi.bi-gear>
+                  <a href="@{ManageR}" .btn.btn-default title="Manage journal files" aria-label="Manage Journal Files">
+                    <span .bi.bi-gear aria-hidden="true">
                 <button .btn .btn-default type=button data-bs-toggle="modal" data-bs-target="#helpmodal"
-                   title="Show search and general help">
-                  <span .bi.bi-question-circle>
+                   title="Show search and general help" aria-label="Show Help">
+                  <span .bi.bi-question-circle aria-hidden="true">
       $maybe m <- msg
         <div#message .alert.alert-info>#{m}
       ^{widget}

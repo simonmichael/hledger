@@ -10,7 +10,7 @@
       <tr>
         <th style="text-align:left;">
           Date
-          <span .bi.bi-chevron-up>
+          <span .bi.bi-chevron-up aria-hidden="true">
         <th style="text-align:left;">Description
         <th style="text-align:left;">To/From Account(s)
         <th style="text-align:right; white-space:normal;">Amount Out/In
