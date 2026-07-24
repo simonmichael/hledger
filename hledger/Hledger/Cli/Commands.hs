@@ -262,7 +262,7 @@ commandsList progversion builtin othercmds cmdaliases =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES"
-  ," repl                     run commands from an interactive prompt"
+  ," repl                     run commands efficiently from an interactive prompt"
   ," run                      run a sequence of commands efficiently"
   ,"+ui                       run a terminal UI (hledger-ui)"
   ,"+web                      run a web UI (hledger-web)"

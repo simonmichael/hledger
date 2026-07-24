@@ -1,7 +1,7 @@
 ## run 
 
 Run a sequence of hledger commands, provided as files or command line arguments.
-Data files are parsed just once, so the commands run faster.
+Input files are parsed just once, so the commands run faster.
 
 ```flags
 Flags:
