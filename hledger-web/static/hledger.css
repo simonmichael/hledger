@@ -211,6 +211,26 @@ body.sidebar-hidden #topbar h1 {
     margin-left: 0.5rem;
 }
 
+.title-row {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.title-row > .home-btn {
+    margin-right: 0;
+    margin-bottom: 0;
+}
+
+.register-title {
+    margin-left: 0.5rem;
+}
+
+#register-chart-label {
+    margin-left: 0.5rem;
+}
+
 .sticky-header h1 {
     margin: 0 0 0.3rem 0;
     font-size: 2.5rem;
