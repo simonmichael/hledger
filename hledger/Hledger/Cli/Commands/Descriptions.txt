@@ -1,5 +1,7 @@
 descriptions
 
+(desc)
+
 List the unique descriptions used in transactions.
 
 Flags:

@@ -277,10 +277,10 @@ commandsList progversion builtin othercmds cmdaliases =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "BASIC REPORTS"
-  ," accounts                 show account names"
+  ," accounts (acc)           show account names"
   ," codes                    show transaction codes"
-  ," commodities              show commodity/currency symbols"
-  ," descriptions             show transaction descriptions"
+  ," commodities (comm)       show commodity/currency symbols"
+  ," descriptions (desc)      show transaction descriptions"
   ," files                    show data files in use"
   ," notes                    show note part of transaction descriptions"
   ," payees                   show payee part of transaction descriptions"
