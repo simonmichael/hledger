@@ -77,6 +77,15 @@ ul {
 .page-container #sidebar-menu {
     max-height: 100vh;
 }
+
+.page-container > #sidebar-menu {
+    flex: 0 0 auto;
+    align-self: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-right: 1px solid #ebebeb;
+    margin-top: 3rem;
+}
 #sidebar-menu .main-menu {
     table-layout: fixed;
     word-wrap: break-word;
@@ -199,6 +208,7 @@ body.sidebar-hidden #topbar h1 {
     flex-direction: column;
     gap: 0.3rem;
     margin-bottom: 1rem;
+    margin-left: 0.5rem;
 }
 
 .sticky-header h1 {
@@ -299,7 +309,26 @@ body.sidebar-hidden .sticky-header h1 {
     position: relative;
     transform: scale(2);
     display: none;
-    left: 0.2rem;
+    left: 0.7rem;
+}
+
+/* Sidebar arrow visibility states */
+body.sidebar-open #top-left-controls .close-sidebar-arrow-desktop {
+    display: block;
+}
+
+body.sidebar-open #top-left-controls .open-sidebar-arrow {
+    display: none;
+}
+
+body.sidebar-hidden #top-left-controls .close-sidebar-arrow-desktop {
+    display: none;
+}
+
+body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
+    display: block;
+    position: relative;
+    z-index: 100;
 }
 
 #searchform button[onclick="addformShow()"],
@@ -345,6 +374,10 @@ body.sidebar-hidden .sticky-header h1 {
     margin-left: 47rem;
 }
 
+.modal-title {
+    margin-left: 10rem;
+}
+
 #addmodal .modal-title {
     margin-top: -1.15rem;
     margin-left: 0;
@@ -364,23 +397,6 @@ body.sidebar-hidden .sticky-header h1 {
 }
 
 
-body.sidebar-open #top-left-controls .close-sidebar-arrow-desktop {
-    display: block;
-}
-
-body.sidebar-open #top-left-controls .open-sidebar-arrow {
-    display: none;
-}
-
-body.sidebar-hidden #top-left-controls .close-sidebar-arrow-desktop {
-    display: none;
-}
-
-body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
-    display: block;
-    position: relative;
-    z-index: 100;
-}
 
 .close-sidebar-arrow-mobile {
     display: none;
@@ -391,13 +407,12 @@ body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
     z-index: 30;
 }
 
-body.sidebar-hidden #top-left-controls .empty-account-checkbox {
-    display: none;
-}
-
+/* Hide desktop checkbox when sidebar is hidden */
+body.sidebar-hidden #top-left-controls .empty-account-checkbox,
 body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     display: none;
 }
+
 
 @media (max-width: 768px) {
     body.sidebar-open #top-left-controls .close-sidebar-arrow-desktop {
@@ -416,11 +431,17 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         display: none;
     }
 
-    #top-left-controls .empty-account-checkbox {
+    /* Hide desktop checkbox on mobile */
+    #top-left-controls .empty-account-checkbox,
+    #top-left-controls label[for="hideEmptyAccountsDesktop"] {
         display: none;
     }
 
-    #top-left-controls label[for="hideEmptyAccountsDesktop"] {
+    /* Hide desktop sidebar arrows on mobile */
+    body.sidebar-open #top-left-controls .close-sidebar-arrow-desktop,
+    body.sidebar-hidden #top-left-controls .close-sidebar-arrow-desktop,
+    body.sidebar-open #top-left-controls .open-sidebar-arrow,
+    body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
         display: none;
     }
 
@@ -591,10 +612,6 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     right: 0.5rem;
 }
 
-.modal-title {
-    margin-left: 10rem;
-}
-
 /* Resizable sidebar container - flexbox layout for independent scrolling */
 .page-container {
     display: flex;
@@ -607,14 +624,6 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
     overflow: hidden;
 }
 
-.page-container > #sidebar-menu {
-    flex: 0 0 auto;
-    align-self: auto;
-    overflow-y: auto;
-    overflow-x: hidden;
-    border-right: 1px solid #ebebeb;
-    margin-top: 3rem;
-}
 
 .page-container > #main-content {
     flex: 1 1 auto;
