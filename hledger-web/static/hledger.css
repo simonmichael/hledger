@@ -58,10 +58,6 @@ ul {
     padding: 0;
 }
 
-#main-content {
-    padding-left: 30px;
-}
-
 #message {
     white-space: pre;
     overflow-x: auto;
@@ -149,6 +145,10 @@ ul {
     display: none !important;
 }
 
+#sidebar-menu .main-menu tr {
+    border-bottom: 1px solid #ebebeb;
+}
+
 /* Prevent body scroll to allow independent column scrolling */
 body, html {
     height: 100%;
@@ -181,13 +181,17 @@ body, html {
     margin-left: 30px;
 }
 
+body.sidebar-hidden #topbar h1 {
+    margin-left: 60px;
+}
+
 /* Sticky header inside scrollable main content */
 .sticky-header {
     position: sticky;
     top: 0;
     background-color: #e0e0e0;
     padding: 0.3rem;
-    z-index: 50;
+    /* z-index: 50; */
 }
 
 .header-flex {
@@ -202,6 +206,10 @@ body, html {
     font-size: 2.5rem;
     font-weight: 500;
     line-height: 1.2;
+}
+
+body.sidebar-hidden .sticky-header h1 {
+    margin-left: 2.6rem;
 }
 
 .sticky-header h1 a {
@@ -289,10 +297,9 @@ body, html {
 
 #top-left-controls .open-sidebar-arrow {
     position: relative;
-    right: 10px;
-    bottom: 8px;
     transform: scale(2);
     display: none;
+    left: 0.2rem;
 }
 
 #searchform button[onclick="addformShow()"],
@@ -340,7 +347,20 @@ body, html {
 
 #addmodal .modal-title {
     margin-top: -1.15rem;
-    margin-left: -2rem;
+    margin-left: 0;
+}
+
+#addmodal .modal-body {
+    padding: 1.5rem;
+}
+
+#addmodal .form-group {
+    margin-bottom: 1rem;
+}
+
+#addmodal .account-group {
+    margin-bottom: 1rem;
+    padding: 0.5rem 0;
 }
 
 
@@ -359,6 +379,7 @@ body.sidebar-hidden #top-left-controls .close-sidebar-arrow-desktop {
 body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
     display: block;
     position: relative;
+    z-index: 100;
 }
 
 .close-sidebar-arrow-mobile {
