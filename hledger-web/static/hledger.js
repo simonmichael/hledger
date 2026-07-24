@@ -57,6 +57,41 @@ function hledgerInitGlobal() {
     }
   });
 
+  // HTML escape function from validator.js library
+  // https://github.com/validatorjs/validator.js
+  function escape(str) {
+    return (str + '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+      .replace(/\//g, '&#x2F;');
+  }
+
+  // Client-side search form validation
+  var searchform = document.getElementById('searchform');
+  if (searchform) {
+    searchform.addEventListener('submit', function(e) {
+      var searchInput = searchform.querySelector('input[name="q"]');
+      if (searchInput) {
+        var query = searchInput.value.trim();
+        
+        var sanitized = escape(query);
+        
+        if (sanitized !== query) {
+          e.preventDefault();
+          alert('Invalid search query: HTML tags and special characters are not allowed.');
+          return false;
+        }
+        
+        if (query === '') {
+          return true;
+        }
+      }
+    });
+  }
+
   // highlight the entry from the url hash
   if (window.location.hash && document.querySelector(window.location.hash)) {
     document.querySelector(window.location.hash).classList.add('highlighted');
