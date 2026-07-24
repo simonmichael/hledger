@@ -263,9 +263,9 @@ commandsList progversion builtin othercmds cmdaliases =
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES"
   ," repl                     run commands efficiently from an interactive prompt"
-  ," run                      run a sequence of commands efficiently"
-  ,"+ui                       run a terminal UI (hledger-ui)"
-  ,"+web                      run a web UI (hledger-web)"
+  ," run                      run commands efficiently from a file or command line"
+  ,"+ui                       run a terminal UI"
+  ,"+web                      run a web UI"
                                                                                      -- see also: MoLe, https://hledger.org/mobile.html
   ,""
     -----------------------------------------80-------------------------------------
