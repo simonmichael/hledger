@@ -619,16 +619,11 @@ function emptyAccountsToggleCheckbox(event) {
   var checkboxDesktop = document.getElementById('hideEmptyAccountsDesktop');
   var checkboxMobile = document.getElementById('hideEmptyAccountsMobile');
   
-  console.log('emptyAccountsToggleCheckbox called', 'checkboxDesktop:', checkboxDesktop, 'checkboxMobile:', checkboxMobile);
-  
   // Get the checkbox that was clicked
   var clickedCheckbox = event ? event.target : null;
-  console.log('clickedCheckbox:', clickedCheckbox);
-  
   // Determine which checkbox was clicked and get its state
   var checkbox = checkboxDesktop || checkboxMobile;
   if (!checkbox) {
-    console.log('No checkbox found');
     return;
   }
   
@@ -636,18 +631,14 @@ function emptyAccountsToggleCheckbox(event) {
   var isChecked;
   if (clickedCheckbox && (clickedCheckbox === checkboxDesktop || clickedCheckbox === checkboxMobile)) {
     isChecked = clickedCheckbox.checked;
-    console.log('Using clicked checkbox state, checked:', isChecked);
   } else {
     // Otherwise, toggle the current state
     isChecked = !checkbox.checked;
-    console.log('Toggling state, new checked:', isChecked);
   }
   
   var shouldHide = !isChecked;
-  console.log('shouldHide:', shouldHide);
   
   var emptyAccts = document.querySelectorAll('.acct.empty');
-  console.log('Found empty accounts:', emptyAccts.length);
   emptyAccts.forEach(function(acct) {
     if (acct.parentElement) {
       if (shouldHide) {
@@ -667,8 +658,6 @@ function emptyAccountsToggleCheckbox(event) {
   if (checkboxMobile) {
     checkboxMobile.checked = isChecked;
   }
-  
-  console.log('Done, shouldHide:', shouldHide, 'isChecked:', isChecked);
 }
 
 // Cookie helper functions
