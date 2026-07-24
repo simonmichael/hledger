@@ -15,9 +15,6 @@
         <th style="text-align:left;">To/From Account(s)
         <th style="text-align:right; white-space:normal;">Amount Out/In
         <th style="text-align:right; white-space:normal;">
-          $if balancelabel == "Period Total"
-            <strong>#{balancelabel}
-          $else
             #{balancelabel}
 
     <tbody>
