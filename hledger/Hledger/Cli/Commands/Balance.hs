@@ -351,6 +351,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["summary-only"] (setboolopt "summary-only") "display only row summaries (e.g. row total, average) (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
     ,flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
+    ,flagNone ["full-path"] (setboolopt "full-path") "show full account path in tree mode instead of indentation"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
@@ -1250,9 +1251,9 @@ nbsp = "\160"
 renderBalanceAcct ::
     ReportOpts -> Text -> (AccountName, AccountName, Int) -> Text
 renderBalanceAcct opts space (fullName, displayName, dep) =
-  case accountlistmode_ opts of
-    ALTree -> T.replicate (dep*2) space <> displayName
-    ALFlat -> accountNameDrop (drop_ opts) fullName
+  if accountlistmode_ opts == ALTree && not (full_path_ opts)
+    then T.replicate (dep*2) space <> displayName
+    else accountNameDrop (drop_ opts) fullName
 
 -- FIXME. Have to check explicitly for which to render here, since
 -- budgetReport sets accountlistmode to ALTree. Find a principled way to do
