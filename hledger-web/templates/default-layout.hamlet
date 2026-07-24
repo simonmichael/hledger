@@ -26,14 +26,15 @@ $if elem ViewPermission perms
     <main#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
       <header .sticky-header>
         <div .header-flex>
-          <h1 .d-flex.align-items-center>
-            <a href="#" onclick="location.href = document.hledgerWebBaseurl+'/journal'; return false;" title="Go to the General journal&#10Keyboard shortcut: j">#{takeFileName (journalFilePath j)}
+          <div .title-row>
+            $if not isJournalPage
+              <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j" aria-label="Go to Journal">
+                <span .bi.bi-house aria-hidden="true">
+            <h1 .d-flex.align-items-center>
+              <a href="#" onclick="location.href = document.hledgerWebBaseurl+'/journal'; return false;" title="Go to the General journal&#10Keyboard shortcut: j">#{takeFileName (journalFilePath j)}
           $if elem ViewPermission perms
             <form#searchform.input-group method=GET>
               <div .input-group-prepend>
-                $if not isJournalPage
-                  <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j" aria-label="Go to Journal">
-                    <span .bi.bi-house aria-hidden="true">
               <input .form-control name=q value=#{qparam} placeholder="Search"
                 title="Enter hledger search patterns to filter the data below">
               <div .input-group-append>

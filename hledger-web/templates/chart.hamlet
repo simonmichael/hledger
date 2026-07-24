@@ -142,6 +142,7 @@
         data: { datasets },
         plugins: [backgroundMarkingsPlugin],
         options: {
+          animation: false,
           responsive: false,
           maintainAspectRatio: false,
           scales: {
