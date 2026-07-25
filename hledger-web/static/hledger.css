@@ -154,6 +154,12 @@ ul {
 /* Top-level account names that have sub-accounts */
 #sidebar-menu .main-menu .acct-name.top-level-with-subs {
     font-weight: bold;
+    margin-bottom: 0.5rem;
+}
+
+/* Top-level account names that have sub-accounts */
+#sidebar-menu .main-menu .acct-name.top-level-with-subs {
+    font-weight: bold;
 }
 
 #sidebar-menu .main-menu tr.hide {
@@ -162,6 +168,24 @@ ul {
 
 #sidebar-menu .main-menu tr {
     border-bottom: 1px solid #ebebeb;
+}
+
+/* Highlighted transaction row styling */
+.highlighted {
+    background-color: #ffffcc !important;
+}
+
+/* Screen reader only class */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
 }
 
 /* Highlighted transaction row styling */
@@ -263,6 +287,14 @@ body.sidebar-hidden #topbar h1 {
     margin-left: 0.5rem;
 }
 
+#register-chart-section {
+    padding: 0.5rem 0.5rem 0.5rem 0.5rem;
+}
+
+#registerChartCanvas {
+    margin-left: 0.5rem;
+}
+
 .sticky-header h1 {
     margin: 0 0 0.3rem 0;
     font-size: 2.5rem;
@@ -319,6 +351,15 @@ body.sidebar-hidden .title-row .home-btn {
     margin-left: 2.5rem;
 }
 
+.home-btn .bi {
+    transform: scale(1.5);
+}
+
+/* Move home button to the right when sidebar is closed to avoid overlap with open sidebar button */
+body.sidebar-hidden .title-row .home-btn {
+    margin-left: 2.5rem;
+}
+
 .mobile-menu-btn {
     display: none;
     position: fixed;
@@ -326,6 +367,41 @@ body.sidebar-hidden .title-row .home-btn {
     left: 0.3rem;
     transform: scale(1.5);
     z-index: 30;
+}
+
+/* Move home button right on mobile to avoid overlap with mobile menu button */
+@media (max-width: 767px) {
+    .title-row {
+        gap: 0;
+        margin-left: 0;
+    }
+    .title-row .home-btn {
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .title-row .home-btn .bi {
+        transform: scale(1.5);
+    }
+    .title-row h1 {
+        margin: 0;
+        padding: 0;
+        font-size: 1.5rem;
+    }
+
+    /* Hide desktop open sidebar button on mobile by moving it off-screen */
+    #top-left-controls .open-sidebar-arrow {
+        position: absolute;
+        left: -9999px;
+        visibility: hidden;
+    }
+
+    /* When at home (no home button), adjust title and mobile menu button */
+    .title-row.no-home-btn {
+        margin-left: 2rem;
+    }
+    .mobile-menu-btn-home {
+        top: 0;
+    }
 }
 
 /* Move home button right on mobile to avoid overlap with mobile menu button */
@@ -405,6 +481,7 @@ body.sidebar-hidden .title-row .home-btn {
     transform: scale(2);
     display: none;
     left: 0.7rem;
+    z-index: 101;
     z-index: 101;
 }
 
@@ -497,7 +574,7 @@ body.sidebar-hidden #top-left-controls .open-sidebar-arrow {
 .close-sidebar-arrow-mobile {
     display: none;
     position: absolute;
-    top: 0.6rem;
+    top: 0;
     right: 0.6rem;
     transform: scale(2);
     z-index: 30;
@@ -511,6 +588,25 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
 
 
 @media (max-width: 768px) {
+    /* Make header span full width on mobile by targeting container-fluid */
+    .container-fluid {
+        padding-left: 0;
+        padding-right: 0;
+        margin-left: 0;
+        margin-right: 0;
+        width: 100vw;
+        max-width: 100vw;
+    }
+
+    .header-flex {
+        margin-left: 0;
+    }
+
+    /* Ensure header doesn't overlap sidebar on mobile */
+    .sticky-header {
+        z-index: 25;
+    }
+
     /* Make header span full width on mobile by targeting container-fluid */
     .container-fluid {
         padding-left: 0;
