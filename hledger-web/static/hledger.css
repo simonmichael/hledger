@@ -422,13 +422,6 @@ body.sidebar-hidden .title-row .home-btn {
         font-size: 1.5rem;
     }
 
-    /* Hide desktop open sidebar button on mobile by moving it off-screen */
-    #top-left-controls .open-sidebar-arrow {
-        position: absolute;
-        left: -9999px;
-        visibility: hidden;
-    }
-
     /* When at home, adjust title and mobile menu button */
     .title-row.no-home-btn {
         margin-left: 2rem;
