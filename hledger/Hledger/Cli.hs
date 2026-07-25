@@ -454,7 +454,7 @@ main = handleExit $ withGhcDebug' $ do
           cmdaction opts (ignoredjournal cmdname)
 
         -- 6.4.3. builtin command which can work with a non-existent journal
-        | cmdname `elem` ["add","import"] ->
+        | cmdname `elem` journalCreatingCommandNames ->
           withPossibleJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code

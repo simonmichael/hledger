@@ -189,6 +189,9 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
                 | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
                 | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
                 | manFlag   -> runManForTopic "hledger"  mmodecmdname
+                | cmdname `elem` journalCreatingCommandNames ->
+                  -- add and import can create a nonexistent journal file, as they do at the CLI
+                  withPossibleRunJournal defaultJournalOverride opts (cmdaction opts)
                 | otherwise -> do
                   withJournalCached (Just defaultJournalOverride) opts $ \(j,jpaths) -> do
                     if cmdname == "run" -- allow "run" to call "run"
@@ -366,16 +369,27 @@ maybeDirModificationTime d = do
   exists <- doesDirectoryExist d
   if exists then Just . utcTimeToPOSIXSeconds <$> getModificationTime d else return Nothing
 
--- | Get the journal(s) to read, either from the defaultJournalOverride or from the cliopts
+-- | Get the journal(s) to read: the command's own -f files if any, else the run/repl session's
+-- journal(s) (defaultJournalOverride), else the default journal path. The path need not exist -
+-- like add/import at the CLI, we let commands create it or report the error, rather than requiring
+-- it up front (which would stop run/repl starting when there is no journal yet).
 journalFilePathFromOptsOrDefault :: Maybe DefaultRunJournal -> CliOpts -> IO (NE.NonEmpty PrefixedFilePath)
 journalFilePathFromOptsOrDefault defaultJournalOverride cliopts = do
-  case defaultJournalOverride of
-    Nothing -> journalFilePathFromOpts cliopts
-    Just (DefaultRunJournal defaultFiles) -> do
-      mbjournalpaths <- journalFilePathFromOptsNoDefault cliopts
-      case mbjournalpaths of
-        Nothing -> return defaultFiles -- use the journal(s) given to the "run" itself
-        Just journalpaths -> return journalpaths
+  mbjournalpaths <- journalFilePathFromOptsNoDefault cliopts
+  case mbjournalpaths of
+    Just journalpaths -> return journalpaths  -- the command's own -f files
+    Nothing -> case defaultJournalOverride of
+      Just (DefaultRunJournal defaultFiles) -> return defaultFiles  -- the journal(s) given to run/repl
+      Nothing -> NE.fromList . pure <$> defaultJournalPath  -- the default journal path (need not exist)
+
+-- | Like withJournalCached, but tolerates a nonexistent first journal file (providing an empty
+-- journal with that path set), so add and import can create it - as they do at the CLI. Does not
+-- cache, since these commands write to the file.
+withPossibleRunJournal :: DefaultRunJournal -> CliOpts -> (Journal -> IO ()) -> IO ()
+withPossibleRunJournal defaultJournalOverride cliopts cmd = do
+  journalpaths <- journalFilePathFromOptsOrDefault (Just defaultJournalOverride) cliopts
+  ej <- runExceptT $ journalTransform cliopts <$> readPossibleJournalFiles (inputopts_ cliopts) (NE.toList journalpaths)
+  either error' cmd ej
 
 -- | Similar to `withJournal`, but caches all the journals it reads.
 -- When reading from stdin, also caches the stdin contents so that we could reprocess
