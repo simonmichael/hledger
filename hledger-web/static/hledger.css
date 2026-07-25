@@ -137,12 +137,14 @@ ul {
     visibility: visible;
 }
 
-
-
 #sidebar-menu .main-menu .amount {
     float: right;
     overflow-x:auto;
     font-weight: 500 !important;
+}
+
+tr.total .amount {
+    margin-right: .25rem;
 }
 
 #sidebar-menu .main-menu .acct {
