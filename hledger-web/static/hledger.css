@@ -404,10 +404,7 @@ body.sidebar-hidden .title-row .home-btn {
     .mobile-menu-btn-home {
         top: 0;
     }
-}
 
-/* Move home button right on mobile to avoid overlap with mobile menu button */
-@media (max-width: 767px) {
     .title-row {
         gap: 0;
         margin-left: 0;
@@ -432,7 +429,7 @@ body.sidebar-hidden .title-row .home-btn {
         visibility: hidden;
     }
 
-    /* When at home (no home button), adjust title and mobile menu button */
+    /* When at home, adjust title and mobile menu button */
     .title-row.no-home-btn {
         margin-left: 2rem;
     }
@@ -589,7 +586,7 @@ body.sidebar-hidden #top-left-controls label[for="hideEmptyAccountsDesktop"] {
 }
 
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
     /* Make header span full width on mobile by targeting container-fluid */
     .container-fluid {
         padding-left: 0;
