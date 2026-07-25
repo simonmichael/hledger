@@ -1011,6 +1011,7 @@ tests_JournalReader = testGroup "JournalReader" [
    let p = lift accountnamep :: JournalParser IO AccountName in
    testGroup "accountnamep" [
      testCase "basic" $ assertParse p "a:b:c"
+    ,testCase "single space is part of the account name" $ assertParseEq p "a b:c" "a b:c"
     -- ,testCase "empty inner component" $ assertParseError p "a::c" ""  -- TODO
     -- ,testCase "empty leading component" $ assertParseError p ":b:c" "x"
     -- ,testCase "empty trailing component" $ assertParseError p "a:b:" "x"

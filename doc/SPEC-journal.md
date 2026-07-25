@@ -84,7 +84,7 @@ posting-comment = { comment-line-indented } ;
 
 account-name = account-name-component, { ":", account-name-component } ;
 account-name-component = account-char, { account-char } ;
-account-char = any-char - ";" - newline - ":" - "  " (* two spaces *) ;
+account-char = any-char - ";" - newline - ":" - "  " (* two spaces *) - tab ;
 
 (* Amounts *)
 amount-expr = amount, [ cost-expr ] ;

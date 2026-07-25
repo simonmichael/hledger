@@ -1509,10 +1509,14 @@ In hledger docs you may see them referred to as A, L, E, R, X for short.
 
 ### Two space delimiter
 
-Note the **two or more spaces** delimiter that's sometimes required after account names. <!-- (Two or more tabs will also work.) -->
+Note the **two or more spaces** delimiter that's sometimes required after account names.
 hledger's account names, inherited from Ledger, are very permissive;
 they may contain pretty much any kind of text, including single spaces and semicolons.
-Because of this, they must be terminated by **two or more spaces** if there is anything following them on the same line.
+Because of this, they must be terminated by **two or more spaces** 
+if there is anything following them on the same line.
+(For Ledger compatibility, we also accept one or more tab characters.
+But in output, we always print spaces.)
+
 For example, if an amount, balance assignment, or same-line comment
 follows an account name, they must be preceded by two or more spaces,
 else they would be considered part of the account name:

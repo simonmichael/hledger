@@ -321,3 +321,28 @@ $ hledger -f- print -BV cur:A
     (a)                                           10 B
 
 >=
+
+# ** 26. A single tab may separate an account name from an amount, for Ledger
+# compatibility (normally two or more spaces are required). Here tabs are used
+# for both the leading indent and the account/amount separator.
+<
+2021-01-01
+	a	10 A
+	b
+$ hledger -f- print -x
+2021-01-01
+    a                                             10 A
+    b                                            -10 A
+
+>=
+
+# ** 27. A single space still does not separate account from amount; it is part
+# of the account name. Here "a b" is one account name and there is no amount, so
+# the two implicit-amount postings can't be balanced.
+<
+2021-01-01
+  a b
+  c
+$ hledger -f- print
+>2 /can't be more than one real posting with no amount/
+>=1

@@ -741,7 +741,8 @@ modifiedaccountnamep allowsemicolon = do
 
 -- | Parse an account name, plus one following space if present.
 -- Account names have one or more parts separated by the account separator character,
--- and are terminated by two or more spaces (or end of input).
+-- and are terminated by two or more whitespace characters (spaces or tabs), a single tab,
+-- or end of input.
 -- Each part is at least one character long, may have single spaces inside it, and starts with a non-whitespace.
 -- (We should have required them to start with an alphanumeric, but didn't.)
 -- Note, this means account names can contain all kinds of punctuation, including ; which usually starts a following comment.
@@ -769,12 +770,12 @@ noncommenttext1p :: TextParser m T.Text
 noncommenttext1p = takeWhile1P Nothing (\c -> not $ isSameLineCommentStart c || isNewline c)
 
 -- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
--- until a double space or newline.
+-- until a tab, double space, or newline.
 singlespacedtext1p :: TextParser m T.Text
 singlespacedtext1p = singlespacedtextsatisfying1p (const True)
 
 -- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
--- until a comment start (semicolon), double space, or newline.
+-- until a comment start (semicolon), tab, double space, or newline.
 singlespacednoncommenttext1p :: TextParser m T.Text
 singlespacednoncommenttext1p = singlespacedtextsatisfying1p (not . isSameLineCommentStart)
 
@@ -788,9 +789,12 @@ singlespacedtextsatisfying1p f = do
   where
     partp = takeWhile1P Nothing (\c -> f c && not (isSpace c))
 
--- | Parse one non-newline whitespace character that is not followed by another one.
+-- | Parse a single space character (not a tab) that is not followed by more whitespace.
+-- A tab, like two or more spaces, terminates the surrounding single-spaced text instead of
+-- being consumed here; this lets a single tab separate an account name from an amount,
+-- for Ledger compatibility.
 singlespacep :: TextParser m ()
-singlespacep = spacenonewline *> notFollowedBy spacenonewline
+singlespacep = char ' ' *> notFollowedBy spacenonewline
 
 --- *** amounts
 
