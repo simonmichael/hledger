@@ -1,7 +1,7 @@
 <h2 .register-title>
   #{header}
 
-<section>
+<section#register-chart-section>
   ^{registerChartHtml qparam balancelabel $ accountTransactionsReportByCommodity items}
 
 <section.table-responsive>
