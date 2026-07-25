@@ -39,13 +39,15 @@
   $forall (n, (acc, amt, accE, amtE)) <- displayRows
     <div .form-group .row .account-group style="padding-left:1em;">
       <div .col-sm-9.col-xs-9 :isJust accE:.has-error>
+        <label for="account-#{n}" class="sr-only">Account #{n}</label>
         <input .account-input.form-control.input-lg type=text
-          name=account placeholder="Account #{n}" value="#{acc}">
+          id="account-#{n}" name=account placeholder="Account #{n}" value="#{acc}">
         $maybe err <- accE
           <span .help-block .error-block>_{err}
       <div .col-sm-3.col-xs-3 :isJust amtE:.has-error>
+        <label for="amount-#{n}" class="sr-only">Amount #{n}</label>
         <input .amount-input.form-control.input-lg type=text
-          name=amount placeholder="Amount #{n}" value="#{amt}">
+          id="amount-#{n}" name=amount placeholder="Amount #{n}" value="#{amt}">
         $maybe err <- amtE
           <span .help-block .error-block>_{err}
 

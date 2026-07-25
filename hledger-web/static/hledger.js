@@ -57,6 +57,21 @@ function hledgerInitGlobal() {
     }
   });
 
+  // Tap outside sidebar to close on mobile
+  document.addEventListener('click', function(e) {
+    if (isMobile()) {
+      var sidebar = document.getElementById('sidebar-menu');
+      var mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+      
+      if (sidebar && sidebar.classList.contains('active')) {
+        // Check if click is outside sidebar and not on the mobile menu button
+        if (!sidebar.contains(e.target) && !mobileMenuBtn.contains(e.target)) {
+          sidebarToggle();
+        }
+      }
+    }
+  });
+
   // HTML escape function from validator.js library
   // https://github.com/validatorjs/validator.js
   function escape(str) {
@@ -97,11 +112,14 @@ function hledgerInitGlobal() {
     document.querySelector(window.location.hash).classList.add('highlighted');
   }
   window.addEventListener('hashchange', function() {
+    var hash = window.location.hash;
+    var target = hash ? document.querySelector(hash) : null;
+    
     document.querySelectorAll('.highlighted').forEach(function(el) {
       el.classList.remove('highlighted');
     });
-    if (window.location.hash && document.querySelector(window.location.hash)) {
-      document.querySelector(window.location.hash).classList.add('highlighted');
+    if (target) {
+      target.classList.add('highlighted');
     }
   });
   document.querySelectorAll('[data-toggle="offcanvas"]').forEach(function(el) {
@@ -168,32 +186,33 @@ function hledgerInitPage() {
       }
     });
 
-    // Color-code account names by type (only top-level accounts)
-    var acctLink = row.querySelector('.acct-name');
-    if (acctLink) {
-      var acctName = acctLink.getAttribute('data-account-name');
-      if (acctName) {
-        acctName = acctName.toLowerCase();
-        // Only color top-level accounts (no colons, or exact match)
-        var parts = acctName.split(':');
+  });
+
+  // Detect top-level accounts that have sub-accounts and add class
+  var allAccountLinks = document.querySelectorAll('#sidebar-menu .main-menu .acct-name');
+  var topLevelAccounts = {};
+  
+  // First, collect all top-level account names
+  allAccountLinks.forEach(function(link) {
+    var acctName = link.getAttribute('data-account-name');
+    if (acctName) {
+      var parts = acctName.split(':');
+      if (parts.length === 1) {
+        topLevelAccounts[acctName] = false; // no sub-accounts
+      } else {
         var topLevel = parts[0];
-        if (parts.length === 1) {
-          if (topLevel === 'assets') {
-            acctLink.style.color = '#006400'; // dark green
-          } else if (topLevel === 'liabilities') {
-            acctLink.style.color = '#0000FF'; // hyperlink blue
-          } else if (topLevel === 'equity') {
-            acctLink.style.color = '#800080'; // purple
-          } else if (topLevel === 'income') {
-            acctLink.style.color = '#8B4500'; // dark orange
-          } else if (topLevel === 'expenses') {
-            acctLink.style.color = '#FF0000'; // red
-          } else {
-            // Legible blue for miscellaneous accounts
-            acctLink.style.color = '#1E90FF'; // dodger blue
-          }
+        if (topLevelAccounts.hasOwnProperty(topLevel)) {
+          topLevelAccounts[topLevel] = true; // has sub-accounts
         }
       }
+    }
+  });
+  
+  // Add class to top-level accounts that have sub-accounts
+  allAccountLinks.forEach(function(link) {
+    var acctName = link.getAttribute('data-account-name');
+    if (acctName && topLevelAccounts.hasOwnProperty(acctName) && topLevelAccounts[acctName]) {
+      link.classList.add('top-level-with-subs');
     }
   });
 
@@ -409,19 +428,32 @@ function hledgerHighlightHash() {
   document.querySelectorAll('.highlighted').forEach(function(el) {
     el.classList.remove('highlighted');
   });
-  if (window.location.hash && document.querySelector(window.location.hash)) {
-    document.querySelector(window.location.hash).classList.add('highlighted');
+  if (window.location.hash) {
+    try {
+      var element = document.querySelector(window.location.hash);
+      if (element) {
+        element.classList.add('highlighted');
+      }
+    } catch (e) {
+      // Invalid hash selector, ignore
+    }
   }
 }
 
 function hledgerScrollToHashOrTop() {
-  if (window.location.hash && document.querySelector(window.location.hash)) {
-    var element = document.querySelector(window.location.hash);
-    var rect = element.getBoundingClientRect();
-    window.scrollTo(0, rect.top + window.scrollY);
-  } else {
-    window.scrollTo(0, 0);
+  if (window.location.hash) {
+    try {
+      var element = document.querySelector(window.location.hash);
+      if (element) {
+        var rect = element.getBoundingClientRect();
+        window.scrollTo(0, rect.top + window.scrollY);
+        return;
+      }
+    } catch (e) {
+      // Invalid hash selector, ignore
+    }
   }
+  window.scrollTo(0, 0);
 }
 
 //----------------------------------------------------------------------
@@ -508,10 +540,36 @@ function addformAddPosting() {
   if (accountfield) {
     accountfield.value = '';
     accountfield.placeholder = 'Account '+newnum;
+    accountfield.id = 'account-'+newnum;
+    // Add or update label for accessibility
+    var existingLabel = newrow.querySelector('label[for^="account-"]');
+    if (existingLabel) {
+      existingLabel.setAttribute('for', 'account-'+newnum);
+      existingLabel.textContent = 'Account '+newnum;
+    } else {
+      var label = document.createElement('label');
+      label.setAttribute('for', 'account-'+newnum);
+      label.className = 'sr-only';
+      label.textContent = 'Account '+newnum;
+      accountfield.parentNode.insertBefore(label, accountfield);
+    }
   }
   if (amountfield) {
     amountfield.value = '';
     amountfield.placeholder = 'Amount '+newnum;
+    amountfield.id = 'amount-'+newnum;
+    // Add or update label for accessibility
+    var existingLabel = newrow.querySelector('label[for^="amount-"]');
+    if (existingLabel) {
+      existingLabel.setAttribute('for', 'amount-'+newnum);
+      existingLabel.textContent = 'Amount '+newnum;
+    } else {
+      var label = document.createElement('label');
+      label.setAttribute('for', 'amount-'+newnum);
+      label.className = 'sr-only';
+      label.textContent = 'Amount '+newnum;
+      amountfield.parentNode.insertBefore(label, amountfield);
+    }
   }
 
   // Enable autocomplete in the new account field.

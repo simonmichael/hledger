@@ -10,14 +10,18 @@
   <input .empty-account-checkbox type="checkbox" id="hideEmptyAccountsDesktop" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox(event)" title="Toggles Empty Accounts&#10Keyboard shortcut: e">
   <label for="hideEmptyAccountsDesktop" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
 
-<button .btn.btn-default.mobile-menu-btn type="button" onclick="sidebarToggle()" title="Open Sidebar" aria-label="Open Sidebar">
-  <span .bi.bi-list aria-hidden="true">
-<button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar" aria-label="Close Sidebar">
-  <span .bi.bi-arrow-left aria-hidden="true">
+$if isJournalPage
+  <button .btn.btn-default.mobile-menu-btn.mobile-menu-btn-home type="button" onclick="sidebarToggle()" title="Open Sidebar" aria-label="Open Sidebar">
+    <span .bi.bi-list aria-hidden="true">
+$else
+  <button .btn.btn-default.mobile-menu-btn type="button" onclick="sidebarToggle()" title="Open Sidebar" aria-label="Open Sidebar">
+    <span .bi.bi-list aria-hidden="true">
 
 $if elem ViewPermission perms
   <div .page-container>
     <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+      <button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar" aria-label="Close Sidebar">
+        <span .bi.bi-arrow-left aria-hidden="true">
       <input .empty-account-checkbox-mobile type="checkbox" id="hideEmptyAccountsMobile" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox(event)" title="Show Empty Accounts&#10Keyboard shortcut: e">
       <label for="hideEmptyAccountsMobile" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
       <table .main-menu .table>
@@ -26,16 +30,21 @@ $if elem ViewPermission perms
     <main#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
       <header .sticky-header>
         <div .header-flex>
-          <div .title-row>
-            $if not isJournalPage
+          $if isJournalPage
+            <div .title-row.no-home-btn>
+              <h1 .d-flex.align-items-center>
+                <a href="#" onclick="location.href = document.hledgerWebBaseurl+'/journal'; return false;" title="Go to the General journal&#10Keyboard shortcut: j">#{takeFileName (journalFilePath j)}
+          $else
+            <div .title-row>
               <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j" aria-label="Go to Journal">
                 <span .bi.bi-house aria-hidden="true">
-            <h1 .d-flex.align-items-center>
-              <a href="#" onclick="location.href = document.hledgerWebBaseurl+'/journal'; return false;" title="Go to the General journal&#10Keyboard shortcut: j">#{takeFileName (journalFilePath j)}
+              <h1 .d-flex.align-items-center>
+                <a href="#" onclick="location.href = document.hledgerWebBaseurl+'/journal'; return false;" title="Go to the General journal&#10Keyboard shortcut: j">#{takeFileName (journalFilePath j)}
           $if elem ViewPermission perms
             <form#searchform.input-group method=GET>
               <div .input-group-prepend>
-              <input .form-control name=q value=#{qparam} placeholder="Search"
+              <label for="search-input" class="sr-only">Search</label>
+              <input .form-control id="search-input" name=q value=#{qparam} placeholder="Search"
                 title="Enter hledger search patterns to filter the data below">
               <div .input-group-append>
                 $if not (T.null qparam)
