@@ -56,7 +56,7 @@ $if elem ViewPermission perms
                   <a href="@{ManageR}" .btn.btn-default title="Manage journal files" aria-label="Manage Journal Files">
                     <span .bi.bi-gear aria-hidden="true">
                 <button .btn .btn-default type=button data-bs-toggle="modal" data-bs-target="#helpmodal"
-                   title="Show search and general help" aria-label="Show Help">
+                   title="Show search and general help&#10Keyboard shortcut: h" aria-label="Show Help">
                   <span .bi.bi-question-circle aria-hidden="true">
       $maybe m <- msg
         <div#message .alert.alert-info>#{m}

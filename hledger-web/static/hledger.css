@@ -426,6 +426,7 @@ body.sidebar-hidden .title-row .home-btn {
     .title-row.no-home-btn {
         margin-left: 2rem;
     }
+
     .mobile-menu-btn-home {
         top: 0;
     }
@@ -444,6 +445,10 @@ body.sidebar-hidden .title-row .home-btn {
     top: 0.5rem;
     left: 1.2rem;
     z-index: 20;
+}
+
+#hideEmptyAccountsDesktop:hover, #top-left-controls label[for="hideEmptyAccountsDesktop"]:hover {
+    cursor: pointer;
 }
 
 #sidebar-menu .empty-account-checkbox-mobile {
