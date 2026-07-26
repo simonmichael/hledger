@@ -1,0 +1,61 @@
+// Wait for Chart.js to be loaded
+if (typeof Chart !== 'undefined') {
+  (function() {
+    var ctx = document.getElementById('balanceChart');
+    if (!ctx) return;
+    
+    var datasets = [
+      $forall (commodity, items) <- percommoditytxnreports
+        {
+          label: #{commodity},
+          data: [
+            $forall item <- items
+              {x: #{dayToUtcNoonTimestamp $ tdate $ triitem item}, y: #{simpleMixedAmountQuantity $ triamt item}}
+          ],
+          borderColor: 'hsl(#{colorForCommodity commodity * 60}, 70%, 50%)',
+          backgroundColor: 'hsl(#{colorForCommodity commodity * 60}, 70%, 50%, 0.1)',
+          tension: 0.1,
+          fill: false
+        },
+    ];
+    
+    var chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        datasets: datasets
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          x: {
+            type: 'time',
+            time: {
+              unit: 'day'
+            },
+            title: {
+              display: true,
+              text: 'Date'
+            }
+          },
+          y: {
+            title: {
+              display: true,
+              text: #{charttitle}
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top'
+          },
+          tooltip: {
+            mode: 'index',
+            intersect: false
+          }
+        }
+      }
+    });
+  })();
+}

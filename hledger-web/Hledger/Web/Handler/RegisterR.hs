@@ -9,8 +9,13 @@
 
 module Hledger.Web.Handler.RegisterR where
 
+import Data.Aeson ((.=))
+import Data.Aeson qualified as Aeson
 import Data.List (nub, partition)
 import Data.Text qualified as T
+import Data.Text.Encoding.Error (lenientDecode)
+import Data.Text.Lazy qualified as TL
+import Data.Text.Lazy.Encoding qualified as TLE
 import Safe (tailSafe)
 
 import Hledger
@@ -20,7 +25,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, mixedAmountAsHtml,
-              transactionFragment, removeInacct, replaceInacct)
+              transactionFragment, removeInacct, replaceInacct, removeDates)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
@@ -101,18 +106,79 @@ decorateLinks = concatMap $ \(acct, (name, comma)) ->
 
 -- | Generate javascript/html for a register balance line chart based on
 -- the provided "AccountTransactionsReportItem"s.
--- registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
--- registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
---  -- have to make sure plot is not called when our container (maincontent)
---  -- is hidden, eg with add form toggled
---  where
---    charttitle = if null title then "" else title ++ ":"
---    colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
---    commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
---    simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts . mixedAmountStripCosts
---    showZeroCommodity = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=False,displayZeroCommodity=True}
---    shownull c = if null c then " " else c
---    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
+registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> Widget
+registerChartHtml q title percommoditytxnreports = do
+  let chartData = map (\(commodity, items) -> 
+        object ["label" .= commodity
+               ,"data" .= map (\item -> 
+                  object ["x" .= dayToUtcNoonTimestamp (triDate item)
+                        ,"y" .= simpleMixedAmountQuantity (triAmount item)]) items
+               ,"borderColor" .= ("hsl(" ++ show (colorForCommodity commodity * 60) ++ ", 70%, 50%)")
+               ,"backgroundColor" .= ("hsl(" ++ show (colorForCommodity commodity * 60) ++ ", 70%, 50%, 0.1)")
+               ,"tension" .= (0.1 :: Double)
+               ,"fill" .= False
+               ]) percommoditytxnreports
+      chartDataJson = Aeson.encode chartData
+      chartDataStr = T.unpack $ TL.toStrict $ TLE.decodeUtf8With lenientDecode chartDataJson
+  $(whamletFile "templates/chart.hamlet")
+  toWidget [julius|
+    // Wait for Chart.js to be loaded
+    if (typeof Chart !== 'undefined') {
+      (function() {
+        var ctx = document.getElementById('balanceChart');
+        if (!ctx) return;
+        
+        var chartDataStr = ctx.getAttribute('data-chart');
+        var datasets = JSON.parse(chartDataStr);
+        
+        var chart = new Chart(ctx, {
+          type: 'line',
+          data: {
+            datasets: datasets
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                type: 'time',
+                time: {
+                  unit: 'day'
+                },
+                title: {
+                  display: true,
+                  text: 'Date'
+                }
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: #{charttitle}
+                }
+              }
+            },
+            plugins: {
+              legend: {
+                display: true,
+                position: 'top'
+              },
+              tooltip: {
+                mode: 'index',
+                intersect: false
+              }
+            }
+          }
+        });
+      })();
+    }
+  |]
+ -- have to make sure plot is not called when our container (maincontent)
+ -- is hidden, eg with add form toggled
+ where
+   charttitle = if null title then "" else title ++ ":"
+   colorForCommodity = fromMaybe 0 . flip lookup commoditiesIndex
+   commoditiesIndex = zip (map fst percommoditytxnreports) [0..] :: [(CommoditySymbol,Int)]
+   simpleMixedAmountQuantity = maybe 0 aquantity . listToMaybe . amounts . mixedAmountStripCosts
 
 -- | Makes a unix timestamp (milliseconds since epoch) corresponding to noon on the given date in UTC.
 dayToUtcNoonTimestamp :: Day -> Integer

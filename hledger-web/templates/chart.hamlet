@@ -1,0 +1,2 @@
+<section#chart-container>
+  <canvas id="balanceChart" data-chart="#{chartDataStr}" style="height:300px; width:100%;">
