@@ -859,17 +859,33 @@ amountp = amountp' False
 -- An amount with optional cost, valuation, and/or cost basis, as described above.
 -- A flag indicates whether we are parsing a multiplier amount;
 -- if not, a commodity-less amount will have the default commodity applied to it.
+-- | Parse a single-commodity amount, with optional arithmetic expression support.
+-- After the initial amount, one or more arithmetic operators (+, -, *, /)
+-- followed by additional amounts may be parsed. The amounts are combined
+-- using 'similarAmountsOp' and must have the same commodity.
+-- This allows journal entries like:
+--
+-- @
+--     assets:personal    $-21.60 + $-27.68 + $-5.03 + $-17.80
+-- @
+--
+-- Operators are evaluated left-to-right with no precedence.
+-- A flag indicates whether we are parsing a multiplier amount;
+-- if not, a commodity-less amount will have the default commodity applied to it.
 amountp' :: Bool -> JournalParser m Amount
 amountp' mult =
   -- dbg "amountp'" $
   label "amount" $ do
   let spaces = lift $ skipNonNewlineSpaces
   amt <- simpleamountp mult <* spaces
+  -- Try to parse arithmetic operators followed by more amounts
+  amt' <- arithmeticTail amt
+  -- Costs/lots are only parsed for the final accumulated amount
   (mcost, _valuationexpr, mlotcb, mlotdate, mlotnote) <- runPermutation $
     -- costp, valuationexprp, lotnotep all parse things beginning with parenthesis, try needed
-    (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt) <* spaces)
+    (,,,,) <$> toPermutationWithDefault Nothing (Just <$> try (costp amt') <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> valuationexprp <* spaces)  -- XXX no try needed here ?
-          <*> toPermutationWithDefault Nothing (Just <$> lotcostp (aquantity amt) <* spaces)
+          <*> toPermutationWithDefault Nothing (Just <$> lotcostp (aquantity amt') <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotdatep <* spaces)
           <*> toPermutationWithDefault Nothing (Just <$> lotnotep <* spaces)
   -- Reject mixing consolidated {DATE,...} or {"LABEL",...} with ledger-style [DATE] or (NOTE)
@@ -886,7 +902,24 @@ amountp' mult =
                  , cbDate  = (mlotcb >>= cbDate) <|> mlotdate
                  , cbLabel = (mlotcb >>= cbLabel) <|> mlotnote
                  }
-  pure $ amt { acost = mcost, acostbasis = mcostbasis }
+  pure $ amt' { acost = mcost, acostbasis = mcostbasis }
+  where
+    -- | Parse an optional arithmetic expression tail:
+    -- (operator amount)*, where operator is +, - or *.
+    -- Left-associative, no operator precedence.
+    arithmeticTail :: Amount -> JournalParser m Amount
+    arithmeticTail acc = do
+      mop <- lift $ optional $ try $
+        skipNonNewlineSpaces *>
+        (  char '+' $> (+)
+       <|> char '-' $> (-)
+       <|> char '*' $> (*)
+        ) <* skipNonNewlineSpaces
+      case mop of
+        Nothing -> pure acc
+        Just op -> do
+          amt2 <- simpleamountp mult <* spaces
+          arithmeticTail $ similarAmountsOp op acc amt2
 
 -- An amount with optional cost, but no cost basis.
 amountnobasisp :: JournalParser m Amount
