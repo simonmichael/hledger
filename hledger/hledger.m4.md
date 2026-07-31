@@ -1509,38 +1509,39 @@ In hledger docs you may see them referred to as A, L, E, R, X for short.
 
 ### Two space delimiter
 
-Note the **two or more spaces** delimiter that's sometimes required after account names.
-hledger's account names, inherited from Ledger, are very permissive;
-they may contain pretty much any kind of text, including single spaces and semicolons.
-Because of this, they must be terminated by **two or more spaces** 
-if there is anything following them on the same line.
-(For Ledger compatibility, we also accept one or more tab characters.
-But in output, we always print spaces.)
+Note that hledger's account names, like Ledger's, may contain single spaces.
+Because of this, they must be separated from anything following them on the same line
+by **two or more spaces**. 
+(One or more tabs also work, for Ledger compatibility; but spaces are preferred.)
 
-For example, if an amount, balance assignment, or same-line comment
-follows an account name, they must be preceded by two or more spaces,
-else they would be considered part of the account name:
+This lets us use expressive account names, while still keeping the syntax light.
+Here are some examples:
 
 ```
-bad:     assets:accounts receivable $10        ; <- too close!
-good:    assets:accounts receivable  $10
+  assets:accounts receivable ; bad, only one space before the comment
+  assets:accounts receivable  ; good
 ```
 <!-- -->
 ```
-bad:     assets:accounts receivable =$1000     ; <- too close!
-good:    assets:accounts receivable  =$1000
+  assets:accounts receivable $10    ; bad, one space before the amount
+  assets:accounts receivable  $10   ; good
 ```
 <!-- -->
 ```
-bad:     assets:accounts receivable ; comment.   <- too close!
-good:    assets:accounts receivable  ; comment
+  assets:accounts receivable = $1000   ; bad, one space before the balance assignment
+  assets:accounts receivable  = $1000  ; good
 ```
 
-This two-space delimiter appears in a few places in hledger,
-such as after account names in [postings](#postings) or [account directives](#account-directive);
-also after the period expression in [periodic transaction rules](#periodic-transactions).
-When you are starting out, expect it to catch you out at least once. It's annoying sometimes,
-but it lets us use expressive account names while still keeping the syntax light.
+The two-space delimiter is also required in [periodic transaction rules](#periodic-transactions),
+between period expression and description:
+
+```
+~ every 5th day YouTube Premium     ; bad, one space before the description
+~ every 5th day  YouTube Premium    ; good
+```
+
+When you are starting out, you can expect this delimiter will trip you up once or twice.
+(If it happens too much, you can check account names [strictly](#strict-checks) to prevent it.)
 
 ### Account hierarchy
 
