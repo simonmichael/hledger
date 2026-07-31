@@ -1,6 +1,6 @@
 # AI policy
 
-Last updated: 2026-05-12
+Last updated: 2026-07-20
 
 The productivity benefits from AI-assisted software development are becoming obvious.
 And the disruptions, costs and risks of AI will keep becoming clearer.
