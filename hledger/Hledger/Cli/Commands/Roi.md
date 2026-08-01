@@ -9,17 +9,18 @@ Flags:
                                 returns
      --investment=QUERY         query to select your investment transactions
      --profit-loss=QUERY --pnl  query to select profit-and-loss or
-                                appreciation/valuation transactions
+                                appreciation/valuation transactions (optional)
 ```
 
 At a minimum, you need to supply a query (which could be just an
-account name) to select your investment(s) with `--inv`, and another
-query to identify your profit and loss transactions with `--pnl`.
+account name) to select your investment(s) with `--inv`.
 
-If your investment's value changes are captured solely through price
-directives (rather than manual P&L journal entries), or if you do not
-need TWR, `--pnl` can be an empty query (`--pnl ""` or `--pnl STR`
-where `STR` does not match any of your accounts).
+An optional second query to identify your profit and loss transactions
+could be given with `--pnl`. If your investment's value changes are
+captured solely through price directives (rather than manual P&L
+journal entries), or if you do not need TWR, you can simply omit
+`--pnl`, and no transactions will be classed as profit and loss in
+this case.
 
 This command will compute and display the internal rate of return
 (IRR, also known as money-weighted rate of return) and time-weighted

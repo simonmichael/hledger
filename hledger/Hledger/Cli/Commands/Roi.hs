@@ -40,7 +40,7 @@ roimode = hledgerCommandMode
   ,flagReq ["investment"] (\s opts -> Right $ setopt "investment" s opts) "QUERY"
     "query to select your investment transactions"
   ,flagReq ["profit-loss","pnl"] (\s opts -> Right $ setopt "pnl" s opts) "QUERY"
-    "query to select profit-and-loss or appreciation/valuation transactions"
+    "query to select profit-and-loss or appreciation/valuation transactions (optional)"
   ]
   cligeneralflagsgroups1
   hiddenflags
@@ -85,7 +85,9 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
     cantCompute msg = error' $ msg ++ " - will be unable to compute the rates of return"
 
   investmentsQuery <- makeQuery "investment"
-  pnlQuery         <- makeQuery "pnl"
+  pnlQuery         <- case maybestringopt "pnl" rawopts of
+                         Nothing -> return None
+                         Just _  -> makeQuery "pnl"
 
   when (pnlQuery == Any) $
     cantCompute "Need some transactions classed as investment and not pnl, but the pnl query matches any transaction"
