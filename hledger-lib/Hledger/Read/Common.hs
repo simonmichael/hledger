@@ -1278,6 +1278,10 @@ disambiguateNumber msuggestedStyle (AmbiguousNumber grp1 sep grp2) =
 -- Left (AmbiguousNumber "1" ',' "000")
 -- >>> parseTest rawnumberp "1 000"
 -- Right (WithSeparators ' ' ["1","000"] Nothing)
+-- >>> parseTest rawnumberp "1'000"
+-- Right (WithSeparators '\'' ["1","000"] Nothing)
+-- >>> parseTest rawnumberp "1_000"
+-- Right (WithSeparators '_' ["1","000"] Nothing)
 --
 rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
 rawnumberp = label "number" $ do
@@ -1343,7 +1347,7 @@ rawnumberp = label "number" $ do
     pure $ NoSeparators grp1 (Just (decPt, mempty))
 
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalMark c || isDigitSeparatorSpaceChar c
+isDigitSeparatorChar c = isDecimalMark c || isDigitSeparatorSpaceChar c || c == '_' || c == '\''
 
 -- | Kinds of unicode space character we accept as digit group marks.
 -- See also https://en.wikipedia.org/wiki/Decimal_separator#Digit_grouping .
@@ -1824,6 +1828,8 @@ tests_Common = testGroup "Common" [
      assertParseEq p "1"          (1, 0, Nothing, Nothing)
      assertParseEq p "1.1"        (1.1, 1, Just '.', Nothing)
      assertParseEq p "1,000.1"    (1000.1, 1, Just '.', Just $ DigitGroups ',' [3])
+     assertParseEq p "1_000.1"    (1000.1, 1, Just '.', Just $ DigitGroups '_' [3])
+     assertParseEq p "1'000.1"    (1000.1, 1, Just '.', Just $ DigitGroups '\'' [3])
      assertParseEq p "1.00.000,1" (100000.1, 1, Just ',', Just $ DigitGroups '.' [3,2])
      assertParseEq p "1,000,000"  (1000000, 0, Nothing, Just $ DigitGroups ',' [3,3])  -- could be simplified to [3]
      assertParseEq p "1."         (1, 0, Just '.', Nothing)
