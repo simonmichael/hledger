@@ -384,21 +384,30 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [(attrName "border", attr
 -- | Scroll a list's viewport so that the selected item is centered in the
 -- middle of the display area. When the selected item is near the end of the
 -- list, the viewport is capped so that no blank padding is visible below the
--- last real item. numitems is the number of non-blank items in the list.
+-- last real item, and the last real items stay bottom-aligned (so recentering
+-- a near-the-end selection doesn't push those items off screen). numitems is
+-- the number of non-blank items in the list.
 scrollSelectionToMiddle :: Int -> Brick.Widgets.List.List Name item -> EventM Name UIState ()
 scrollSelectionToMiddle numitems list = do
   case list^.listSelectedL of
     Nothing -> return ()
     Just selectedrow -> do
-      Vty{outputIface} <- getVtyHandle
-      pageheight <- dbg4 "pageheight" . snd <$> liftIO (displayBounds outputIface)
+      let name = list^.listNameL
+      mvp <- lookupViewport name
+      -- Use the list viewport's actual height. Before its first render the
+      -- viewport isn't known yet, so fall back to the terminal height.
+      pageheight <- dbg4 "pageheight" <$> case mvp of
+        Just VP{_vpSize=(_,h)} -> return h
+        Nothing -> do
+          Vty{outputIface} <- getVtyHandle
+          snd <$> liftIO (displayBounds outputIface)
       let
         itemheight   = dbg4 "itemheight" $ list^.listItemHeightL
         itemsperpage = dbg4 "itemsperpage" $ pageheight `div` itemheight
         centeredtop  = selectedrow - (itemsperpage `div` 2)
         maxtop       = numitems - itemsperpage
         toprow       = dbg4 "toprow" $ max 0 (min centeredtop maxtop) -- assuming ViewportScroll's row offset is measured in list items not screen rows
-      setTop (viewportScroll $ list^.listNameL) toprow
+      setTop (viewportScroll name) toprow
 
 --                 arrow keys       vi keys               emacs keys                 enter key
 moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
