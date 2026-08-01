@@ -11,6 +11,7 @@ where
 
 import Control.Monad
 import Data.List
+import Data.Set qualified as S
 import Data.Text.IO qualified as T
 import System.Console.CmdArgs.Explicit
 import Text.Printf
@@ -94,7 +95,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
               then do
                 -- show txns to be imported
                 hPrintf stderr "would import %d new transactions from %s:\n\n" (length newts) inputstr
-                mapM_ (T.putStr . showTransactionWithLayout postinglayout) newts
+                mapM_ (T.putStr . showTransactionWithLayout S.empty postinglayout) newts
 
                 -- then check the whole journal with them added, if in strict mode
                 when (strict_ iopts) $ strictChecks

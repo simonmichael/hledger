@@ -71,6 +71,7 @@ import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Semigroup (Endo(..))
 import Data.Text (Text)
 import Data.Map qualified as M
+import Data.Set qualified as S
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
 import Data.Text.Lazy.Builder qualified as TB
@@ -172,18 +173,20 @@ are displayed as multiple similar postings, one per commodity.
 (Normally does not happen with this function).
 -}
 showTransaction :: Transaction -> Text
-showTransaction = TL.toStrict . TB.toLazyText . showTransactionHelper False defaultPostingLayout
+showTransaction = TL.toStrict . TB.toLazyText . showTransactionHelper S.empty False defaultPostingLayout
 
 -- | Like 'showTransaction', but with an explicit posting layout
 -- (e.g. to support @print --layout=hledger1@).
-showTransactionWithLayout :: PostingLayout -> Transaction -> Text
-showTransactionWithLayout layout = TL.toStrict . TB.toLazyText . showTransactionHelper False layout
+-- Takes the set of commodities whose styles are declared in the journal,
+-- so that their amounts can be shown without a trailing decimal mark (#2664).
+showTransactionWithLayout :: S.Set CommoditySymbol -> PostingLayout -> Transaction -> Text
+showTransactionWithLayout declared layout = TL.toStrict . TB.toLazyText . showTransactionHelper declared False layout
 
 -- | Like showTransaction, but explicit multi-commodity amounts
 -- are shown on one line, comma-separated. In this case the output will
 -- not be parseable journal syntax.
 showTransactionOneLineAmounts :: Transaction -> Text
-showTransactionOneLineAmounts = TL.toStrict . TB.toLazyText . showTransactionHelper True defaultPostingLayout
+showTransactionOneLineAmounts = TL.toStrict . TB.toLazyText . showTransactionHelper S.empty True defaultPostingLayout
 
 -- | Show only a transaction's first line: date, status, code, description,
 -- and same-line comment, without any comment lines or postings. Used by print --oneline.
@@ -193,11 +196,11 @@ showTransactionOneLine :: Transaction -> Text
 showTransactionOneLine t = transactionFirstLine t <> "\n"
 
 -- | Helper for showTransaction*.
-showTransactionHelper :: Bool -> PostingLayout -> Transaction -> TB.Builder
-showTransactionHelper onelineamounts layout t =
+showTransactionHelper :: S.Set CommoditySymbol -> Bool -> PostingLayout -> Transaction -> TB.Builder
+showTransactionHelper declared onelineamounts layout t =
       TB.fromText (transactionFirstLine t) <> newline
     <> foldMap ((<> newline) . TB.fromText) newlinecomments
-    <> foldMap ((<> newline) . TB.fromText) (postingsAsLinesWithLayout defaultFmt onelineamounts layout $ tpostings t)
+    <> foldMap ((<> newline) . TB.fromText) (postingsAsLinesWithLayout (defaultFmt{displaySuppressDecimalMark=declared}) onelineamounts layout $ tpostings t)
     <> newline
   where
     newlinecomments = drop 1 $ renderCommentLines (tcomment t)

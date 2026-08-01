@@ -30,6 +30,7 @@ import Data.Either (isRight)
 import Data.Functor.Identity (Identity(..))
 import Data.List (isPrefixOf, nub)
 import Data.Maybe (fromJust, fromMaybe, isJust)
+import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
@@ -203,7 +204,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
           previnput' = previnput{prevDescAndCmnt=Just descAndCommentString}
       when (isJust mbaset) . liftIO $ do
           hPutStrLn stderr "Using this similar transaction for defaults:"
-          T.hPutStr stderr $ showTransactionWithLayout (layoutFromRawOpts $ rawopts_ asOpts) (fromJust mbaset)
+          T.hPutStr stderr $ showTransactionWithLayout (S.fromList $ journalCommoditiesDeclared asJournal) (layoutFromRawOpts $ rawopts_ asOpts) (fromJust mbaset)
       transactionWizard previnput' state' ((GetPosting TxnData{txnDate=date, txnCode=code, txnDesc=desc, txnCmnt=comment} Nothing) : stack)
     Nothing ->
       transactionWizard previnput state (drop 1 stack)
@@ -288,7 +289,7 @@ transactionWizard previnput state@AddState{..} stack@(currentStage : _) = case c
     Nothing -> transactionWizard previnput state (drop 1 stack)
 
   Confirm t -> do
-    output . T.unpack $ showTransactionWithLayout (layoutFromRawOpts $ rawopts_ asOpts) t
+    output . T.unpack $ showTransactionWithLayout (S.fromList $ journalCommoditiesDeclared asJournal) (layoutFromRawOpts $ rawopts_ asOpts) t
     y <- let def = "y" in
          retryMsg "Please enter y or n." $
           parser ((fmap (\c -> if c == '<' then Nothing else Just c)) . headMay . map toLower . strip) $
@@ -536,7 +537,7 @@ postingsAreBalanced j ps = isRight $ balanceSingleTransaction bopts nulltransact
 journalAddTransaction :: Journal -> CliOpts -> Transaction -> IO Journal
 journalAddTransaction j@Journal{jtxns=ts} opts t = do
   let f = journalFilePath j
-      showtxn = showTransactionWithLayout (layoutFromRawOpts $ rawopts_ opts)
+      showtxn = showTransactionWithLayout (S.fromList $ journalCommoditiesDeclared j) (layoutFromRawOpts $ rawopts_ opts)
   appendToJournalFileOrStdout f $ showtxn t
     -- unelided shows all amounts explicitly, in case there's a price, cf #283
   when (debug_ opts > 0) $ do

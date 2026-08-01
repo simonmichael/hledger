@@ -13,6 +13,7 @@ where
 
 import Data.Functor.Identity
 import Data.List (sortOn)
+import Data.Set qualified as S
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -141,7 +142,7 @@ diffTxn postinglayout j t t' = case tsourcepos t of
         diffs = map mapDiff $ D.getDiff source changed'
         source | Just contents <- lookup fp $ jfiles j = drop (unPos line-1) . take (unPos line' - 1) $ T.lines contents
                | otherwise = []
-        changed = T.lines $ showTransactionWithLayout postinglayout t'
+        changed = T.lines $ showTransactionWithLayout S.empty postinglayout t'
         changed' | null changed = changed
                  | T.null $ last changed = init changed
                  | otherwise = changed

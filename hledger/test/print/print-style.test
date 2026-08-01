@@ -288,3 +288,39 @@ $ hledger -f- print -X B
     (a)                                            0.0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789B
 
 >=
+
+# ** 14. When a commodity's style is declared with a commodity directive and
+# it uses digit group marks, print omits the trailing disambiguating decimal
+# mark, since the re-emitted commodity directive makes the amount unambiguous
+# when re-parsed (#2664).
+<
+commodity 1,000. JPY
+
+2023-01-01
+    a   1,000 JPY
+    b  -1,000 JPY
+
+$ hledger -f- print
+commodity 1,000. JPY
+
+2023-01-01
+    a                                          1,000 JPY
+    b                                         -1,000 JPY
+
+>=
+
+# ** 15. A declared commodity without digit group marks is unaffected:
+# no trailing decimal mark is added, and no commodity directive is re-emitted.
+<
+commodity A1000.00
+
+2023-01-01
+    a   1 A
+    b  -1 A
+
+$ hledger -f- print
+2023-01-01
+    a                                             A1
+    b                                            A-1
+
+>=

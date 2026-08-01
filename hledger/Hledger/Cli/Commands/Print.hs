@@ -46,6 +46,7 @@ import Hledger.Cli.Anchor (setAccountAnchor)
 import Lucid qualified
 import System.IO qualified as IO
 import Data.Maybe (isJust, catMaybes, fromMaybe)
+import Data.Set qualified as S
 import Hledger.Write.Beancount (commodityToBeancount, tagsToBeancountMetadata)
 
 printmode = hledgerCommandMode
@@ -171,8 +172,27 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     query = querystring_ $ _rsReportOpts rspec
     postinglayout = layoutFromRawOpts rawopts
     oneline = boolopt "oneline" rawopts
-    showtxn = if oneline then showTransactionOneLine else showTransactionWithLayout postinglayout
-    render | fmt=="txt"       = withTitle (_rsReportOpts rspec) . entriesReportAsTextHelper showtxn . styleAmounts styles . map maybeoriginalamounts
+    -- Commodities with styles declared in the journal: their amounts can be
+    -- shown without a trailing decimal mark, since the style directive
+    -- emitted below makes them unambiguous when re-parsed (#2664).
+    declaredCommodities = S.fromList $ journalCommoditiesDeclared j
+    showtxn = if oneline then showTransactionOneLine else showTransactionWithLayout declaredCommodities postinglayout
+    -- Re-emit the declared commodity style directives for commodities with
+    -- digit group marks, so that amounts shown without trailing decimal
+    -- marks (see 'declaredCommodities') can be re-parsed unambiguously (#2664).
+    -- Only commodities with digit group marks need this, since only they
+    -- have trailing decimal marks suppressed.
+    styleDirectiveHeader :: TL.Text
+    styleDirectiveHeader
+      | null headerCommodities = ""
+      | otherwise = TL.fromStrict $ T.unlines $
+          [ "commodity " <> T.pack (wbUnpack $ showAmountB defaultFmt{displayForceDecimalMark=True} $
+               nullamt{acommodity=sym, astyle=style, aquantity=1000})
+          | (sym, style) <- headerCommodities
+          ] <> [""]
+      where
+        headerCommodities = [(sym, style) | (sym, c) <- Map.toList (jdeclaredcommodities j), Just style <- [cformat c], isJust (asdigitgroups style)]
+    render | fmt=="txt"       = withTitle (_rsReportOpts rspec) . (styleDirectiveHeader <>) . entriesReportAsTextHelper showtxn . styleAmounts styles . map maybeoriginalamounts
            | fmt=="ledger"   = withTitle (_rsReportOpts rspec) . entriesReportAsTextHelper showTransactionLedger . styleAmounts styles . map maybeoriginalamounts
            | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map fillBalanceAssignments
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles

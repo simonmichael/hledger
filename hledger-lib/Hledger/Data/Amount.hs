@@ -253,9 +253,14 @@ data AmountFormat = AmountFormat
                                           --   Also, causes 0s to be generated for any commodities which are not present
                                           --   (important for tabular reports).
   , displayDigitGroups      :: Bool       -- ^ Whether to display digit group marks (eg thousands separators)
-  , displayForceDecimalMark :: Bool       -- ^ Whether to add a trailing decimal mark when there are no decimal digits 
-                                          --   and there are digit group marks, to disambiguate
-  , displayOneLine          :: Bool       -- ^ Whether to display on one line.
+   , displayForceDecimalMark :: Bool       -- ^ Whether to add a trailing decimal mark when there are no decimal digits
+                                           --   and there are digit group marks, to disambiguate
+   , displaySuppressDecimalMark :: S.Set CommoditySymbol
+                                           -- ^ Commodities for which the trailing disambiguating decimal mark is
+                                           --   suppressed even when 'displayForceDecimalMark' is set.
+                                           --   Only safe when the commodity's style is declared in the journal,
+                                           --   so the amount re-parses unambiguously with the declarations (#2664).
+   , displayOneLine          :: Bool       -- ^ Whether to display on one line.
   , displayMinWidth         :: Maybe Int  -- ^ Minimum width to pad to
   , displayMaxWidth         :: Maybe Int  -- ^ Maximum width to clip to
   , displayCost             :: Bool       -- ^ Whether to display Amounts' costs.
@@ -276,6 +281,7 @@ defaultFmt = AmountFormat {
   , displayCommodityOrder   = Nothing
   , displayDigitGroups      = True
   , displayForceDecimalMark = False
+  , displaySuppressDecimalMark = S.empty
   , displayOneLine          = False
   , displayMinWidth         = Just 0
   , displayMaxWidth         = Nothing
@@ -783,14 +789,14 @@ showAmountB :: AmountFormat -> Amount -> WideBuilder
 showAmountB _ Amount{acommodity="AUTO"} = mempty
 showAmountB
   afmt@AmountFormat{displayCommodity, displayZeroCommodity, displayDigitGroups
-                   ,displayForceDecimalMark, displayCost, displayCostBasis, displayColour, displayQuotes}
+                   ,displayForceDecimalMark, displaySuppressDecimalMark, displayCost, displayCostBasis, displayColour, displayQuotes}
   a@Amount{astyle=style} =
     color $ case ascommodityside style of
       L -> (if displayCommodity then wbFromText comm <> space else mempty) <> quantity' <> costbasis <> cost
       R -> quantity' <> (if displayCommodity then space <> wbFromText comm else mempty) <> costbasis <> cost
   where
     color = if displayColour && isNegativeAmount a then colorB Dull Red else id
-    quantity = showAmountQuantity displayForceDecimalMark $
+    quantity = showAmountQuantity (displayForceDecimalMark && S.notMember (acommodity a) displaySuppressDecimalMark) $
       if displayDigitGroups then a else a{astyle=(astyle a){asdigitgroups=Nothing}}
     (quantity', comm)
       | amountLooksZero a && not displayZeroCommodity = (WideBuilder (TB.singleton '0') 1, "")
