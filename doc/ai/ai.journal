@@ -2,6 +2,9 @@
 # See ../AI.md and `just h ai-`.
 # YYYY-MM-01 is an estimate for usage in YYYY-MM.
 
+include commodities.journal
+account ai
+
 2026-01-01 sm
     (ai)                                         771 opus_output_tokens
 
