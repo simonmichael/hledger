@@ -1347,7 +1347,7 @@ rawnumberp = label "number" $ do
     pure $ NoSeparators grp1 (Just (decPt, mempty))
 
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalMark c || isDigitSeparatorSpaceChar c || c == '_' || c == '\''
+isDigitSeparatorChar c = c == '.' || c == ',' || c == '\'' || c == '_' || isDigitSeparatorSpaceChar c
 
 -- | Kinds of unicode space character we accept as digit group marks.
 -- See also https://en.wikipedia.org/wiki/Decimal_separator#Digit_grouping .

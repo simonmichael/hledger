@@ -309,10 +309,11 @@ data Rounding =
 
 -- | A style for displaying digit groups in the integer part of a
 -- floating point number. It consists of the character used to
--- separate groups (comma or period, whichever is not used as decimal
--- point), and the size of each group, starting with the one nearest
--- the decimal point. The last group size is assumed to repeat. Eg,
--- comma between thousands is DigitGroups ',' [3].
+-- separate groups (any of the digit group marks accepted when parsing:
+-- period, comma, underscore, apostrophe, or one of several unicode
+-- spaces; see isDigitSeparatorChar), and the size of each group,
+-- starting with the one nearest the decimal point. The last group size
+-- is assumed to repeat. Eg, comma between thousands is DigitGroups ',' [3].
 data DigitGroupStyle = DigitGroups !Char ![Word8]
   deriving (Eq,Ord,Read,Show,Generic)
 
