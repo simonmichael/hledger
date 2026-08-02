@@ -16,7 +16,7 @@ and innumerable other benefactors.
 
 ## Commit authors 
 
-Stats as of 2026-07-16: **15393 commits in 19 years by 194 people**
+Stats as of 2026-07-16: **15393 commits in 19 years by 193 people**
 
 [hledger repo > Insights > Contributors](https://github.com/simonmichael/hledger/graphs/contributors)
 
@@ -38,7 +38,7 @@ table td:first-child h3 { margin:0; }
 | <h3 align=left><a name=two-digits href="#two-digits">2 digits</a></h3>                              |
 | <!-- 99 -->     Henning Thielemann             | hledger-web improvements, quarter periods, code cleanup; spreadsheet output engine (HTML/CSV/FODS export for balance, budget, aregister, print); aregister --invert/--cumulative           |
 | <!-- 81 -->     Vladimir Zhelezov              | new bash shell completions                                                                                                                                                                 |
-| <!-- 72 -->     Alex Chen                      | parsing improvements, code cleanups, better error messages; dep updates                                                                                                                    |
+| <!-- 73 -->     Alex Chen                      | parsing improvements, code cleanups, better error messages; dep updates                                                                                                                    |
 | <!-- 52 -->     Mykola Orliuk                  | hledger-budget, hledger-prices add-ons; scientific number notation; print, hledger-equity, hledger-rewrite, --pivot, space, parsing improvements; code updates; GHC 8.0 support            |
 | <!-- 51 -->     Jakob Schöttl                  | bash completions; register --invert; timeclock parsing improvements; code cleanups                                                                                                         |
 | <!-- 40 -->     Everett Hildenbrandt           | doc toolchain updates, switch from hakyll to pandoc; csv parser improvement                                                                                                                |
@@ -218,7 +218,6 @@ table td:first-child h3 { margin:0; }
 | <!-- 1 -->      afarrow                        | help doc typo fix                                                                                                                                                                          |
 | <!-- 1 -->      agander                        | doc update                                                                                                                                                                                 |
 | <!-- 1 -->      amano.kenji                    | helix editor support in hledger-ui                                                                                                                                                         |
-| <!-- 1 -->      awjchen                        | whitespace digit-separator parsing fix                                                                                                                                                     |
 | <!-- 1 -->      bobobo1618                     | matcher negation support                                                                                                                                                                   |
 | <!-- 1 -->      charukiewicz                   | hledger-web add-form fix                                                                                                                                                                   |
 | <!-- 1 -->      flip111                        | JSON output format; doc updates                                                                                                                                                            |
