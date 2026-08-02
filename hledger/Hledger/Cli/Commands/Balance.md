@@ -428,6 +428,7 @@ shown, unless `-E/--empty` is used.
 - Average and/or total columns can be added with the `-A/--average` and
 `-T/--row-total` flags.
 - The `--transpose` flag can be used to exchange rows and columns.
+  Repeating it reverses its effect (an even number of `--transpose` flags has no effect).
 - The `--pivot FIELD` option causes a different transaction field to be used as
   "account name". See [PIVOTING](#pivoting).
 - The `--summary-only` flag (`--summary` also works) hides all but the Total and Average columns

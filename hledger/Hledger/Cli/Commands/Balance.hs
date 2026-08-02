@@ -356,7 +356,7 @@ balancemode = hledgerCommandMode
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
     ,flagNone ["related","r"] (setboolopt "related") "show the other accounts transacted with, instead"
     ,flagNone ["invert"] (setboolopt "invert") "display all amounts with reversed sign"
-    ,flagNone ["transpose"] (setboolopt "transpose") "switch rows and columns (use vertical time axis)"
+    ,flagNone ["transpose"] (setboolopt "transpose") "switch rows and columns (use vertical time axis); repeat to cancel"
     ,flagReq  ["layout"] (\s opts -> Right $ setopt "layout" s opts) "ARG"
       (unlines
         ["how to lay out multi-commodity amounts and the overall table:"
