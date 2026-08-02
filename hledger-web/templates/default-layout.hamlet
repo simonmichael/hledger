@@ -11,6 +11,35 @@ $if elem ViewPermission perms
   <div#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
     <table .main-menu .table>
       ^{accounts}
+  $# Restore the sidebar's scroll position (saved per-tab in sessionStorage)
+  $# as soon as its markup is parsed, ie right here, inline. Waiting for eg
+  $# DOMContentLoaded would be too late: on pages with a long journal/register
+  $# the browser paints the sidebar (at scroll position 0) well before the
+  $# rest of the document is parsed, and restoring then makes the sidebar
+  $# visibly jump. sessionStorage can throw (not just be absent) when storage
+  $# is blocked, eg in a sandboxed iframe, with cookies disabled, or in some
+  $# private-browsing modes; the try makes this convenience a no-op there.
+  <script>
+    (function () {
+      var sidebar = document.getElementById('sidebar-menu');
+      var key = 'hledgerSidebarScrollTop';
+      var ignoreNextScrollSave = false;
+      try {
+        var saved = parseInt(sessionStorage.getItem(key), 10);
+        if (!isNaN(saved)) {
+          sidebar.scrollTop = saved;
+          // Restoring fires a scroll event, but only if the position actually
+          // changed; on a page whose account list is shorter the value clamps,
+          // so skip saving that one event to avoid shrinking the remembered
+          // offset for later pages.
+          ignoreNextScrollSave = sidebar.scrollTop !== 0;
+        }
+      } catch (e) {}
+      sidebar.addEventListener('scroll', function () {
+        if (ignoreNextScrollSave) { ignoreNextScrollSave = false; return; }
+        try { sessionStorage.setItem(key, sidebar.scrollTop); } catch (e) {}
+      });
+    })();
 
 <div#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
   $maybe m <- msg

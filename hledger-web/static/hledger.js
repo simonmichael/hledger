@@ -55,31 +55,14 @@ $(document).ready(function() {
   $('[data-toggle="offcanvas"]').click(function () {
       $('.row-offcanvas').toggleClass('active');
   });
-
-  // Preserve the account sidebar's scroll position across page navigations, so
-  // that reviewing accounts one after another doesn't keep jumping back to the
-  // top of the list. The position is kept per-tab in sessionStorage.
-  var sidebar = document.getElementById('sidebar-menu');
-  if (sidebar) {
-    var SIDEBAR_SCROLL_KEY = 'hledgerSidebarScrollTop';
-    var ignoreNextScrollSave = false;
-    // sessionStorage can throw (not just be absent) when storage is blocked, eg
-    // in a sandboxed iframe, with cookies disabled, or in some private-browsing
-    // modes. setItem runs on every scroll event, so an unguarded throw would
-    // fire repeatedly; catch it so this convenience just becomes a no-op.
-    try {
-      var saved = parseInt(sessionStorage.getItem(SIDEBAR_SCROLL_KEY), 10);
-      // Restoring fires a scroll event; on a page whose account list is shorter
-      // the value clamps, so skip saving that one event to avoid shrinking the
-      // remembered offset for later pages.
-      if (!isNaN(saved)) { ignoreNextScrollSave = true; sidebar.scrollTop = saved; }
-    } catch (e) {}
-    sidebar.addEventListener('scroll', function () {
-      if (ignoreNextScrollSave) { ignoreNextScrollSave = false; return; }
-      try { sessionStorage.setItem(SIDEBAR_SCROLL_KEY, sidebar.scrollTop); } catch (e) {}
-    });
-  }
 });
+// The account sidebar's scroll position is preserved across page navigations
+// by an inline script right after the sidebar's markup in
+// default-layout.hamlet. It must run during page parse, not from this file:
+// this script loads at the end of the body and $(document).ready fires only
+// once the whole document is parsed, while the browser paints the sidebar
+// (at scroll position 0) much earlier when a long journal or register
+// follows it, which made the sidebar visibly jump on page load.
 
 //----------------------------------------------------------------------
 // ADD FORM
