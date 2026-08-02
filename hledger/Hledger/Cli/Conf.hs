@@ -9,10 +9,16 @@ Read extra CLI arguments from a hledger config file.
 module Hledger.Cli.Conf (
    Conf
   ,SectionName
+  ,CommandAlias
+  ,CommandLine
   ,getConf
   ,getConf'
   ,nullconf
   ,confLookup
+  ,confAliases
+  ,ResolvedCommand(..)
+  ,expandCommandAlias
+  ,confFileIsTrusted
   ,activeConfFile
   ,activeLocalConfFile
   ,activeUserConfFile
@@ -26,6 +32,7 @@ import Control.Exception (handle)
 import Control.Monad (void, forM)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
+import Data.List (stripPrefix)
 import Data.Map qualified as M
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
@@ -65,6 +72,13 @@ type SectionName = String
 -- If it contains spaces, those are treated as part of a single argument, as with CMD a "b c".
 type Arg = String
 
+-- | The name of a command alias (a custom command) defined in a config file.
+type CommandAlias = String
+
+-- | A command line (a command name followed by arguments), as a single string.
+-- Eg the command line which a command alias expands to.
+type CommandLine = String
+
 nullconf = Conf {
    confFile = ""
   ,confFormat = 1
@@ -96,6 +110,66 @@ confLookup cmd Conf{confSections} =
   maybe [] (concatMap words') $  -- XXX PARTIAL
   M.lookup cmd $
   M.fromList [(csName,csArgs) | ConfSection{csName,csArgs} <- confSections]
+
+-- | Get the command aliases (custom commands) defined in this config file,
+-- in order of definition. They are defined git-style by lines in an @[alias]@
+-- section, like @NAME = CMDLINE@; or by @[alias NAME]@ sections, whose lines
+-- are joined to form the command line. If a name is defined more than once,
+-- the last definition should win (callers can rely on the ordering here).
+-- An [alias] section line without an @=@ raises a usage error.
+confAliases :: Conf -> [(CommandAlias, CommandLine)]
+confAliases Conf{confFile, confSections} = concatMap sectionaliases confSections
+  where
+    sectionaliases ConfSection{csName, csArgs}
+      | csName == "alias" = map aliasline csArgs
+      | Just name <- stripPrefix "alias " csName = [(strip name, unwords csArgs)]
+      | otherwise = []
+    aliasline l = case break (=='=') l of
+      (name, '=':cmdline) | not $ null $ strip name -> (strip name, strip cmdline)
+      _ -> error' $ "in config file " <> confFile
+           <> ",\nan [alias] section line should look like: NAME = COMMAND [ARGS..]"
+           <> "\nbut is: " <> l
+
+-- | The result of resolving a command name that may be a command alias.
+data ResolvedCommand
+  = HledgerCommand String [Arg]  -- ^ a resolved hledger command name, and arguments to prepend
+  | ShellCommand String          -- ^ a shell command line (from a !-prefixed alias, ! stripped)
+  deriving (Eq,Show)
+
+-- | Resolve a command name which may be a command alias, to either a real hledger command
+-- (with any arguments to prepend) or a shell command line (for a @!@-prefixed alias).
+-- Aliases can refer to other aliases; a name that is an exact builtin command name (per the
+-- given predicate), or already seen during this expansion (a self-reference or cycle), stops
+-- the recursion. If a name is defined more than once, the first definition in the given list
+-- wins (callers wanting the config file's last-definition-wins behaviour should pass
+-- @reverse (confAliases conf)@). This does not enforce the shell-alias trust policy; callers do.
+expandCommandAlias :: (String -> Bool) -> [(CommandAlias, CommandLine)] -> String -> ResolvedCommand
+expandCommandAlias isbuiltincmd cmdaliases = go []
+  where
+    go seen name
+      | name `notElem` seen
+      , not $ isbuiltincmd name
+      , Just cmdline <- lookup name cmdaliases =
+          case strip cmdline of
+            '!':shellcmd -> ShellCommand (strip shellcmd)
+            hledgercmd   -> case words' hledgercmd of
+              (realcmd:defargs) -> case go (name:seen) realcmd of
+                HledgerCommand realcmd' defargs' -> HledgerCommand realcmd' (defargs' <> defargs)
+                ShellCommand shellcmd            -> ShellCommand (unwords $ shellcmd : defargs)
+              [] -> HledgerCommand name []
+      | otherwise = HledgerCommand name []
+
+-- | Is the active config file trusted enough to run its @!@-prefixed shell command aliases?
+-- True if the config file was given explicitly with --conf, or is a user-level config file
+-- (~/.hledger.conf or the XDG hledger.conf). False for a config file found automatically in the
+-- current directory or a parent (which could come from an untrusted downloaded/shared directory),
+-- or when there is no config file.
+confFileIsTrusted :: RawOpts -> Maybe FilePath -> IO Bool
+confFileIsTrusted _ Nothing = return False
+confFileIsTrusted rawopts (Just f) =
+  case confFileSpecFromRawOpts rawopts of
+    SomeConfFile _ -> return True
+    _              -> (f `elem`) <$> userConfFiles
 
 -- | Try to read a hledger config from a config file specified by --conf,
 -- or the first config file found in any of several default file paths.
@@ -130,13 +204,14 @@ readConfFile f = handle (\(e::IOError) -> return $ Left $ show e) $ do
       ecs <- readFile f <&> parseConf f . T.pack
       case ecs of
         Left err -> return $ Left $ errorBundlePretty err -- customErrorBundlePretty err
-        Right cs -> return $ Right (nullconf{
-          confFile     = f
-          ,confFormat   = 1
-          ,confSections = cs
-          },
-          Just f
-          )
+        Right cs -> do
+          let conf = nullconf{
+                 confFile     = f
+                ,confFormat   = 1
+                ,confSections = cs
+                }
+          -- validate any command alias definitions now, so a bad one is reported promptly
+          return $ foldr seq (Right (conf, Just f)) (confAliases conf)
 
 -- -- | Like readConf, but throw an error on failure.
 -- readConfFile' :: FilePath -> IO (Conf, Maybe FilePath)
@@ -231,7 +306,9 @@ dp = const $ return ()  -- no-op
 
 whitespacep, commentlinesp, restoflinep :: TextParser Identity ()
 whitespacep   = void $ {- dp "whitespacep"   >> -} many spacenonewline
-commentlinesp = void $ {- dp "commentlinesp" >> -} many (emptyorcommentlinep2 "#")
+-- Uses try so that a non-empty, non-comment line (possibly indented) is left for
+-- another parser instead of failing here after consuming its leading whitespace.
+commentlinesp = void $ {- dp "commentlinesp" >> -} many (try $ emptyorcommentlinep2 "#")
 restoflinep   = void $ {- dp "restoflinep"   >> -} whitespacep >> emptyorcommentlinep2 "#"
 
 confp :: TextParser Identity [ConfSection]  -- a monadic TextParser to allow reusing other hledger parsers
@@ -244,6 +321,7 @@ confp = do
     (n, ma) <- sectionstartp
     as <- many arglinep
     return $ ConfSection n (maybe as (:as) ma)
+  whitespacep  -- tolerate trailing whitespace with no final newline (a blank last line)
   eof
   return $ s:ss
 
@@ -251,6 +329,7 @@ confp = do
 sectionstartp :: TextParser Identity (String, Maybe String)
 sectionstartp = do
   dp "sectionstartp"
+  try (whitespacep <* lookAhead (char '['))  -- ignore any leading whitespace before the [
   char '['
   n <- fmap strip $ some $ noneOf "]#\n"
   char ']'
@@ -265,12 +344,14 @@ sectionstartp = do
   -- dp "sectionstartp6"
   return (n, ma)
 
+-- Uses try so that an indented section header ([..]) is left for sectionstartp
+-- rather than failing here after consuming its leading whitespace.
 arglinep :: TextParser Identity String
-arglinep = do
+arglinep = try $ do
   dp "arglinep"
-  notFollowedBy $ char '['
+  whitespacep  -- ignore any leading whitespace
   -- dp "arglinep2"
-  whitespacep
+  notFollowedBy $ char '['  -- an indented section header is not an argument line
   -- dp "arglinep3"
   a <- some $ noneOf "#\n"
   -- dp "arglinep4"
@@ -285,7 +366,7 @@ arglinep = do
 --     prettyParseErrors $ runParserT (evalStateT parser initJournal) f txt
 --   where
 --     y = first3 . toGregorian $ _ioDay iopts
---     initJournal = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [f]}
+--     initJournal = nulljournal{jparsedefaultyear = Just y, jparseincludefilestack = [f]}
 --     -- Flatten parse errors and final parse errors, and output each as a pretty String.
 --     prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text HledgerParseErrorData) a)
 --                       -> ExceptT String IO a

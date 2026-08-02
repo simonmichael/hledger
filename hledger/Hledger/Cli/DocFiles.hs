@@ -21,9 +21,11 @@ module Hledger.Cli.DocFiles (
 
 import Control.Exception
 import Data.ByteString (ByteString)
+import Data.Char (isUpper, isLower)
 import Data.ByteString.Char8 qualified as BC
 import Data.Maybe (fromMaybe)
 import Data.String
+import System.Directory (findExecutable)
 import System.Environment (setEnv)
 import System.IO
 import System.IO.Temp
@@ -93,10 +95,42 @@ manualMan name = maybe (fromString $ "No man page found for tool: "++name) first
 manualInfo :: Tool -> ByteString
 manualInfo name = maybe (fromString $ "No info manual found for tool: "++name) third3 $ lookup name manuals
 
--- | Print plain text help for this tool.
--- Takes an optional topic argument for convenience but it is currently ignored.
+-- | Print plain text help for this tool. This is the fallback "viewer" used
+-- for non-interactive output or a dumb terminal, where no pager is available.
+-- To avoid dumping the whole (large) manual, when no topic is requested we print
+-- only the introduction: everything up to and including the DESCRIPTION section
+-- (ie stopping at the first all-caps top-level heading after it, such as PART 1),
+-- followed by a note on how to read the rest.
+-- If a topic is requested, or there's no DESCRIPTION heading (eg the
+-- hledger-ui/hledger-web manuals), the whole manual is printed.
 printHelpForTopic :: Tool -> Maybe Topic -> IO ()
-printHelpForTopic tool _mtopic = BC.putStr (manualTxt tool)
+printHelpForTopic tool mtopic = do
+  let manual = manualTxt tool
+  case mtopic of
+    Just _  -> BC.putStr manual  -- topic requested: show all, so it isn't hidden
+    Nothing ->
+      case break (== "DESCRIPTION") (BC.lines manual) of
+        (_, [])              -> BC.putStr manual  -- no DESCRIPTION heading: show all
+        (before, desc:after) ->
+          case break isTopHeading after of
+            (_, [])       -> BC.putStr manual  -- no following heading: show all
+            (body, _)     -> do
+              BC.putStr $ BC.unlines $ before ++ desc : body
+              BC.putStrLn helpTruncationNote
+
+-- | Is this a top-level manual heading: a non-empty line starting in column 0
+-- with an uppercase letter and containing no lowercase letters (eg NAME, PART 1: ...)?
+isTopHeading :: ByteString -> Bool
+isTopHeading l = case BC.uncons l of
+  Just (c, _) -> isUpper c && not (BC.any isLower l)
+  Nothing     -> False
+
+-- | Note appended to the truncated plain-text help.
+helpTruncationNote :: ByteString
+helpTruncationNote =
+  "(This is just the introduction. To read the full manual, run `hledger help`\n\
+  \in a more capable terminal, or `hledger help -p` (pager), `-m` (man) or `-i`\n\
+  \(info), or see https://hledger.org.)"
 
 -- | Display an info manual for this topic, opened at the given topic if provided,
 -- using the "info" executable in $PATH.
@@ -156,17 +190,23 @@ runTldrForPage :: TldrPage -> IO ()
 runTldrForPage name =
   case tldr name of
     Nothing -> error' $ "sorry, there's no " <> name <> " tldr page yet"
-    Just b -> (do
-      withSystemTempFile (name++".md") $ \f h -> do
-        BC.hPutStrLn h b
-        hClose h
-        -- tldr clients tend to auto-update their data, try to discourage that here
-        -- tealdeer - doesn't auto-update by default
-        -- tlrc - ?
-        -- tldr-node-client - undocumented env var suggested in output
-        setEnv "TLDR_AUTO_UPDATE_DISABLED" "1"
-        callCommand $ dbg1 "tldr command" $ "tldr --render " <> shellQuoteIfNeeded f
-      ) `catch` (\(_e::IOException) -> do
-        hPutStrLn stderr $ "Warning: could not run tldr --render, using fallback viewer instead.\n"
-        BC.putStrLn b
-      )
+    Just b -> do
+      let fallback = do
+            hPutStrLn stderr "Warning: could not run tldr --render, using fallback viewer instead.\n"
+            BC.putStrLn b
+      -- Check for a tldr client first, so we can fall back quietly without the
+      -- shell printing a "command not found" error.
+      mtldr <- findExecutable "tldr"
+      case mtldr of
+        Nothing -> fallback
+        Just _ -> (do
+          withSystemTempFile (name++".md") $ \f h -> do
+            BC.hPutStrLn h b
+            hClose h
+            -- tldr clients tend to auto-update their data, try to discourage that here
+            -- tealdeer - doesn't auto-update by default
+            -- tlrc - ?
+            -- tldr-node-client - undocumented env var suggested in output
+            setEnv "TLDR_AUTO_UPDATE_DISABLED" "1"
+            callCommand $ dbg1 "tldr command" $ "tldr --render " <> shellQuoteIfNeeded f
+          ) `catch` (\(_e::IOException) -> fallback)

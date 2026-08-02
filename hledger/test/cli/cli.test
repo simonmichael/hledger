@@ -158,11 +158,10 @@ $ hledger --debug -f /dev/null --conf /dev/null --no-conf >/dev/null
 $  echo '--pretty' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
 /dev/null
 
-# ** 27. An initial non-flag general argument in a conf file is used as the command.
-$  echo 'files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
-
-# ** 28. A non-flag general argument that's not first in the conf file is note used as the command.
-$  echo '--pretty files' >$$.conf; hledger stats -f /dev/null --conf $$.conf; rm -f $$.conf
+# ** 27. A non-flag argument in a config file's general section is NOT treated as the command
+# (that feature was removed); it is just passed to the command as an argument.
+# Here the command run is the one on the command line (stats), not the config's "balance".
+$  printf 'balance\n' >$$.conf; printf '2026-01-01\n  a  1\n  b\n' | hledger stats -f- --conf $$.conf; rm -f $$.conf
 > /Runtime stats/
 
 # ** 29. A required-value flag followed by another flag is rejected with a clear error.
@@ -199,3 +198,54 @@ $ printf '' | hledger -f csv:- balance
 $ hledger --file=--weird.csv balance
 >2 /--weird.csv/
 >= 1
+
+# ** 36. Ambiguous flags are required-value in some commands (eg -m is --match for print/register)
+# but valueless in others (eg -m selects man for help), so the required-value pre-check can't judge
+# them before the command is known and skips them. A command lacking the flag then reports "Unknown
+# flag" consistently, with or without a following value (the no-value form previously wrongly said
+# "-m needs a value").
+$ hledger balance -m
+>2 /Unknown flag: -m/
+>= 1
+
+# ** 37.
+$ hledger balance -m foo
+>2 /Unknown flag: -m/
+>= 1
+
+# ** 38. help with no viewer flag is non-interactive here (stdout is a pipe), so it
+# prints the plain text manual.
+$ hledger help
+> /hledger User Manuals/
+
+# help accepts -p, -m and -i as valueless flags selecting a viewer. Appending -h makes
+# hledger print the command's help and exit before launching any (possibly interactive)
+# viewer, so these tests check only that the flags parse - ie that the required-value
+# pre-check does not wrongly reject them as "needs a value" (the bug these guard against).
+# The pre-check runs before -h takes effect, so a regression would still be caught here.
+
+# ** 39.
+$ hledger help -p -h
+> /Show the hledger user manual/
+
+# ** 40.
+$ hledger help -m -h
+> /Show the hledger user manual/
+
+# ** 41.
+$ hledger help -i -h
+> /Show the hledger user manual/
+
+# ** 42. --conf/--no-conf flags inside a config file are ignored: which config file to use
+# was decided before reading it, so they are dropped from the config's general arguments.
+$  printf -- '--no-conf\n' >$$.conf; hledger --debug=1 files -f /dev/null --conf $$.conf 2>&1 >/dev/null | grep -o 'ignored conf-selecting flags from config file'; rm -f $$.conf
+ignored conf-selecting flags from config file
+
+# ** 43. Leading whitespace (indentation) on a config file line is ignored,
+# whether before a general argument or before a [section] header and its arguments.
+$  printf '  --pretty\n  [files]\n\t--pretty\n' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
+/dev/null
+
+# ** 44. A blank last line with trailing whitespace and no final newline is tolerated.
+$  printf '  --pretty\n  ' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
+/dev/null

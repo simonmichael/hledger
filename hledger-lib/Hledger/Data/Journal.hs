@@ -221,7 +221,7 @@ journalDbg j@Journal{..} = chomp $ unlines $
   ,"jparseparentaccounts: "      <> shw jparseparentaccounts
   ,"jparsealiases: "             <> shw jparsealiases
   -- ,"jparsetimeclockentries: " <> shw jparsetimeclockentries
-  ,"jincludefilestack: "         <> shw jincludefilestack
+  ,"jparseincludefilestack: "    <> shw jparseincludefilestack
   ,"jdeclaredpayees: "           <> shw jdeclaredpayees
   ,"jdeclaredtags: "             <> shw jdeclaredtags
   ,"jdeclaredaccounts: "         <> shw jdeclaredaccounts
@@ -267,7 +267,7 @@ journalConcat :: Journal -> Journal -> Journal
 journalConcat j1 j2 =
   let
     f1 = takeFileName $ journalFilePath j1
-    f2 = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jincludefilestack j2  -- XXX more accurate than journalFilePath for some reason
+    f2 = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jparseincludefilestack j2  -- XXX more accurate than journalFilePath for some reason
   in
     dbgJournalAcctDeclOrder ("journalConcat: " <> f1 <> " <> " <> f2 <> ", acct decls renumbered: ") $
     journalRenumberAccountDeclarations $
@@ -280,7 +280,7 @@ journalConcat j1 j2 =
     ,jparsealiases              = jparsealiases              j2
     -- ,jparsetransactioncount     = jparsetransactioncount     j1 +  jparsetransactioncount     j2
     ,jparsetimeclockentries     = jparsetimeclockentries     j1 <> jparsetimeclockentries     j2
-    ,jincludefilestack          = jincludefilestack j2
+    ,jparseincludefilestack     = jparseincludefilestack j2
     ,jdeclaredpayees            = jdeclaredpayees            j1 <> jdeclaredpayees            j2
     ,jdeclaredtags              = jdeclaredtags              j1 <> jdeclaredtags              j2
     ,jdeclaredaccounts          = jdeclaredaccounts          j1 <> jdeclaredaccounts          j2
@@ -362,7 +362,7 @@ nulljournal = Journal {
   ,jparsealiases              = []
   -- ,jparsetransactioncount     = 0
   ,jparsetimeclockentries     = []
-  ,jincludefilestack          = []
+  ,jparseincludefilestack     = []
   ,jdeclaredpayees            = []
   ,jdeclaredtags              = []
   ,jdeclaredaccounts          = []
@@ -473,6 +473,9 @@ journalCommoditiesFromTransactions j = S.fromList $ map acommodity $ journalPost
 -- 1. The "to" commodity that appears most often in P (price) directives, if any.
 -- 2. Otherwise, the commodity that appears most often in posting and cost amounts.
 -- 3. Otherwise, "USD".
+-- The synthetic 1:1 bridge directives generated from commodity @alias:@ tags
+-- (see journalInferAliasPrices) are excluded from step 1, so that declaring
+-- aliases doesn't sway the guess.
 -- Commodity symbols are normalised to ISO 4217 codes where possible,
 -- so that equivalent symbols are tallied together.
 -- Ties are broken by first occurrence order.
@@ -480,8 +483,16 @@ journalBaseCurrencyCode :: Journal -> CurrencyCode
 journalBaseCurrencyCode j =
   fromMaybe "USD" $ mostFrequent priceTargetComms <|> mostFrequent postingAndCostComms
   where
-    priceTargetComms    = map (toCurrencyCode . acommodity . pdamount) (jpricedirectives j)
+    priceTargetComms    = map (toCurrencyCode . acommodity . pdamount) realPriceDirectives
     postingAndCostComms = map (toCurrencyCode . acommodity) $ journalPostingAndCostAmounts j
+
+    -- Price directives, excluding the 1:1 bridges inferred from commodity alias: tags.
+    realPriceDirectives = filter (not . isCommodityAliasPrice) $ jpricedirectives j
+    isCommodityAliasPrice pd =
+      aquantity (pdamount pd) == 1 && (pdcommodity pd, acommodity (pdamount pd)) `S.member` commodityAliasPairs
+    commodityAliasPairs = S.fromList [ (a, csymbol c)
+                                     | c <- M.elems (jdeclaredcommodities j)
+                                     , a <- commodityAliases c ]
 
     -- Most frequent element, ties broken by first-occurrence order.
     -- A single pass for efficiency: each map entry stores (negate count, first index),

@@ -8,7 +8,7 @@
 2017-06-01 investment
    assets:cash  -$100
    investment
-$ hledger -f- roi --inv investment --pnl pnl -b 2017 -e 2018 -Y
+$ hledger -f- roi --inv investment -b 2017 -e 2018 -Y
 +---++------------+------------++---------------+----------+-------------+-----++-------++------------+----------+
 |   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||   IRR || TWR/period | TWR/year |
 +===++============+============++===============+==========+=============+=====++=======++============+==========+
@@ -212,7 +212,7 @@ $ hledger -f- roi --inv investment --pnl pnl -b 2017-06 -e 2018
 2019/11/01 Example
   Assets:Checking  1
   Income:Salary  -1
-$ hledger -f- roi -p 2019-11 --pnl "^$"
+$ hledger -f- roi -p 2019-11
 +---++------------+------------++---------------+----------+-------------+-----++-------++------------+----------+
 |   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||   IRR || TWR/period | TWR/year |
 +===++============+============++===============+==========+=============+=====++=======++============+==========+
@@ -379,7 +379,7 @@ P 2023-01-01 C 1B
 
 P 2023-12-31 C 2B
 
-$ hledger -f - roi --inv investment --pnl income --value='then,B' -b2023 -e2024
+$ hledger -f - roi --inv investment --value='then,B' -b2023 -e2024
 +---++------------+------------++---------------+----------+-------------+-----++--------++------------+----------+
 |   ||      Begin |        End || Value (begin) | Cashflow | Value (end) | PnL ||    IRR || TWR/period | TWR/year |
 +===++============+============++===============+==========+=============+=====++========++============+==========+
@@ -405,7 +405,7 @@ P 2019-06-28 "IE00B4L5Y983" 50.93000000 "EUR"
 
 P 2019-12-30 "IE00B4L5Y983" 56.59000000 "EUR"
 
-$ hledger -f - roi --value then --begin 2019 --end 2020 --inv investmen --pnl '"profit and loss"' -p 'every 2 quarters'
+$ hledger -f - roi --value then --begin 2019 --end 2020 --inv investmen -p 'every 2 quarters'
 +-------++------------+------------++---------------+------------+-------------+-----------++--------++------------+----------+
 |       ||      Begin |        End || Value (begin) |   Cashflow | Value (end) |       PnL ||    IRR || TWR/period | TWR/year |
 +=======++============+============++===============+============+=============+===========++========++============+==========+
@@ -434,7 +434,7 @@ P 2024-11-08 B 1 CHF
 
 P 2024-12-31 B 1.0018 CHF
 
-$ hledger -f - roi -M -b 2024-10-01 -e 2024-12-31 --value then,CHF --inv '"investments:"' --pnl STR 
+$ hledger -f - roi -M -b 2024-10-01 -e 2024-12-31 --value then,CHF --inv '"investments:"'
 +-------++------------+------------++---------------+---------------+---------------+------------++--------++------------+----------+
 |       ||      Begin |        End || Value (begin) |      Cashflow |   Value (end) |        PnL ||    IRR || TWR/period | TWR/year |
 +=======++============+============++===============+===============+===============+============++========++============+==========+
@@ -479,7 +479,7 @@ P 2024-07-30 BAR 1 GBP
   assets  £-90000.00
   investment
 
-$ hledger -f - roi -Y -b 2024 -e 2025 --inv 'investment' --pnl STR
+$ hledger -f - roi -Y -b 2024 -e 2025 --inv 'investment'
 +---++------------+------------++---------------+------------+-------------+-----++-------++------------+----------+
 |   ||      Begin |        End || Value (begin) |   Cashflow | Value (end) | PnL ||   IRR || TWR/period | TWR/year |
 +===++============+============++===============+============+=============+=====++=======++============+==========+

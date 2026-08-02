@@ -843,13 +843,20 @@ colorOption :: IO YNA
 colorOption = maybe Auto (either error' id . parseYNA) <$> getOpt ["color","colour"]
 
 -- | Should ANSI color and styles be used with this output handle ?
--- Considers colorOption, the NO_COLOR environment variable, and hSupportsANSIColor.
+-- Considers the --color/--colour option, and in auto mode the NO_COLOR and TERM
+-- environment variables and whether the handle is an ANSI-capable terminal.
+-- In auto mode we never use colour when TERM=dumb (the conventional request for
+-- plain output); otherwise we use it when ansi-terminal's hSupportsANSIColor says
+-- the handle supports colour. Note hSupportsANSIColor reports colour support for an
+-- Emacs subshell even on a captured pipe when TERM=dumb, which would leak escape
+-- codes into redirected output (eg shelltest); the TERM=dumb check prevents that.
 useColorOnHandle :: Handle -> IO Bool
 useColorOnHandle h = do
   no_color       <- isJust <$> lookupEnv "NO_COLOR"
+  dumbterminal   <- (== Just "dumb") . fmap (map toLower) <$> lookupEnv "TERM"
   supports_color <- hSupportsANSIColor h
   yna            <- colorOption
-  return $ yna==Yes || (yna==Auto && not no_color && supports_color)
+  return $ yna==Yes || (yna==Auto && not no_color && not dumbterminal && supports_color)
 
 -- | Should ANSI color and styles be used for standard output ?
 -- Considers useColorOnHandle stdout and hasOutputFile.

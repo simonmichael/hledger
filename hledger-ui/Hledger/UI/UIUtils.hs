@@ -42,7 +42,7 @@ module Hledger.UI.UIUtils (
   ,mapScreens
   ,uiNumBlankItems
   ,showScreenStack
-  ,sendVtyEvents
+  ,sendVtyEvents  -- currently unused, kept (and exported, to avoid an unused-binding warning) for future use
   )
 where
 
@@ -199,6 +199,7 @@ helpDialog =
                   ,renderKey ("B   ", "show amounts/costs")
                   ,renderKey ("E   ", "open editor")
                   ,renderKey ("I   ", "toggle balance assertions")
+                  ,renderKey ("L   ", "show/hide lot detail")
                   ,renderKey ("V   ", "show amounts/market values")
                   ,renderKey ("g   ", "reload data")
                   ,renderKey ("C-l ", "redraw & recenter")
@@ -381,19 +382,32 @@ withBorderAttr attr = updateAttrMap (applyAttrMappings [(attrName "border", attr
 --  setTop (viewportScroll vpname) 0
 
 -- | Scroll a list's viewport so that the selected item is centered in the
--- middle of the display area.
-scrollSelectionToMiddle :: Brick.Widgets.List.List Name item -> EventM Name UIState ()
-scrollSelectionToMiddle list = do
+-- middle of the display area. When the selected item is near the end of the
+-- list, the viewport is capped so that no blank padding is visible below the
+-- last real item, and the last real items stay bottom-aligned (so recentering
+-- a near-the-end selection doesn't push those items off screen). numitems is
+-- the number of non-blank items in the list.
+scrollSelectionToMiddle :: Int -> Brick.Widgets.List.List Name item -> EventM Name UIState ()
+scrollSelectionToMiddle numitems list = do
   case list^.listSelectedL of
     Nothing -> return ()
     Just selectedrow -> do
-      Vty{outputIface} <- getVtyHandle
-      pageheight <- dbg4 "pageheight" . snd <$> liftIO (displayBounds outputIface)
+      let name = list^.listNameL
+      mvp <- lookupViewport name
+      -- Use the list viewport's actual height. Before its first render the
+      -- viewport isn't known yet, so fall back to the terminal height.
+      pageheight <- dbg4 "pageheight" <$> case mvp of
+        Just VP{_vpSize=(_,h)} -> return h
+        Nothing -> do
+          Vty{outputIface} <- getVtyHandle
+          snd <$> liftIO (displayBounds outputIface)
       let
         itemheight   = dbg4 "itemheight" $ list^.listItemHeightL
         itemsperpage = dbg4 "itemsperpage" $ pageheight `div` itemheight
-        toprow       = dbg4 "toprow" $ max 0 (selectedrow - (itemsperpage `div` 2)) -- assuming ViewportScroll's row offset is measured in list items not screen rows
-      setTop (viewportScroll $ list^.listNameL) toprow
+        centeredtop  = selectedrow - (itemsperpage `div` 2)
+        maxtop       = numitems - itemsperpage
+        toprow       = dbg4 "toprow" $ max 0 (min centeredtop maxtop) -- assuming ViewportScroll's row offset is measured in list items not screen rows
+      setTop (viewportScroll name) toprow
 
 --                 arrow keys       vi keys               emacs keys                 enter key
 moveUpEvents    = [EvKey KUp []   , EvKey (KChar 'k') [], EvKey (KChar 'p') [MCtrl]]
@@ -498,14 +512,19 @@ mapScreens f UIState{aPrevScreens, aScreen} = map f $ reverse $ aScreen : aPrevS
 -- Show a screen's compact id (first letter of its constructor).
 showScreenId :: Screen -> String
 showScreenId = \case
-  MS _ -> "M"  -- menu
-  AS _ -> "A"  -- all accounts
-  CS _ -> "C"  -- cash accounts
-  BS _ -> "B"  -- bs accounts
-  IS _ -> "I"  -- is accounts
-  RS _ -> "R"  -- menu
-  TS _ -> "T"  -- transaction
-  ES _ -> "E"  -- error
+  MS _             -> "M"  -- menu
+  AS ASS{_assKind} -> accountsScreenKindId _assKind
+  RS _             -> "R"  -- register
+  TS _             -> "T"  -- transaction
+  ES _             -> "E"  -- error
+
+-- | The compact id letter for an accounts-like screen of the given kind.
+accountsScreenKindId :: AccountsScreenKind -> String
+accountsScreenKindId = \case
+  AllAccounts             -> "A"  -- all accounts
+  CashAccounts            -> "C"  -- cash accounts
+  BalancesheetAccounts    -> "B"  -- balance sheet accounts
+  IncomestatementAccounts -> "I"  -- income statement accounts
 
 -- Show a screen's compact id, plus for register screens, the transaction descriptions.
 showScreenRegisterDescriptions :: Screen -> String
@@ -518,12 +537,9 @@ showScreenRegisterDescriptions scr = case scr of
 -- Show a screen's compact id, plus index of its selected list item if any.
 showScreenSelection :: Screen -> String
 showScreenSelection = \case
-  MS MSS{_mssList} -> "M" ++ (maybe "" show $ listSelected _mssList)  -- menu
-  AS ASS{_assList} -> "A" ++ (maybe "" show $ listSelected _assList)  -- all accounts
-  CS ASS{_assList} -> "C" ++ (maybe "" show $ listSelected _assList)  -- cash accounts
-  BS ASS{_assList} -> "B" ++ (maybe "" show $ listSelected _assList)  -- bs accounts
-  IS ASS{_assList} -> "I" ++ (maybe "" show $ listSelected _assList)  -- is accounts
-  RS RSS{_rssList} -> "R" ++ (maybe "" show $ listSelected _rssList)  -- menu
+  MS MSS{_mssList}          -> "M" ++ (maybe "" show $ listSelected _mssList)  -- menu
+  AS ASS{_assKind,_assList} -> accountsScreenKindId _assKind ++ (maybe "" show $ listSelected _assList)
+  RS RSS{_rssList}          -> "R" ++ (maybe "" show $ listSelected _rssList)  -- register
   TS _ -> "T"  -- transaction
   ES _ -> "E"  -- error
 

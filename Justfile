@@ -1108,10 +1108,11 @@ INSTALLING:
 # @copy-as VER:
 #     cp ~/.local/bin/hledger bin/old/hledger-{{ VER }}; echo "bin/hledger-{{ VER }}"
 
-# install hledger as bin/old/hledger-VER
+# install hledger binaries as bin/old/hledger*-VER
 @installas VER:
-    $STACK install --local-bin-path bin/old hledger
-    for e in hledger ; do mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
+    for e in hledger     ; do $STACK install --local-bin-path bin/old $e; mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
+    for e in hledger-ui  ; do $STACK install --local-bin-path bin/old $e; mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
+    for e in hledger-web ; do $STACK install --local-bin-path bin/old $e; mv bin/old/$e bin/old/$e-{{ VER }}; echo "bin/old/$e-{{ VER }}"; done
 
 # install all hledger executables as bin/old/hledger*-VER
 @installallas VER:
@@ -1130,20 +1131,23 @@ INSTALLING:
 
 # On gnu/linux: can't interpolate GTAR here for some reason, and need the shebang line.
 # linux / mac only for now, does not handle the windows zip file.
-# download github release VER binaries for OS (linux, mac) and ARCH (x64, arm64) to bin/old/hledger*-VER
-@installrel VER OS ARCH:
+# download the specified version of github release binaries, for the current OS and ARCH, to bin/old/hledger*-VER
+installrel VER:
     #!/usr/bin/env bash
 
     # The current OS name, in the form used for hledger release binaries: linux, mac, windows or other.
     # can't use $GHC or {{GHC}} here for some reason
-    OS := `ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"'`
+    OS=$(ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case os of "darwin"->"mac"; "mingw32"->"windows"; "linux"->"linux"; _->"other"')
+
+    # The current architecture, in the form used for hledger release binaries: x64, arm64 or other.
+    ARCH=$(ghc -ignore-dot-ghci -package-env - -e 'import System.Info' -e 'putStrLn $ case arch of "x86_64"->"x64"; "aarch64"->"arm64"; "arm"->"arm64"; _->"other"')
 
     # if [[ "$OS" == "windows" ]]; then
-    #   cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.zip | funzip | `type -P gtar || echo tar` xf - --transform 's/$/-{{ VER }}/'
+    #   cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/$VER/hledger-$OS-$ARCH.zip | funzip | `type -P gtar || echo tar` xf - --transform "s/$/-$VER/"
     # else
     # fi
 
-    cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/{{ VER }}/hledger-{{ OS }}-{{ ARCH }}.tar.gz | `type -P gtar || echo tar` xzf - --transform 's/$/-{{ VER }}/'
+    cd bin/old && curl -L https://github.com/simonmichael/hledger/releases/download/$VER/hledger-$OS-$ARCH.tar.gz | `type -P gtar || echo tar` xzf - --transform "s/\$/-$VER/"
 
 # # download recent versions of the hledger executables from github to bin/hledger*-VER
 # get-recent-binaries:
@@ -1758,15 +1762,28 @@ installcommithook:
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
 
-# Run ccusage to show claude code usage detail today. Accepts ccusage options, like -b.
+ai-help:
+    #!/bin/bash
+    cat <<EOS
+    AI usage scripts.
+    These are in three groups, updating/reporting from three data sources:
+    1. ccusage         - prints reports from this machine's recent claude code logs
+    2. ccusage.journal - a cached snapshot of the above as a hledger journal
+    3. ai.journal      - a permanent journal of project's monthly ai usage, with imported and manual entries
+    Note, ccusage.journal's numbers will drop below ai.journal's as old logs get purged.
+    Compare: just ai-ccusagej-monthly -Xkt -c1.kt; j ai-aij-monthly -Xkt -c1.kt
+    EOS
+    just h ai-
+
+# Show today's logged local-machine claude code usage. Accepts ccusage options, like -b.
 @ai-ccusage-today *CCUSAGEOPTS:
     ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}
 
-# Watch today's ccusage report update in real time. Affepts ccusage options, like -b.
+# Watch today's logged local-machine claude code usage. Accepts ccusage options, like -b.
 @ai-ccusage-watch *CCUSAGEOPTS:
     watch -n10 -c -d 'ccusage -O daily -s `date +%Y%m%d` {{ CCUSAGEOPTS }}| tail +8'
 
-# Run ccusage to show all claude code usage (from existing chat logs) as CSV.
+# Export ccusage's local-machine claude code usage data as CSV.
 @ai-ccusage-csv CCUSAGECMD='monthly' *CCUSAGEOPTS:
     ccusage -O {{ CCUSAGECMD }} {{ CCUSAGEOPTS }} -j | jq -r ' \
       first(.. | arrays | select(length > 0 and (.[0] | type == "object"))) \
@@ -1777,90 +1794,47 @@ installcommithook:
 
 AIDIR := 'doc/ai'
 
-# Convert ccusage's daily usage data to a personal hledger journal (regenerating it), with lots of unit conversions available.
-ai-ccusagej-update:
+# Regenerate ccusage.journal from ccusage's data, and add lots of unit conversions.
+ai-ccusagej-regen:
     #!/usr/bin/env bash
     {
     cat <<'EOS'
     # Local user's claude code usage based on available chat logs.
-
-    # commodities
-    commodity $1.
-    commodity 1,000.t            ; generic total tokens, alias: opus_output_tokens
-    commodity 1,000.0kt          ; kilotokens
-    commodity 1,000.0Mt          ; megatokens
-    commodity 1,000.0Gt          ; gigatokens
-    commodity 1,000. opus_output_tokens
-    commodity 1,000.j            ; joules
-    commodity 1,000.0kj          ; kilojoules
-    commodity 1,000.0Mj          ; megajoules
-    commodity 1,000.0Gj          ; gigajoules
-    commodity 1,000.0Wh          ; watt hours
-    commodity 1,000.0kWh         ; kilowatt hours
-    commodity 1,000.mL           ; millilitres of water
-    commodity 1,000.0L           ; litres of water
-    commodity 1,000.c            ; characters
-    commodity 1,000.kb           ; kilobytes
-    commodity 1,000.Mb           ; megabytes
-    commodity 1,000. heartbeats  ; human heartbeats
-    commodity 1,000.0 raisins    ; the energy in one raisin
-    commodity 1,000.0 prius_miles
-    commodity 1,000. led_secs    ; a 10W LED running for 1 second
-    commodity 1,000. kgm         ; 1kg lifted 1m
-    commodity 1,000. g           ; grams of CO2 emission
-    commodity 1,000.0 kg         ; kilograms of CO2 emission
-
-    # units
-    P 0000-01-01 kj 1000 j
-    P 0000-01-01 Mj 1000 kj
-    P 0000-01-01 Gj 1000 Mj
-    P 0000-01-01 kWh 1000 Wh
-    P 0000-01-01 L 1000 mL
-    P 0000-01-01 kb 1024 c
-    P 0000-01-01 Mb 1024 Mb
-    P 0000-01-01 kt 1000 t
-    P 0000-01-01 Mt 1000 kt
-    P 0000-01-01 Gt 1000 Mt
-    P 0000-01-01 kg 1000 g
-
-    # other conversions
-    P 0000-01-01 t 3 c    ; 1 token =~ 3 characters
-    P 0000-01-01 opus_output_tokens $0.000075
-    P 0000-01-01 opus_output_tokens 10j
-    P 0000-01-01 opus_output_tokens 0.0028Wh
-    P 0000-01-01 opus_output_tokens 0.05mL
-    P 0000-01-01 opus_output_tokens 10 heartbeats
-    P 0000-01-01 opus_output_tokens 0.000588 raisins
-    P 0000-01-01 opus_output_tokens 1 led_secs
-    P 0000-01-01 opus_output_tokens 1 kgm
-    P 0000-01-01 opus_output_tokens 0.0000066667 prius_miles
-    P 0000-01-01 opus_output_tokens 0.001 g
-
+    include commodities.journal
     account ai
-
     EOS
     just ai-ccusage-csv daily | hledger -f csv:- --rules {{ AIDIR }}/ccusage.rules print -c '1,000,000 t'
     } > {{ AIDIR }}/ccusage.journal
 
-# Run a hledger command on ccusage.journal. Run just ai-ccusagej-update first.
+# Run a hledger command on ccusage.journal. If you need it to be up to date, run just ai-ccusagej-regen first.
 @ai-ccusagej *HLEDGERARGS:
     hledger -f {{ AIDIR }}/ccusage.journal {{ HLEDGERARGS }}
 
-# Show a claude code usage balance report.
+# Show a claude code usage balance report, vertically.
 @ai-ccusagej-bal *BALARGS:
-    just ai-ccusagej bal -NTA --transpose --layout=bare {{ BALARGS }}
+    just ai-ccusagej bal --transpose -N --layout=bare {{ BALARGS }}
 
-# Show claude code monthly usage (by default).
+# Show claude code monthly usage.
 @ai-ccusagej-monthly *BALARGS:
-    just ai-ccusagej-bal -M {{ BALARGS }}
+    just ai-ccusagej-bal -M -b 2026 {{ BALARGS }}
 
-# Show claude code daily usage this month (by default).
+# Show claude code daily usage this month.
 @ai-ccusagej-daily *BALARGS:
     just ai-ccusagej-bal -D -p1..tomorrow {{ BALARGS }}
 
-# Import any new, summarised, past-months data from the personal ccusage.journal to the project's ai.journal.
-@ai-aij-update *IMPORTARGS:
-    just ai-ccusagej-update
+# Regen ccusage.journal, then show recent daily usage.
+ai-ccusagej-recent *BALARGS:
+    #!/bin/bash
+    just ai-ccusagej-regen
+    just ai-ccusagej-bal -DE -p-7days..tomorrow -Xkt --title "Latest_AI_usage,_$(date | sed 's/ /_/g')" {{ BALARGS }}
+
+# Run ai-ccusagej-recent repeatedly.
+@ai-ccusagej-recent-watch *BALARGS:
+    while true; do just ai-ccusagej-recent; echo; read -p "press enter to update.."; done
+
+# Regen ccusage.journal, then import any new summarised month entries from there to ai.journal.
+@ai-aij-import *IMPORTARGS:
+    just ai-ccusagej-regen
     cd {{ AIDIR }} \
     ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv \
     | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
@@ -1871,5 +1845,9 @@ ai-ccusagej-update:
 
 # Show a project ai usage balance report.
 @ai-aij-bal *BALARGS:
-    just ai-aij bal -NTA --transpose --layout=bare {{ BALARGS }}
+    just ai-aij bal --transpose -N --layout=bare {{ BALARGS }}
+
+# Show project monthly usage.
+@ai-aij-monthly *BALARGS:
+    just ai-aij-bal -M {{ BALARGS }}
 

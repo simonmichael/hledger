@@ -51,7 +51,8 @@ import Hledger.Write.Beancount (commodityToBeancount, tagsToBeancountMetadata)
 printmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Print.txt")
   ([
-   flagNone ["all","a"] (setboolopt "explicit" . setboolopt "lots" . setboolopt "verbose-tags")
+   flagNone ["oneline"] (setboolopt "oneline") "show transaction dates and descriptions only"
+  ,flagNone ["all","a"] (setboolopt "explicit" . setboolopt "lots" . setboolopt "verbose-tags")
     "show all details (--explicit --lots --verbose-tags)"
   ,flagNone ["explicit","x"] (setboolopt "explicit") "show all inferred info explicitly"
   ,flagNone ["verbose-tags"] (setboolopt "verbose-tags") "add tags indicating generated/modified data"
@@ -69,10 +70,7 @@ printmode = hledgerCommandMode
   ,outputFileFlag
   ])
   cligeneralflagsgroups1
-  (hiddenflags ++
-  -- this works already as a unique abbreviation, but declare here in case it ever becomes nonunique
-  [flagNone ["location"] (setboolopt "locations") "deprecated, use --locations instead"
-  ])
+  hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
 roundFlag = flagReq  ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
@@ -172,7 +170,9 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
     baseUrl = balance_base_url_ $ _rsReportOpts rspec
     query = querystring_ $ _rsReportOpts rspec
     postinglayout = layoutFromRawOpts rawopts
-    render | fmt=="txt"       = withTitle (_rsReportOpts rspec) . entriesReportAsTextHelper (showTransactionWithLayout postinglayout) . styleAmounts styles . map maybeoriginalamounts
+    oneline = boolopt "oneline" rawopts
+    showtxn = if oneline then showTransactionOneLine else showTransactionWithLayout postinglayout
+    render | fmt=="txt"       = withTitle (_rsReportOpts rspec) . entriesReportAsTextHelper showtxn . styleAmounts styles . map maybeoriginalamounts
            | fmt=="ledger"   = withTitle (_rsReportOpts rspec) . entriesReportAsTextHelper showTransactionLedger . styleAmounts styles . map maybeoriginalamounts
            | fmt=="beancount" = entriesReportAsBeancount (jdeclaredaccounttags j) styledPrices . styleAmounts styles . map fillBalanceAssignments
            | fmt=="csv"       = printCSV . entriesReportAsCsv . styleAmounts styles
@@ -236,7 +236,16 @@ transactionWithMostlyOriginalPostings t =
   where
     postingMostlyOriginal p = orig
         { paccount = paccount p
-        , pamount = newAmt }
+        , pamount = newAmt
+        -- When paccount equals the original (no collapse), trust the
+        -- original's assertion. When paccount has been changed (eg a lot
+        -- subaccount was collapsed away), use the current state's
+        -- assertion — which 'journalCollapseLotDetail' has already cleared
+        -- if the assertion targeted the now-hidden lot subaccount.
+        , pbalanceassertion =
+            if paccount orig == paccount p
+            then pbalanceassertion orig
+            else pbalanceassertion p }
       where
         orig = originalPosting p
         newAmt

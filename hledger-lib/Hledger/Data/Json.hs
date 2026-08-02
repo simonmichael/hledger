@@ -155,7 +155,40 @@ instance ToJSON TagDeclarationInfo
 instance ToJSON Commodity
 instance ToJSON TimeclockCode
 instance ToJSON TimeclockEntry
-instance ToJSON Journal
+
+-- Journal's jparse* fields are transient parser state, not journal data,
+-- so we omit them from the JSON.
+instance ToJSON Journal where
+  toJSON = object . journalKV
+  toEncoding = pairs . mconcat . journalKV
+
+journalKV ::
+#if MIN_VERSION_aeson(2,2,0)
+  KeyValue e kv
+#else
+  KeyValue kv
+#endif
+  => Journal -> [kv]
+journalKV j =
+    [ "jdeclaredpayees"          .= jdeclaredpayees j
+    , "jdeclaredtags"            .= jdeclaredtags j
+    , "jdeclaredaccounts"        .= jdeclaredaccounts j
+    , "jdeclaredaccounttags"     .= jdeclaredaccounttags j
+    , "jdeclaredaccounttypes"    .= jdeclaredaccounttypes j
+    , "jaccounttypes"            .= jaccounttypes j
+    , "jdeclaredcommodities"     .= jdeclaredcommodities j
+    , "jdeclaredcommoditytags"   .= jdeclaredcommoditytags j
+    , "jinferredcommoditystyles" .= jinferredcommoditystyles j
+    , "jglobalcommoditystyles"   .= jglobalcommoditystyles j
+    , "jpricedirectives"         .= jpricedirectives j
+    , "jinferredmarketprices"    .= jinferredmarketprices j
+    , "jtxnmodifiers"            .= jtxnmodifiers j
+    , "jperiodictxns"            .= jperiodictxns j
+    , "jtxns"                    .= jtxns j
+    , "jfinalcommentlines"       .= jfinalcommentlines j
+    , "jfiles"                   .= jfiles j
+    , "jlastreadtime"            .= jlastreadtime j
+    ]
 
 instance ToJSON BalanceData
 instance ToJSON a => ToJSON (PeriodData a) where

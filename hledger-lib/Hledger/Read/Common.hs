@@ -320,7 +320,7 @@ initialiseAndParseJournal parser iopts f txt = do
     prettyParseErrors $ runParserT (evalStateT parser (initJournal cf)) f txt
   where
     y = first3 . toGregorian $ _ioDay iopts
-    initJournal cf = nulljournal{jparsedefaultyear = Just y, jincludefilestack = [(f, cf)]}
+    initJournal cf = nulljournal{jparsedefaultyear = Just y, jparseincludefilestack = [(f, cf)]}
     -- Flatten parse errors and final parse errors, and output each as a pretty String.
     prettyParseErrors :: ExceptT FinalParseError IO (Either (ParseErrorBundle Text HledgerParseErrorData) a)
                       -> ExceptT String IO a
@@ -741,7 +741,8 @@ modifiedaccountnamep allowsemicolon = do
 
 -- | Parse an account name, plus one following space if present.
 -- Account names have one or more parts separated by the account separator character,
--- and are terminated by two or more spaces (or end of input).
+-- and are terminated by two or more whitespace characters (spaces or tabs), a single tab,
+-- or end of input.
 -- Each part is at least one character long, may have single spaces inside it, and starts with a non-whitespace.
 -- (We should have required them to start with an alphanumeric, but didn't.)
 -- Note, this means account names can contain all kinds of punctuation, including ; which usually starts a following comment.
@@ -769,12 +770,12 @@ noncommenttext1p :: TextParser m T.Text
 noncommenttext1p = takeWhile1P Nothing (\c -> not $ isSameLineCommentStart c || isNewline c)
 
 -- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
--- until a double space or newline.
+-- until a tab, double space, or newline.
 singlespacedtext1p :: TextParser m T.Text
 singlespacedtext1p = singlespacedtextsatisfying1p (const True)
 
 -- | Parse non-empty, single-spaced text starting and ending with non-whitespace,
--- until a comment start (semicolon), double space, or newline.
+-- until a comment start (semicolon), tab, double space, or newline.
 singlespacednoncommenttext1p :: TextParser m T.Text
 singlespacednoncommenttext1p = singlespacedtextsatisfying1p (not . isSameLineCommentStart)
 
@@ -788,9 +789,12 @@ singlespacedtextsatisfying1p f = do
   where
     partp = takeWhile1P Nothing (\c -> f c && not (isSpace c))
 
--- | Parse one non-newline whitespace character that is not followed by another one.
+-- | Parse a single space character (not a tab) that is not followed by more whitespace.
+-- A tab, like two or more spaces, terminates the surrounding single-spaced text instead of
+-- being consumed here; this lets a single tab separate an account name from an amount,
+-- for Ledger compatibility.
 singlespacep :: TextParser m ()
-singlespacep = spacenonewline *> notFollowedBy spacenonewline
+singlespacep = char ' ' *> notFollowedBy spacenonewline
 
 --- *** amounts
 
@@ -1139,13 +1143,9 @@ lotcostp postingqty =
       pure $ CostBasis Nothing Nothing ma
 
     -- Divide with full Decimal precision (so `{{T}}` and `@@T` give equal
-    -- per-unit Decimals for the strict basis check), but widen display
-    -- precision to show the quotient's digits (capped at
-    -- 'defaultMaxDisplayPrecision' for non-terminating decimals).
-    convertToUnitCost lotamt
-      | postingqty /= 0 = amountSetFullPrecisionUpTo (Just defaultMaxDisplayPrecision) $
-                          lotamt{aquantity = aquantity lotamt / postingqty}
-      | otherwise       = lotamt
+    -- per-unit Decimals for the strict basis check), and widen display
+    -- precision to show the quotient's digits.
+    convertToUnitCost = divideAmountAndUpdatePrecision postingqty
 
 -- Parse a Ledger-style [LOTDATE].
 lotdatep :: JournalParser m Day
@@ -1278,6 +1278,10 @@ disambiguateNumber msuggestedStyle (AmbiguousNumber grp1 sep grp2) =
 -- Left (AmbiguousNumber "1" ',' "000")
 -- >>> parseTest rawnumberp "1 000"
 -- Right (WithSeparators ' ' ["1","000"] Nothing)
+-- >>> parseTest rawnumberp "1'000"
+-- Right (WithSeparators '\'' ["1","000"] Nothing)
+-- >>> parseTest rawnumberp "1_000"
+-- Right (WithSeparators '_' ["1","000"] Nothing)
 --
 rawnumberp :: TextParser m (Either AmbiguousNumber RawNumber)
 rawnumberp = label "number" $ do
@@ -1343,7 +1347,7 @@ rawnumberp = label "number" $ do
     pure $ NoSeparators grp1 (Just (decPt, mempty))
 
 isDigitSeparatorChar :: Char -> Bool
-isDigitSeparatorChar c = isDecimalMark c || isDigitSeparatorSpaceChar c
+isDigitSeparatorChar c = c == '.' || c == ',' || c == '\'' || c == '_' || isDigitSeparatorSpaceChar c
 
 -- | Kinds of unicode space character we accept as digit group marks.
 -- See also https://en.wikipedia.org/wiki/Decimal_separator#Digit_grouping .
@@ -1824,6 +1828,8 @@ tests_Common = testGroup "Common" [
      assertParseEq p "1"          (1, 0, Nothing, Nothing)
      assertParseEq p "1.1"        (1.1, 1, Just '.', Nothing)
      assertParseEq p "1,000.1"    (1000.1, 1, Just '.', Just $ DigitGroups ',' [3])
+     assertParseEq p "1_000.1"    (1000.1, 1, Just '.', Just $ DigitGroups '_' [3])
+     assertParseEq p "1'000.1"    (1000.1, 1, Just '.', Just $ DigitGroups '\'' [3])
      assertParseEq p "1.00.000,1" (100000.1, 1, Just ',', Just $ DigitGroups '.' [3,2])
      assertParseEq p "1,000,000"  (1000000, 0, Nothing, Just $ DigitGroups ',' [3,3])  -- could be simplified to [3]
      assertParseEq p "1."         (1, 0, Just '.', Nothing)

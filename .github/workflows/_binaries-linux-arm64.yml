@@ -37,7 +37,7 @@ jobs:
     # https://github.com/foxcpp/maddy/pull/758/files
 
     - name: Check out
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7
       # have to fetch everything for git describe for --version
       with:
         fetch-depth: 0  
@@ -46,7 +46,7 @@ jobs:
 
     - name: Cache - ghcup-installed tools
       id:   ghcup
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.ghcup
         key: ${{ runner.os }}-ghcup-${{ hashFiles('**.yaml') }}
@@ -55,7 +55,7 @@ jobs:
 
     - name: Cache - cabal-installed libs
       id:   cabal
-      uses: actions/cache@v4
+      uses: actions/cache@v6
       with:
         path: ~/.cabal
         key: ${{ runner.os }}-cabal-${{ hashFiles('**.yaml') }}
@@ -135,7 +135,7 @@ jobs:
     # github UI always zips artifacts when they are downloaded, so we don't bother compressing the tar.
     # Unfortunately it means users must both unzip and untar.
     - name: Upload binaries
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v7
       with:
         name: hledger-linux-arm64
         path: tmp/hledger-linux-arm64.tar

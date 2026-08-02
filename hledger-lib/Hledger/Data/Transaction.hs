@@ -55,6 +55,7 @@ module Hledger.Data.Transaction
 , showTransaction
 , showTransactionWithLayout
 , showTransactionOneLineAmounts
+, showTransactionOneLine
 , showTransactionLineFirstPart
 , transactionFile
   -- * transaction errors
@@ -184,20 +185,32 @@ showTransactionWithLayout layout = TL.toStrict . TB.toLazyText . showTransaction
 showTransactionOneLineAmounts :: Transaction -> Text
 showTransactionOneLineAmounts = TL.toStrict . TB.toLazyText . showTransactionHelper True defaultPostingLayout
 
+-- | Show only a transaction's first line: date, status, code, description,
+-- and same-line comment, without any comment lines or postings. Used by print --oneline.
+-- (Distinct from 'showTransactionOneLineAmounts', which shows the whole transaction
+-- but with multi-commodity amounts on one line.)
+showTransactionOneLine :: Transaction -> Text
+showTransactionOneLine t = transactionFirstLine t <> "\n"
+
 -- | Helper for showTransaction*.
 showTransactionHelper :: Bool -> PostingLayout -> Transaction -> TB.Builder
 showTransactionHelper onelineamounts layout t =
-      TB.fromText descriptionline <> newline
+      TB.fromText (transactionFirstLine t) <> newline
     <> foldMap ((<> newline) . TB.fromText) newlinecomments
     <> foldMap ((<> newline) . TB.fromText) (postingsAsLinesWithLayout defaultFmt onelineamounts layout $ tpostings t)
     <> newline
   where
-    descriptionline = T.stripEnd $ showTransactionLineFirstPart t <> T.concat [desc, samelinecomment]
-    desc = if T.null d then "" else " " <> d where d = tdescription t
-    (samelinecomment, newlinecomments) =
-      case renderCommentLines (tcomment t) of []   -> ("",[])
-                                              c:cs -> (c,cs)
+    newlinecomments = drop 1 $ renderCommentLines (tcomment t)
     newline = TB.singleton '\n'
+
+-- | Render a transaction's first line: date, status, code, description, and
+-- same-line comment (the part after @;@ on the date line), with trailing whitespace stripped.
+transactionFirstLine :: Transaction -> Text
+transactionFirstLine t = T.stripEnd $ showTransactionLineFirstPart t <> T.concat [desc, samelinecomment]
+  where
+    desc = if T.null d then "" else " " <> d where d = tdescription t
+    samelinecomment = case renderCommentLines (tcomment t) of []  -> ""
+                                                              c:_ -> c
 
 -- Useful when rendering error messages.
 showTransactionLineFirstPart t = T.concat [date, status, code]

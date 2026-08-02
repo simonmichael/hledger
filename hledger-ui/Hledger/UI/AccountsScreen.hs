@@ -55,22 +55,27 @@ import Control.Arrow ((>>>))
 import Safe (headDef)
 
 
-asDraw :: UIState -> [Widget Name]
-asDraw ui = dbgui "asDraw" $ asDrawHelper ui ropts' scrname
+asDraw :: AccountsScreenState -> UIState -> [Widget Name]
+asDraw ass@ASS{_assKind=kind} ui = dbgui "asDraw" $ asDrawHelper ass ui ropts' scrname
   where
-    ropts' = _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
-    scrname = "account " ++ if ishistorical then "balances" else "changes"
-      where ishistorical = balanceaccum_ ropts' == Historical
+    ropts'  = accountsScreenRoptsMod kind $ _rsReportOpts $ reportspec_ $ uoCliOpts $ aopts ui
+    scrname = accountsScreenName kind ropts'
+
+-- | The display name shown in an accounts-like screen's header, for the given kind.
+accountsScreenName :: AccountsScreenKind -> ReportOpts -> String
+accountsScreenName kind ropts = case kind of
+  AllAccounts             -> "account " ++ if balanceaccum_ ropts == Historical then "balances" else "changes"
+  CashAccounts            -> "cash balances"
+  BalancesheetAccounts    -> "balance sheet balances"
+  IncomestatementAccounts -> "income statement changes"
 
 -- | Help draw any accounts-like screen (all accounts, balance sheet, income statement..).
 -- The provided ReportOpts are used instead of the ones in the UIState.
 -- The other argument is the screen display name.
-asDrawHelper :: UIState -> ReportOpts -> String -> [Widget Name]
-asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
+asDrawHelper :: AccountsScreenState -> UIState -> ReportOpts -> String -> [Widget Name]
+asDrawHelper ass UIState{aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
   dbgui "asDrawHelper" $
-  case toAccountsLikeScreen scr of
-    Nothing          -> dbgui "asDrawHelper" $ errorWrongScreenType "asDrawHelper"  -- PARTIAL:
-    Just (ALS _ ass) -> case mode of
+  case mode of
       Help -> [helpDialog, maincontent]
       _    -> [maincontent]
       where
@@ -149,11 +154,12 @@ asDrawHelper UIState{aScreen=scr, aopts=uopts, ajournal=j, aMode=mode} ropts scr
                   -- ,("t", str "tree")
                   -- ,("l", str "list")
                   ,("-+", str "depth")
-                  ,case scr of
-                    BS _ -> ("", str "")
-                    IS _ -> ("", str "")
-                    _    -> ("H", renderToggle (not ishistorical) "end-bals" "changes")
+                  ,case _assKind ass of
+                    BalancesheetAccounts    -> ("", str "")
+                    IncomestatementAccounts -> ("", str "")
+                    _                       -> ("H", renderToggle (not ishistorical) "end-bals" "changes")
                   ,("F", renderToggle1 (isJust . forecast_ $ inputopts_ copts) "forecast")
+                  ,("L", renderToggle1 (boolopt "lots" $ rawopts_ copts) "lots")
                   --,("/", "filter")
                   --,("DEL", "unfilter")
                   --,("ESC", "cancel/top")
@@ -184,24 +190,21 @@ asDrawItem (acctwidth, balwidth) selected AccountsScreenItem{..} =
             | otherwise = id
 
 -- | Handle events on any accounts-like screen (all accounts, balance sheet, income statement..).
-asHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-asHandle ev = do
+asHandle :: AccountsScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+asHandle ass ev = do
   dbguiEv "asHandle"
-  ui0@UIState{aScreen=scr, aMode=mode} <- get'
-  case toAccountsLikeScreen scr of
-    Nothing -> dbgui "asHandle" $ errorWrongScreenType "asHandle"  -- PARTIAL:
-    Just als@(ALS scons ass) -> do
-      -- save the currently selected account, in case we leave this screen and lose the selection
-      put' ui0{aScreen=scons ass{_assSelectedAccount=asSelectedAccount ass}}
-      case mode of
-        Normal          -> asHandleNormalMode als ev
-        Minibuffer _ ed -> handleMinibufferMode ed ev
-        Help            -> handleHelpMode ev
+  ui0@UIState{aMode=mode} <- get'
+  -- save the currently selected account, in case we leave this screen and lose the selection
+  put' ui0{aScreen=AS ass{_assSelectedAccount=asSelectedAccount ass}}
+  case mode of
+    Normal          -> asHandleNormalMode ass ev
+    Minibuffer _ ed -> handleMinibufferMode ed ev
+    Help            -> handleHelpMode ev
 
 -- | Handle events when in normal mode on any accounts-like screen.
--- The provided AccountsLikeScreen should correspond to the ui state's current screen.
-asHandleNormalMode :: AccountsLikeScreen -> BrickEvent Name AppEvent -> EventM Name UIState ()
-asHandleNormalMode (ALS scons ass) ev = do
+-- The provided state should be the ui state's current screen.
+asHandleNormalMode :: AccountsScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+asHandleNormalMode ass ev = do
   dbguiEv "asHandleNormalMode"
 
   ui@UIState{aopts=UIOpts{uoCliOpts=copts}, ajournal=j} <- get'
@@ -209,7 +212,7 @@ asHandleNormalMode (ALS scons ass) ev = do
   let
     l = _assList ass
     selacct = asSelectedAccount ass
-    centerSelection = scrollSelectionToMiddle l
+    centerSelection = scrollSelectionToMiddle (asListSize l) l
     clickedAcctAt y =
       case asItemAccountName <$> listElements l !? y of
         Just t | not $ T.null t -> Just t
@@ -237,12 +240,12 @@ asHandleNormalMode (ALS scons ass) ev = do
     -- adjust the viewed period and regenerate, just in case needed.
     -- (Eg: when watching data for "today" and the time has just passed midnight.)
     AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-      modify' (setReportPeriod (DayPeriod d) >>> regenerateScreens j d)
+      modify' (setReportPeriod (DayPeriod d) >>> regenerateScreens d)
       where p = reportPeriod ui
 
     -- set or reset a filter:
-    VtyEvent (EvKey (KChar '/') []) -> modify' (showMinibuffer "filter" Nothing >>> regenerateScreens j d)
-    VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> modify' (resetFilter >>> regenerateScreens j d)
+    VtyEvent (EvKey (KChar '/') []) -> modify' (showMinibuffer "filter" Nothing >>> regenerateScreens d)
+    VtyEvent (EvKey k           []) | k `elem` [KBS, KDel] -> modify' (resetFilter >>> regenerateScreens d)
 
     -- run external programs:
     VtyEvent (EvKey (KChar 'a') []) -> suspendAndResume $ clearScreen >> setCursorPosition 0 0 >> add (cliOptsDropArgs copts) j >> uiReloadIfFileChanged copts d j ui
@@ -255,44 +258,45 @@ asHandleNormalMode (ALS scons ass) ev = do
       let l'' = if isBlankItem (listSelectedElement l')
                 then listMoveTo lastnonblankidx l'
                 else l'
-      put' ui{aScreen=scons ass{_assList=l''}}
+      put' ui{aScreen=AS ass{_assList=l''}}
 
     VtyEvent (EvKey (KChar 'K') []) -> do
       let l' = listMoveBy (-10) l
-      put' ui{aScreen=scons ass{_assList=l'}}
+      put' ui{aScreen=AS ass{_assList=l'}}
 
     -- adjust the period displayed:
-    VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens j d)
-    VtyEvent (EvKey (KDown)     [MShift]) -> modify' (shrinkReportPeriod d             >>> regenerateScreens j d)
-    VtyEvent (EvKey (KUp)       [MShift]) -> modify' (growReportPeriod d               >>> regenerateScreens j d)
-    VtyEvent (EvKey (KRight)    [MShift]) -> modify' (nextReportPeriod journalspan     >>> regenerateScreens j d)
-    VtyEvent (EvKey (KLeft)     [MShift]) -> modify' (previousReportPeriod journalspan >>> regenerateScreens j d)
+    VtyEvent (EvKey (KChar 'T') []) ->       modify' (setReportPeriod (DayPeriod d)    >>> regenerateScreens d)
+    VtyEvent (EvKey (KDown)     [MShift]) -> modify' (shrinkReportPeriod d             >>> regenerateScreens d)
+    VtyEvent (EvKey (KUp)       [MShift]) -> modify' (growReportPeriod d               >>> regenerateScreens d)
+    VtyEvent (EvKey (KRight)    [MShift]) -> modify' (nextReportPeriod journalspan     >>> regenerateScreens d)
+    VtyEvent (EvKey (KLeft)     [MShift]) -> modify' (previousReportPeriod journalspan >>> regenerateScreens d)
 
     -- various toggles and settings:
     VtyEvent (EvKey (KChar 'I') []) -> get' >>= uiToggleBalanceAssertions d
-    VtyEvent (EvKey (KChar 'F') []) -> modify' (toggleForecast d   >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar 'B') []) -> modify' (toggleConversionOp >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar 'V') []) -> modify' (toggleValue        >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '0') []) -> modify' (setDepth (Just 0)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '1') []) -> modify' (setDepth (Just 1)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '2') []) -> modify' (setDepth (Just 2)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '3') []) -> modify' (setDepth (Just 3)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '4') []) -> modify' (setDepth (Just 4)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '5') []) -> modify' (setDepth (Just 5)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '6') []) -> modify' (setDepth (Just 6)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '7') []) -> modify' (setDepth (Just 7)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '8') []) -> modify' (setDepth (Just 8)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar '9') []) -> modify' (setDepth (Just 9)  >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar c) []) | c `elem` ['-','_'] -> modify' (decDepth >>> regenerateScreens j d)
-    VtyEvent (EvKey (KChar c) []) | c `elem` ['+','='] -> modify' (incDepth >>> regenerateScreens j d)
+    VtyEvent (EvKey (KChar 'F') []) -> modify' (toggleForecast d   >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar 'B') []) -> modify' (toggleConversionOp >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar 'V') []) -> modify' (toggleValue        >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '0') []) -> modify' (setDepth (Just 0)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '1') []) -> modify' (setDepth (Just 1)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '2') []) -> modify' (setDepth (Just 2)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '3') []) -> modify' (setDepth (Just 3)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '4') []) -> modify' (setDepth (Just 4)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '5') []) -> modify' (setDepth (Just 5)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '6') []) -> modify' (setDepth (Just 6)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '7') []) -> modify' (setDepth (Just 7)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '8') []) -> modify' (setDepth (Just 8)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar '9') []) -> modify' (setDepth (Just 9)  >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar c) []) | c `elem` ['-','_'] -> modify' (decDepth >>> regenerateScreens d)
+    VtyEvent (EvKey (KChar c) []) | c `elem` ['+','='] -> modify' (incDepth >>> regenerateScreens d)
     -- toggles after which the selection should be recentered:
-    VtyEvent (EvKey (KChar 'H') []) -> modify' (toggleHistorical   >>> regenerateScreens j d) >> centerSelection  -- harmless on BS/IS screens
-    VtyEvent (EvKey (KChar 't') []) -> modify' (toggleTree         >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'R') []) -> modify' (toggleReal         >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'U') []) -> modify' (toggleUnmarked     >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'P') []) -> modify' (togglePending      >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar 'C') []) -> modify' (toggleCleared      >>> regenerateScreens j d) >> centerSelection
-    VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify' (toggleEmpty >>> regenerateScreens j d) >> centerSelection  -- back compat: accept Z as well as z
+    VtyEvent (EvKey (KChar 'L') []) -> modify' (toggleLots         >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'H') []) -> modify' (toggleHistorical   >>> regenerateScreens d) >> centerSelection  -- harmless on BS/IS screens
+    VtyEvent (EvKey (KChar 't') []) -> modify' (toggleTree         >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'R') []) -> modify' (toggleReal         >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'U') []) -> modify' (toggleUnmarked     >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'P') []) -> modify' (togglePending      >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar 'C') []) -> modify' (toggleCleared      >>> regenerateScreens d) >> centerSelection
+    VtyEvent (EvKey (KChar c) []) | c `elem` ['z','Z'] -> modify' (toggleEmpty >>> regenerateScreens d) >> centerSelection  -- back compat: accept Z as well as z
 
     -- LEFT key or a click in the app's left margin: exit to the parent screen.
     VtyEvent e | e `elem` moveLeftEvents  -> modify' popScreen
@@ -305,7 +309,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     -- MouseDown: this is not debounced and can repeat (https://github.com/jtdaugherty/brick/issues/347)
     -- so we only let it do something harmless: move the selection.
     MouseDown _n BLeft _mods Location{loc=(_,y)} | not $ isBlankItem clickeditem ->
-      put' ui{aScreen=scons ass'}
+      put' ui{aScreen=AS ass'}
       where
         clickeditem = (0,) <$> listElements l !? y
         ass' = ass{_assList=listMoveTo y l}
@@ -314,7 +318,7 @@ asHandleNormalMode (ALS scons ass) ev = do
     MouseDown name btn _mods _loc | btn `elem` [BScrollUp, BScrollDown] -> do
       let scrollamt = if btn==BScrollUp then -1 else 1
       l' <- nestEventM' l $ listScrollPushingSelection name (asListSize l) scrollamt
-      put' ui{aScreen=scons ass{_assList=l'}}
+      put' ui{aScreen=AS ass{_assList=l'}}
 
     -- PGDOWN/END keys: handle with List's default handler, but restrict the selection to stop
     -- (and center) at the last non-blank item.
@@ -323,19 +327,19 @@ asHandleNormalMode (ALS scons ass) ev = do
       if isBlankItem $ listSelectedElement l1
       then do
         let l2 = listMoveTo lastnonblankidx l1
-        scrollSelectionToMiddle l2
-        put' ui{aScreen=scons ass{_assList=l2}}
+        scrollSelectionToMiddle (asListSize l2) l2
+        put' ui{aScreen=AS ass{_assList=l2}}
       else
-        put' ui{aScreen=scons ass{_assList=l1}}
+        put' ui{aScreen=AS ass{_assList=l1}}
 
-    -- DOWN key when selection is at the last item: scroll instead of moving, until maximally scrolled
-    VtyEvent e | e `elem` moveDownEvents, isBlankItem mnextelement -> vScrollBy (viewportScroll $ l^.listNameL) 1
+    -- DOWN key when selection is at the last item: do nothing
+    VtyEvent e | e `elem` moveDownEvents, isBlankItem mnextelement -> return ()
       where mnextelement = listSelectedElement $ listMoveDown l
 
     -- Any other vty event (UP, DOWN, PGUP etc): handle with List's default handler.
     VtyEvent e -> do
       l' <- nestEventM' l $ handleListEvent (normaliseMovementKeys e)
-      put' ui{aScreen=scons $ ass & assList .~ l' & assSelectedAccount .~ selacct}
+      put' ui{aScreen=AS $ ass & assList .~ l' & assSelectedAccount .~ selacct}
 
     -- Any other mouse/app event: ignore
     MouseDown{} -> return ()
@@ -344,11 +348,11 @@ asHandleNormalMode (ALS scons ass) ev = do
 
 -- | Handle events when in minibuffer mode on any screen.
 handleMinibufferMode ed ev = do
-  ui@UIState{ajournal=j} <- get'
+  ui <- get'
   d <- liftIO getCurrentDay
   case ev of
     VtyEvent (EvKey KEsc   []) -> put' $ closeMinibuffer ui
-    VtyEvent (EvKey KEnter []) -> put' $ regenerateScreens j d ui'
+    VtyEvent (EvKey KEnter []) -> put' $ regenerateScreens d ui'
       where
         ui' = setFilter s (closeMinibuffer ui)
           & fromRight (showMinibuffer "Cannot compile regular expression" (Just s) ui)
@@ -398,8 +402,6 @@ asSetSelectedAccount :: AccountName -> Screen -> Screen
 asSetSelectedAccount acct scr =
   case scr of
     (AS ass) -> AS $ assSetSelectedAccount acct ass
-    (BS ass) -> BS $ assSetSelectedAccount acct ass
-    (IS ass) -> IS $ assSetSelectedAccount acct ass
     _        -> scr
     where
       assSetSelectedAccount a ass@ASS{_assList=l} =
@@ -414,7 +416,9 @@ asSetSelectedAccount acct scr =
             where
               as = map asItemAccountName $ V.toList $ listElements l
 
-isBlankItem mitem = ((asItemAccountName . snd) <$> mitem) == Just ""
+-- | Is this a blank account-list item, or no item at all (empty list / no selection) ?
+-- Either way there is no real account here to act on.
+isBlankItem mitem = maybe True (T.null . asItemAccountName . snd) mitem
 
 asListSize = V.length . V.takeWhile ((/="").asItemAccountName) . listElements
 

@@ -30,16 +30,15 @@ import Hledger.UI.UIState
 import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
-import Hledger.UI.ErrorScreen (uiCheckBalanceAssertions, uiReload, uiReloadIfFileChanged, uiToggleBalanceAssertions)
-import Hledger.UI.RegisterScreen (rsHandle)
+import Hledger.UI.ErrorScreen (uiReload, uiReloadIfFileChanged, uiToggleBalanceAssertions)
 
-tsDraw :: UIState -> [Widget Name]
-tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
+tsDraw :: TransactionScreenState -> UIState -> [Widget Name]
+tsDraw TSS{_tssTransaction=(i,t')
+          ,_tssTransactions=nts
+          ,_tssAccount=acct
+          }
+       UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}}
               ,ajournal=j
-              ,aScreen=TS TSS{_tssTransaction=(i,t')
-                              ,_tssTransactions=nts
-                              ,_tssAccount=acct
-                              }
               ,aMode=mode
               } =
   case mode of
@@ -96,7 +95,6 @@ tsDraw UIState{aopts=UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec
               -- ,("q", "quit")
               ]
 
-tsDraw _ = errorWrongScreenType "tsDraw"  -- PARTIAL:
 
 -- Render a transaction suitably for the transaction screen.
 showTxn :: ReportOpts -> ReportSpec -> Journal -> Transaction -> T.Text
@@ -112,12 +110,11 @@ showTxn ropts rspec j t =
       fromMaybe (error' "TransactionScreen: expected a non-empty journal") $  -- PARTIAL: shouldn't happen
       reportPeriodOrJournalLastDay rspec j
 
-tsHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-tsHandle ev = do
+tsHandle :: TransactionScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+tsHandle TSS{_tssTransaction=(i,t), _tssTransactions=nts} ev = do
   ui0 <- get'
   case ui0 of
-    ui@UIState{aScreen=TS TSS{_tssTransaction=(i,t), _tssTransactions=nts}
-              ,aopts=UIOpts{uoCliOpts=copts}
+    ui@UIState{aopts=UIOpts{uoCliOpts=copts}
               ,ajournal=j
               ,aMode=mode
               } ->
@@ -158,7 +155,7 @@ tsHandle ev = do
               tsReloadIfFileChanged copts d j ui
 
             AppEvent (DateChange old _) | isStandardPeriod p && p `periodContainsDate` old ->
-              put' $ regenerateScreens j d $ setReportPeriod (DayPeriod d) ui
+              put' $ regenerateScreens d $ setReportPeriod (DayPeriod d) ui
               where
                 p = reportPeriod ui
 
@@ -166,11 +163,12 @@ tsHandle ev = do
 
             -- for toggles that may change the current/prev/next transactions,
             -- we must regenerate the transaction list, like the g handler above ? with regenerateTransactions ? TODO WIP
-            -- EvKey (KChar 'E') [] -> put' $ regenerateScreens j d $ stToggleEmpty ui
-            -- EvKey (KChar 'C') [] -> put' $ regenerateScreens j d $ stToggleCleared ui
-            -- EvKey (KChar 'R') [] -> put' $ regenerateScreens j d $ stToggleReal ui
-            VtyEvent (EvKey (KChar 'B') []) -> put' . regenerateScreens j d $ toggleConversionOp ui
-            VtyEvent (EvKey (KChar 'V') []) -> put' . regenerateScreens j d $ toggleValue ui
+            -- EvKey (KChar 'E') [] -> put' $ regenerateScreens d $ stToggleEmpty ui
+            -- EvKey (KChar 'C') [] -> put' $ regenerateScreens d $ stToggleCleared ui
+            -- EvKey (KChar 'R') [] -> put' $ regenerateScreens d $ stToggleReal ui
+            VtyEvent (EvKey (KChar 'B') []) -> put' . regenerateScreens d $ toggleConversionOp ui
+            VtyEvent (EvKey (KChar 'V') []) -> put' . regenerateScreens d $ toggleValue ui
+            VtyEvent (EvKey (KChar 'L') []) -> put' . regenerateScreens d $ toggleLots ui
 
             VtyEvent e | e `elem` moveUpEvents   -> put' $ tsSelect iprev tprev ui
             VtyEvent e | e `elem` moveDownEvents -> put' $ tsSelect inext tnext ui
@@ -184,53 +182,12 @@ tsHandle ev = do
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
 
-    _ -> errorWrongScreenType "tsHandle"
 
     where
-      -- Reload and fully regenerate the transaction screen.
-      -- XXX On transaction screen or below, this is tricky because of a current limitation of regenerateScreens.
-      -- For now we try to work around by re-entering the screen(s).
-      -- This can show flicker in the UI and it's hard to handle all situations robustly.
-      tsReload copts d ui = uiReload copts d ui >>= reEnterTransactionScreen copts d
-      tsReloadIfFileChanged copts d j ui = liftIO (uiReloadIfFileChanged copts d j ui) >>= reEnterTransactionScreen copts d
-      
-      reEnterTransactionScreen _copts d ui = do
-        -- 1. If uiReload (or checking balance assertions) moved us to the error screen, save that, and return to the transaction screen.
-        let
-          (merrscr, uiTxn) = case aScreen $ uiCheckBalanceAssertions d ui of
-            s@(ES _) -> (Just s,  popScreen ui)
-            _        -> (Nothing, ui)
-        -- 2. Exit to register screen
-        let uiReg = popScreen uiTxn
-        put' uiReg
-        -- 3. Re-enter the transaction screen
-        rsHandle (VtyEvent (EvKey KEnter [])) -- PARTIAL assumes we are on the register screen.
-        -- 4. Return to the error screen (below the transaction screen) if there was one.
-        -- Next events will be handled by esHandle. Error repair will return to the transaction screen.
-        maybe (return ()) (put' . flip pushScreen uiTxn) merrscr
-          -- doesn't uiTxn have old state from before step 3 ? seems to work
-
-        -- XXX some problem:
-        -- 4. Reload once more, possibly re-entering the error screen, by sending a g event.
-        -- sendVtyEvents [EvKey (KChar 'g') []]  --  XXX Might be disrupted if other events are queued
-
-        -- XXX doesn't update on non-error change:
-        -- 4. Reload once more, possibly re-entering the error screen.
-        -- uiTxnOrErr <- uiReload copts d uiTxn
-          -- uiReloadIfChanged ?
-          -- uiCheckBalanceAssertions ? seems unneeded
-        -- put' uiTxnOrErr
-
-        -- XXX not working right:
-        -- -- 1. If uiReload (or checking balance assertions) moved us to the error screen, exit to the transaction screen.
-        -- let
-        --   uiTxn = case aScreen $ uiCheckBalanceAssertions d ui of
-        --     ES _ -> popScreen ui
-        --     _    -> ui
-        -- -- 2. Exit to register screen
-        -- put' $ popScreen uiTxn
-        -- -- 3. Re-enter the transaction screen, and reload once more.
-        -- sendVtyEvents [EvKey KEnter [], EvKey (KChar 'g') []]  -- XXX Might be disrupted if other events are queued
+      -- Reload the journal and regenerate the whole screen stack; tsUpdate now refreshes
+      -- this transaction screen in place, so no exit/re-enter dance is needed.
+      tsReload copts d ui = uiReload copts d ui >>= put'
+      tsReloadIfFileChanged copts d j ui = liftIO (uiReloadIfFileChanged copts d j ui) >>= put'
 
 
 -- | Select a new transaction and update the previous register screen

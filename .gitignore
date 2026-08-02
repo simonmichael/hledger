@@ -12,6 +12,7 @@ _*
 
 # dev stuff
 .build
+.hx
 .idea
 *.iml
 .shake
@@ -69,6 +70,9 @@ packages*.svg
 
 /[a-z0-9][a-z0-9].*
 ![a-z0-9][a-z0-9].*/
+# a hx project config and lockfile are tracked
+!/hx.toml
+!/hx.lock
 
 /test*
 

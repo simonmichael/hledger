@@ -418,7 +418,7 @@ includedirectivep iopts = do
       -- Though, ignore the immediate parent file for convenience. XXX inconsistent - should it ignore all cyclic includes ?
       -- Use canonical paths for cycle detection, show nominal absolute paths in error messages.
       parentj <- get
-      let parentfiles = jincludefilestack parentj
+      let parentfiles = jparseincludefilestack parentj
           cparentfiles = map snd parentfiles
           cparentf = take 1 cparentfiles
       files2 <- forM files $ \f -> do
@@ -476,7 +476,7 @@ includedirectivep iopts = do
 
           where
             childfilename = takeFileName filepath
-            parentfilename = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jincludefilestack parentj  -- XXX more accurate than journalFilePath for some reason
+            parentfilename = maybe "(unknown)" takeFileName $ fmap fst $ headMay $ jparseincludefilestack parentj  -- XXX more accurate than journalFilePath for some reason
 
       -- And update the current parse state.
       put parentj'
@@ -492,7 +492,7 @@ includedirectivep iopts = do
           ,jdeclaredcommodities           = jdeclaredcommodities j
           -- ,jparsetransactioncount = jparsetransactioncount j
           ,jparsetimeclockentries = jparsetimeclockentries j
-          ,jincludefilestack      = (filepath, cfilepath) : jincludefilestack j
+          ,jparseincludefilestack = (filepath, cfilepath) : jparseincludefilestack j
           }
 
 -- Get the absolute path of the file referenced by this parse position.
@@ -1011,6 +1011,7 @@ tests_JournalReader = testGroup "JournalReader" [
    let p = lift accountnamep :: JournalParser IO AccountName in
    testGroup "accountnamep" [
      testCase "basic" $ assertParse p "a:b:c"
+    ,testCase "single space is part of the account name" $ assertParseEq p "a b:c" "a b:c"
     -- ,testCase "empty inner component" $ assertParseError p "a::c" ""  -- TODO
     -- ,testCase "empty leading component" $ assertParseError p ":b:c" "x"
     -- ,testCase "empty trailing component" $ assertParseError p "a:b:" "x"

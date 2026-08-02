@@ -24,7 +24,6 @@ import Data.Time.Calendar (Day)
 import Data.Void (Void)
 import Graphics.Vty (Event(..),Key(..),Modifier(..))
 import Lens.Micro ((^.))
-import Safe (headMay)
 import Text.Megaparsec
 import Text.Megaparsec.Char
 
@@ -36,10 +35,8 @@ import Hledger.UI.UIUtils
 import Hledger.UI.UIScreens
 import Hledger.UI.Editor
 
-esDraw :: UIState -> [Widget Name]
-esDraw UIState{aScreen=ES ESS{..}
-              ,aMode=mode
-              } =
+esDraw :: ErrorScreenState -> UIState -> [Widget Name]
+esDraw ESS{..} UIState{aMode=mode} =
   case mode of
     Help       -> [helpDialog, maincontent]
     _          -> [maincontent]
@@ -64,14 +61,12 @@ esDraw UIState{aScreen=ES ESS{..}
               ,("q", "quit")
               ]
 
-esDraw _ = error' "draw function called with wrong screen type, should not happen"  -- PARTIAL:
 
-esHandle :: BrickEvent Name AppEvent -> EventM Name UIState ()
-esHandle ev = do
+esHandle :: ErrorScreenState -> BrickEvent Name AppEvent -> EventM Name UIState ()
+esHandle ESS{..} ev = do
   ui0 <- get'
   case ui0 of
-    ui@UIState{aScreen=ES ESS{..}
-              ,aopts=UIOpts{uoCliOpts=copts}
+    ui@UIState{aopts=UIOpts{uoCliOpts=copts}
               ,ajournal=j
               ,aMode=mode
               } ->
@@ -108,22 +103,16 @@ esHandle ev = do
             VtyEvent (EvKey (KChar 'z') [MCtrl]) -> suspend ui
             _ -> return ()
 
-    _ -> errorWrongScreenType "esHandle"
 
     where
-      -- Reload and fully regenerate the error screen.
-      -- XXX On an error screen below the transaction screen, this is tricky because of a current limitation of regenerateScreens.
-      -- For now we try to work around by re-entering the transaction screen.
-      -- This can show flicker in the UI and it's hard to handle all situations robustly.
-      esReload copts d ui = uiReload copts d ui >>= maybeReloadErrorScreen copts d
-      esReloadIfFileChanged copts d j ui = liftIO (uiReloadIfFileChanged copts d j ui) >>= maybeReloadErrorScreen copts d
-      maybeReloadErrorScreen copts d ui =
-        case headMay $ aPrevScreens ui of
-          Just (TS _) -> do
-            -- check balance assertions, exit to register screen, enter transaction screen, reload once more
-            put' $ popScreen $ popScreen $ uiCheckBalanceAssertions d ui
-            sendVtyEvents [EvKey KEnter [], EvKey (KChar 'g') []]  -- XXX Might be disrupted if other events are queued ?
-          _ -> uiReload copts d (popScreen ui) >>= put' . uiCheckBalanceAssertions d
+      -- Reload from the error screen: drop the error screen, then reload and regenerate the
+      -- revealed parent (uiReload re-pushes an error screen if it still fails), and recheck
+      -- balance assertions. This works for any parent, since every screen now regenerates from
+      -- its own stored parameters.
+      esReload copts d ui =
+        uiReload copts d (popScreen ui) >>= put' . uiCheckBalanceAssertions d
+      esReloadIfFileChanged copts d j ui =
+        liftIO (uiReloadIfFileChanged copts d j (popScreen ui)) >>= put' . uiCheckBalanceAssertions d
 
 -- | Parse the file name, line and column number from a hledger parse error message, if possible.
 -- Temporary, we should keep the original parse error location. XXX
@@ -168,13 +157,15 @@ uiAdjustOpts uopts = enableForecast uopts
 uiReload :: CliOpts -> Day -> UIState -> EventM Name UIState UIState
 uiReload copts d ui = liftIO $ do
   ej <-
-    let copts1 = uiAdjustOpts (astartupopts ui) copts
-    in runExceptT $ journalTransform copts1 <$> journalReload copts1
+    let copts1   = uiAdjustOpts (astartupopts ui) copts
+        loadopts = copts1{rawopts_ = setboolopt "lots" (rawopts_ copts1)}  -- keep lot detail; the UI collapses it for display
+    in runExceptT $ journalTransform loadopts <$> journalReload loadopts
   -- dbg1IO "uiReload before reload" (map tdescription $ jtxns $ ajournal ui)
   return $ case ej of
-    Right j  ->
-      -- dbg1 "uiReload after reload" (map tdescription $ jtxns j) $
-      regenerateScreens j d ui
+    Right jraw ->
+      -- dbg1 "uiReload after reload" (map tdescription $ jtxns jraw) $
+      -- save the uncollapsed journal; regenerateScreens derives the display journal from it
+      regenerateScreens d ui{auncollapsedjournal = jraw}
     Left err ->
       case ui of
         UIState{aScreen=ES _} -> ui{aScreen=esNew err}
@@ -194,10 +185,14 @@ uiReload copts d ui = liftIO $ do
 uiReloadIfFileChanged :: CliOpts -> Day -> Journal -> UIState -> IO UIState
 uiReloadIfFileChanged copts d j ui = do
   ej <-
-    let copts1 = uiAdjustOpts (astartupopts ui) copts
-    in runExceptT $ journalReloadIfChanged copts1 d j
+    let copts1   = uiAdjustOpts (astartupopts ui) copts
+        loadopts = copts1{rawopts_ = setboolopt "lots" (rawopts_ copts1)}  -- keep lot detail; the UI collapses it for display
+    in runExceptT $ journalReloadIfChanged loadopts d j
   return $ case ej of
-    Right (j', _) -> regenerateScreens j' d ui
+    -- changed: save the uncollapsed journal; regenerateScreens derives the display journal from it
+    Right (jraw, True)  -> regenerateScreens d ui{auncollapsedjournal = jraw}
+    -- unchanged: nothing reloaded, refresh in place (opts/date may have changed), keep the journal
+    Right (_,    False) -> regenerateScreens d ui
     Left err -> case aScreen ui of
         ES _ -> ui{aScreen=esNew err}
         _    -> pushScreen (esNew err) ui

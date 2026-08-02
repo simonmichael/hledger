@@ -4,7 +4,7 @@ Show journal and performance statistics.
 
 ```flags
 Flags:
-  -1                        show a single line of output
+     --oneline              show a single line of output
   -v --verbose              show more detailed output
   -o --output-file=FILE     write output to FILE.
 ```

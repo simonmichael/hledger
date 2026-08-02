@@ -305,6 +305,10 @@ but not both at once.  Cost mode takes precedence.  - There's not yet
 any visual indicator that cost or value mode is active, other than the
 amount values.
 
+   'L' toggles lot detail (like the '--lots' flag), showing or hiding
+lot subaccounts (such as 'assets:broker:{2026-01-15, $50}') and other
+per-lot detail.
+
    'q' quits the application.
 
    Additional screen-specific keys are described below.
@@ -520,16 +524,11 @@ _However._  There are limitations/unresolved bugs with '--watch':
    * It may not detect changes made from outside a virtual machine, ie
      by an editor running on the host system.
    * It may not detect file changes on certain less common filesystems.
-   * It may use increasing CPU and RAM over time, especially with large
-     files.  (This is probably not -watch specific, you may be able to
-     reproduce it by pressing 'g' repeatedly.)  (#1825)
 
    Tips/workarounds:
 
    * If -watch won't work for you, press 'g' to reload data manually
      instead.
-   * If -watch is leaking resources over time, quit and restart (or
-     suspend and resume) hledger-ui when you're not using it.
    * When running hledger-ui inside a VM, also make file changes inside
      the VM.
    * When working with files mounted from another machine, make sure the
@@ -570,19 +569,19 @@ Node: Top221
 Node: OPTIONS1867
 Node: MOUSE9508
 Node: KEYS9840
-Node: SCREENS15012
-Node: Menu screen15752
-Node: Cash accounts screen16068
-Node: Balance sheet accounts screen16429
-Node: Income statement accounts screen16765
-Node: All accounts screen17150
-Node: Register screen17513
-Node: Transaction screen19956
-Node: Error screen21136
-Node: WATCH MODE21502
-Node: --watch problems22400
-Node: ENVIRONMENT23647
-Node: BUGS23880
+Node: SCREENS15169
+Node: Menu screen15909
+Node: Cash accounts screen16225
+Node: Balance sheet accounts screen16586
+Node: Income statement accounts screen16922
+Node: All accounts screen17307
+Node: Register screen17670
+Node: Transaction screen20113
+Node: Error screen21293
+Node: WATCH MODE21659
+Node: --watch problems22557
+Node: ENVIRONMENT23475
+Node: BUGS23708
 
 End Tag Table
 

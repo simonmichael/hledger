@@ -58,8 +58,12 @@ module Hledger.Cli.CliOptions (
   getHledgerCliOpts,
   getHledgerCliOpts',
   rawOptsToCliOpts,
+  generalRawOpts,
+  insertRawOpts,
   cliOptsDropArgs,
-  argsAddDoubleDash,
+  journalCreatingCommandNames,
+  argsMarkRunCommands,
+  runCommandsMarker,
   outputFormats,
   defaultOutputFormat,
   CommandHelpStr,
@@ -668,16 +672,54 @@ rawOptsToCliOpts rawopts = do
              ,available_width_ = availablewidth
              }
 
+-- | The names of the general flags that run/repl propagate to the commands they run:
+-- all input, output/report, and terminal flags. Excludes --file (handled separately, as
+-- the default journal) and the help-action flags (which just show help and exit).
+propagatedGeneralFlagNames :: [String]
+propagatedGeneralFlagNames =
+  filter (`notElem` (["file","f"] ++ helpactionflags))
+    $ concatMap flagNames (inputflags ++ reportflags ++ helpflags)
+  where helpactionflags = ["help","h","tldr","info","man","version"]
+
+-- | Extract the propagated general flags from these raw options, as a raw option
+-- association list, for passing to run/repl subcommands.
+generalRawOpts :: RawOpts -> [(String,String)]
+generalRawOpts = collectopts $ \kv ->
+  if fst kv `elem` propagatedGeneralFlagNames then Just kv else Nothing
+
+-- | Prepend some extra raw options into a subcommand's options, as defaults that
+-- the subcommand's own options take precedence over, recomputing the derived
+-- CliOpts fields (inputopts_, file_, reportspec_..) so they stay consistent.
+insertRawOpts :: [(String,String)] -> CliOpts -> IO CliOpts
+insertRawOpts extraopts subopts = rawOptsToCliOpts $ overRawOpts (extraopts ++) (rawopts_ subopts)
+
 -- | Drop the arguments ("args") from this CliOpts' rawopts field.
 cliOptsDropArgs :: CliOpts -> CliOpts
 cliOptsDropArgs copts@CliOpts{rawopts_} = copts{rawopts_ = dropRawOpt "args" rawopts_}
 
--- | cmdargs eats the first double-dash (--) argument when parsing a command line,
--- which causes problems for the run and repl commands.
--- Sometimes we work around this by duplicating that first -- argument.
--- This doesn't break anything that we know of yet.
-argsAddDoubleDash args'
-  | "--" `elem` args' = let (as,bs) = break (=="--") args' in as <> ["--"] <> bs
+-- | Builtin commands that can operate on a nonexistent journal file, creating it
+-- (add and import). These are dispatched specially, both at the CLI and in run/repl,
+-- so a missing journal file is tolerated rather than an error.
+journalCreatingCommandNames :: [String]
+journalCreatingCommandNames = ["add","import"]
+
+-- | The name of a hidden marker flag used internally by the run command to
+-- recognise inline commands. run reads inline commands (rather than command
+-- files) when its arguments contain a "--". But cmdargs consumes the first "--"
+-- while parsing, so run can't detect it directly. Instead, before parsing we
+-- insert this marker flag just before the first "--" (with 'argsMarkRunCommands');
+-- cmdargs then parses it like any normal flag, leaving it in the options for run
+-- to check. This replaces an older, more fragile workaround which duplicated the
+-- first "--" so that one copy survived cmdargs.
+runCommandsMarker :: String
+runCommandsMarker = "_runcommands"
+
+-- | If these arguments contain a "--" (run's inline-commands introducer), insert
+-- the hidden 'runCommandsMarker' flag just before it, so the run command can tell
+-- it was given inline commands rather than command files. See 'runCommandsMarker'.
+argsMarkRunCommands :: [String] -> [String]
+argsMarkRunCommands args'
+  | "--" `elem` args' = let (as,bs) = break (=="--") args' in as <> ["--" <> runCommandsMarker] <> bs
   | otherwise = args'
 
 -- | A helper for addon commands: this parses options and arguments from

@@ -45,7 +45,7 @@ import System.Directory (canonicalizePath)
 import System.Environment (withProgName)
 import System.FilePath (takeDirectory)
 import System.FSNotify (Event(Added, Modified), watchDir, withManager, EventIsDirectory (IsFile))
-import Brick hiding (bsDraw)
+import Brick
 import Brick.BChan qualified as BC
 
 import Hledger
@@ -53,13 +53,10 @@ import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
-import Hledger.UI.UIState (uiState, getDepth)
+import Hledger.UI.UIState (uiState, uiDisplayJournal)
 import Hledger.UI.UIUtils (dbguiEv, showScreenStack, showScreenSelection)
 import Hledger.UI.MenuScreen
 import Hledger.UI.AccountsScreen
-import Hledger.UI.CashScreen
-import Hledger.UI.BalancesheetScreen
-import Hledger.UI.IncomestatementScreen
 import Hledger.UI.RegisterScreen
 import Hledger.UI.TransactionScreen
 import Hledger.UI.ErrorScreen
@@ -109,6 +106,10 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
   -- always generate forecasted periodic transactions; their visibility will be toggled by the UI.
   let copts' = copts{inputopts_=iopts{forecast_=forecast_ iopts <|> Just nulldatespan}}
 
+  -- always load the journal with full lot detail retained; the UI collapses it for display
+  -- (toggled by the L key), so the uncollapsed journal stays available without re-reading files.
+  let loadcopts = copts'{rawopts_ = setboolopt "lots" (rawopts_ copts')}
+
   case True of
     _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
     _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
@@ -116,7 +117,7 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
     _ | boolopt "version" rawopts -> putStrLn prognameandversion
     -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
-    _                                         -> withJournal copts' $ \j ->
+    _                                         -> withJournal loadcopts $ \j ->
         -- Refresh the startup ReportSpec against the loaded journal so any
         -- cur: terms are expanded for the journal's commodity aliases.
         let opts' = case reportSpecExpandCurQueries j (reportspec_ copts') of
@@ -126,10 +127,14 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 
-runBrickUi :: UIOpts -> Journal -> IO ()
-runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
-  do
-  let
+-- | Build hledger-ui's startup state: normalise the options, choose the initial
+-- screen, and set up the stack of previous screens as if the user had navigated
+-- down to it from the menu. Uses the startup report date (@copts^.rsDay@), so it is
+-- deterministic and reusable outside the brick app (eg from tests). Keep synced with msNew.
+uiInitialState :: UIOpts -> Journal -> UIState
+uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}}} j =
+  uiState uopts j prevscrs currscr
+  where
     today = copts^.rsDay
 
     -- hledger-ui's query handling is currently in flux, mixing old and new approaches.
@@ -190,6 +195,10 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
         filteredQuery q = simplifyQuery $ And [queryFromFlags ropts, filtered q]
           where filtered = filterQuery (\x -> not $ queryIsDepth x || queryIsDate x)
 
+    -- The journal collapsed for display per the current lots toggle; the initial screens
+    -- are built from it, while uiState keeps the uncollapsed journal for the L toggle.
+    jdisplay = uiDisplayJournal uopts j
+
     -- Choose the initial screen to display.
     -- We also set up a stack of previous screens, as if you had navigated down to it from the top.
     -- Note the previous screens list is ordered nearest-first, with the top-most (menu) screen last.
@@ -214,7 +223,7 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
           let
             -- the account being requested
             acct = fromMaybe (error' $ "--register "++apat++" did not match any account")  -- PARTIAL:
-              . firstMatch $ journalAccountNamesDeclaredOrImplied j
+              . firstMatch $ journalAccountNamesDeclaredOrImplied jdisplay
               where
                 firstMatch = case toRegexCI $ T.pack apat of
                     Right re -> find (regexMatchText re)
@@ -223,16 +232,20 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
             -- the register screen for acct
             regscr = 
               rsSetAccount acct False $
-              rsNew uopts today j acct forceinclusive
+              rsNew uopts today jdisplay acct forceinclusive
                 where
-                  forceinclusive = case getDepth ui of
+                  -- Take the depth from uopts, not `getDepth ui`: ui depends on regscr
+                  -- (this binding), so referencing ui here ties a knot that StrictData's
+                  -- strict UIState fields turn into a <<loop>> at startup (#1825).
+                  forceinclusive = case dsFlatDepth (depth_ regropts) of
                                     Just de -> accountNameLevel acct >= de
                                     Nothing -> False
+                    where regropts = _rsReportOpts $ reportspec_ $ uoCliOpts uopts
 
             -- The accounts screen containing acct.
             -- Keep these selidx values synced with the menu items in msNew.
             (acctsscr, selidx) =
-              case journalAccountType j acct of
+              case journalAccountType jdisplay acct of
                 Just t | isBalanceSheetAccountType t    -> (bsacctsscr, 1)
                 Just t | isIncomeStatementAccountType t -> (isacctsscr, 2)
                 _                                       -> (allacctsscr,0)
@@ -247,24 +260,29 @@ runBrickUi uopts0@UIOpts{uoCliOpts=copts@CliOpts{inputopts_=_iopts,reportspec_=r
 
         where
           menuscr     = msNew
-          allacctsscr = asNew uopts today j Nothing
-          csacctsscr  = csNew uopts today j Nothing
-          bsacctsscr  = bsNew uopts today j Nothing
-          isacctsscr  = isNew uopts today j Nothing
+          allacctsscr = asNew AllAccounts             uopts today jdisplay Nothing
+          csacctsscr  = asNew CashAccounts            uopts today jdisplay Nothing
+          bsacctsscr  = asNew BalancesheetAccounts    uopts today jdisplay Nothing
+          isacctsscr  = asNew IncomestatementAccounts uopts today jdisplay Nothing
 
-    ui = uiState uopts j prevscrs currscr
-    app = brickApp (uoTheme uopts)
+
+runBrickUi :: UIOpts -> Journal -> IO ()
+runBrickUi uopts0 j =
+  do
+  let
+    ui  = uiInitialState uopts0 j
+    app = brickApp (uoTheme uopts0)
 
   -- print (length (show ui)) >> exitSuccess  -- show any debug output to this point & quit
 
-  let 
+  let
     -- helper: make a Vty terminal controller with mouse support enabled
     makevty = do
       v <- mkVty mempty
       setMode (outputIface v) Mouse True
       return v
 
-  if not (uoWatch uopts)
+  if not (uoWatch uopts0)
   then do
     vty <- makevty
     void $ customMain vty makevty Nothing app ui
@@ -341,23 +359,17 @@ uiHandle ev = do
   dbguiEv $ "\n==== " ++ show ev
   ui <- get
   case aScreen ui of
-    MS _ -> msHandle ev
-    AS _ -> asHandle ev
-    CS _ -> csHandle ev
-    BS _ -> bsHandle ev
-    IS _ -> isHandle ev
-    RS _ -> rsHandle ev
-    TS _ -> tsHandle ev
-    ES _ -> esHandle ev
+    MS sst -> msHandle sst ev
+    AS sst -> asHandle sst ev
+    RS sst -> rsHandle sst ev
+    TS sst -> tsHandle sst ev
+    ES sst -> esHandle sst ev
 
 uiDraw :: UIState -> [Widget Name]
 uiDraw ui =
   case aScreen ui of
-    MS _ -> msDraw ui
-    AS _ -> asDraw ui
-    CS _ -> csDraw ui
-    BS _ -> bsDraw ui
-    IS _ -> isDraw ui
-    RS _ -> rsDraw ui
-    TS _ -> tsDraw ui
-    ES _ -> esDraw ui
+    MS sst -> msDraw sst ui
+    AS sst -> asDraw sst ui
+    RS sst -> rsDraw sst ui
+    TS sst -> tsDraw sst ui
+    ES sst -> esDraw sst ui

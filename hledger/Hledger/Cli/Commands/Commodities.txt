@@ -1,5 +1,7 @@
 commodities
 
+(comm)
+
 List the commodity symbols used or declared in the journal.
 
 Flags:

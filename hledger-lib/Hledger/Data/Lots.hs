@@ -122,7 +122,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetQuantity, amountsRaw, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountsDistinctly)
+import Hledger.Data.Amount (AmountFormat(..), amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makePostingErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
@@ -199,6 +199,17 @@ showLotName CostBasis{cbDate, cbLabel, cbCost} =
 -- commodity position and spacing — come from the canonical style.
 styleLotCbCost :: M.Map CommoditySymbol AmountStyle -> CostBasis -> CostBasis
 styleLotCbCost styles cb = cb{cbCost = styleAmounts styles <$> cbCost cb}
+
+-- | Widen a 'CostBasis's cost amount's display precision to at least the
+-- commodity style's declared precision (if any), so eg with @commodity €1.00@
+-- an inferred per-unit cost of 2.5 renders as @2.50@. For user-written
+-- explicit costs, prefer 'styleLotCbCost' alone (no widening).
+widenLotCbCost :: M.Map CommoditySymbol AmountStyle -> CostBasis -> CostBasis
+widenLotCbCost styles cb = cb{cbCost = widen <$> cbCost cb}
+  where
+    widen a = case M.lookup (acommodity a) styles of
+      Just AmountStyle{asprecision = Precision p} -> amountSetPrecisionMin p a
+      _                                           -> a
 
 -- | Render a lot subaccount name, dropping the cost component under AVERAGE/AVERAGEALL.
 -- AVERAGE pools share a single running per-unit cost that changes on every
@@ -1119,10 +1130,16 @@ journalCollapseLotDetail j
     collapsePosting p
       | postingHasTag lotParentAssertionTagName p = Nothing
       | otherwise = Just p
-          { paccount = lotBaseAccount (paccount p)
-          , pamount  = mapMixedAmount stripInferredBasis (pamount p)
+          { paccount          = newAcct
+          , pamount           = mapMixedAmount stripInferredBasis (pamount p)
+          -- A lot-subaccount balance assertion was checked against the
+          -- pre-collapse paccount during journalFinalise; drop it here so the
+          -- collapsed view isn't re-validated against the parent total.
+          , pbalanceassertion =
+              if newAcct == paccount p then pbalanceassertion p else Nothing
           }
       where
+        newAcct = lotBaseAccount (paccount p)
         -- Preserve acostbasis the user wrote explicitly on poriginal; strip any
         -- acostbasis added later by lot processing.
         origHasBasis = case poriginal p of
@@ -1498,11 +1515,11 @@ pairIndexedTransferPostings t froms tos = do
 
 -- | Extract a per-unit cost Amount from an AmountCost, normalising TotalCost by quantity.
 -- If quantity is zero, returns the TotalCost amount as-is (avoiding division by zero).
+-- Uses 'divideAmountAndUpdatePrecision' so the derived unit cost renders with the
+-- quotient's digits rather than inheriting the total cost's narrower display style.
 amountCostToUnitCost :: Quantity -> AmountCost -> Amount
 amountCostToUnitCost _   (UnitCost c)  = c
-amountCostToUnitCost qty (TotalCost c)
-  | qty == 0  = c
-  | otherwise = c{aquantity = aquantity c / qty}
+amountCostToUnitCost qty (TotalCost c) = divideAmountAndUpdatePrecision qty c
 
 -- | Normalize an amount's transacted cost to UnitCost form (converting TotalCost by dividing by quantity).
 -- Returns Nothing if the amount has no transacted cost.
@@ -1581,10 +1598,15 @@ processAcquirePosting styles j needsLabels txnDate t lotState p = do
           else Right (lotBasis, lotState)
 
         let fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel'', cbCost = Just lotBasisStored}
-            lotName    = showLotNameForMethod method (styleLotCbCost styles fullCb)
+            -- For an inferred cost, widen precision to the commodity style's
+            -- declared minimum (eg 2.5 -> 2.50 with 'commodity €1.00'); for
+            -- a user-written explicit cost, preserve their formatting.
+            widenIfInferred = if cbInferred then widenLotCbCost styles else id
+            lotName    = showLotNameForMethod method (widenIfInferred $ styleLotCbCost styles fullCb)
             -- When cost basis was inferred, fill it in on the user's original cb
-            -- so that print shows {$50} not {}.
-            filledCb   = cb{cbCost = Just lotBasis}
+            -- so that print shows {$50} not {}. Style it the same way as the
+            -- lot subaccount name.
+            filledCb   = widenIfInferred $ styleLotCbCost styles cb{cbCost = Just lotBasis}
             -- The lot state stores the full cost basis (date/label/cost).
             -- Under AVERAGE this is the running pool cost; under other methods
             -- it is the original per-acquisition cost.

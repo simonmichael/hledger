@@ -187,6 +187,9 @@ Cost/value tips:
 - Either cost mode, or value mode, can be active, but not both at once. Cost mode takes precedence.
 - There's not yet any visual indicator that cost or value mode is active, other than the amount values.
 
+`L` toggles lot detail (like the `--lots` flag), showing or hiding lot subaccounts
+(such as `assets:broker:{2026-01-15, $50}`) and other per-lot detail.
+
 `q` quits the application.
 
 Additional screen-specific keys are described below.
@@ -331,14 +334,10 @@ eg to toggle cleared mode, or to explore the history.
   ([#836](https://github.com/simonmichael/hledger/issues/836))
 - It may not detect changes made from outside a virtual machine, ie by an editor running on the host system.
 - It may not detect file changes on certain less common filesystems.
-- It may use increasing CPU and RAM over time, especially with large files.
-  (This is probably not --watch specific, you may be able to reproduce it by pressing `g` repeatedly.)
-  ([#1825](https://github.com/simonmichael/hledger/issues/1825))
 
 Tips/workarounds:
 
 - If --watch won't work for you, press `g` to reload data manually instead.
-- If --watch is leaking resources over time, quit and restart (or suspend and resume) hledger-ui when you're not using it.
 - When running hledger-ui inside a VM, also make file changes inside the VM.
 - When working with files mounted from another machine, make sure the system clocks on both machines are roughly in agreement.
 

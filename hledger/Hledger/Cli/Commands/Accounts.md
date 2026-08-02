@@ -1,5 +1,7 @@
 ## accounts 
 
+(acc)
+
 List the account names used or declared in the journal.
 
 ```flags

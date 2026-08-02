@@ -546,76 +546,122 @@ $ hledger bal @cash.args
 ```
 
 
-
-
 ## Config files
 
-With hledger 1.40+, you can save extra command line options and arguments
-in a more featureful hledger config file. Here's a small example:
+You can configure default command line options and arguments conveniently in a hledger config file.
+(Since 1.40.)
+Config file options will be inserted near the start of your command line,
+so you can override them with command line options.
+
+You can specify a config file with the `--conf` option.
+Otherwise, hledger will search for a default config file, in this order:
+
+- `hledger.conf` in the current directory or above
+- `.hledger.conf` in your home directory
+- `hledger.conf` in your XDG config (`~/.config/hledger/hledger.conf`).
+
+Only one config file is used. Here's a small example:
 
 ```conf
-# General options are listed first, and used with hledger commands that support them.
+# General options, used with all hledger commands that support them.
 --pretty
 
-# Options following a `[COMMAND]` heading are used with that hledger command only.
+# Command-specific options.
 [print]
 --explicit --infer-costs
 ```
 
-To use a config file, specify it with the `--conf` option.
-Its options will be inserted near the start of your command line,
-so you can override them with command line options if needed.
-
-Or, you can set up an automatic config file that is used whenever you run hledger,
-by creating `hledger.conf` in the current directory or above,
-or `.hledger.conf` in your home directory (`~/.hledger.conf`),
-or `hledger.conf` in your XDG config directory (`~/.config/hledger/hledger.conf`).
-
-Here is another example config you could start with:
+And here is a commented starter config file:
 <https://github.com/simonmichael/hledger/blob/main/hledger.conf.sample>
 
 You can put not only options, but also arguments in a config file.
-If the first word in a config file's top (general) section does not begin with a dash
-(eg: `print`), it is treated as the command argument
-(overriding any argument on the command line).
 
-On unix machines, you can add a shebang line at the top of a config file, set executable permission on the file, and use it like a script.
-Eg (the `-S` is needed on some operating systems):
-```
-#!/usr/bin/env -S hledger --conf
-```
-
-You can ignore config files by adding the `-n`/`--no-conf` flag to the command line.
-This is useful when using hledger in scripts, or when troubleshooting.
+You can ignore all config files by adding the `-n`/`--no-conf` flag to the command line.
+This is recommended when using hledger in scripts.
 When both `--conf` and `--no-conf` options are used, the right-most wins.
 
-To inspect the processing of config files, use `--debug` or `--debug=8`.
-Or, run the `setup` command, which will display any active config files.
-(`setup` is not affected by config files itself, unlike other commands.)
+### Command aliases
 
-**Warning!**
+In a config file you can also define command aliases: your own custom commands,
+which expand to a longer command line (similar to git's aliases). (Since 1.99.4.)
+Eg:
 
-There aren't many hledger features that need a warning, but this is one!
+```conf
+[alias]
+p     = print
+p1    = print --oneline
+rev10 = balance type:R -2 -X$ -p 'every 10 years from 2000'
+```
 
-Automatic config files, while convenient, also make hledger less predictable and dependable.
-It's easy to make a config file that changes a report's behaviour,
-or breaks your hledger-using scripts/applications,
-in ways that will surprise you later.
+With this in your config file, you'll see a `rev10` command in the `hledger commands` list,
+and `hledger rev10` will run the balance command above.
+Options or arguments written at the command line will be added at the end, usually overriding those in the alias;
+eg `hledger rev10 -X €` will convert to `€` instead of `$`.
+Command aliases can also be used in `run` command scripts and at the `repl` prompt.
 
-If you don't want this,
+Each line in an `[alias]` section should look like `NAME = COMMAND [ARGS..]`.
+Or, you can define a single alias with an `[alias NAME]` section,
+writing its command line below it, on one or more lines.
+This form can be easier to read, and lets you comment out individual lines. Eg:
 
-1. Just don't create a hledger.conf file on your machine.
-2. Also be alert to downloaded directories which may contain a hledger.conf file.
-3. Also if you are sharing scripts or examples or support, consider that others may have a hledger.conf file.
+```conf
+[alias rev10]
+balance
+type:R
+-2
+-X$
+-p 'every 10 years from 2000'
+# --drop 1
+```
 
-Conversely, once you decide to use this feature, try to remember:
+Command aliases override addon commands with the same name,
+but they can't override builtin command names or abbreviations like `balance` or `bal`.
+If the same alias name is defined more than once, the last definition wins.
 
-1. Whenever a hledger command does not work as expected, try it again with `-n` (`--no-conf`) to see if a config file was to blame.
-2. Whenever you call hledger from a script, consider whether that call should use `-n` or not.
-3. Be conservative about what you put in your config file; try to consider the effect on all your reports.
-4. To troubleshoot the effect of config files, run with `--debug` or `--debug 8`.
+An alias's command can be a hledger builtin command, addon command, or another alias.
+If there's a `[COMMAND]` options section for an alias's resolved builtin command, that will also be applied.
 
-The config file feature was added in hledger 1.40.
+Or if an alias's command line begins with `!`, the rest is run as a shell command
+(with any extra command line arguments appended). Eg:
+
+```conf
+[alias]
+git-commit = ! git commit -p
+jj-commit  = ! jj commit -i
+```
+
+For safety, shell command aliases run only if defined in a trusted config file:
+one you gave explicitly with `--conf`, or your user config file (`~/.hledger.conf`
+or the XDG `hledger.conf`). Shell commands in a nearby automatically-found `hledger.conf`,
+in the current directory or a parent directory, will not run - this prevents a config file
+from an untrusted downloaded or shared directory from running arbitrary shell commands.
+
+### Config file troubleshooting
+
+There aren't many hledger features that need a warning, but this is one !\
+A default config file (the kind that hledger runs automatically, without needing a --conf option)
+is very convenient. But, it complicates command line processing and can surprise you -
+eg quietly changing report output, or breaking your hledger-using scripts/applications,
+which you might not notice until much later.
+
+This mainly arises when you are first using config files.
+And once you discover this kind of problem, it will be easy to fix.
+Here are some tips:
+
+1. Be mindful about what you put in your config file; consider the effect on all your reports.
+2. If a hledger command isn't doing what you expect, try it again with `-n`, to see if a config file is to blame.
+3. Run `hledger setup` to list the currently active config file. (`setup` is not affected by config files.)
+4. Add `--debug` or `--debug=8` to any command to see config/command line debug output.
+
+When you are writing scripts, or sharing examples with other people,
+keep in mind that there could be a config file changing hledger's behaviour,
+so you might want to add `-n` to make your hledger commands more robust.
+
+If you prefer to just avoid this feature:
+
+- Don't use a default config file.
+- If you download hledger data from elsewhere, watch out for directories containing a hledger.conf file.
+- If you're feeling paranoid, use the `-n/--no-conf` flag always, eg by running hledger via a script or alias.
 
 ## Shell completions
 
@@ -623,7 +669,7 @@ If you use the bash or zsh shells, you can optionally set up context-sensitive a
 Try pressing `hledger<SPACE><TAB><TAB>` (should list all hledger commands)
 or `hledger reg acct:<TAB><TAB>` (should list your top-level account names).
 If completions aren't working, or for more details, see [Install > Shell completions](install.html#shell-completions).
-
+˜
 # Output
 
 ## Output destination
@@ -733,12 +779,13 @@ This is a good flag to add to your hledger config file.
 
 hledger tries to automatically detect ANSI colour and text styling support and use it when appropriate.
 (Currently, it is used rather minimally: some reports show negative numbers in red, and help output uses bold text for emphasis.)
+Colour is not used when the `TERM` environment variable is `dumb`, or `NO_COLOR` is set, or output is not going to a colour-capable terminal.
 
 You can override this by setting the `NO_COLOR` environment variable to disable it,
 or by using the `--color/--colour` option, perhaps in your config file,
 with a `y`/`yes` or `n`/`no` value to force it on or off.
 
-#### Paging
+#### Paging˜
 
 In unix-like environments, when displaying large output (in any output format) in the terminal,
 hledger tries to use a pager when appropriate.
@@ -773,8 +820,8 @@ and when colour output is enabled:
 
 You can prevent this by setting your preferred options in the `HLEDGER_LESS` variable, which will be used instead of `LESS`.
 
-
-### HTML output
+˜
+### HTML output˜˜
 
 HTML output can be styled by an optional `hledger.css` file in the same directory.
 
@@ -1462,34 +1509,39 @@ In hledger docs you may see them referred to as A, L, E, R, X for short.
 
 ### Two space delimiter
 
-Note the **two or more spaces** delimiter that's sometimes required after account names. <!-- (Two or more tabs will also work.) -->
-hledger's account names, inherited from Ledger, are very permissive;
-they may contain pretty much any kind of text, including single spaces and semicolons.
-Because of this, they must be terminated by **two or more spaces** if there is anything following them on the same line.
-For example, if an amount, balance assignment, or same-line comment
-follows an account name, they must be preceded by two or more spaces,
-else they would be considered part of the account name:
+Note that hledger's account names, like Ledger's, may contain single spaces.
+Because of this, they must be separated from anything following them on the same line
+by **two or more spaces**. 
+(One or more tabs also work, for Ledger compatibility; but spaces are preferred.)
+
+This lets us use expressive account names, while still keeping the syntax light.
+Here are some examples:
 
 ```
-bad:     assets:accounts receivable $10        ; <- too close!
-good:    assets:accounts receivable  $10
+  assets:accounts receivable ; bad, only one space before the comment
+  assets:accounts receivable  ; good
 ```
 <!-- -->
 ```
-bad:     assets:accounts receivable =$1000     ; <- too close!
-good:    assets:accounts receivable  =$1000
+  assets:accounts receivable $10    ; bad, one space before the amount
+  assets:accounts receivable  $10   ; good
 ```
 <!-- -->
 ```
-bad:     assets:accounts receivable ; comment.   <- too close!
-good:    assets:accounts receivable  ; comment
+  assets:accounts receivable = $1000   ; bad, one space before the balance assignment
+  assets:accounts receivable  = $1000  ; good
 ```
 
-This two-space delimiter appears in a few places in hledger,
-such as after account names in [postings](#postings) or [account directives](#account-directive);
-also after the period expression in [periodic transaction rules](#periodic-transactions).
-When you are starting out, expect it to catch you out at least once. It's annoying sometimes,
-but it lets us use expressive account names while still keeping the syntax light.
+The two-space delimiter is also required in [periodic transaction rules](#periodic-transactions),
+between period expression and description:
+
+```
+~ every 5th day YouTube Premium     ; bad, one space before the description
+~ every 5th day  YouTube Premium    ; good
+```
+
+When you are starting out, you can expect this delimiter will trip you up once or twice.
+(If it happens too much, you can check account names [strictly](#strict-checks) to prevent it.)
 
 ### Account hierarchy
 
@@ -1582,13 +1634,11 @@ In such cases, hledger by default assumes it is a decimal mark, and will parse b
 
 [international number formats]: https://en.wikipedia.org/wiki/Decimal_separator#Conventions_worldwide
 
-To help hledger parse such ambiguous numbers more accurately,
+To help hledger parse such ambiguous numbers accurately,
 if you use digit group marks, we recommend declaring the decimal mark explicitly.
-The best way is to add a [`decimal-mark`](#decimal-mark-directive) directive at the top of each data file, like this:
-```journal
-decimal-mark .
-```
-Or you can declare it per commodity with [`commodity`](#commodity-directive) directives, described below.
+You can declare it per commodity with [`commodity`](#commodity-directive) directives,
+or per file with a [`decimal-mark`](#decimal-mark-directive) directive at the top of each journal file
+(described below).
 
 hledger also accepts numbers like `10.` with no digits after the decimal mark
 (and will sometimes display numbers that way to disambiguate them - see
@@ -1598,7 +1648,7 @@ hledger also accepts numbers like `10.` with no digits after the decimal mark
 
 In the integer part of the amount quantity (left of the decimal mark),
 groups of digits can optionally be separated by a *digit group mark* -
-a comma or period (whichever is not used as decimal mark), 
+a comma or period (whichever is not used as decimal mark), an underscore, an apostrophe,
 or a space (several Unicode space variants, like no-break space, are also accepted).
 <!--
 space,
@@ -1615,7 +1665,9 @@ So these are all valid amounts in a journal file:
          $1,000,000.00
       EUR 2.000.000,00
     INR 9,99,99,999.00
-          1 000 000.00   ; <- ordinary space  
+      CHF 1'000'000.00
+          1_000_000.00
+          1 000 000.00   ; <- ordinary space
           1 000 000.00   ; <- no-break space
 
 ### Commodity
@@ -1916,6 +1968,23 @@ In hledger you can make "**subaccount-inclusive balance assertions**" by adding 
   assets            $0 ==* $20  ; assets + subaccounts contains $20 and nothing else
 ```
 
+### Assertions and lot subaccounts
+
+[Lot subaccounts](#lot-subaccounts) (a special kind of subaccount for tracking lots,
+discussed in "Lot reporting" below) have only limited support for balance assertions:
+the assertions will be checked correctly only if all postings to that lot
+mention the subaccount name explicitly.
+
+Since it's common practice to leave lot subaccounts implicit,
+generally you should avoid writing balance assertions on individual
+lots.  (`close --lots` also follows this rule.)  If you forget, the
+balance assertion failure message will remind you.  If you really need
+a balance assertion, you can usually write it on the parent account
+instead.
+
+(The restriction is because transaction balancing amounts, balance assignments,
+and balance assertions must be calculated and checked before lot movements are known.)
+
 ### Assertions and status
 
 Balance assertions always consider postings of all [statuses](#status) (unmarked, pending, or cleared);
@@ -2162,27 +2231,27 @@ This makes reports stable and deterministic, regardless of the order of -f optio
 This is sometimes inconvenient, but there are usually workarounds.
 Eg, to have `alias` directives affect all of your files, put them at the start of the main file, before any `include`s.
 
-| directive                 | what it does                                                                                                                                                                                                                            | ends at file end? |
-|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------|
-|                           | <br>**Affects file reading:**                                                                                                                                                                                                           |                   |
-| **[`alias`]**             | Rewrites account names, in following entries until [`end aliases`] or file end. Command line equivalent: [`--alias`]                                                                                                                    | Y                 |
-| **[`comment`]**           | Ignores following entries, until [`end comment`] or file end.                                                                                                                                                                           | Y                 |
-| **[`decimal-mark`]**      | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or file end. Subfiles can override.                                                                                    | Y                 |
-| **[`include`]**           | Includes entries from another file, as if they were written inline. Command line alternative: multiple [`-f/--file`](#multiple-files)                                                                                                   |                   |
-|                           | <br>**Declares data:**                                                                                                                                                                                                                  |                   |
-| **[`account`]**           | Declares an account, for [checking](#check) all entries in all files, and its [display order](#account-display-order), and optionally its [type](#account-types) and [lotfulness].                                                      | N                 |
-| **[`commodity`]**         | Declares <br>1. a commodity symbol, for checking all amounts in all files <br>2. the commodity's display style <br>3. optional [commodity aliases] and [lotfulness], and <br>4. the decimal mark for parsing this commodity, until file end (overridden by `decimal-mark`). <br>Command line equivalent: [`-c/--commodity-style`](#commodity-styles) | N <br>N <br>N <br>Y |
-| **[`payee`]**             | Declares a payee name, for checking all entries in all files.                                                                                                                                                                           | N                 |
-| **[`tag`]**               | Declares a tag name, for checking all entries in all files.                                                                                                                                                                             | N                 |
-| **[`P`]**                 | Declares a commodity's market price on some date, for [value](#value-reporting) and [gain](#lot-reporting) reports.                                                                                                                     |                   |
-|                           | <br>**Generates data:**                                                                                                                                                                                                                 |                   |
-| **[`=`]**                 | Declares an auto posting rule that generates extra postings with [`--auto`](#auto-postings), in current/parent/subfiles (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                      | partly            |
-| **[`~`]**                 | Declares a periodic transaction rule that generates <br>1. future transactions with [`--forecast`](#--forecast), and <br>2. budget goals with [`balance --budget`](#budget-report).                                                     | N                 |
-|                           | <br>**File reading (legacy/deprecated):**                                                                                                                                                                                               |                   |
-| [`apply account`]         | Prepends a common parent account to all account names, in following entries until `end apply account` or file end.                                                                                                                      | Y                 |
-| [`D`]                     | Sets <br>1.a default commodity to use for no-symbol amounts in this file and subfiles, and <br>2. its parsing decimal mark and display style (overridden by `commodity` or `decimal-mark`).                                             | Y, <br>Y, <br>N   |
-| [`Y`]                     | Sets a default year to use for any yearless dates, in following entries until file end.                                                                                                                                                 | Y                 |
-| [other][other-directives] | These other Ledger directives are accepted but ignored.                                                                                                                                                                                 |                   |
+| directive                 | what it does                                                                                                                                                                                                                                                                                    | ends at file end?   |
+|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------|
+|                           | <br>**Affects file reading:**                                                                                                                                                                                                                                                                   |                     |
+| **[`alias`]**             | Rewrites account names, in following entries until [`end aliases`] or file end.                                                                                                                                                                                                                 | Y                   |
+| **[`comment`]**           | Ignores following entries, until [`end comment`] or file end.                                                                                                                                                                                                                                   | Y                   |
+| **[`decimal-mark`]**      | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or file end. Subfiles can override.                                                                                                                                            | Y                   |
+| **[`include`]**           | Includes entries from another file, as if they were written inline.                                                                                                                                                                                                                             |                     |
+|                           | <br>**Declares data:**                                                                                                                                                                                                                                                                          |                     |
+| **[`account`]**           | Declares an account, for [checking](#check) all entries in all files, and its [display order](#account-display-order), and optionally its [type](#account-types) and [lotfulness].                                                                                                              | N                   |
+| **[`commodity`]**         | Declares <br>1. a commodity symbol, for checking all amounts in all files <br>2. the commodity's display style <br>3. optional [commodity aliases](#commodity-aliases) and [lotfulness], and <br>4. the decimal mark for parsing this commodity, until file end (overridden by `decimal-mark`). | N <br>N <br>N <br>N |
+| **[`payee`]**             | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                   | N                   |
+| **[`tag`]**               | Declares a tag name, for checking all entries in all files.                                                                                                                                                                                                                                     | N                   |
+| **[`P`]**                 | Declares a commodity's market price on some date, for [value](#value-reporting) and [gain](#lot-reporting) reports.                                                                                                                                                                             |                     |
+|                           | <br>**Generates data:**                                                                                                                                                                                                                                                                         |                     |
+| **[`=`]**                 | Declares an auto posting rule that generates extra postings with [`--auto`](#auto-postings), in current/parent/subfiles (but not sibling files, see [#1212](https://github.com/simonmichael/hledger/issues/1212)).                                                                              | partly              |
+| **[`~`]**                 | Declares a periodic transaction rule that generates <br>1. future transactions with [`--forecast`](#--forecast), and <br>2. budget goals with [`balance --budget`](#budget-report).                                                                                                             | N                   |
+|                           | <br>**File reading (legacy/deprecated):**                                                                                                                                                                                                                                                       |                     |
+| [`apply account`]         | Prepends a common parent account to all account names, in following entries until `end apply account` or file end.                                                                                                                                                                              | Y                   |
+| [`D`]                     | Sets <br>1.a default commodity to use for no-symbol amounts <br>2. the decimal mark for parsing it <br>3. the display style for showing it (these are overridden by `commodity` or `decimal-mark`).                                                                                             | Y, <br>N, <br>N     |
+| [`Y`]                     | Sets a default year to use for any yearless dates, in following entries until file end.                                                                                                                                                                                                         | Y                   |
+| [other][other-directives] | These other Ledger directives are accepted but ignored.                                                                                                                                                                                                                                         |                     |
 
 [`=`]:                       #auto-postings
 [`D`]:                       #d-directive
@@ -2604,43 +2673,30 @@ A line containing just `end comment` ends the effect of a preceding [comment dir
 
 ## `commodity` directive
 
-The `commodity` directive performs several functions:
+`commodity` directives declare commodity symbols (for [error checking](#commodity-error-checking))
+and their preferred [display style](#commodity-display-style) (digit group marks, decimal digits, and symbol position).
+Eg:
+```
+commodity $1,000.00
+commodity 1000,00 EUR
+commodity ₹ 1,00,00,000.00
+commodity 1000.   ; the no-symbol commodity
+```
 
-1. It declares which commodity symbols may be used in the journal,
-   enabling useful error checking with [strict mode] or the check command.
-   See [Commodity error checking](#commodity-error-checking) below.
+The sample amount must include a decimal mark (even if there are no decimal digits after it).
+This tells the parser which decimal mark (period or comma) is used for this commodity in the journal file,
+which can be useful in case of ambiguous digit group marks.
+This effect lasts until the end of the current file tree (from a single `-f` or `LEDGER_FILE`),
+and it can be overridden by by a `decimal-mark` directive.
 
-2. It declares how all amounts in this commodity should be displayed, eg how many decimals to show.
-   See [Commodity display style](#commodity-display-style) above.
-
-3. (If no `decimal-mark` directive is in effect:)
-   It sets the decimal mark to expect (period or comma) when parsing amounts in this commodity,
-   in this file and files it includes, from the directive until end of current file.
-   See [Decimal marks](#decimal-marks) above.
-
-4. It declares the precision with which this commodity's amounts should be compared when checking for balanced transactions,
-   anywhere in this file and files it includes, until end of current file.
-
-Declaring commodities solves several common parsing/display problems, so we recommend it.
-
-Note that effects 3 and 4 above end at the end of the directive's file,
-and will not affect sibling or parent files.
-So if you are relying on them (especially 4) and using multiple files,
-placing your commodity directives in a top-level parent file might be important.
-Or, keep your decimal marks unambiguous and your entries well balanced and precise.
-
-Omitting the commodity symbol will set the display style for just the no-symbol commodity, not all commodities.
-
-Commodity styles can be [overridden](#commodity-styles) by the `-c/--commodity-style` command line option.
-
-(Related: [#793](https://github.com/simonmichael/hledger/issues/793))
+<!-- Commodity display styles can be [overridden](#commodity-styles) by the `-c/--commodity-style` command line option. -->
 
 ### Commodity directive syntax
 
+In more detail.
 A commodity directive is normally the word `commodity`
-followed by a sample [amount](#amounts),
+followed by a sample [amount](#amounts) (only its format is significant),
 and optionally a comment.
-Only the amount's symbol and the number's format is significant.
 Eg:
 
 ```journal
@@ -2649,8 +2705,7 @@ commodity 1.000,00 EUR
 commodity 1 000 000.0000   ; the no-symbol commodity
 ```
 
-A commodity directive's sample amount must always include a period or comma decimal mark
-(this rule helps disambiguate decimal marks and digit group marks).
+A commodity directive's sample amount must always include a decimal mark (period or comma).
 If you don't want to show any decimal digits, write the decimal mark at the end:
 
 ```journal
@@ -2729,9 +2784,13 @@ It works like [account error checking](#account-error-checking) (described above
 
 ## `decimal-mark` directive
 
-You can use a `decimal-mark` directive - usually one per file, at the
-top of the file - to declare which character represents a decimal mark
-when parsing amounts in this file. It can look like
+You can use a `decimal-mark` directive to declare unambiguously which
+character (period or comma) represents a [decimal mark](#decimal-marks),
+for all subsequent amounts until the end of the current file.
+This helps when parsing ambiguous numbers (like `1.000` or `1,000` where you mean one thousand, not one).
+
+Eg, at the top of each journal file:
+
 ```journal
 decimal-mark .
 ```
@@ -2740,9 +2799,9 @@ or
 decimal-mark ,
 ```
 
-This prevents any [ambiguity](#decimal-mark) when
-parsing numbers in the file, so we recommend it, especially if the
-file contains digit group marks (eg thousands separators).
+This directive only affects parsing, and it takes precedence over `commodity` directives.
+So you can declare preferred decimal marks for display,
+which may be different from the decimal mark(s) used in the data files.
 
 ## `include` directive
 
@@ -3578,7 +3637,7 @@ will archive each successfully processed data file or data command output in an 
 of the `data/` directory next to the main journal file.
 The archive file name will be based on the rules file and the data file's modification date and extension
 (or for a data-generating command, the current date and the ".csv" extension).
-The original data file, if any, will be removed.
+The original data file, once archived, will be removed.
 
 Also, in this mode `import` will prefer the oldest file matched by the `source` rule's glob pattern, not the newest.
 (So if there are multiple downloads, they will be imported and archived oldest first.)
@@ -5472,7 +5531,7 @@ For example, if the journal's last transaction is on february 20th,
 - `hledger register --monthly --end 2/14` also will end the report at the end of february (overriding the requested end date).
 - `hledger register --monthly --begin 1/5 --end 2/14` will end the report on march 4th [1].
 
-[1] Since hledger 1.29.
+[1] Since 1.29.
 
 ## Period expressions
 
@@ -6279,9 +6338,7 @@ $ hledger print
 
 ```
 
-If this is a problem (eg when [exporting to Ledger](/ledger.md#hledger-to-ledger)),
-you can avoid it by disabling digit group marks, eg with [-c/--commodity](#commodity-styles)
-(for each affected commodity):
+You can avoid this by disabling digit group marks, eg temporarily with [-c/--commodity](#commodity-styles):
 
 ```cli
 $ hledger print -c '$1000.00'
@@ -6290,7 +6347,7 @@ $ hledger print -c '$1000.00'
 
 ```
 
-or by forcing print to always show decimal digits, with [--round](#print-amount-style):
+or by forcing print to show some decimal digits, with [--round](#print-amount-style):
 
 ```cli
 $ hledger print -c '$1,000.00' --round=soft
@@ -6673,7 +6730,7 @@ To be safe, specify the valuation commmodity, eg:
 - `--value=then,EUR --infer-market-prices`, not `--value=then --infer-market-prices`
 
 Signed costs and market prices can be confusing.
-For reference, here is the current behaviour, since hledger 1.25.
+For reference, here is the current behaviour (since 1.25).
 (If you think it should work differently, see [#1870](https://github.com/simonmichael/hledger/issues/1870).)
 
 ```journal

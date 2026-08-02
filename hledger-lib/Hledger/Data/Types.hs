@@ -309,10 +309,11 @@ data Rounding =
 
 -- | A style for displaying digit groups in the integer part of a
 -- floating point number. It consists of the character used to
--- separate groups (comma or period, whichever is not used as decimal
--- point), and the size of each group, starting with the one nearest
--- the decimal point. The last group size is assumed to repeat. Eg,
--- comma between thousands is DigitGroups ',' [3].
+-- separate groups (any of the digit group marks accepted when parsing:
+-- period, comma, underscore, apostrophe, or one of several unicode
+-- spaces; see isDigitSeparatorChar), and the size of each group,
+-- starting with the one nearest the decimal point. The last group size
+-- is assumed to repeat. Eg, comma between thousands is DigitGroups ',' [3].
 data DigitGroupStyle = DigitGroups !Char ![Word8]
   deriving (Eq,Ord,Read,Show,Generic)
 
@@ -677,7 +678,7 @@ data Journal = Journal {
   ,jparsealiases            :: [AccountAlias]                         -- ^ the current account name aliases in effect, specified by alias directives (& options ?)
   -- ,jparsetransactioncount :: Integer                               -- ^ the current count of transactions parsed so far (only journal format txns, currently)
   ,jparsetimeclockentries   :: [TimeclockEntry]                       -- ^ timeclock sessions which have not been clocked out
-  ,jincludefilestack        :: [(FilePath, FilePath)]                 -- ^ (absolute path, canonical path) of included files, most recent first
+  ,jparseincludefilestack   :: [(FilePath, FilePath)]                 -- ^ (absolute path, canonical path) of included files, most recent first
 -- principal data
   ,jdeclaredpayees          :: [(Payee,PayeeDeclarationInfo)]         -- ^ Payees declared by payee directives, in parse order.
   ,jdeclaredtags            :: [(TagName,TagDeclarationInfo)]         -- ^ Tags declared by tag directives, in parse order.

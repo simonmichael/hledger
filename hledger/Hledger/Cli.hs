@@ -115,7 +115,7 @@ import System.Console.CmdArgs.Explicit
 import System.Console.CmdArgs.Explicit as CmdArgsWithoutName hiding (Name)
 import System.Environment
 import System.Exit
-import System.Process
+import System.Process (system)
 import Text.Megaparsec (optional, takeWhile1P, eof)
 import Text.Megaparsec.Char (char)
 import Text.Printf
@@ -232,7 +232,7 @@ main = handleExit $ withGhcDebug' $ do
 
   -- Naming notes:
   -- "arg" often has the most general meaning, including things like: -f, --flag, flagvalue, arg, >file, &, etc.
-  -- confcmdarg, clicmdarg = the first non-flag argument, from config file or cli = the subcommand name
+  -- clicmdarg = the first non-flag argument on the command line = the subcommand name
   -- cmdname = the full unabbreviated command name, or ""
   -- confcmdargs = arguments for the subcommand, from config file
 
@@ -240,7 +240,8 @@ main = handleExit $ withGhcDebug' $ do
   cliargs <- getArgs
     >>= expandArgsAt         -- interpolate @ARGFILEs
     <&> replaceNumericFlags  -- convert -NUM to --depth=NUM
-    <&> argsAddDoubleDash    -- repeat the first -- arg, as a cmdargs workaround
+    -- run's inline-commands marker (argsMarkRunCommands) is inserted later, into finalargs,
+    -- so that a -- introduced by a command alias is also handled
   let
     (clicmdarg, cliargswithoutcmd, cliargswithcmdfirst) = moveFlagsAfterCommand cliargs
     cliargswithcmdfirstwithoutclispecific = dropCliSpecificOpts cliargswithcmdfirst
@@ -267,31 +268,42 @@ main = handleExit $ withGhcDebug' $ do
     if clicmdarg=="setup"  -- the setup command checks config files, but never uses one itself
       then return (nullconf,Nothing)
       else getConf' cliconfrawopts
+  -- Whether !-prefixed shell command aliases from this config file are allowed to run
+  -- (only from a trusted config file: one given with --conf, or a user-level config file).
+  shellaliasesallowed <- confFileIsTrusted cliconfrawopts mconffile
 
   ---------------------------------------------------------------
   dbgio "\n3. Identify a command name if possible; handle version/help flags" ()
 
-  -- Try to identify the subcommand name,
-  -- from the first non-flag general argument in the config file,
-  -- or if there is none, from the first non-flag argument on the command line.
+  -- Try to identify the subcommand name, from the first non-flag argument on the command line.
 
   let
     confallgenargs = confLookup "general" conf & replaceNumericFlags
-    -- we don't try to move flags/values preceding a command argument here;
-    -- if a command name is written in the config file, it must be first
-    (confcmdarg, confothergenargs) = case confallgenargs of
-      a:as | not $ isFlagArg a -> (a,as)
-      as                       -> ("",as)
-    cmdarg = if not $ null confcmdarg then confcmdarg else clicmdarg
+    -- Drop any --conf/--no-conf flags found in the config file:
+    -- they can't have their usual effect (which config file to use was decided before
+    -- reading it), and leaving them in rawopts could confuse later config file reads.
+    confothergenargs = dropConfFlags confallgenargs
+    confdroppedgenargs = confallgenargs \\ confothergenargs
+    cmdarg = clicmdarg
     nocmdprovided = null cmdarg
+
+    -- The argument may be a command alias (a custom command) defined in the config file.
+    -- If so, expand it to the real command name and the extra arguments to prepend.
+    -- Command aliases never override exact builtin command names, and later definitions win.
+    cmdaliases = reverse $ confAliases conf  -- reversed so that lookup finds the last definition
+    aliasexpansion = expandCommandAlias (isJust . findBuiltinCommand) cmdaliases cmdarg
+    (effectivecmdarg, aliasargs) = case aliasexpansion of
+      HledgerCommand c as -> (c, replaceNumericFlags as)
+      ShellCommand   _    -> (cmdarg, [])  -- handled separately below
+    isaliascmd = effectivecmdarg /= cmdarg || not (null aliasargs)
 
     -- The argument may be an abbreviated command name, which we need to expand.
 
     -- Run cmdargs on conf + cli args to get the full command name.
-    -- If no command argument was provided, or if cmdargs fails because 
+    -- If no command argument was provided, or if cmdargs fails because
     -- the command line contains a bad flag or wrongly present/missing flag value,
     -- cmdname will be "".
-    args = [confcmdarg | not $ null confcmdarg] <> cliargswithcmdfirstwithoutclispecific
+    args = [effectivecmdarg | not $ null effectivecmdarg] <> cliargswithcmdfirstwithoutclispecific
     -- Actually, only scan the first non-flag argument, to avoid flag errors at this stage.
     possiblecmdarg = take 1 $ dropWhile isFlagArg args
     cmdname = stringopt "command" $ cmdargsParse "for command name" (mainmode addons) possiblecmdarg
@@ -303,21 +315,34 @@ main = handleExit $ withGhcDebug' $ do
     mbuiltincmdaction = findBuiltinCommand cmdname
     effectivemode = maybe (mainmode []) fst mbuiltincmdaction
 
-  when (isJust mconffile) $ do
-    unless (null confcmdarg) $
-      dbg1IO "using command name argument from config file" confcmdarg
   dbgio "cli args with command first and no cli-specific opts" cliargswithcmdfirstwithoutclispecific
+  when isaliascmd $
+    dbg1IO "expanded command alias" (cmdarg, (effectivecmdarg, aliasargs))
   dbg1IO "command found" cmdname
   dbgio "no command provided" nocmdprovided
   dbgio "bad command provided" badcmdprovided
   dbgio "is addon command" isaddoncmd
 
+  -- If the command is a !-prefixed shell command alias, run it now (if allowed) and exit.
+  -- This happens before the badcmdprovided check, since the alias name is not a real command.
+  case aliasexpansion of
+    ShellCommand shcmd
+      | shellaliasesallowed -> do
+          -- append any arguments written after the alias name (not hledger's own options)
+          let fullcmd = unwords $ shcmd : map quoteForCommandLine cliargsaftercmd
+          dbg1IO "running shell command alias" fullcmd
+          system fullcmd >>= exitWith
+      | otherwise -> error' $
+          "the command alias '" <> cmdarg <> "' runs a shell command (! " <> shcmd <> ")"
+          <> maybe "" (\f -> ",\ndefined in " <> f) mconffile <> ".\n"
+          <> "Shell command aliases are only allowed from your user config file (~/.hledger.conf or XDG),\n"
+          <> "or a config file given with --conf; refusing to run it from an automatically-found config file."
+    _ -> return ()
+
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $ do
-    let (srcnote, hint) = case (not (null confcmdarg), mconffile) of
-          (True, Just f) -> (" (from config file " <> f <> ")", "")
-          _              -> ("", " Run with no command to see a list.")
-    error' $ "command " <> cmdarg <> srcnote <> " is not recognised." <> hint
+    let aliasnote = if effectivecmdarg /= cmdarg then " (expanded from the " <> cmdarg <> " command alias)" else ""
+    error' $ "command " <> effectivecmdarg <> aliasnote <> " is not recognised. Run with no command to see a list."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
@@ -339,6 +364,8 @@ main = handleExit $ withGhcDebug' $ do
           & if isaddoncmd then ("--":) else id
 
   when (isJust mconffile) $ do
+    unless (null confdroppedgenargs) $
+      dbg1IO "ignored conf-selecting flags from config file" confdroppedgenargs
     dbg1IO "using general args from config file" confothergenargs
     unless (null excludedgenargsfromconf) $
       dbg1IO "excluded general args from config file, not supported by this command" excludedgenargsfromconf
@@ -349,12 +376,13 @@ main = handleExit $ withGhcDebug' $ do
 
   let
     finalargs =
-      [cmdarg | not $ null cmdarg]
+      [effectivecmdarg | not $ null effectivecmdarg]
         <> supportedgenargsfromconf
         <> confcmdargs
-        <> [clicmdarg | not $ null confcmdarg]
+        <> aliasargs
         <> cliargswithoutcmd
       & replaceNumericFlags                -- convert any -NUM opts from the config file
+      & (if cmdname=="run" then argsMarkRunCommands else id)  -- mark run's inline commands so its -- survives cmdargs (also for an aliased run)
 
   -- finalargs' <- expandArgsAt finalargs  -- expand @ARGFILEs in the config file ? don't bother
   dbg1IO "final args" finalargs
@@ -426,12 +454,16 @@ main = handleExit $ withGhcDebug' $ do
           cmdaction opts (ignoredjournal cmdname)
 
         -- 6.4.3. builtin command which can work with a non-existent journal
-        | cmdname `elem` ["add","import"] ->
+        | cmdname `elem` journalCreatingCommandNames ->
           withPossibleJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
         -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
-        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons opts
-        | cmdname == "repl" -> Hledger.Cli.Commands.Run.repl findBuiltinCommand addons opts
+        | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons cmdaliases shellaliasesallowed opts
+        | cmdname == "repl" ->
+          -- the config file (if any) and the opts to re-read it with, so repl can auto-reload aliases;
+          -- and the addon-rescan action, so repl can auto-reload the addon command list
+          let mconfinfo = (\f -> (f, cliconfrawopts)) <$> mconffile
+          in Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo (Just addonCommandNames) opts
 
         -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
@@ -448,7 +480,7 @@ main = handleExit $ withGhcDebug' $ do
     -- are not passed since we can't be sure they're supported.
     | isaddoncmd -> do
         let
-          addonargs0 = filter (/="--") $ supportedgenargsfromconf <> confcmdargs <> cliargswithoutcmd
+          addonargs0 = filter (/="--") $ supportedgenargsfromconf <> confcmdargs <> aliasargs <> cliargswithoutcmd
           addonargs = dropCliSpecificOpts addonargs0
           shellcmd = printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine addonargs) :: String
         dbgio "addon command selected" cmdname
@@ -517,12 +549,16 @@ cmdargsParse desc m args0 = process m (ensureDebugFlagHasVal (checkReqValFlagArg
 -- A bare "-" (commonly used to mean stdin), and prefixed forms like "csv:-", are allowed as values.
 -- Values that start with "-" but are not known flags (eg "-date" as a register --sort key) are also
 -- allowed, so we don't break legitimate dash-prefixed value syntax.
+-- Flags whose value-ness varies by command (ambiguousFlagArgs, eg -m/-p) are not checked here,
+-- since the command is not yet known; cmdargs validates them per-command.
 checkReqValFlagArgsHaveValues :: [String] -> [String]
 checkReqValFlagArgsHaveValues = go
   where
     -- --debug is declared as flagReq but treated as optional-value via ensureDebugFlagHasVal,
     -- so don't validate it here.
-    checkable a = a `elem` reqValFlagArgs && a /= "--debug"
+    -- Ambiguous flags (required-value in some commands, valueless in others, eg -m/-p) are also
+    -- skipped, since we can't know here which command's meaning applies; cmdargs will check them.
+    checkable a = a `elem` reqValFlagArgs && a /= "--debug" && a `notElem` ambiguousFlagArgs
     knownFlags = noValFlagArgs `union` reqValFlagArgs `union` optValFlagArgs
     looksLikeKnownFlag b =
          b `elem` knownFlags
@@ -536,6 +572,16 @@ checkReqValFlagArgsHaveValues = go
       | checkable a, looksLikeKnownFlag b =
           usageError $ a <> " needs a value, but the next argument is another flag: " <> b
       | otherwise = a : go (b:rest)
+
+-- | Remove any --conf/--no-conf/-n flags, and any --conf value, from these args.
+dropConfFlags :: [String] -> [String]
+dropConfFlags = go
+  where
+    go []              = []
+    go ("--conf":as)   = go $ drop 1 as
+    go (a:as)
+      | a `elem` ["-n","--no-conf"] || "--conf=" `isPrefixOf` a = go as
+      | otherwise                                               = a : go as
 
 -- | cmdargs does not allow options to appear before the subcommand argument.
 -- We prefer to hide this restriction from the user, providing a more forgiving CLI.
@@ -691,6 +737,18 @@ optValCommandFlagNames = [f | (f,i) <- concatMap toFlagInfos commandFlags, isOpt
 noValFlagArgs  = map toFlagArg $ noValGeneralFlagNames  `union` (noValCommandFlagNames  \\ generalFlagNames)
 reqValFlagArgs = map toFlagArg $ reqValGeneralFlagNames `union` (reqValCommandFlagNames \\ generalFlagNames)
 optValFlagArgs = map toFlagArg $ optValGeneralFlagNames `union` (optValCommandFlagNames \\ generalFlagNames)
+
+-- Flag args whose value-ness is ambiguous across commands: required-value in some command(s)
+-- but valueless (no-value) in others. Their meaning can't be known before the command is
+-- identified, so the pre-cmdargs required-value check (checkReqValFlagArgsHaveValues) skips them,
+-- deferring to cmdargs' per-command parsing. Eg -m is --match (required value) for print/register
+-- but a valueless "use man" flag for help; -p is --period (required value) generally but a valueless
+-- "use pager" flag for help. Derived from the reflected flag sets, so it stays correct as flags change.
+-- Computed from the raw per-source name lists (before general/command deduplication), so a name that
+-- is valueless only as a command flag shadowed by a same-named general flag (eg help's -p) is still seen.
+ambiguousFlagArgs = map toFlagArg $
+  (reqValGeneralFlagNames `union` reqValCommandFlagNames) `intersect`
+  (noValGeneralFlagNames  `union` noValCommandFlagNames)
 
 -- Short flag args that expect a required value.
 shortReqValFlagArgs = filter isShortFlagArg reqValFlagArgs
