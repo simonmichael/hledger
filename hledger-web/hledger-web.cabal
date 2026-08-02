@@ -5,7 +5,7 @@ cabal-version: 2.2
 -- see: https://github.com/sol/hpack
 
 name:           hledger-web
-version:        1.99
+version:        2.0
 synopsis:       Web user interface for the hledger accounting system
 description:    A simple web user interface for the hledger accounting system,
                 providing a more modern UI than the command-line or terminal interfaces.
@@ -38,7 +38,7 @@ extra-source-files:
     config/robots.txt
     config/routes
     config/settings.yml
-    static/css/bootstrap-datepicker.standalone.min.css
+    static/css/bootstrap-icons.css
     static/css/bootstrap-theme.css
     static/css/bootstrap-theme.min.css
     static/css/bootstrap.css
@@ -51,50 +51,14 @@ extra-source-files:
     static/fonts/glyphicons-halflings-regular.woff
     static/hledger.css
     static/hledger.js
-    static/js/bootstrap-datepicker.min.js
-    static/js/bootstrap.js
-    static/js/bootstrap.min.js
-    static/js/excanvas.js
-    static/js/excanvas.min.js
-    static/js/jquery.cookie.js
-    static/js/jquery.flot.canvas.js
-    static/js/jquery.flot.canvas.min.js
-    static/js/jquery.flot.categories.js
-    static/js/jquery.flot.categories.min.js
-    static/js/jquery.flot.crosshair.js
-    static/js/jquery.flot.crosshair.min.js
-    static/js/jquery.flot.errorbars.js
-    static/js/jquery.flot.errorbars.min.js
-    static/js/jquery.flot.fillbetween.js
-    static/js/jquery.flot.fillbetween.min.js
-    static/js/jquery.flot.image.js
-    static/js/jquery.flot.image.min.js
-    static/js/jquery.flot.js
+    static/js/bootstrap.bundle.min.js
+    static/js/chart.umd.min.js
+    static/js/chartjs-adapter-date-fns.bundle.min.js
     static/js/jquery.flot.min.js
-    static/js/jquery.flot.navigate.js
-    static/js/jquery.flot.navigate.min.js
-    static/js/jquery.flot.pie.js
-    static/js/jquery.flot.pie.min.js
-    static/js/jquery.flot.resize.js
-    static/js/jquery.flot.resize.min.js
-    static/js/jquery.flot.selection.js
     static/js/jquery.flot.selection.min.js
-    static/js/jquery.flot.stack.js
-    static/js/jquery.flot.stack.min.js
-    static/js/jquery.flot.symbol.js
-    static/js/jquery.flot.symbol.min.js
-    static/js/jquery.flot.threshold.js
-    static/js/jquery.flot.threshold.min.js
-    static/js/jquery.flot.time.js
     static/js/jquery.flot.time.min.js
-    static/js/jquery.flot.tooltip.js
     static/js/jquery.flot.tooltip.min.js
-    static/js/jquery.hotkeys.js
-    static/js/jquery.js
     static/js/jquery.min.js
-    static/js/jquery.url.js
-    static/js/typeahead.bundle.js
-    static/js/typeahead.bundle.min.js
     templates/add-form.hamlet
     templates/balance-report.hamlet
     templates/chart.hamlet
@@ -154,7 +118,7 @@ library
   hs-source-dirs:
       ./
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -threaded
-  cpp-options: -DVERSION="1.99"
+  cpp-options: -DVERSION="2.0"
   build-depends:
       Decimal >=0.5.1
     , aeson ==2.3.*
@@ -222,7 +186,7 @@ executable hledger-web
   hs-source-dirs:
       app
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -threaded
-  cpp-options: -DVERSION="1.99"
+  cpp-options: -DVERSION="2.0"
   build-depends:
       base >=4.18 && <4.23
     , hledger-web
@@ -242,7 +206,7 @@ test-suite apptest
   hs-source-dirs:
       test
   ghc-options: -Wall -Wno-incomplete-uni-patterns -Wno-missing-signatures -Wno-orphans -Wno-type-defaults -Wno-unused-do-bind -threaded
-  cpp-options: -DVERSION="1.99"
+  cpp-options: -DVERSION="2.0"
   build-depends:
       base >=4.18 && <4.23
     , hledger-web

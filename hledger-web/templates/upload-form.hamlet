@@ -6,7 +6,7 @@
 <div.form-group>
   <label .btn.btn-primary for="file">
     <input type=file id=file name=file style="display:none"
-      onchange="\$('#file-info').html(this.files[0].name)" />
+      onchange="document.getElementById('file-info').textContent = this.files[0].name" />
     Select file
   <span .label.label-info id="file-info">
 <div.form-group>

@@ -1,162 +1,217 @@
-$# If $ is the first character in a line, it must be \-escaped to hide it from hamlet.
 <label #register-chart-label style=""><br>
-<div #register-chart style="height:150px; margin-bottom:1em; display:block;">
+<canvas id="registerChartCanvas" style="height:25rem; width:100%; display:block; margin-top:.5rem;"></canvas>
 <script type=text/javascript>
-  \$(document).ready(function() {
-    var $chartdiv = $('#register-chart');
-    if ($chartdiv.is(':visible')) {
-      \$('#register-chart-label').text('#{charttitle}');
-      var seriesData = [
-      $forall (c,items) <- percommoditytxnreports
-        // we render each commodity using two series:
-        // one with extra data points added to show a stepped balance line
-        {
-        data: [
-          $forall i <- reverse items
-            [
-            #{dayToUtcNoonTimestamp $ triDate i},
-            #{simpleMixedAmountQuantity $ triCommodityBalance c i}
-            ],
-        ],
-        label: '#{shownull $ T.unpack c}',
-        color: #{colorForCommodity c},
-        lines: {
-          show: true,
-          steps: true,
-        },
-        points: {
-          show: false,
-        },
-        clickable: false,
-        hoverable: false,
-        },
-        // and one with the original data, showing one clickable, hoverable point per transaction
-        {
-        data: [
-          $forall i <- reverse items
-            [
-            #{dayToUtcNoonTimestamp $ triDate i},
-            #{simpleMixedAmountQuantity $ triCommodityBalance c i},
-            '#{showZeroCommodity $ triCommodityAmount c i}',
-            '#{showZeroCommodity $ triCommodityBalance c i}',
-            '#{concat $ intersperse "\\n" $ lines $ T.unpack $ showTransaction $ triOrigTransaction i}',
-            #{tindex $ triOrigTransaction i}
-            ],
-        ],
-        label: '',
-        color: #{colorForCommodity c},
-        lines: {
-          show: false,
-        },
-        points: {
-          show: true,
-        },
-        },
-      ];
-      var plot = registerChart($chartdiv, seriesData);
-      plot.setSelection({ xaxis: { from: 500, to: 700 } });  // ?
-      \$chartdiv.bind("plotclick",    registerChartClick);
-      \$chartdiv.bind("plotselected", registerChartSelect);
-    };
-  });
-
-  //eslint-disable-next-line no-unused-vars
-  function registerChart($container, series) {
-    // https://github.com/flot/flot/blob/master/API.md
-    return $container.plot(
-      series,
-      {
-        xaxis: {
-          mode: "time",
-          timeformat: "%Y/%m/%d",
-        },
-        selection: {
-          mode: "x"
-        },
-        legend: {
-          position: 'sw'
-        },
-        grid: {
-          markings: function () {
-            var now = Date.now();
-            return [
-              {
-                xaxis: { to: now }, // past
-                yaxis: { to: 0 },   // <0
-                color: '#ffdddd',
-              },
-              {
-                xaxis: { from: now }, // future
-                yaxis: { from: 0 },   // >0
-                color: '#e0e0e0',
-              },
-              {
-                xaxis: { from: now }, // future
-                yaxis: { to: 0 },     // <0
-                color: '#e8c8c8',
-              },
-              {
-                yaxis: { from: 0, to: 0 }, // =0
-                color: '#bb0000',
-                lineWidth:1
-              },
-            ];
-          },
-          hoverable: true,
-          autoHighlight: true,
-          clickable: true,
-        },
-        // https://github.com/krzysu/flot.tooltip
-        tooltip: true,
-        tooltipOpts: {
-          xDateFormat: "%Y/%m/%d",
-          content:
-            function(label, x, y, flotitem) {
-              var data = flotitem.series.data[flotitem.dataIndex];
-              return data[3]+" balance on %x after "+data[2]+" posted by transaction:<pre>"+data[4]+"</pre>";
-            },
-          onHover: function(flotitem, $tooltipel) {
-            \$tooltipel.css('border-color',flotitem.series.color);
-          },
-        },
+  (() => {
+    try {
+      const canvas = document.getElementById('registerChartCanvas');
+      if (!canvas) return;
+      
+      const charttitle = '#{charttitle}';
+      const label = document.getElementById('register-chart-label');
+      label.textContent = charttitle;
+      if (charttitle === 'Period Total:') {
+        label.style.fontWeight = 'bold';
       }
-    ).data("plot");
-  }
-
-  // Handle a click event on the chart.
-  function registerChartClick(ev, pos, item) {
-    if (!item) { return; }
-    var targetselector = '#' + item.series.data[item.dataIndex][5];
-    var $target = $(targetselector);
-    if ($target.length) {
-      window.location.hash = targetselector;
-      \$('html, body').animate({
-        scrollTop: $target.offset().top
-      }, 1000);
-    }
-  }
-
-  // Handle a selection (zoom) event on the chart.
-  function registerChartSelect(ev, ranges) {
-    console.log("selected", ranges.xaxis.from, ranges.xaxis.to);
-
-    // Reconstruct from/to dates carefully based on the selected x-values.
-    // Those x values are unix timestamps (milliseconds since epoch) enclosing the data points' timestamps.
-    // Those are generated by dayToJsTimestamp, and are UTC times representing the transaction dates.
-    var from = new Date(ranges.xaxis.from);
-    var fromy = from.getUTCFullYear();
-    var fromm = from.getUTCMonth() + 1;
-    var fromd = from.getUTCDate();
-    var to = new Date(ranges.xaxis.to + 1 * 24 * 60 * 60 * 1000);
-    var toy = to.getUTCFullYear();
-    var tom = to.getUTCMonth() + 1;
-    var tod = to.getUTCDate();
-
-    var range = fromy + "/" + fromm + "/" + fromd + "-" + toy + "/" + tom + "/" + tod;
-    var baselink = "@?{nodatelink}";
-    if (baselink.endsWith("?q")) {
-      document.location = baselink + "=date:" + range;
-    } else {
-      document.location = baselink + "%20date:" + range;
-    }
-  }
+      
+      const colors = ['#edc240', '#afd8f8', '#cb4b4b', '#4da74d', '#9440ed', '#e0e0e0'];
+      
+      const datasets = [];
+      const pointMetadata = [];
+      $forall (c,items) <- percommoditytxnreports
+        {
+          const colorIndexVal = #{colorForCommodity c};
+          const color = colors[colorIndexVal % colors.length];
+          datasets.push({
+            label: '#{shownull $ T.unpack c}',
+            data: [
+              $forall i <- reverse items
+                { x: #{dayToUtcNoonTimestamp $ triDate i}, y: Number('#{simpleMixedAmountQuantity $ triCommodityBalance c i}') },
+            ],
+            borderColor: color,
+            backgroundColor: color,
+            stepped: true,
+            pointRadius: 0,
+            pointHoverRadius: 0,
+            tension: 0,
+          });
+          
+          pointMetadata.push(
+            $forall i <- reverse items
+              {
+                amount: '#{showZeroCommodity $ triCommodityAmount c i}',
+                balance: '#{showZeroCommodity $ triCommodityBalance c i}',
+                transaction: '#{concat $ intersperse "\\n" $ lines $ T.unpack $ showTransaction $ triOrigTransaction i}',
+                tindex: #{tindex $ triOrigTransaction i}
+              },
+          );
+          
+          datasets.push({
+            label: '',
+            data: [
+              $forall i <- reverse items
+                { x: #{dayToUtcNoonTimestamp $ triDate i}, y: Number('#{simpleMixedAmountQuantity $ triCommodityBalance c i}') },
+            ],
+            borderColor: color,
+            backgroundColor: color,
+            pointRadius: 4,
+            pointHoverRadius: 6,
+            showLine: false,
+          });
+        }
+      
+      const ctx = canvas.getContext('2d');
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+      
+      // Custom plugin to draw background markings like the original flot chart
+      const backgroundMarkingsPlugin = {
+        id: 'backgroundMarkings',
+        beforeDraw: (chart) => {
+          const ctx = chart.ctx;
+          const chartArea = chart.chartArea;
+          const xAxis = chart.scales.x;
+          const yAxis = chart.scales.y;
+          
+          if (!chartArea) return;
+          
+          const now = Date.now();
+          
+          ctx.save();
+          
+          // Past negative values (<0, before now) - light red
+          if (xAxis.min < now && yAxis.min < 0) {
+            const xEnd = Math.min(xAxis.max, now);
+            const yEnd = Math.min(yAxis.max, 0);
+            ctx.fillStyle = '#ffdddd';
+            ctx.fillRect(
+              xAxis.getPixelForValue(xAxis.min),
+              yAxis.getPixelForValue(yEnd),
+              xAxis.getPixelForValue(xEnd) - xAxis.getPixelForValue(xAxis.min),
+              yAxis.getPixelForValue(yAxis.min) - yAxis.getPixelForValue(yEnd)
+            );
+          }
+          
+          // Future positive values (>0, after now) - light gray
+          if (xAxis.max > now && yAxis.max > 0) {
+            const xStart = Math.max(xAxis.min, now);
+            const yStart = Math.max(yAxis.min, 0);
+            ctx.fillStyle = '#e0e0e0';
+            ctx.fillRect(
+              xAxis.getPixelForValue(xStart),
+              yAxis.getPixelForValue(yStart),
+              xAxis.getPixelForValue(xAxis.max) - xAxis.getPixelForValue(xStart),
+              yAxis.getPixelForValue(yAxis.max) - yAxis.getPixelForValue(yStart)
+            );
+          }
+          
+          // Future negative values (<0, after now) - light red-gray
+          if (xAxis.max > now && yAxis.min < 0) {
+            const xStart = Math.max(xAxis.min, now);
+            const yEnd = Math.min(yAxis.max, 0);
+            ctx.fillStyle = '#e8c8c8';
+            ctx.fillRect(
+              xAxis.getPixelForValue(xStart),
+              yAxis.getPixelForValue(yEnd),
+              xAxis.getPixelForValue(xAxis.max) - xAxis.getPixelForValue(xStart),
+              yAxis.getPixelForValue(yAxis.min) - yAxis.getPixelForValue(yEnd)
+            );
+          }
+          
+          // Zero line - dark red
+          if (yAxis.min <= 0 && yAxis.max >= 0) {
+            ctx.strokeStyle = '#bb0000';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(
+              chartArea.left,
+              yAxis.getPixelForValue(0)
+            );
+            ctx.lineTo(
+              chartArea.right,
+              yAxis.getPixelForValue(0)
+            );
+            ctx.stroke();
+          }
+          
+          ctx.restore();
+        }
+      };
+      
+      const chart = new Chart(ctx, {
+        type: 'line',
+        data: { datasets },
+        plugins: [backgroundMarkingsPlugin],
+        options: {
+          animation: false,
+          responsive: false,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              type: 'time',
+              time: {
+                unit: 'day',
+                displayFormats: {
+                  day: 'yyyy/MM/dd'
+                }
+              }
+            },
+            y: {
+              type: 'linear',
+              beginAtZero: false,
+              ticks: {
+                precision: 1
+              }
+            }
+          },
+          plugins: {
+            legend: {
+              display: true,
+              position: 'bottom',
+              align: 'start',
+              labels: {
+                boxWidth: 12,
+                padding: 10,
+                font: {
+                  size: 12
+                },
+                filter: (legendItem, chartData) => {
+                  return legendItem.text !== '';
+                }
+              }
+            },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const dataIndex = context.dataIndex;
+                  const datasetIndex = context.datasetIndex;
+                  const metadata = pointMetadata[dataIndex];
+                  if (metadata && metadata.transaction) {
+                    return `${metadata.balance} balance on ${new Date(context.parsed.x).toLocaleDateString()} after ${metadata.amount} posted by transaction:\n${metadata.transaction}`;
+                  }
+                  return context.dataset.label + ': ' + context.parsed.y;
+                }
+              }
+            }
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const element = elements[0];
+              const dataIndex = element.index;
+              const metadata = pointMetadata[dataIndex];
+              if (metadata && metadata.tindex) {
+                const targetselector = '#' + metadata.tindex;
+                const target = document.querySelector(targetselector);
+                if (target) {
+                  window.location.hash = targetselector;
+                  window.scrollTo({
+                    top: target.getBoundingClientRect().top + window.scrollY - 100,
+                    behavior: 'smooth'
+                  });
+                }
+              }
+            }
+          }
+        }
+      });
+    } catch (error) {}
+  })();

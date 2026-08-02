@@ -1,43 +1,72 @@
 
-<div#spacer .col-xs-2.#{topShowsm}.#{topShowmd}>
-  <h1>
-    <button .visible-xs.btn.btn-default type="button" data-toggle="offcanvas">
-      <span .glyphicon.glyphicon-align-left.tgl-icon>
+<script src="/static/js/chart.umd.min.js">
+<script src="/static/js/chartjs-adapter-date-fns.bundle.min.js">
 
-<div#topbar .col-md-8 .col-sm-8 .col-xs-10>
-  <h1>#{takeFileName (journalFilePath j)}
+<div#top-left-controls>
+  <button .btn.btn-default.close-sidebar-arrow-desktop type="button" onclick="sidebarToggle()" title="Close Sidebar&#10Keyboard shortcut: s" aria-label="Close Sidebar">
+    <span .bi.bi-arrow-left aria-hidden="true">
+  <button .btn.btn-default.open-sidebar-arrow type="button" onclick="sidebarToggle()" title="Open Sidebar&#10Keyboard shortcut: s" aria-label="Open Sidebar">
+    <span .bi.bi-layout-text-sidebar-reverse aria-hidden="true">
+  <input .empty-account-checkbox type="checkbox" id="hideEmptyAccountsDesktop" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox(event)" title="Toggles Empty Accounts&#10Keyboard shortcut: e">
+  <label for="hideEmptyAccountsDesktop" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
+
+$if isJournalPage
+  <button .btn.btn-default.mobile-menu-btn.mobile-menu-btn-home type="button" onclick="sidebarToggle()" title="Open Sidebar" aria-label="Open Sidebar">
+    <span .bi.bi-list aria-hidden="true">
+$else
+  <button .btn.btn-default.mobile-menu-btn type="button" onclick="sidebarToggle()" title="Open Sidebar" aria-label="Open Sidebar">
+    <span .bi.bi-list aria-hidden="true">
 
 $if elem ViewPermission perms
-  <div#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
-    <table .main-menu .table>
-      ^{accounts}
+  <div .page-container>
+    <nav#sidebar-menu .sidebar-offcanvas.#{sideShowmd}.#{sideShowsm}>
+      <button .btn.btn-default.close-sidebar-arrow-mobile type="button" onclick="sidebarToggle()" title="Close Sidebar" aria-label="Close Sidebar">
+        <span .bi.bi-arrow-left aria-hidden="true">
+      <input .empty-account-checkbox-mobile type="checkbox" id="hideEmptyAccountsMobile" value="Toggle Empty Accounts" checked onchange="emptyAccountsToggleCheckbox(event)" title="Show Empty Accounts&#10Keyboard shortcut: e">
+      <label for="hideEmptyAccountsMobile" title="Show empty accounts&#10Keyboard shortcut: e">Show empty accounts
+      <table .main-menu .table>
+        ^{accounts}
+    <div #sidebar-resize-handle .resize-handle--x data-target="#sidebar-menu">
+    <main#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
+      <header .sticky-header>
+        <div .header-flex>
+          $if isJournalPage
+            <div .title-row.no-home-btn>
+              <h1 .d-flex.align-items-center>
+                <a href="#" onclick="location.href = document.hledgerWebBaseurl+'/journal'; return false;" title="Go to the General journal&#10Keyboard shortcut: j">#{takeFileName (journalFilePath j)}
+          $else
+            <div .title-row>
+              <button .btn.btn-default.home-btn type="button" onclick="location.href = document.hledgerWebBaseurl+'/journal'" title="Go to the General journal&#10Keyboard shortcut: j" aria-label="Go to Journal">
+                <span .bi.bi-house aria-hidden="true">
+              <h1 .d-flex.align-items-center>
+                <a href="#" onclick="location.href = document.hledgerWebBaseurl+'/journal'; return false;" title="Go to the General journal&#10Keyboard shortcut: j">#{takeFileName (journalFilePath j)}
+          $if elem ViewPermission perms
+            <form#searchform.input-group method=GET>
+              <div .input-group-prepend>
+              <label for="search-input" class="sr-only">Search</label>
+              <input .form-control id="search-input" name=q value=#{qparam} placeholder="Search"
+                title="Enter hledger search patterns to filter the data below">
+              <div .input-group-append>
+                $if not (T.null qparam)
+                  <a href=@{here} .btn .btn-default title="Clear search terms" aria-label="Clear Search">
+                    <span .bi.bi-x-circle aria-hidden="true">
+                <button .btn .btn-default type="button" onclick="addformShow()" title="Add a transaction&#10Keyboard shortcut: a" aria-label="Add Transaction">
+                  <span .bi.bi-plus-square aria-hidden="true">
+                $if elem EditPermission perms
+                  <a href="@{ManageR}" .btn.btn-default title="Manage journal files" aria-label="Manage Journal Files">
+                    <span .bi.bi-gear aria-hidden="true">
+                <button .btn .btn-default type=button data-bs-toggle="modal" data-bs-target="#helpmodal"
+                   title="Show search and general help&#10Keyboard shortcut: h" aria-label="Show Help">
+                  <span .bi.bi-question-circle aria-hidden="true">
+      $maybe m <- msg
+        <div#message .alert.alert-info>#{m}
+      ^{widget}
 
-<div#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
-  $maybe m <- msg
-    <div #message .alert.alert-info>#{m}
-  $if elem ViewPermission perms
-    <form#searchform.input-group method=GET>
-      <input .form-control name=q value=#{qparam} placeholder="Search"
-        title="Enter hledger search patterns to filter the data below">
-      <div .input-group-btn>
-        $if not (T.null qparam)
-          <a href=@{here} .btn .btn-default title="Clear search terms">
-            <span .glyphicon .glyphicon-remove-circle>
-        <button .btn .btn-default type=submit title="Apply search terms">
-          <span .glyphicon .glyphicon-search>
-        $if elem EditPermission perms
-          <a href="@{ManageR}" .btn.btn-default title="Manage journal files">
-            <span .glyphicon .glyphicon-wrench>
-        <button .btn .btn-default type=button data-toggle="modal" data-target="#helpmodal"
-           title="Show search and general help">
-          <span .glyphicon .glyphicon-question-sign>
-  ^{widget}
-
-<div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel" aria-hidden="true">
+<div .modal.fade #helpmodal tabindex="-1" role="dialog" aria-labelledby="helpLabel">
   <div .modal-dialog .modal-lg>
     <div .modal-content>
       <div .modal-header>
-        <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
+        <button type="button" .btn-close data-bs-dismiss="modal" aria-label="Close">
         <span style="float:right; margin-right:4em;">#{progname} #{packageversion}
         <h3 .modal-title #helpLabel>Help
       <div .modal-body>

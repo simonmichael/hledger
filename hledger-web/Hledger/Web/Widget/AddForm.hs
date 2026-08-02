@@ -42,8 +42,8 @@ addModal addR j today = do
   <div .modal-dialog .modal-lg>
     <div .modal-content>
       <div .modal-header>
-        <button type="button" .close data-dismiss="modal" aria-hidden="true">&times;
-        <h3 .modal-title #addLabel>Add a transaction
+        <button type="button" .btn-close data-bs-dismiss="modal" aria-label="Close">
+        <h3 .modal-title #addLabel style="float:right;">Add a transaction
       <div .modal-body>
         <form#addform.form action=@{addR} method=POST enctype=#{addEnctype}>
           ^{addView}

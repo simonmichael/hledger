@@ -1,38 +1,22 @@
 <script>
 
-  jQuery(document).ready(function() {
+  document.addEventListener('DOMContentLoaded', function() {
 
-    // Set up global completers which can be attached to appropriate inputs when needed
-
-    globalThis.descriptionsCompleter = new Bloodhound({
-      local:#{toBloodhoundJson (toList descriptions)},
-      limit:100,
-      datumTokenizer: function(d) { return [d.value]; },
-      queryTokenizer: function(q) { return [q]; }
-    });
-    globalThis.descriptionsCompleter.initialize();
-
-    globalThis.accountsCompleter = new Bloodhound({
-      local:#{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)},
-      limit:100,
-      datumTokenizer: function(d) { return [d.value]; },
-      queryTokenizer: function(q) { return [q]; }
-    });
-    globalThis.accountsCompleter.initialize();
-
-    // Attach the completers to the initial form inputs.
-    jQuery('input[name=description]').typeahead({ highlight: true }, { source: globalThis.descriptionsCompleter.ttAdapter() });
-    jQuery('input[name=account]'    ).typeahead({ highlight: true }, { source: globalThis.accountsCompleter.ttAdapter() });
+    // Set up autocomplete data
+    globalThis.descriptions = #{toBloodhoundJson (toList descriptions)};
+    globalThis.accounts = #{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)};
   });
 
-  const utf8textdecoder = new TextDecoder();
+  if (typeof utf8textdecoder === 'undefined') {
+    window.utf8textdecoder = new TextDecoder();
+  }
   function decodeBase64EncodedText(b64) {
       const unb64 = window.atob(b64);
       const arr = new Uint8Array(unb64.length);
       for (let i = 0; i < arr.length; i++) {
           arr[i] = unb64.charCodeAt(i);
       }
-      return utf8textdecoder.decode(arr);
+      return window.utf8textdecoder.decode(arr);
   }
 
 ^{extra}
@@ -41,8 +25,8 @@
   <div .col-md-3.col-sm-5.col-xs-6 :isJust (fvErrors dateView):.has-error>
     <div #dateWrap .form-group.input-group.date>
       ^{fvInput dateView}
-      <div .input-group-addon>
-        <span .glyphicon .glyphicon-th>
+      <div .input-group-text>
+        <span .bi.bi-calendar aria-hidden="true">
     $maybe err <- fvErrors dateView
       <span .help-block .error-block>#{err}
   <div .col-md-9.col-sm-7.col-xs-6 :isJust (fvErrors descView):.has-error>
@@ -55,13 +39,15 @@
   $forall (n, (acc, amt, accE, amtE)) <- displayRows
     <div .form-group .row .account-group style="padding-left:1em;">
       <div .col-sm-9.col-xs-9 :isJust accE:.has-error>
-        <input .account-input.form-control.input-lg.typeahead type=text
-          name=account placeholder="Account #{n}" value="#{acc}">
+        <label for="account-#{n}" class="sr-only">Account #{n}</label>
+        <input .account-input.form-control.input-lg type=text
+          id="account-#{n}" name=account placeholder="Account #{n}" value="#{acc}">
         $maybe err <- accE
           <span .help-block .error-block>_{err}
       <div .col-sm-3.col-xs-3 :isJust amtE:.has-error>
+        <label for="amount-#{n}" class="sr-only">Amount #{n}</label>
         <input .amount-input.form-control.input-lg type=text
-          name=amount placeholder="Amount #{n}" value="#{amt}">
+          id="amount-#{n}" name=amount placeholder="Amount #{n}" value="#{amt}">
         $maybe err <- amtE
           <span .help-block .error-block>_{err}
 

@@ -12,7 +12,6 @@ module Hledger.Web.Handler.RegisterR where
 import Data.List (intersperse, nub, partition)
 import Data.Text qualified as T
 import Safe (tailSafe)
-import Text.Hamlet (hamletFile)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -49,6 +48,7 @@ getRegisterR = do
       items =
         styleAmounts (journalCommodityStylesWith HardRounding j) $
         accountTransactionsReport rspec{_rsQuery=q} j acctQuery
+      balancelabel :: String
       balancelabel
         | isJust (inAccount qopts), balanceaccum_ (_rsReportOpts rspec) == Historical = "Historical Total"
         | isJust (inAccount qopts) = "Period Total"
@@ -99,10 +99,10 @@ decorateLinks :: [(acct, ([char], [char]))] -> [(Maybe acct, char)]
 decorateLinks = concatMap $ \(acct, (name, comma)) ->
     map (Just acct,) name ++ map (Nothing,) comma
 
--- | Generate javascript/html for a register balance line chart based on
+--- | Generate javascript/html for a register balance line chart based on
 -- the provided "AccountTransactionsReportItem"s.
-registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
-registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
+registerChartHtml :: Text -> String -> [(CommoditySymbol, [AccountTransactionsReportItem])] -> Widget
+registerChartHtml q title percommoditytxnreports = $(whamletFile "templates/chart.hamlet")
  -- have to make sure plot is not called when our container (maincontent)
  -- is hidden, eg with add form toggled
  where
@@ -113,6 +113,12 @@ registerChartHtml q title percommoditytxnreports = $(hamletFile "templates/chart
    showZeroCommodity = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=False,displayZeroCommodity=True}
    shownull c = if null c then " " else c
    nodatelink = (RegisterR, [("q", T.unwords $ removeDates q)])
+   triDate (_,tacct,_,_,_,_) = tdate tacct
+   triAmount (_,_,_,_,a,_) = a
+   triBalance (_,_,_,_,_,a) = a
+   triOrigTransaction (torig,_,_,_,_,_) = torig
+   triCommodityAmount c = filterMixedAmountByCommodity c . triAmount
+   triCommodityBalance c = filterMixedAmountByCommodity c . triBalance
 
 -- | Makes a unix timestamp (milliseconds since epoch) corresponding to noon on the given date in UTC.
 dayToUtcNoonTimestamp :: Day -> Integer

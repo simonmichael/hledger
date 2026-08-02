@@ -159,6 +159,7 @@ instance Yesod App where
         sideShowsm = if showSidebar then "col-sm-4" else "" :: Text
         mainShowmd = if showSidebar then "col-md-8" else "col-md-12" :: Text
         mainShowsm = if showSidebar then "col-sm-8" else "col-sm-12" :: Text
+        isJournalPage = here == JournalR
 
     -- We break up the default layout into two components:
     -- default-layout is the contents of the body tag, and
@@ -166,23 +167,13 @@ instance Yesod App where
     -- value passed to hamletToRepHtml cannot be a widget, this allows
     -- you to use normal widget features in default-layout.
     pc <- widgetToPageContent $ do
+      -- Bootstrap 5 CSS
       addStylesheet $ StaticR css_bootstrap_min_css
-      addStylesheet $ StaticR css_bootstrap_datepicker_standalone_min_css
+      addStylesheet $ StaticR css_bootstrap_icons_css
       -- load these things early, in HEAD:
       toWidgetHead [hamlet|
-        <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
-        <script type="text/javascript" src="@{StaticR js_typeahead_bundle_min_js}">
+        <script type="text/javascript" src="@{StaticR js_bootstrap_bundle_min_js}">
       |]
-      addScript $ StaticR js_bootstrap_min_js
-      addScript $ StaticR js_bootstrap_datepicker_min_js
-      addScript $ StaticR js_jquery_url_js
-      addScript $ StaticR js_jquery_cookie_js
-      addScript $ StaticR js_jquery_hotkeys_js
-      addScript $ StaticR js_jquery_flot_min_js
-      addScript $ StaticR js_jquery_flot_selection_min_js
-      addScript $ StaticR js_jquery_flot_time_min_js
-      addScript $ StaticR js_jquery_flot_tooltip_min_js
-      toWidget [hamlet| \<!--[if lte IE 8]> <script type="text/javascript" src="@{StaticR js_excanvas_min_js}"></script> <![endif]--> |]
       addStylesheet $ StaticR hledger_css
       addScript $ StaticR hledger_js
       $(widgetFile "default-layout")
