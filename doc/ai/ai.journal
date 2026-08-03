@@ -6,29 +6,29 @@ include commodities.journal
 account ai
 
 2026-01-01 sm
-    (ai)                                         771 opus_output_tokens
+    (ai)                                         771 t
 
 2026-02-01 sm
-    (ai)                                     53,229. opus_output_tokens
+    (ai)                                          53 kt
 
 2026-03-01 sm
-    (ai)                                    112,112. opus_output_tokens
+    (ai)                                         112 kt
 
 2026-04-01 sm
-    (ai)                                    686,507. opus_output_tokens
+    (ai)                                         687 kt
 
 2026-04-01 adamsardo | #2582
-    (ai)                                     20,000. codex_output_tokens  ; time:2-3h interactive
+    (ai)                                          20 kt  ; provider:openai, model:codex, time:2-3h interactive
 
 2026-05-01 sm
-    (ai)                                  2,230,792. opus_output_tokens
+    (ai)                                           2.2 Mt
 
 2026-06-01 sm
-    (ai)                                  1,325,764. opus_output_tokens
+    (ai)                                           1.3 Mt
 
 2026-07-01 sm
-    (ai)                                  2,803,518. opus_output_tokens
+    (ai)                                           2.8 Mt
 
 2026-08-03 sm | research
-    (ai)                                     65,000. opus_output_tokens
+    (ai)                                          65 kt
 
