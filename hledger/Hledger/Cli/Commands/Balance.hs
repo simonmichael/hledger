@@ -843,8 +843,12 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, balanceaccum_
                   ++ (if not summary_only_ then map (reportPeriodName (period_titles_ opts) balanceaccum_ spans) spans else [])
                   ++ ["  Total" | multiBalanceHasTotalsColumn opts]
                   ++ ["Average" | average_]
-    (accts, rows) = unzip $ fmap fullRowAsTexts items
+    (accts, rows) = unzip $ fmap fullRowAsTexts items'
       where
+        isLeaf rs row = not $ any (\r -> T.isPrefixOf (displayFull (prrName row) <> ":") (displayFull (prrName r))) rs
+        items' = if transpose_ opts && tree_ opts
+                 then filter (isLeaf items) items
+                 else items
         fullRowAsTexts row = (replicate (length rs) (renderacct row), rs)
           where
             rs = multiBalanceRowAsText opts row
