@@ -1766,12 +1766,17 @@ ai-help:
     #!/bin/bash
     cat <<EOS
     AI usage scripts.
-    These are in three groups, updating/reporting from three data sources:
+    These are in groups, corresponding to various data sources:
     1. ccusage         - prints reports from this machine's recent claude code logs
     2. ccusage.journal - a cached snapshot of the above as a hledger journal
-    3. ai.journal      - a permanent journal of project's monthly ai usage, with imported and manual entries
-    Note, ccusage.journal's numbers will drop below ai.journal's as old logs get purged.
-    Compare: just ai-ccusagej-monthly -Xkt -c1.kt; j ai-aij-monthly -Xkt -c1.kt
+    3. aicommits.csv   - a snapshot of the "AI usage:" disclosure lines in commit messages
+    4. ai.journal      - a permanent journal of project's monthly ai usage, with entries imported from the above and added manually
+    Notes:
+    - ccusage.journal's numbers drop over time (when regenerated) as old logs get purged.
+      Eg compare just ai-ccusagej-monthly -Xkt -c1.kt; j ai-aij-monthly -Xkt -c1.kt
+    - in recent period, ccusage.journal should be similar to the usage recorded in SM commits.
+    - ai.journal should be >= the usage recorded in all commits. (It may record additional AI usage not tied to commits.)
+
     EOS
     just h ai-
 
@@ -1831,6 +1836,15 @@ ai-ccusagej-recent *BALARGS:
 # Run ai-ccusagej-recent repeatedly.
 @ai-ccusagej-recent-watch *BALARGS:
     while true; do just ai-ccusagej-recent; echo; read -p "press enter to update.."; done
+
+# Extract the "AI usage:" disclosure lines from commit messages to aicommits.csv.
+@ai-commits-csv:
+    tools/aicommits > {{ AIDIR }}/aicommits.csv
+    echo "wrote {{ AIDIR }}/aicommits.csv"
+
+# Run a hledger command on aicommits.csv. If you need it to be up to date, run just ai-commits-csv first.
+@ai-commits *HLEDGERARGS:
+    hledger -f {{ AIDIR }}/aicommits.csv {{ HLEDGERARGS }}
 
 # Regen ccusage.journal, then import any new summarised month entries from there to ai.journal.
 @ai-aij-import *IMPORTARGS:

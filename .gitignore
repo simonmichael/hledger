@@ -129,3 +129,4 @@ old
 /tools/docshelltest
 .latest.*
 .github/workflows/ci-arm.yml
+/doc/ai/aicommits.csv
