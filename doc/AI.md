@@ -1,6 +1,6 @@
 # AI policy
 
-Last updated: 2026-07-20
+Last updated: 2026-08-03
 
 The productivity benefits from AI-assisted software development are becoming obvious.
 And the disruptions, costs and risks of AI will keep becoming clearer.
@@ -63,7 +63,10 @@ Here are our current policies for AI use in hledger.
   such as local LLMs, Ecosia, Anthropic.
   We don't use OpenAI models (GPT series, o-series, etc).
 
-6. First-time hledger contributors may not use AI to generate PRs.
+6. First-time hledger contributors must not use any AI-generated code, tests or docs in their first merged pull request.
+   Human-generated commit messages and discussion are also encouraged.
+  (We understand that some contributors are non-english speakers, who may want to use AI tools for translation.
+   We are happy to see human communication, even with imperfections.)
 
 7. The human committer is responsible for everything in their commits.
    Review your work before submitting it.
