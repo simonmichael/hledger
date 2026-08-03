@@ -45,8 +45,9 @@ import Prelude hiding (Applicative(..))
 import Control.Applicative (Applicative(..))
 import Control.Concurrent (forkIO)
 import Control.DeepSeq (deepseq)
-import Control.Monad (unless, void, when)
-import Control.Monad.Except       (ExceptT(..), liftEither, throwError)
+import Control.Exception qualified as C
+import Control.Monad (unless, void, when, (<=<))
+import Control.Monad.Except       (ExceptT(..), liftEither, runExceptT, throwError, withExceptT)
 import Control.Monad.Fail qualified as Fail
 import Control.Monad.IO.Class     (MonadIO, liftIO)
 import Control.Monad.State.Strict (StateT, get, modify', evalStateT)
@@ -74,7 +75,7 @@ import Data.Text.IO qualified as T
 import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
   defaultTimeLocale, getCurrentTimeZone, localDay, parseTimeM, utcToLocalTime, localTimeToUTC, zonedTimeToUTC, utctDay)
 import Safe (atMay, headDef, headMay, lastMay, readMay)
-import System.Directory (createDirectoryIfMissing, doesDirectoryExist, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, removeFile)
+import System.Directory (canonicalizePath, createDirectoryIfMissing, doesDirectoryExist, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, removeFile)
 import System.Exit      (ExitCode(..))
 import System.FilePath (isAbsolute, splitDirectories, stripExtension, takeBaseName, takeDirectory, takeExtension, (<.>), (</>))
 import System.IO       (Handle, hClose, hPutStrLn, stderr, hGetContents')
@@ -86,7 +87,7 @@ import Text.Printf (printf)
 
 import Hledger.Data
 import Hledger.Utils
-import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp )
+import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp, followingcommentp )
 import Hledger.Write.Csv
 
 --- ** doctest setup
@@ -435,14 +436,20 @@ getRulesFile csvfile mrulesfile =
     Nothing -> rulesFileFor csvfile
     Just f -> f
 
--- | An exception-throwing IO action that reads and validates
--- the specified CSV rules file (which may include other rules files).
+-- | Read and validate a CSV rules file, resolving 'include' directives recursively.
+-- Returns 'Right CsvRules' on success, or 'Left "file:line: error"' with correct
+-- location even inside included files (missing file, cycle, parse error, validation).
 readRules :: FilePath -> ExceptT String IO CsvRules
-readRules f =
-  liftIO (do
-    dbg6IO "using conversion rules file" f
-    readFilePortably f >>= expandIncludes (takeDirectory f)
-  ) >>= either throwError return . parseAndValidateCsvRules f
+readRules f = do
+  cf  <- liftIO $ canonicalizePath f
+  txt <- liftIO $ readFilePortably f
+  let initRules = defrules{ rincludefilestack = [(f, cf)] }
+  rules <- prettyRulesParseErrors txt $ runParserT (evalStateT rulesp initRules) f txt
+  liftEither $ first ((f <> ":\n") <>) (validateCsvRules rules)
+  where
+    prettyRulesParseErrors txt' =
+        withExceptT customErrorBundlePretty . liftEither
+      <=< withExceptT (finalErrorBundlePretty . attachSource f txt')
 
 -- | Read the encoding specified by the @encoding@ rule, if any.
 -- Or throw an error if an unrecognised encoding is specified.
@@ -453,21 +460,6 @@ rulesEncoding rulesfile rules = do
     Just encstr -> case encodingFromStringExplicit $ dbg4 "encoding name" encstr of
       Nothing  -> throwError $ rulesfile <> ": Invalid encoding: " <> encstr
       Just enc -> return . Just $ dbg4 "encoding" enc
-
--- | Inline all files referenced by include directives in this hledger CSV rules text, recursively.
--- Included file paths may be relative to the directory of the provided file path.
--- Unlike with journal files, this is done as a pre-parse step to simplify the CSV rules parser.
--- Unfortunately this means that the parser won't see accurate file paths and positions with included files.
-expandIncludes :: FilePath -> Text -> IO Text
-expandIncludes dir0 content = mapM (expandLine dir0) (T.lines content) <&> T.unlines
-  where
-    expandLine dir1 line =
-      case line of
-        (T.stripPrefix "include " -> Just f) -> expandIncludes dir2 =<< T.readFile f'
-          where
-            f' = dir1 </> T.unpack (T.dropWhile isSpace f)
-            dir2 = takeDirectory f'
-        _ -> return line
 
 -- defaultRulesText :: FilePath -> Text
 -- defaultRulesText _csvfile = T.pack $ unlines
@@ -494,21 +486,16 @@ expandIncludes dir0 content = mapM (expandLine dir0) (T.lines content) <&> T.unl
 --   ," account2 assets:bank:savings\n"
 --   ]
 
--- | An error-throwing IO action that parses this text as CSV conversion rules
--- and runs some extra validation checks. The file path is used in error messages.
-parseAndValidateCsvRules :: FilePath -> T.Text -> Either String CsvRules
-parseAndValidateCsvRules rulesfile s =
-  case parseCsvRules rulesfile s of
-    Left err    -> Left $ customErrorBundlePretty err
-    Right rules -> first ((rulesfile <> ":\n") <>) $ validateCsvRules rules
-
 instance ShowErrorComponent String where
   showErrorComponent = id
 
--- | Parse this text as CSV conversion rules. The file path is for error messages.
-parseCsvRules :: FilePath -> T.Text -> Either (ParseErrorBundle T.Text HledgerParseErrorData) CsvRules
--- parseCsvRules rulesfile s = runParser csvrulesfile nullrules{baseAccount=takeBaseName rulesfile} rulesfile s
-parseCsvRules = runParser (evalStateT rulesp defrules)
+-- | Parse this text as CSV conversion rules (no validation). For tests.
+parseCsvRules :: FilePath -> T.Text -> IO (Either String CsvRules)
+parseCsvRules rulesfile s = runExceptT $ prettyRulesParseErrors $ runParserT (evalStateT rulesp defrules) rulesfile s
+  where
+    prettyRulesParseErrors =
+        withExceptT customErrorBundlePretty . liftEither
+      <=< withExceptT (finalErrorBundlePretty . attachSource rulesfile s)
 
 -- | Return the validated rules, or an error.
 validateCsvRules :: CsvRules -> Either String CsvRules
@@ -532,8 +519,10 @@ data CsvRules' a = CsvRules' {
     -- ^ top-level assignments to hledger fields, as (field name, value template) pairs
   rconditionalblocks :: [ConditionalBlock],
     -- ^ conditional blocks, which containing additional assignments/rules to apply to matched csv records
-  rblocksassigning :: a -- (String -> [ConditionalBlock])
+  rblocksassigning :: a, -- (String -> [ConditionalBlock])
     -- ^ all conditional blocks which can potentially assign field with a given name (memoized)
+  rincludefilestack :: [(FilePath, FilePath)]
+    -- ^ (absolute path, canonical path) of included rules files, most recent first
 }
 
 -- | Type used by parsers. Directives, assignments and conditional blocks
@@ -558,7 +547,7 @@ instance Show CsvRules where
            ", rconditionalblocks = "   ++ show (rconditionalblocks r) ++
            " }"
 
-type CsvRulesParser a = StateT CsvRulesParsed SimpleTextParser a
+type CsvRulesParser m a = StateT CsvRulesParsed (ParsecT HledgerParseErrorData Text (ExceptT FinalParseError m)) a
 
 -- | The keyword of a CSV rule - "fields", "skip", "if", etc.
 type DirectiveName    = Text
@@ -640,7 +629,8 @@ defrules = CsvRules' {
   rcsvfieldindexes=[],
   rassignments=[],
   rconditionalblocks=[],
-  rblocksassigning = ()
+  rblocksassigning = (),
+  rincludefilestack = []
   }
 
 -- | Create CsvRules from the content parsed out of the rules file
@@ -654,7 +644,8 @@ mkrules rules =
     rcsvfieldindexes=rcsvfieldindexes rules,
     rassignments=reverse $ rassignments rules,
     rconditionalblocks=conditionalblocks,
-    rblocksassigning = maybeMemo (\f -> filter (any ((==f).fst) . cbAssignments) conditionalblocks)
+    rblocksassigning = maybeMemo (\f -> filter (any ((==f).fst) . cbAssignments) conditionalblocks),
+    rincludefilestack=rincludefilestack rules
     }
 
 --- *** rules parsers
@@ -754,7 +745,7 @@ addConditionalBlock b r = r{rconditionalblocks=b:rconditionalblocks r}
 addConditionalBlocks :: [ConditionalBlock] -> CsvRulesParsed -> CsvRulesParsed
 addConditionalBlocks bs r = r{rconditionalblocks=bs++rconditionalblocks r}
 
-rulesp :: CsvRulesParser CsvRules
+rulesp :: MonadIO m => CsvRulesParser m CsvRules
 rulesp = do
   _ <- many $ choice
     [blankorcommentlinep                                                <?> "blank or comment line"
@@ -765,23 +756,24 @@ rulesp = do
     ,try (conditionalblockp >>= modify' . addConditionalBlock)          <?> "conditional block"
     -- 'reverse' is there to ensure that conditions are added in the order they listed in the file
     ,(conditionaltablep >>= modify' . addConditionalBlocks . reverse)   <?> "conditional table"
+    ,try includedirectivep                                              <?> "include directive"
     ]
   eof
   mkrules <$> get
 
-blankorcommentlinep :: CsvRulesParser ()
+blankorcommentlinep :: MonadIO m => CsvRulesParser m ()
 blankorcommentlinep = lift (dbgparse 8 "trying blankorcommentlinep") >> choiceInState [blanklinep, commentlinep]
 
-blanklinep :: CsvRulesParser ()
+blanklinep :: MonadIO m => CsvRulesParser m ()
 blanklinep = lift skipNonNewlineSpaces >> newline >> return () <?> "blank line"
 
-commentlinep :: CsvRulesParser ()
+commentlinep :: MonadIO m => CsvRulesParser m ()
 commentlinep = lift skipNonNewlineSpaces >> commentcharp >> lift restofline >> return () <?> "comment line"
 
-commentcharp :: CsvRulesParser Char
+commentcharp :: MonadIO m => CsvRulesParser m Char
 commentcharp = oneOf (";#*" :: [Char])
 
-directivep :: CsvRulesParser (DirectiveName, Text)
+directivep :: MonadIO m => CsvRulesParser m (DirectiveName, Text)
 directivep = (do
   lift $ dbgparse 8 "trying directive"
   d <- choiceInState $ map (lift . string) directives
@@ -789,6 +781,32 @@ directivep = (do
        <|> (optional (char ':') >> lift skipNonNewlineSpaces >> lift eolof >> return "")
   return (d, v)
   ) <?> "directive"
+
+-- | Parse an @include@ directive, read the referenced file, and parse it recursively.
+-- Resolves the path relative to the parent file's directory, detects cycles via
+-- canonical paths, and pushes @(path, canonicalPath)@ onto the include stack.
+-- Returns '()' on success; throws 'FinalParseError' on missing path, missing file, or cycle.
+includedirectivep :: MonadIO m => CsvRulesParser m ()
+includedirectivep = do
+  off <- getOffset
+  string "include"
+  lift skipNonNewlineSpaces1
+  path <- rstrip . T.unpack <$> takeWhileP Nothing (`notElem` [';','\n'])
+  lift followingcommentp
+  when (null path) $
+    finalCustomFailure $ parseErrorAt off "include needs a file path argument"
+  rules <- get
+  let (parentf, _) = headDef ("","") $ rincludefilestack rules
+      dir = takeDirectory parentf
+      f' = if isAbsolute path then path else dir </> path
+  cf' <- liftIO $ canonicalizePath f'
+  when (cf' `elem` map snd (rincludefilestack rules)) $
+    finalCustomFailure $ parseErrorAt off $ "This included file forms a cycle: " ++ path
+  mtxt <- liftIO $ (Right <$> readFilePortably f') `C.catch` \(e::C.IOException) ->
+          pure $ Left $ printf "failed to read included file %s:\n%s" f' (show e)
+  case mtxt of
+    Left err   -> finalCustomFailure (parseErrorAt off err)
+    Right txt' -> void $ parseIncludeFile rulesp rules{ rincludefilestack = (f',cf') : rincludefilestack rules } f' txt'
 
 directives :: [Text]
 directives =
@@ -807,10 +825,10 @@ directives =
   , "balance-type"
   ]
 
-directivevalp :: CsvRulesParser Text
+directivevalp :: MonadIO m => CsvRulesParser m Text
 directivevalp = T.pack <$> anySingle `manyTill` lift eolof
 
-fieldnamelistp :: CsvRulesParser [CsvFieldName]
+fieldnamelistp :: MonadIO m => CsvRulesParser m [CsvFieldName]
 fieldnamelistp = (do
   lift $ dbgparse 8 "trying fieldnamelist"
   string "fields"
@@ -823,17 +841,17 @@ fieldnamelistp = (do
   return . map T.toLower $ f:fs
   ) <?> "field name list"
 
-fieldnamep :: CsvRulesParser Text
+fieldnamep :: MonadIO m => CsvRulesParser m Text
 fieldnamep = quotedfieldnamep <|> barefieldnamep
 
-quotedfieldnamep :: CsvRulesParser Text
+quotedfieldnamep :: MonadIO m => CsvRulesParser m Text
 quotedfieldnamep =
     char '"' *> takeWhile1P Nothing (`notElem` ("\"\n:;#~" :: [Char])) <* char '"'
 
-barefieldnamep :: CsvRulesParser Text
+barefieldnamep :: MonadIO m => CsvRulesParser m Text
 barefieldnamep = takeWhile1P Nothing (`notElem` (" \t\n,;#~" :: [Char]))
 
-fieldassignmentp :: CsvRulesParser (HledgerFieldName, FieldTemplate)
+fieldassignmentp :: MonadIO m => CsvRulesParser m (HledgerFieldName, FieldTemplate)
 fieldassignmentp = do
   lift $ dbgparse 8 "trying fieldassignmentp"
   f <- journalfieldnamep
@@ -843,7 +861,7 @@ fieldassignmentp = do
   return (f,v)
   <?> "field assignment"
 
-journalfieldnamep :: CsvRulesParser Text
+journalfieldnamep :: MonadIO m => CsvRulesParser m Text
 journalfieldnamep = do
   lift (dbgparse 8 "trying journalfieldnamep")
   choiceInState $ map (lift . string) journalfieldnames
@@ -878,7 +896,7 @@ journalfieldnames =
   ,"end"
   ]
 
-assignmentseparatorp :: CsvRulesParser ()
+assignmentseparatorp :: MonadIO m => CsvRulesParser m ()
 assignmentseparatorp = do
   lift $ dbgparse 8 "trying assignmentseparatorp"
   _ <- choiceInState [ lift skipNonNewlineSpaces >> char ':' >> lift skipNonNewlineSpaces
@@ -886,13 +904,13 @@ assignmentseparatorp = do
                      ]
   return ()
 
-fieldvalp :: CsvRulesParser Text
+fieldvalp :: MonadIO m => CsvRulesParser m Text
 fieldvalp = do
   lift $ dbgparse 8 "trying fieldvalp"
   T.pack <$> anySingle `manyTill` lift eolof
 
 -- A conditional block: one or more matchers, one per line, followed by one or more indented rules.
-conditionalblockp :: CsvRulesParser ConditionalBlock
+conditionalblockp :: MonadIO m => CsvRulesParser m ConditionalBlock
 conditionalblockp = do
   lift $ dbgparse 8 "trying conditionalblockp"
   -- "if\nMATCHER" or "if    \nMATCHER" or "if MATCHER"
@@ -914,7 +932,7 @@ conditionalblockp = do
 -- followed by many lines, each of which is either:
 -- a comment line, or ...
 -- one matcher, followed by field assignments (as many as there were fields in the header)
-conditionaltablep :: CsvRulesParser [ConditionalBlock]
+conditionaltablep :: MonadIO m => CsvRulesParser m [ConditionalBlock]
 conditionaltablep = do
   lift $ dbgparse 8 "trying conditionaltablep"
   start <- getOffset
@@ -932,7 +950,7 @@ conditionaltablep = do
     CB{cbMatchers=ms, cbAssignments=zip fields vs}
   <?> "conditional table"
   where
-    bodylinep :: Char -> [Text] -> CsvRulesParser ([Matcher],[FieldTemplate])
+    bodylinep :: MonadIO m => Char -> [Text] -> CsvRulesParser m ([Matcher],[FieldTemplate])
     bodylinep sep fields = do
       off <- getOffset
       ms <- matcherp' (lookAhead . void . char $ sep) `manyTill` char sep
@@ -946,15 +964,15 @@ conditionaltablep = do
 -- This tries to parse first as a field matcher, then if that fails, as a whole-record matcher;
 -- the goal was to not break legacy whole-record patterns that happened to look a bit like a field matcher
 -- (eg, beginning with %, possibly preceded by & or !), or at least not to raise an error.
-matcherp' :: CsvRulesParser () -> CsvRulesParser Matcher
+matcherp' :: MonadIO m => CsvRulesParser m () -> CsvRulesParser m Matcher
 matcherp' end = try (fieldmatcherp end) <|> recordmatcherp end
 
-matcherp :: CsvRulesParser Matcher
+matcherp :: MonadIO m => CsvRulesParser m Matcher
 matcherp = matcherp' (lift eolof)
 
 -- A single whole-record matcher.
 -- A pattern on the whole line, not beginning with a csv field reference.
-recordmatcherp :: CsvRulesParser () -> CsvRulesParser Matcher
+recordmatcherp :: MonadIO m => CsvRulesParser m () -> CsvRulesParser m Matcher
 recordmatcherp end = do
   lift $ dbgparse 8 "trying recordmatcherp"
   -- pos <- currentPos
@@ -970,7 +988,7 @@ recordmatcherp end = do
 -- (like %date or %1), and a pattern on the rest of the line,
 -- optionally space-separated. Eg:
 -- %description chez jacques
-fieldmatcherp :: CsvRulesParser () -> CsvRulesParser Matcher
+fieldmatcherp :: MonadIO m => CsvRulesParser m () -> CsvRulesParser m Matcher
 fieldmatcherp end = do
   lift $ dbgparse 8 "trying fieldmatcher"
   -- An optional fieldname (default: "all")
@@ -987,7 +1005,7 @@ fieldmatcherp end = do
   return $ FieldMatcher p f r
   <?> "field matcher"
 
-matcherprefixp :: CsvRulesParser MatcherPrefix
+matcherprefixp :: MonadIO m => CsvRulesParser m MatcherPrefix
 matcherprefixp = do
   lift $ dbgparse 8 "trying matcherprefixp"
   (do
@@ -996,7 +1014,7 @@ matcherprefixp = do
   <|> (char '!' >> lift skipNonNewlineSpaces >> return Not)
   <|> return Or
 
-csvfieldreferencep :: CsvRulesParser CsvFieldReference
+csvfieldreferencep :: MonadIO m => CsvRulesParser m CsvFieldReference
 csvfieldreferencep = do
   lift $ dbgparse 8 "trying csvfieldreferencep"
   char '%'
@@ -1004,7 +1022,7 @@ csvfieldreferencep = do
     -- XXX this parses any generic field name, which may not actually be a valid CSV field name [#2289]
 
 -- A single regular expression
-regexp :: CsvRulesParser () -> CsvRulesParser Regexp
+regexp :: MonadIO m => CsvRulesParser m () -> CsvRulesParser m Regexp
 regexp end = do
   lift $ dbgparse 8 "trying regexp"
   -- notFollowedBy matchoperatorp
@@ -1018,7 +1036,7 @@ regexp end = do
 
 -- -- A match operator, indicating the type of match to perform.
 -- -- Currently just ~ meaning case insensitive infix regex match.
--- matchoperatorp :: CsvRulesParser String
+-- matchoperatorp :: MonadIO m => CsvRulesParser m String
 -- matchoperatorp = fmap T.unpack $ choiceInState $ map string
 --   ["~"
 --   -- ,"!~"
@@ -1836,67 +1854,70 @@ negateStr amtstr = case T.uncons amtstr of
 --- ** tests
 _TESTS__________________________________________ = undefined
 
+assertParseER :: (Eq a, Show a) => IO (Either String a) -> Either String a -> Assertion
+assertParseER actual expected = actual >>= \a -> a @?= expected
+
 tests_RulesReader = testGroup "RulesReader" [
    testGroup "parseCsvRules" [
      testCase "empty file" $
-      parseCsvRules "unknown" "" @?= Right (mkrules defrules)
+      assertParseER (parseCsvRules "unknown" "") (Right (mkrules defrules))
    ]
   ,testGroup "rulesp" [
      testCase "trailing comments" $
-      parseWithState' defrules rulesp "skip\n# \n#\n" @?= Right (mkrules $ defrules{rdirectives = [("skip","")]})
+      assertParseER (parseWithStateE' defrules rulesp "skip\n# \n#\n") (Right (mkrules $ defrules{rdirectives = [("skip","")]}))
 
     ,testCase "trailing blank lines" $
-      parseWithState' defrules rulesp "skip\n\n  \n" @?= (Right (mkrules $ defrules{rdirectives = [("skip","")]}))
+      assertParseER (parseWithStateE' defrules rulesp "skip\n\n  \n") (Right (mkrules $ defrules{rdirectives = [("skip","")]}))
 
     ,testCase "no final newline" $
-      parseWithState' defrules rulesp "skip" @?= (Right (mkrules $ defrules{rdirectives=[("skip","")]}))
+      assertParseER (parseWithStateE' defrules rulesp "skip") (Right (mkrules $ defrules{rdirectives=[("skip","")]}))
 
     ,testCase "assignment with empty value" $
-      parseWithState' defrules rulesp "account1 \nif foo\n  account2 foo\n" @?=
+      assertParseER (parseWithStateE' defrules rulesp "account1 \nif foo\n  account2 foo\n")
         (Right (mkrules $ defrules{rassignments = [("account1","")], rconditionalblocks = [CB{cbMatchers=[RecordMatcher Or (toRegex' "foo")],cbAssignments=[("account2","foo")]}]}))
    ]
   ,testGroup "conditionalblockp" [
     testCase "space after conditional" $
-      parseWithState' defrules conditionalblockp "if a\n account2 b\n \n" @?=
+      assertParseER (parseWithStateE' defrules conditionalblockp "if a\n account2 b\n \n")
         (Right $ CB{cbMatchers=[RecordMatcher Or $ toRegexCI' "a"],cbAssignments=[("account2","b")]})
   ],
 
   testGroup "csvfieldreferencep" [
-    testCase "number" $ parseWithState' defrules csvfieldreferencep "%1" @?= (Right "%1")
-   ,testCase "name" $ parseWithState' defrules csvfieldreferencep "%date" @?= (Right "%date")
-   ,testCase "quoted name" $ parseWithState' defrules csvfieldreferencep "%\"csv date\"" @?= (Right "%\"csv date\"")
+    testCase "number" $ assertParseER (parseWithStateE' defrules csvfieldreferencep "%1") (Right "%1")
+   ,testCase "name" $ assertParseER (parseWithStateE' defrules csvfieldreferencep "%date") (Right "%date")
+   ,testCase "quoted name" $ assertParseER (parseWithStateE' defrules csvfieldreferencep "%\"csv date\"") (Right "%\"csv date\"")
    ]
 
   ,testGroup "recordmatcherp" [
 
     testCase "recordmatcherp" $
-      parseWithState' defrules matcherp "A A\n" @?= (Right $ RecordMatcher Or $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "A A\n") (Right $ RecordMatcher Or $ toRegexCI' "A A")
 
    ,testCase "recordmatcherp.starts-with-&" $
-      parseWithState' defrules matcherp "& A A\n" @?= (Right $ RecordMatcher And $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "& A A\n") (Right $ RecordMatcher And $ toRegexCI' "A A")
 
    ,testCase "recordmatcherp.starts-with-&&" $
-      parseWithState' defrules matcherp "&& A A\n" @?= (Right $ RecordMatcher And $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "&& A A\n") (Right $ RecordMatcher And $ toRegexCI' "A A")
 
    ,testCase "recordmatcherp.starts-with-&&-!" $
-      parseWithState' defrules matcherp "&& ! A A\n" @?= (Right $ RecordMatcher AndNot $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "&& ! A A\n") (Right $ RecordMatcher AndNot $ toRegexCI' "A A")
 
    ,testCase "recordmatcherp.does-not-start-with-%" $
-      parseWithState' defrules matcherp "description A A\n" @?= (Right $ RecordMatcher Or $ toRegexCI' "description A A")
+      assertParseER (parseWithStateE' defrules matcherp "description A A\n") (Right $ RecordMatcher Or $ toRegexCI' "description A A")
    ]
 
   ,testGroup "fieldmatcherp" [
     testCase "fieldmatcherp" $
-      parseWithState' defrules matcherp "%description A A\n" @?= (Right $ FieldMatcher Or "%description" $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "%description A A\n") (Right $ FieldMatcher Or "%description" $ toRegexCI' "A A")
 
    ,testCase "fieldmatcherp.starts-with-&" $
-      parseWithState' defrules matcherp "& %description A A\n" @?= (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "& %description A A\n") (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
 
    ,testCase "fieldmatcherp.starts-with-&&" $
-      parseWithState' defrules matcherp "&& %description A A\n" @?= (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "&& %description A A\n") (Right $ FieldMatcher And "%description" $ toRegexCI' "A A")
 
    ,testCase "fieldmatcherp.starts-with-&&-!" $
-      parseWithState' defrules matcherp "&& ! %description A A\n" @?= (Right $ FieldMatcher AndNot "%description" $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules matcherp "&& ! %description A A\n") (Right $ FieldMatcher AndNot "%description" $ toRegexCI' "A A")
 
    -- ,testCase "fieldmatcherp with operator" $
    --    parseWithState' defrules matcherp "%description ~ A A\n" @?= (Right $ FieldMatcher "%description" "A A")
@@ -1905,9 +1926,9 @@ tests_RulesReader = testGroup "RulesReader" [
 
   ,testGroup "regexp" [
     testCase "regexp.ends-before-&&" $
-      parseWithState' defrules (regexp eof) "A A && xxx" @?= (Right $ toRegexCI' "A A")
+      assertParseER (parseWithStateE' defrules (regexp eof) "A A && xxx") (Right $ toRegexCI' "A A")
    ,testCase "regexp contains &" $
-      parseWithState' defrules (regexp eof) "A & B" @?= (Right $ toRegexCI' "A & B")
+      assertParseER (parseWithStateE' defrules (regexp eof) "A & B") (Right $ toRegexCI' "A & B")
    ]
 
   , let matchers = [RecordMatcher Or (toRegexCI' "A"), RecordMatcher And (toRegexCI' "B")]
@@ -1916,9 +1937,9 @@ tests_RulesReader = testGroup "RulesReader" [
     in
    testGroup "Combine multiple matchers on the same line" [
     testCase "conditionalblockp" $
-      parseWithState' defrules conditionalblockp "if A && B\n account2 foo\n comment2 bar" @?= (Right block)
+      assertParseER (parseWithStateE' defrules conditionalblockp "if A && B\n account2 foo\n comment2 bar") (Right block)
    ,testCase "conditionaltablep" $
-      parseWithState' defrules conditionaltablep "if,account2,comment2\nA && B,foo,bar" @?= (Right [block])
+      assertParseER (parseWithStateE' defrules conditionaltablep "if,account2,comment2\nA && B,foo,bar") (Right [block])
    ]
 
  ,testGroup "hledgerField" [

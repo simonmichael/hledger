@@ -32,6 +32,7 @@ module Hledger.Utils.Parse (
   parsewithString,
   parseWithState,
   parseWithState',
+  parseWithStateE',
   fromparse,
   parseerror,
   showDateParseError,
@@ -95,6 +96,7 @@ import Safe (tailErr)
 import Text.Megaparsec
 import Text.Printf
 import Control.Monad.State.Strict (StateT, evalStateT)
+import Control.Monad.IO.Class (MonadIO)
 import Data.Char
 import Data.Functor (void)
 import Data.Functor.Identity (Identity(..))
@@ -103,7 +105,7 @@ import Data.Text (Text)
 import Text.Megaparsec.Char
 -- import Text.Megaparsec.Debug (dbg)
 
-import Control.Monad.Except (ExceptT, MonadError, catchError, throwError)
+import Control.Monad.Except (ExceptT, MonadError, catchError, runExceptT, throwError)
 import Control.Monad.Trans.Class (lift)
 import Data.List.NonEmpty qualified as NE
 import Data.Monoid (Alt(..))
@@ -188,6 +190,21 @@ parseWithState'
   -> s
   -> (Either (ParseErrorBundle s e) a)
 parseWithState' ctx p = runParser (evalStateT p ctx) ""
+
+-- | Run a stateful parser with an ExceptT layer in IO.
+-- For testing parsers whose monad stack includes a FinalParseError layer.
+parseWithStateE'
+  :: (ShowErrorComponent e, Show a, MonadIO m)
+  => st
+  -> StateT st (ParsecT e Text (ExceptT FinalParseError m)) a
+  -> Text
+  -> m (Either String a)
+parseWithStateE' ctx p s = do
+  result <- runExceptT $ runParserT (evalStateT p ctx) "" s
+  case result of
+    Left fe       -> return $ Left $ finalErrorBundlePretty (attachSource "" s fe)
+    Right (Left e) -> return $ Left $ errorBundlePretty e
+    Right (Right a) -> return $ Right a
 
 fromparse :: (Show t, Show (Token t), Show e) => Either (ParseErrorBundle t e) a -> a
 fromparse = either parseerror id

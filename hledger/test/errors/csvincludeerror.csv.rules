@@ -1,0 +1,2 @@
+# include a rules file that has a parse error
+include csvincludeerror_included.rules

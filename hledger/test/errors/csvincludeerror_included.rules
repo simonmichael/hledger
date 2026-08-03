@@ -1,0 +1,3 @@
+# this included file has an empty conditional block (parse error)
+if foo
+

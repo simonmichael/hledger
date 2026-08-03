@@ -1,0 +1,10 @@
+$$$ hledger check -f  csvincludeerror.csv
+>>>2 /hledger: Error: in file included from .*csvincludeerror.csv.rules,
+.*csvincludeerror_included.rules:2:1:
+  \|
+2 \| if foo
+  \| \^
+start of conditional block found, but no assignment rules afterward
+\(assignment rules in a conditional block should be indented\)
+/
+>>>= 1
