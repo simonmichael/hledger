@@ -34,7 +34,12 @@ Market prices at the report date come from
 `--infer-market-prices`, as usual; holdings are valued in their cost
 commodity when possible. When a holding has no market price,
 its Price, Value and Gain columns are left blank.
-The general `-B`/`-V`/`-X`/`--value` flags are ignored.
+
+With `-V`, `-X COMM` or `--value` ([Valuation](#valuation)), holdings
+are valued in the default or given valuation commodity instead, and the
+cost columns are also converted to it (at the valuation date, so percent
+gain is unaffected). `--value=then` is not supported, and `-B/--cost`
+has no effect.
 Amounts are displayed with their commodity's display precision
 (unlike lot names, which can show more precision);
 `--round` can select another rounding strategy.

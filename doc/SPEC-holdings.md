@@ -71,9 +71,14 @@ Notes:
   commodity.
 - Gain (absolute and percent) is shown when the value and cost are in a
   single common commodity.
-- The general `-B`/`-V`/`-X`/`--value` flags are ignored (holdings does its
-  own valuation, and quantities stay quantities). Later, `--value=end,COMM`
-  could perhaps select the valuation commodity.
+- `-V`/`-X COMM`/`--value=end|now|DATE[,COMM]` select the valuation
+  commodity and/or valuation date. The cost columns (Cost, Unit/Avg cost,
+  and the cost side of Gain) are then also converted to the valuation
+  commodity at the valuation date, so percent gain is unaffected by
+  currency conversion. Costs with no market price to the valuation
+  commodity are left unconverted (making Gain blank).
+- `--value=then` is not supported (holdings is a snapshot report).
+- `-B/--cost` has no effect; quantities always stay quantities.
 
 ## Layout mockups
 

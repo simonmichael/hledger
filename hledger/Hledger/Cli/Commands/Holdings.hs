@@ -17,6 +17,7 @@ module Hledger.Cli.Commands.Holdings (
  ,holdings
 ) where
 
+import Control.Applicative ((<|>))
 import Data.Default (def)
 import Data.List.Extra (intercalate, nubSort)
 import Data.Map.Strict qualified as M
@@ -59,6 +60,8 @@ holdingsmode = hledgerCommandMode
 holdings :: CliOpts -> Journal -> IO ()
 holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts}} j = do
   if accountlistmode_ ropts == ALTree then error' "holdings: --tree is not yet supported"
+  else if (case mvalue of Just (AtThen _) -> True; _ -> False)
+  then error' "holdings: --value=then is not supported"
   else rounding `seq` do  -- validate the --round value before any output
     putStrLn $ "Holdings on " ++ T.unpack (showDate reportdate)
     putStrLn ""
@@ -115,9 +118,22 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
 
     priceoracle = journalPriceOracle (infer_prices_ ropts) j
 
-    -- Value a row's quantities at the report date, in the cost commodity
-    -- when known: Just (price amounts, total value) if all of the row's
-    -- commodities have a market price, otherwise Nothing.
+    -- The valuation strategy requested with -V/-X/--value, if any.
+    -- It selects the valuation date and/or the valuation commodity;
+    -- --value=then is rejected above.
+    mvalue = value_ ropts
+    (valuationdate, mtargetcomm) = case mvalue of
+      Nothing            -> (reportdate, Nothing)
+      Just (AtEnd  mc)   -> (reportdate, mc)
+      Just (AtNow  mc)   -> (_rsDay rspec, mc)
+      Just (AtDate d mc) -> (d, mc)
+      Just (AtThen mc)   -> (reportdate, mc)  -- not supported, rejected above
+
+    -- Value a row's quantities at the valuation date: Just (price amounts,
+    -- total value) if all of the row's commodities have a market price,
+    -- otherwise Nothing. Without -V/-X/--value, each holding is valued in
+    -- its cost commodity when known; with them, in the requested or
+    -- default valuation commodity.
     rowValuation :: PeriodicReportRow DisplayName MixedAmount -> Maybe ([Amount], MixedAmount)
     rowValuation r = do
         pvs <- mapM lookup1 qas
@@ -125,12 +141,35 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
       where
         -- strip costs so each commodity appears as one amount
         qas = filter (not . amountLooksZero) $ amounts $ mixedAmountStripCosts $ prrTotal r
-        mto = listToMaybe [acommodity c | (_, mcb) <- lotsUnder (prrFullName r), Just c <- [cbCost =<< mcb]]
+        mto = case mvalue of
+          Nothing -> listToMaybe [acommodity c | (_, mcb) <- lotsUnder (prrFullName r), Just c <- [cbCost =<< mcb]]
+          Just _  -> mtargetcomm
         lookup1 qa = do
-          (pcomm, rate) <- priceoracle (reportdate, acommodity qa, mto)
+          (pcomm, rate) <- priceoracle (valuationdate, acommodity qa, mto)
           let mkamt n = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
                           nullamt{acommodity=pcomm, aquantity=n}
           Just (mkamt rate, mkamt (rate * aquantity qa))
+
+    -- How to convert a row's cost amounts for display, so that the Cost,
+    -- Unit/Avg cost and Gain columns follow the valuation commodity when
+    -- -V/-X/--value is in effect: convert to the requested commodity, or
+    -- to the commodity the row's value came out in, at the valuation date.
+    -- Costs already in the target commodity, or with no target or no
+    -- market price, are left unchanged.
+    rowCostValuer :: PeriodicReportRow DisplayName MixedAmount -> Amount -> Amount
+    rowCostValuer r = case mvalue of
+      Nothing -> id
+      Just _ -> case mtargetcomm <|> mrowvaluecomm of
+        Nothing -> id
+        -- styleAmounts is reapplied after conversion, since
+        -- amountValueAtDate leaves full precision displayed
+        Just tc -> \a -> if acommodity a == tc then a
+                         else styleAmounts styles $
+                              amountValueAtDate priceoracle styles (Just tc) valuationdate a
+      where
+        mrowvaluecomm = case rowValuation r of
+          Just (_, val) | [v] <- amounts val -> Just $ acommodity v
+          _ -> Nothing
 
     -- Render a gain (and percent gain) from single-commodity value and
     -- cost amounts, if their commodities match.
@@ -180,7 +219,7 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
     colheadings = ["Date", "Age", "Quantity", if showlots then "Unit cost" else "Avg cost", "Cost", "Price", "Value", "Gain"]
     renderacct r = T.replicate (prrIndent r * 2) " " <> prrDisplayName r
 
-    rowLotCosts r = [multiplyAmount (aquantity a) c
+    rowLotCosts r = [rowCostValuer r $ multiplyAmount (aquantity a) c
                     | (a, mcb) <- lotsUnder $ prrFullName r, Just c <- [cbCost =<< mcb]]
 
     rowcells r = [datecell, agecell, qtycell, unitcostcell, costcell, pricecell, valuecell, gaincell]
@@ -202,7 +241,7 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
         costs = rowLotCosts r
         costcell = showamts costs
         unitcostcell = case (rowlots, costs) of
-          ([(_, mcb)], _) -> maybe "" (T.pack . showAmountWith noCostFmt) (cbCost =<< mcb)
+          ([(_, mcb)], _) -> maybe "" (T.pack . showAmountWith noCostFmt . rowCostValuer r) (cbCost =<< mcb)
           (_, _:_) | [totcost] <- amounts (mixed costs)
                    , [totqty] <- amounts (mixed $ map fst rowlots)
                    , not $ amountLooksZero totqty
