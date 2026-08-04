@@ -1868,3 +1868,18 @@ installcommithook:
 #     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
 # # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
+# Show a beancount sample holdings report.
+@holdings-beancount *ARGS:
+    bean-report examples/example.beancount holdings {{ ARGS }}
+
+holdings-beancount-examples *ARGS:
+    just holdings-beancount
+    just holdings-beancount --by root-account
+    just holdings-beancount --by account
+    just holdings-beancount --by commodity
+    just holdings-beancount --by currency
+
+# Show a rledger sample holdings report.
+@holdings-rledger *ARGS:
+    rledger report examples/example.beancount holdings {{ ARGS }}
+
