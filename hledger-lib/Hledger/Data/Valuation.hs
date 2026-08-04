@@ -20,6 +20,7 @@ module Hledger.Data.Valuation (
   ,mixedAmountToCost
   ,mixedAmountApplyValuation
   ,mixedAmountValueAtDate
+  ,amountValueAtDate
   ,mixedAmountApplyGain
   ,mixedAmountGainAtDate
   ,marketPriceReverse

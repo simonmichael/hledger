@@ -227,3 +227,40 @@ Holdings on 2026-01-31
  assets:{2026-01-02, $12} || 2026-01-02  29d  5.000 AAAA        $12   $60    $12    $60   $0 (+0.0%) 
 --------------------------++-------------------------------------------------------------------------
                           ||                                          $72           $75   $2 (+3.4%) 
+
+
+# ** 13. -X/--value=end,COMM value holdings in the given commodity:
+# the Price and Value columns, and also the Cost, Unit/Avg cost and Gain
+# columns (converted at the valuation date, so percent gain is unchanged).
+# Converted amounts are also normalised to the commodity's display precision.
+<
+commodity AAPL ; lots:
+commodity €1.00
+
+2026-01-15 buy
+    assets:stocks   10 AAPL @ $50
+    assets:cash
+
+P 2026-03-31 AAPL $72
+P 2026-03-31 $ €0.9123
+
+$ hledger -f- holdings -e 2026-04-01 -X €
+Holdings on 2026-03-31
+
+               ||       Date  Age  Quantity  Avg cost     Cost   Price    Value              Gain 
+===============++=================================================================================
+ assets:stocks || 2026-01-15  75d   10 AAPL    €45.62  €456.15  €65.69  €656.86  €200.71 (+44.0%) 
+
+# ** 14. -V values in the default valuation commodity.
+$ hledger -f- holdings -e 2026-04-01 -V
+Holdings on 2026-03-31
+
+               ||       Date  Age  Quantity  Avg cost  Cost  Price  Value           Gain 
+===============++========================================================================
+ assets:stocks || 2026-01-15  75d   10 AAPL       $50  $500    $72   $720  $220 (+44.0%) 
+
+# ** 15. --value=then is not supported.
+$ hledger -f- holdings --value=then
+>2
+hledger: Error: holdings: --value=then is not supported
+>=1
