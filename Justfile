@@ -1682,85 +1682,8 @@ bloglog:
 # @redditclean:
 #     rg '^(\[.*?]\([^\)]+\)).*self.plaintextaccounting' -or '- $1\n' -
 
-# ** Misc ------------------------------------------------------------
-MISC:
-
-# ensure the Shake script is compiled
-Shake: # Shake.hs
-    ./Shake.hs
-
-# ensure the tools/*.hs scripts are compiled
-tools:
-    tools/compile.sh
-
-# Files to include in emacs TAGS file:
-# 1. haskell source files with hasktags -e (or ctags -aeR)
-# 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
-# 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
-
-TAGFILES := WEBTEMPLATEFILES + DOCSOURCEFILES + TESTFILES + HPACKFILES + CABALFILES + 'Shake.hs'
-
-# generate emacs TAGS file for haskell source and other project files, and list the tagged files in TAGS.files
-@etags:
-    hasktags -e $SOURCEFILES
-    for f in $TAGFILES; do printf "\n$f,1\n" >>TAGS; done
-
-# list the files tagged in TAGS
-@etags-ls:
-    rg -v '[ ]' TAGS | rg -r '$1' '^(.*?([0-9]+)?),[0-9,]+*'
-
-# remove TAGS files
-@etags-clean:
-    rm -f TAGS
-
-# run some tests to validate the development environment
-# check-setup:
-#     run some tests to validate the development environment\
-#     )
-#     @echo sanity-checking developer environment:
-#     @({{ SHELLTEST }} --exclude=/_ checks \
-#         && echo $@ PASSED) || echo $@ FAILED
-
-# sym-link some directories required by hledger-web dev builds
-symlink-web-dirs:
-    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
-    ln -sf hledger-web/messages
-    ln -sf hledger-web/static
-    ln -sf hledger-web/templates
-
-# symlink tools/commitlint as .git/hooks/commit-msg
-installcommithook:
-    ln -s ../../tools/commitlint .git/hooks/commit-msg
-
-# run tests locally, push main to github ci, wait for tests to pass there, refreshing every INTERVAL (default:10s), then push to github main.
-@push *INTERVAL:
-    just functest --hide && tools/push {{ INTERVAL }}
-
-# Browse the All workflows status page on github.
-@ghworkflows-open:
-    $OPEN https://ci.hledger.org
-
-# Browse the latest run of the named workflow.
-@ghrun-open WORKFLOW:
-    gh run view --web $(just _ghrun-id {{ WORKFLOW }})
-
-# Get the id of the latest run of the named workflow.
-@_ghrun-id WORKFLOW:
-    gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
-
-# stackclean: \
-#     $(call def-help-hide,stackclean, remove .stack-work/ dirs )
-#     $(STACK) purge
-# cleanghco: \
-#     $(call def-help-hide,cleanghc, remove ghc build leftovers )
-#     rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*.dyn_o" -o -name "*.dyn_hi" -o -name "*~" | grep -vE '\.(stack-work|cabal-sandbox|virthualenv)'`
-# #rm -f `fd -I '\.(hi|o|dyn_hi|dyn_o)$'`
-# clean: cleanghco \
-#     $(call def-help,clean, default cleanup (ghc build leftovers) )
-# Clean: stackclean cleanghco cleantags \
-#     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
-# # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
-
+# ** AI ------------------------------------------------------------
+AI:
 
 ai-help:
     #!/bin/bash
@@ -1864,4 +1787,84 @@ ai-ccusagej-recent *BALARGS:
 # Show project monthly usage.
 @ai-aij-monthly *BALARGS:
     just ai-aij-bal -M {{ BALARGS }}
+
+
+# ** Misc ------------------------------------------------------------
+MISC:
+
+# ensure the Shake script is compiled
+Shake: # Shake.hs
+    ./Shake.hs
+
+# ensure the tools/*.hs scripts are compiled
+tools:
+    tools/compile.sh
+
+# Files to include in emacs TAGS file:
+# 1. haskell source files with hasktags -e (or ctags -aeR)
+# 2. other source files recognised by (exuberant) ctags and not excluded by .ctags. Keep .ctags up to date.
+# 3. some extra files missed by the above, as just their file names (for tags-search, tags-query-replace etc.)
+
+TAGFILES := WEBTEMPLATEFILES + DOCSOURCEFILES + TESTFILES + HPACKFILES + CABALFILES + 'Shake.hs'
+
+# generate emacs TAGS file for haskell source and other project files, and list the tagged files in TAGS.files
+@etags:
+    hasktags -e $SOURCEFILES
+    for f in $TAGFILES; do printf "\n$f,1\n" >>TAGS; done
+
+# list the files tagged in TAGS
+@etags-ls:
+    rg -v '[ ]' TAGS | rg -r '$1' '^(.*?([0-9]+)?),[0-9,]+*'
+
+# remove TAGS files
+@etags-clean:
+    rm -f TAGS
+
+# run some tests to validate the development environment
+# check-setup:
+#     run some tests to validate the development environment\
+#     )
+#     @echo sanity-checking developer environment:
+#     @({{ SHELLTEST }} --exclude=/_ checks \
+#         && echo $@ PASSED) || echo $@ FAILED
+
+# sym-link some directories required by hledger-web dev builds
+symlink-web-dirs:
+    echo "#ln -sf hledger-web/config  # disabled, causes makeinfo warnings"
+    ln -sf hledger-web/messages
+    ln -sf hledger-web/static
+    ln -sf hledger-web/templates
+
+# symlink tools/commitlint as .git/hooks/commit-msg
+installcommithook:
+    ln -s ../../tools/commitlint .git/hooks/commit-msg
+
+# run tests locally, push main to github ci, wait for tests to pass there, refreshing every INTERVAL (default:10s), then push to github main.
+@push *INTERVAL:
+    just functest --hide && tools/push {{ INTERVAL }}
+
+# Browse the All workflows status page on github.
+@ghworkflows-open:
+    $OPEN https://ci.hledger.org
+
+# Browse the latest run of the named workflow.
+@ghrun-open WORKFLOW:
+    gh run view --web $(just _ghrun-id {{ WORKFLOW }})
+
+# Get the id of the latest run of the named workflow.
+@_ghrun-id WORKFLOW:
+    gh run list --workflow {{ WORKFLOW }} --json databaseId --jq '.[0].databaseId'
+
+# stackclean: \
+#     $(call def-help-hide,stackclean, remove .stack-work/ dirs )
+#     $(STACK) purge
+# cleanghco: \
+#     $(call def-help-hide,cleanghc, remove ghc build leftovers )
+#     rm -rf `find . -name "*.o" -o -name "*.hi" -o -name "*.dyn_o" -o -name "*.dyn_hi" -o -name "*~" | grep -vE '\.(stack-work|cabal-sandbox|virthualenv)'`
+# #rm -f `fd -I '\.(hi|o|dyn_hi|dyn_o)$'`
+# clean: cleanghco \
+#     $(call def-help,clean, default cleanup (ghc build leftovers) )
+# Clean: stackclean cleanghco cleantags \
+#     $(call def-help,Clean, thorough cleanup (stack/ghc leftovers/tags) )
+# # reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
