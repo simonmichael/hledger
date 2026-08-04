@@ -26,10 +26,17 @@ as of the report end date: one row per account, or one row per lot
 with `--lots`. Columns show each holding's acquisition date and age
 (when the row's lots share a single date), the quantity held,
 the unit cost (or average cost, on rows aggregating multiple lots),
-and the total cost basis.
+the total cost basis, the current market price, the market value,
+and the unrealised gain (absolute and percent).
+
+Market prices at the report date come from
+[P directives](#p-directives), and from transaction costs with
+`--infer-market-prices`, as usual; holdings are valued in their cost
+commodity when possible. When a holding has no market price,
+its Price, Value and Gain columns are left blank.
+The general `-B`/`-V`/`-X`/`--value` flags are ignored.
 Amounts are displayed with their commodity's display precision
 (unlike lot names, which can show more precision);
 `--round` can select another rounding strategy.
 
-Not yet implemented: market price, market value and unrealised gain
-columns; tree mode; output formats other than text.
+Not yet implemented: tree mode; output formats other than text.

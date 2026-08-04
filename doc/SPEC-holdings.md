@@ -64,9 +64,16 @@ Notes:
 ## Valuation
 
 - The report date is the report end date (today by default, or set with `-e`).
-- Prices are market prices at the report date, from P directives and/or
-  inferred from transaction costs, using the standard `--value` infrastructure.
-  Value/Gain columns behave like `--value=end`.
+- Prices are market prices at the report date, from P directives, and from
+  transaction costs with `--infer-market-prices`, looked up with the standard
+  price oracle. Each holding is valued in its cost commodity when possible
+  (so Gain = Value - Cost is meaningful); otherwise in the default valuation
+  commodity.
+- Gain (absolute and percent) is shown when the value and cost are in a
+  single common commodity.
+- The general `-B`/`-V`/`-X`/`--value` flags are ignored (holdings does its
+  own valuation, and quantities stay quantities). Later, `--value=end,COMM`
+  could perhaps select the valuation commodity.
 
 ## Layout mockups
 
@@ -163,6 +170,7 @@ Holdings on 2026-03-31
 2. Real report in list mode: rows from the journal's lotful accounts, with
    Date, Age, Quantity, Unit/Avg cost and Cost columns; --lots; totals row;
    functional tests (hledger/test/holdings.test). --tree errors out. (done)
-3. Valuation columns: Price, Value, Gain.
+3. Valuation columns: Price, Value, Gain, with market prices from the
+   standard price oracle; blank when no market price is known. (done)
 4. `--tree`/`--depth` behavior.
 5. Output formats, sorting, extra columns.
