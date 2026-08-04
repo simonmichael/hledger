@@ -161,3 +161,99 @@ account revenue:gains  ; type: G
 ; market value and unrealised gain. Eg try:
 ;   hledger -f lot-entries.journal holdings
 P 2026-05-01 ETSY $95
+
+
+comment
+
+###############################################################################
+Comparing roi and holdings with this journal.
+
+$ hledger -f lot-entries.journal roi --inv assets:broker --pnl 'revenue:gains|equity:unrealised-gain' -e 2026-03-31 --value=end,$ --infer-market-prices
++---++------------+------------++---------------+----------+-------------+------++--------++------------+----------+
+|   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||    IRR || TWR/period | TWR/year |
++===++============+============++===============+==========+=============+======++========++============+==========+
+| 1 || 2025-01-01 | 2026-03-30 ||             0 |    $-245 |        $510 | $755 || 48.55% ||      7.15% |    5.71% |
++---++------------+------------++---------------+----------+-------------+------++--------++------------+----------+
+
+$ hledger -f lot-entries.journal holdings -e 2026-04-01 --infer-market-prices
+Holdings on 2026-03-31
+
+                ||       Date   Age     Units  Avg cost  Cost  Price  Value  Weight          Gain  Rgain    XIRR 
+================++===============================================================================================
+ assets:broker  || 2025-04-01  364d  0.1 ETSY       $80    $8   $100    $10    2.0%   $2 (+25.0%)   $196   17.9% 
+ assets:broker2 || 2026-01-01   89d  5.0 ETSY       $90  $450   $100   $500   98.0%  $50 (+11.1%)   $498  144.2% 
+----------------++-----------------------------------------------------------------------------------------------
+                ||                                       $458          $510  100.0%  $52 (+11.4%)   $694   47.8% 
+
+
+These agree as closely as the two reports can on this journal:
+
+Measure      holdings (totals row)         roi
+-----------  ----------------------------  ---------------------
+Value        $510                          $510   (exact match)
+Total gain   Gain $52 + Rgain $694 = $746  PnL $755  (~$9 apart)
+Return       XIRR 47.8%                    IRR 48.55%  (0.75pp apart)
+
+1. -e 2026-04-01 (holdings) and -e 2026-03-31 (roi): the one-day
+offset makes both reports value and discount to the same date,
+2026-03-31 (before the 2026-04-01 transaction). It's also chosen so
+both broker accounts are still open - after 2026-04-01, broker2 is
+fully disposed and drops out of holdings, so its $547 of realised
+gains would vanish from holdings' totals while staying in roi's
+PnL. That coverage gap is the biggest divergence and can't be
+bridged by flags, only avoided by the date.
+
+2. --pnl 'revenue:gains|equity:unrealised-gain': keeps the lots
+system's generated ugain postings out of roi's external cashflows.
+
+3. --infer-market-prices: there's no P directive before 2026-05-01,
+so both reports infer the price from the latest transaction cost
+($100), giving the identical $510 valuation.
+
+4. --inv assets:broker matches both broker accounts, so the
+inter-broker lot transfers are internal for roi, just as holdings'
+totals cancel them (transfer out and in at the same basis).
+
+5. The remaining ~$9 PnL gap is the stock fees: roi values the
+0.1 ETSY amounts that left the investment as fees at the end price
+($100 each), while the actual transaction-time values were
+$70-90. That difference in flows also accounts for the remaining
+0.75pp of IRR spread.
+
+#############################################################################
+Additional notes, from another pair of reports.
+
+The headline numbers differ for explainable reasons:
+
+1. roi needs to know about the gain accounts. Naively, roi --inv
+assets:broker --pnl revenue:gains counts the generated
+equity:unrealised-gain postings as external cashflows, giving
+nonsense (PnL $1496). Adding the ugain account (--pnl
+'revenue:gains|equity:unrealised-gain') fixes it: PnL $752, IRR
+48.3%. This seems worth documenting in the lots or roi docs.
+
+2. Coverage differs by design. Holdings' totals show Rgain $196:
+only assets:broker, because assets:broker2 is fully disposed and has
+no row (documented behavior). The journal's total realised gain is
+$743; roi includes closed positions, hence its much larger PnL. So
+"holdings Rgain" and "roi PnL" answer different questions on
+journals with closed accounts.
+
+3. roi's residual ~$7 discrepancy (PnL $752 vs $745 = $743 realised
++ $2 unrealised) comes from --value=end valuing the ETSY cashflows
+that left the investment (the 0.1 ETSY stock fees, etc.) at the end
+price $95 instead of their transaction prices - a known
+roi/--value=end characteristic, not a lots bug.
+
+4. Broker-only roi is not comparable (IRR 155.7% vs holdings XIRR
+17.8%): the lot transfers to broker2 become external flows for roi,
+valued at $95 though transferred at $50-70 cost basis in
+2025. Holdings values transfers at basis on their dates, which is
+arguably right for this purpose.
+
+One more caveat: even with the --pnl workaround, roi's TWR looks
+distorted on lots journals (the clean case shows TWR -1.39% despite
+a +$210 gain), likely because the balanced rgain/ugain pair nets to
+zero PnL at disposal time, confusing TWR's subperiod
+attribution. That would need a closer look if TWR on lots journals
+matters.
