@@ -9,6 +9,7 @@ Flags:
   -t --tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
      --no-elide             in tree mode, don't squash boring parent accounts
+     --drop=N               in list mode, omit N leading account name parts
   -S --sort-amount          sort by value (or cost) instead of account name,
                             largest first
   -N --no-total             omit the final total row
