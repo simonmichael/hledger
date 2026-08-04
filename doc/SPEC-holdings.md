@@ -191,7 +191,9 @@ Holdings on 2026-03-31
    has a css class naming its column (plus coltotal on the totals row),
    and each commodity amount is in a span with class "amount". (done)
    FODS output: the same single-line cells, via printFods. (done)
-   (JSON possibly later.)
+   JSON output: an array of holding objects with the CSV fields;
+   quantities and gain percents use hledger's usual JSON number
+   encoding, missing values are null. (done)
 7. Extra columns, on demand: portfolio weight %, humanised Age (eg 2m14d)
    or a long/short-term indicator, realised gain, XIRR.
 8. Docs integration: mention holdings in the manual's lot reporting

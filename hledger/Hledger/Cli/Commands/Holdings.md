@@ -21,7 +21,7 @@ Flags:
                             hard - round amounts to precision (default)
                             all  - also round cost amounts to precision
   -O --output-format=FMT    select the output format. Supported formats:
-                            txt, csv, tsv, html, fods.
+                            txt, csv, tsv, html, fods, json.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 ```
@@ -75,4 +75,7 @@ class `amount` (eg allowing wrapping within amounts to be prevented).
 With `-O fods`, a spreadsheet document readable by LibreOffice etc.
 is produced, with the same single-line cells as the html output.
 
-Not yet implemented: json output.
+With `-O json`, a JSON array of holding objects is produced, with the
+same fields as the CSV output; quantities and gain percents are
+JSON number objects as in other commands' JSON output, and missing
+values are null.
