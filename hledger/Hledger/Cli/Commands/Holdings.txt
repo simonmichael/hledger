@@ -8,11 +8,17 @@ Flags:
                             except where the account is depth-clipped.
   -t --tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
+  -N --no-total             omit the final total row
 
-This command is a work in progress; currently it shows a mockup of the
-planned layout, with sample data.
+This command is a work in progress.
 
-It will show the assets held in lot-tracked accounts (see Lots): one row
-per account (or per lot, with --lots), and columns showing each
-holding's acquisition date, age, quantity, cost basis, current market
-price, market value, and unrealised gain.
+It shows the assets held in lot-tracked accounts (see Lots) as of the
+report end date: one row per account, or one row per lot with --lots.
+Columns show each holding's acquisition date and age (when the row's
+lots share a single date), the quantity held, the unit cost (or average
+cost, on rows aggregating multiple lots), and the total cost basis.
+Amounts are displayed with their commodity's display precision (unlike
+lot names, which can show more precision).
+
+Not yet implemented: market price, market value and unrealised gain
+columns; tree mode; output formats other than text.

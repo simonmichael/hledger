@@ -2,8 +2,10 @@
 
 The @holdings@ command shows a report of investment holdings (lot-tracked assets).
 
-Currently it shows a mockup of the planned layout, with sample data.
-See doc/SPEC-holdings.md.
+Work in progress; see doc/SPEC-holdings.md.
+Currently it shows the non-valuation columns (Date, Age, Quantity, Unit/Avg
+cost, Cost) in list mode, with lot subaccounts aggregated by default or shown
+as rows with --lots.
 
 -}
 
@@ -16,8 +18,13 @@ module Hledger.Cli.Commands.Holdings (
 ) where
 
 import Data.Default (def)
-import Data.Text (Text)
+import Data.List.Extra (nubSort)
+import Data.Map.Strict qualified as M
+import Data.Maybe (isJust)
+import Data.Text qualified as T
 import Data.Text.Lazy.IO qualified as TL
+import Data.Time.Calendar (addDays, diffDays)
+import System.Console.CmdArgs.Explicit (flagNone)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -26,77 +33,138 @@ import Text.Tabular.AsciiWide
 -- | Command line options for this command.
 holdingsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Holdings.txt")
-  (flattreeflags True)
+  (flattreeflags True ++
+   [flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"])
   cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
 
--- | Show the holdings report.
--- Phase 1: shows a hardcoded mockup of the planned layout, ignoring the journal.
--- The --lots and --tree flags select the corresponding layout variant.
+-- | Show the holdings report: the assets held in lot-tracked accounts
+-- as of the report end date, one row per account (or per lot, with --lots).
+--
+-- This command receives the journal with lot detail (lot subaccounts and
+-- synthetic postings) uncollapsed, regardless of --lots
+-- (see maybeCollapseLotDetail); it aggregates lots itself.
 holdings :: CliOpts -> Journal -> IO ()
-holdings CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsReportOpts=ropts}} _j = do
-  putStrLn "Holdings on 2026-03-31 (mockup with sample data)"
-  putStrLn ""
-  TL.putStrLn $ renderTable
-    def{tableBorders=False}
-    (textCell TopLeft)
-    (textCell TopRight)
-    (textCell TopRight)
-    tbl
+holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts}} j = do
+  if accountlistmode_ ropts == ALTree then error' "holdings: --tree is not yet supported"
+  else do
+    putStrLn $ "Holdings on " ++ T.unpack (showDate reportdate)
+    putStrLn ""
+    if null rows
+    then putStrLn "(no holdings)"
+    else TL.putStr $ renderTable
+      def{tableBorders=False}
+      (textCell TopLeft)
+      (textCell TopRight)
+      (textCell TopRight)
+      tbl
   where
-    tbl | lots && tree = treeMockup
-        | lots         = lotsMockup
-        | otherwise    = defaultMockup
+    showlots = boolopt "lots" rawopts
+
+    -- The date this report shows holdings at: the day before the (exclusive)
+    -- report end date if specified, otherwise today.
+    mend = queryEndDate False q
+    reportdate = maybe (_rsDay rspec) (addDays (-1)) mend
+
+    -- The quantity held in each lot subaccount, from its postings.
+    -- Keyed by account and commodity, so amounts in different commodities
+    -- (not expected in a lot subaccount, but possible) don't merge wrongly.
+    -- Postings are restricted by the report query's non-date terms and its
+    -- end date (but not its begin date; holdings are cumulative).
+    lotmap :: M.Map (AccountName, CommoditySymbol) Amount
+    lotmap = M.fromListWith (+)
+      [ ((paccount p, acommodity a), amountStripCost a)
+      | p <- journalPostings j
+      , isJust $ lotSubaccountName $ paccount p
+      , endq `matchesPosting` p
+      , a <- amountsRaw $ pamount p
+      ]
       where
-        lots = boolopt "lots" rawopts
-        tree = accountlistmode_ ropts == ALTree
+        endq = And [filterQuery (not . queryIsDateOrDate2) q
+                   ,Date $ DateSpan Nothing (Exact <$> mend)]
 
--- | Build a mockup holdings table from column headings, rows of
--- (account name, cells), and a possible totals row.
-mockupTable :: [Text] -> [(Text, [Text])] -> Maybe [Text] -> Table Text Text Text
-mockupTable colheadings rows mtotalrow = maybe maintbl addtotal mtotalrow
-  where
-    maintbl = Table
-      (Group NoLine $ map (Header . fst) rows)
+    -- A lot subaccount's cost basis, parsed from its name
+    -- (which by construction contains the acquisition date and unit cost).
+    -- The cost gets its commodity's display style, including display
+    -- precision (lot names can have more precision, eg from inferred
+    -- per-unit costs), so derived amounts (Unit cost, Cost) are displayed
+    -- with the standard display precision.
+    lotBasis :: AccountName -> Maybe CostBasis
+    lotBasis acct = do
+      name <- lotSubaccountName acct
+      cb <- either (const Nothing) Just $ parseLotName parseAmt name
+      Just cb{cbCost = styleAmounts styles <$> cbCost cb}
+      where parseAmt = either (const Nothing) Just . parseamount
+
+    -- Amounts are displayed normalised to their commodity's display precision.
+    styles = journalCommodityStylesWith HardRounding j
+
+    -- The lots held at or under the given account, excluding empty ones.
+    lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
+    lotsUnder acct =
+      [ (a, lotBasis sub) | ((sub, _), a) <- M.toAscList lotmap
+      , acct == sub || acct `isAccountNamePrefixOf` sub
+      , not $ amountLooksZero a
+      ]
+
+    -- Report rows come from a single-period, end-balances multiBalanceReport:
+    -- on the lot-detailed journal with --lots (rows are lot subaccounts),
+    -- on the collapsed journal otherwise (rows are the base accounts).
+    -- Non-holding accounts are filtered out.
+    mbr = multiBalanceReport rspec' j'
+      where
+        rspec' = rspec{_rsReportOpts=ropts{balanceaccum_=Historical, interval_=NoInterval}}
+        j' = if showlots then j else journalCollapseLotDetail j
+    rows = filter keeprow $ prRows mbr
+      where
+        keeprow r
+          | showlots  = isJust $ lotSubaccountName $ prrFullName r
+          | otherwise = not $ null $ lotsUnder $ prrFullName r
+
+    tbl = maybe id addtotalrow mtotalrow $ Table
+      (Group NoLine $ map (Header . renderacct) rows)
       (Group NoLine $ map Header colheadings)
-      (map snd rows)
-    addtotal totalrow = concatTables SingleLine maintbl $
-      Table (Group NoLine [Header ""]) (Header []) [totalrow]
+      (map rowcells rows)
+      where
+        addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
+          Table (Group NoLine [Header ""]) (Header []) [totalrow]
+    colheadings = ["Date", "Age", "Quantity", if showlots then "Unit cost" else "Avg cost", "Cost"]
+    renderacct r = T.replicate (prrIndent r * 2) " " <> prrDisplayName r
 
--- Sample data: two AAPL buys in assets:broker:stocks, one MSFT buy in
--- assets:broker:funds, a FIFO sale of 5 AAPL, and market prices
--- (AAPL $72, MSFT $410) on the report date 2026-03-31.
+    rowLotCosts r = [multiplyAmount (aquantity a) c
+                    | (a, mcb) <- lotsUnder $ prrFullName r, Just c <- [cbCost =<< mcb]]
 
--- | Default layout: list mode, lot subaccounts hidden.
-defaultMockup :: Table Text Text Text
-defaultMockup = mockupTable
-  ["Date", "Age", "Quantity", "Avg cost", "Cost", "Price", "Value", "Gain"]
-  [ ("assets:broker:funds",  ["2026-02-15", "44d", "5 MSFT",  "$400.00", "$2000", "$410", "$2050", "$50 (+2.5%)"])
-  , ("assets:broker:stocks", ["",           "",    "15 AAPL", "$56.67",  "$850",  "$72",  "$1080", "$230 (+27.1%)"])
-  ]
-  (Just ["", "", "", "", "$2850", "", "$3130", "$280 (+9.8%)"])
+    rowcells r = [datecell, agecell, qtycell, unitcostcell, costcell]
+      where
+        rowlots = lotsUnder $ prrFullName r
+        dates = nubSort [cbDate =<< mcb | (_, mcb) <- rowlots]
+        -- Date and Age are shown when the row's lots all have the same date.
+        (datecell, agecell) = case dates of
+          [Just dt] -> (showDate dt, T.pack (show $ diffDays reportdate dt) <> "d")
+          _         -> ("", "")
+        qtycell = T.pack $ showMixedAmountWith oneLineNoCostFmt $ styleAmounts styles $ prrTotal r
+        costs = rowLotCosts r
+        costcell = showamts costs
+        unitcostcell = case (rowlots, costs) of
+          ([(_, mcb)], _) -> maybe "" (T.pack . showAmountWith noCostFmt) (cbCost =<< mcb)
+          (_, _:_) | [totcost] <- amounts (mixed costs)
+                   , [totqty] <- amounts (mixed $ map fst rowlots)
+                   , not $ amountLooksZero totqty
+                   -> T.pack $ showAmountWith noCostFmt $ avgcost totqty totcost
+          _ -> ""
+        -- An average cost: total cost / total quantity, showing significant
+        -- decimal digits up to the cost commodity's display precision
+        -- (at least 2), without trailing zeros.
+        avgcost qtya costa = amountSetPrecision (Precision (min pdiv (max 2 pstyle))) avg
+          where
+            avg  = divideAmountAndUpdatePrecision (aquantity qtya) costa
+            pdiv = case asprecision (astyle avg) of Precision n -> n; _ -> defaultMaxDisplayPrecision
+            pstyle = case asprecision (astyle costa) of Precision n -> n; _ -> 2
 
--- | With --lots: lot subaccounts become rows.
-lotsMockup :: Table Text Text Text
-lotsMockup = mockupTable
-  ["Date", "Age", "Quantity", "Unit cost", "Cost", "Price", "Value", "Gain"]
-  [ ("assets:broker:funds:{2026-02-15, $400}", ["2026-02-15", "44d", "5 MSFT",  "$400", "$2000", "$410", "$2050", "$50 (+2.5%)"])
-  , ("assets:broker:stocks:{2026-01-15, $50}", ["2026-01-15", "75d", "5 AAPL",  "$50",  "$250",  "$72",  "$360",  "$110 (+44.0%)"])
-  , ("assets:broker:stocks:{2026-02-01, $60}", ["2026-02-01", "58d", "10 AAPL", "$60",  "$600",  "$72",  "$720",  "$120 (+20.0%)"])
-  ]
-  (Just ["", "", "", "", "$2850", "", "$3130", "$280 (+9.8%)"])
+    -- Grand totals row: just the Cost column for now.
+    mtotalrow
+      | no_total_ ropts || length rows < 2 = Nothing
+      | otherwise = Just ["", "", "", "", showamts $ concatMap rowLotCosts rows]
 
--- | With --lots --tree: parent rows aggregate their subaccounts.
-treeMockup :: Table Text Text Text
-treeMockup = mockupTable
-  ["Date", "Age", "Quantity", "Unit cost", "Cost", "Price", "Value", "Gain"]
-  [ ("assets",                   ["",           "",    "15 AAPL\n5 MSFT", "",        "$2850", "",     "$3130", "$280 (+9.8%)"])
-  , ("  broker",                 ["",           "",    "15 AAPL\n5 MSFT", "",        "$2850", "",     "$3130", "$280 (+9.8%)"])
-  , ("    funds",                ["2026-02-15", "44d", "5 MSFT",          "$400",    "$2000", "$410", "$2050", "$50 (+2.5%)"])
-  , ("      {2026-02-15, $400}", ["2026-02-15", "44d", "5 MSFT",          "$400",    "$2000", "$410", "$2050", "$50 (+2.5%)"])
-  , ("    stocks",               ["",           "",    "15 AAPL",         "$56.67",  "$850",  "$72",  "$1080", "$230 (+27.1%)"])
-  , ("      {2026-01-15, $50}",  ["2026-01-15", "75d", "5 AAPL",          "$50",     "$250",  "$72",  "$360",  "$110 (+44.0%)"])
-  , ("      {2026-02-01, $60}",  ["2026-02-01", "58d", "10 AAPL",         "$60",     "$600",  "$72",  "$720",  "$120 (+20.0%)"])
-  ]
-  Nothing
+    showamts = T.pack . showMixedAmountWith oneLineNoCostFmt . mixed
