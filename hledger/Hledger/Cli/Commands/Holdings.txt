@@ -9,6 +9,8 @@ Flags:
   -t --tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
      --no-elide             in tree mode, don't squash boring parent accounts
+  -S --sort-amount          sort by value (or cost) instead of account name,
+                            largest first
   -N --no-total             omit the final total row
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
@@ -26,11 +28,12 @@ It shows the assets held in lot-tracked accounts (see Lots) as of the
 report end date: one row per account, or one row per lot with --lots.
 With --tree, accounts are shown as a tree, with parent rows aggregating
 the lots beneath them; --depth limits and aggregates the displayed rows
-as usual. Columns show each holding's acquisition date and age (when the
-row's lots share a single date), the quantity held, the unit cost (or
-average cost, on rows aggregating multiple lots), the total cost basis,
-the current market price, the market value, and the unrealised gain
-(absolute and percent).
+as usual. With -S/--sort-amount, rows are sorted by market value (or by
+cost, when unpriced), largest first. Columns show each holding's
+acquisition date and age (when the row's lots share a single date), the
+quantity held, the unit cost (or average cost, on rows aggregating
+multiple lots), the total cost basis, the current market price, the
+market value, and the unrealised gain (absolute and percent).
 
 Market prices at the report date come from P directives, and from
 transaction costs with --infer-market-prices, as usual; holdings are

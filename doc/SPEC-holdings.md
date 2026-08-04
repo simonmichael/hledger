@@ -180,4 +180,13 @@ Holdings on 2026-03-31
 4. `--tree`/`--depth` behavior: parent rows aggregate the lots beneath
    them, showing only lot-tracked commodities; totals sum only the topmost
    displayed rows, avoiding double counting. (done)
-5. Output formats, sorting, extra columns.
+5. Sorting: `-S/--sort-amount` sorts rows by Value (falling back to Cost),
+   largest first; tree mode sorts each subtree level, keeping subtrees
+   together. (done)
+6. CSV/TSV output: one row per commodity, Gain and Gain% as separate
+   columns. (HTML/FODS/JSON possibly later, via the standard output-format
+   machinery.)
+7. Extra columns, on demand: portfolio weight %, humanised Age (eg 2m14d)
+   or a long/short-term indicator, realised gain, XIRR.
+8. Docs integration: mention holdings in the manual's lot reporting
+   sections; maybe a demo.

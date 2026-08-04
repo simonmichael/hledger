@@ -301,3 +301,30 @@ $ hledger -f- holdings --value=then
 >2
 hledger: Error: holdings: --value=then is not supported
 >=1
+
+# ** 18. -S/--sort-amount sorts rows by value (or cost when unpriced),
+# largest first.
+<
+commodity AAPL ; lots:
+commodity MSFT ; lots:
+
+2026-01-15 buy
+    assets:apples      10 AAPL @ $50
+    assets:cash
+
+2026-02-15 buy
+    assets:msoft        5 MSFT @ $400
+    assets:cash
+
+P 2026-03-31 AAPL $72
+P 2026-03-31 MSFT $410
+
+$ hledger -f- holdings -e 2026-04-01 -S
+Holdings on 2026-03-31
+
+               ||       Date  Age  Quantity  Avg cost   Cost  Price  Value           Gain 
+===============++=========================================================================
+ assets:msoft  || 2026-02-15  44d    5 MSFT      $400  $2000   $410  $2050    $50 (+2.5%) 
+ assets:apples || 2026-01-15  75d   10 AAPL       $50   $500    $72   $720  $220 (+44.0%) 
+---------------++-------------------------------------------------------------------------
+               ||                                      $2500         $2770  $270 (+10.8%) 
