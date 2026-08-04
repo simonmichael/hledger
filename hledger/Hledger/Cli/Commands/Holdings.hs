@@ -3,9 +3,9 @@
 The @holdings@ command shows a report of investment holdings (lot-tracked assets).
 
 Work in progress; see doc/SPEC-holdings.md.
-Currently it shows the non-valuation columns (Date, Age, Quantity, Unit/Avg
-cost, Cost) in list mode, with lot subaccounts aggregated by default or shown
-as rows with --lots.
+Currently it shows the Date, Age, Quantity, Unit/Avg cost, Cost, Price,
+Value and Gain columns in list mode, with lot subaccounts aggregated by
+default or shown as rows with --lots.
 
 -}
 
@@ -20,11 +20,12 @@ module Hledger.Cli.Commands.Holdings (
 import Data.Default (def)
 import Data.List.Extra (intercalate, nubSort)
 import Data.Map.Strict qualified as M
-import Data.Maybe (fromMaybe, isJust)
+import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import Data.Text qualified as T
 import Data.Text.Lazy.IO qualified as TL
 import Data.Time.Calendar (addDays, diffDays)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
+import Text.Printf (printf)
 
 import Hledger
 import Hledger.Cli.CliOptions
@@ -112,6 +113,38 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
     rounding = fromMaybe HardRounding $ roundFromRawOpts rawopts
     styles = journalCommodityStylesWith rounding j
 
+    priceoracle = journalPriceOracle (infer_prices_ ropts) j
+
+    -- Value a row's quantities at the report date, in the cost commodity
+    -- when known: Just (price amounts, total value) if all of the row's
+    -- commodities have a market price, otherwise Nothing.
+    rowValuation :: PeriodicReportRow DisplayName MixedAmount -> Maybe ([Amount], MixedAmount)
+    rowValuation r = do
+        pvs <- mapM lookup1 qas
+        Just (map fst pvs, mixed (map snd pvs))
+      where
+        -- strip costs so each commodity appears as one amount
+        qas = filter (not . amountLooksZero) $ amounts $ mixedAmountStripCosts $ prrTotal r
+        mto = listToMaybe [acommodity c | (_, mcb) <- lotsUnder (prrFullName r), Just c <- [cbCost =<< mcb]]
+        lookup1 qa = do
+          (pcomm, rate) <- priceoracle (reportdate, acommodity qa, mto)
+          let mkamt n = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
+                          nullamt{acommodity=pcomm, aquantity=n}
+          Just (mkamt rate, mkamt (rate * aquantity qa))
+
+    -- Render a gain (and percent gain) from single-commodity value and
+    -- cost amounts, if their commodities match.
+    showgain :: [Amount] -> [Amount] -> T.Text
+    showgain [v] [c] | acommodity v == acommodity c =
+      T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} gainamt ++ pct
+      where
+        gain = aquantity v - aquantity c
+        gainamt = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
+                    nullamt{acommodity=acommodity v, aquantity=gain}
+        pct | aquantity c /= 0 = printf " (%+.1f%%)" (realToFrac (100 * gain / aquantity c) :: Double)
+            | otherwise        = ""
+    showgain _ _ = ""
+
     -- The lots held at or under the given account, excluding empty ones.
     lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
     lotsUnder acct =
@@ -124,9 +157,12 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
     -- on the lot-detailed journal with --lots (rows are lot subaccounts),
     -- on the collapsed journal otherwise (rows are the base accounts).
     -- Non-holding accounts are filtered out.
+    -- Cost conversion and valuation (-B/-V/--value) are disabled:
+    -- holdings does its own valuation, and quantities should stay quantities.
     mbr = multiBalanceReport rspec' j'
       where
-        rspec' = rspec{_rsReportOpts=ropts{balanceaccum_=Historical, interval_=NoInterval}}
+        rspec' = rspec{_rsReportOpts=ropts{balanceaccum_=Historical, interval_=NoInterval
+                                          ,conversionop_=Just NoConversionOp, value_=Nothing}}
         j' = if showlots then j else journalCollapseLotDetail j
     rows = filter keeprow $ prRows mbr
       where
@@ -141,14 +177,21 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
       where
         addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
           Table (Group NoLine [Header ""]) (Header []) [totalrow]
-    colheadings = ["Date", "Age", "Quantity", if showlots then "Unit cost" else "Avg cost", "Cost"]
+    colheadings = ["Date", "Age", "Quantity", if showlots then "Unit cost" else "Avg cost", "Cost", "Price", "Value", "Gain"]
     renderacct r = T.replicate (prrIndent r * 2) " " <> prrDisplayName r
 
     rowLotCosts r = [multiplyAmount (aquantity a) c
                     | (a, mcb) <- lotsUnder $ prrFullName r, Just c <- [cbCost =<< mcb]]
 
-    rowcells r = [datecell, agecell, qtycell, unitcostcell, costcell]
+    rowcells r = [datecell, agecell, qtycell, unitcostcell, costcell, pricecell, valuecell, gaincell]
       where
+        (pricecell, valuecell, gaincell) = case rowValuation r of
+          Nothing -> ("", "", "")
+          Just (prices, val) ->
+            ( T.intercalate "\n" $ map (T.pack . showAmountWith noCostFmt) prices
+            , T.pack $ showMixedAmountWith oneLineNoCostFmt val
+            , showgain (amounts val) (amounts $ mixed costs)
+            )
         rowlots = lotsUnder $ prrFullName r
         dates = nubSort [cbDate =<< mcb | (_, mcb) <- rowlots]
         -- Date and Age are shown when the row's lots all have the same date.
@@ -174,9 +217,18 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
             pdiv = case asprecision (astyle avg) of Precision n -> n; _ -> defaultMaxDisplayPrecision
             pstyle = case asprecision (astyle costa) of Precision n -> n; _ -> 2
 
-    -- Grand totals row: just the Cost column for now.
+    -- Grand totals row: the Cost, Value and Gain columns.
+    -- Value and Gain are blank unless all rows have a market price.
     mtotalrow
       | no_total_ ropts || length rows < 2 = Nothing
-      | otherwise = Just ["", "", "", "", showamts $ concatMap rowLotCosts rows]
+      | otherwise = Just ["", "", "", "", showamts totcosts, "", totvaluecell, totgaincell]
+      where
+        totcosts = concatMap rowLotCosts rows
+        mrowvals = map rowValuation rows
+        (totvaluecell, totgaincell) = case sequence mrowvals of
+          Nothing -> ("", "")
+          Just rowvals -> ( T.pack $ showMixedAmountWith oneLineNoCostFmt totvalue
+                          , showgain (amounts totvalue) (amounts $ mixed totcosts))
+            where totvalue = mixed $ concatMap (amounts . snd) rowvals
 
     showamts = T.pack . showMixedAmountWith oneLineNoCostFmt . mixed

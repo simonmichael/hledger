@@ -1,6 +1,7 @@
 # * Tests for the holdings command.
 
 # Sample scenario: two AAPL buys, one MSFT buy, a FIFO sale of 5 AAPL.
+# No market prices, so the Price, Value and Gain columns are blank.
 <
 commodity AAPL  ; lots:
 commodity MSFT  ; lots:
@@ -31,32 +32,32 @@ commodity MSFT  ; lots:
 $ hledger -f- holdings -e 2026-04-01
 Holdings on 2026-03-31
 
-                      ||       Date  Age  Quantity  Avg cost   Cost 
-======================++============================================
- assets:broker:funds  || 2026-02-15  44d    5 MSFT      $400  $2000 
- assets:broker:stocks ||                   15 AAPL    $56.67   $850 
-----------------------++--------------------------------------------
-                      ||                                      $2850 
+                      ||       Date  Age  Quantity  Avg cost   Cost  Price  Value  Gain 
+======================++================================================================
+ assets:broker:funds  || 2026-02-15  44d    5 MSFT      $400  $2000                     
+ assets:broker:stocks ||                   15 AAPL    $56.67   $850                     
+----------------------++----------------------------------------------------------------
+                      ||                                      $2850                     
 
 # ** 2. With --lots: one row per lot subaccount, with exact unit costs.
 $ hledger -f- holdings -e 2026-04-01 --lots
 Holdings on 2026-03-31
 
-                                        ||       Date  Age  Quantity  Unit cost   Cost 
-========================================++=============================================
- assets:broker:funds:{2026-02-15, $400} || 2026-02-15  44d    5 MSFT       $400  $2000 
- assets:broker:stocks:{2026-01-15, $50} || 2026-01-15  75d    5 AAPL        $50   $250 
- assets:broker:stocks:{2026-02-01, $60} || 2026-02-01  58d   10 AAPL        $60   $600 
-----------------------------------------++---------------------------------------------
-                                        ||                                       $2850 
+                                        ||       Date  Age  Quantity  Unit cost   Cost  Price  Value  Gain 
+========================================++=================================================================
+ assets:broker:funds:{2026-02-15, $400} || 2026-02-15  44d    5 MSFT       $400  $2000                     
+ assets:broker:stocks:{2026-01-15, $50} || 2026-01-15  75d    5 AAPL        $50   $250                     
+ assets:broker:stocks:{2026-02-01, $60} || 2026-02-01  58d   10 AAPL        $60   $600                     
+----------------------------------------++-----------------------------------------------------------------
+                                        ||                                       $2850                     
 
 # ** 3. A query can restrict the report; a single row shows no totals row.
 $ hledger -f- holdings -e 2026-04-01 cur:AAPL
 Holdings on 2026-03-31
 
-                      || Date  Age  Quantity  Avg cost  Cost 
-======================++=====================================
- assets:broker:stocks ||             15 AAPL    $56.67  $850 
+                      || Date  Age  Quantity  Avg cost  Cost  Price  Value  Gain 
+======================++=========================================================
+ assets:broker:stocks ||             15 AAPL    $56.67  $850                     
 
 # ** 4. Tree mode is not yet supported.
 $ hledger -f- holdings --tree
@@ -98,24 +99,24 @@ commodity GOLD ; lots:
 $ hledger -f- holdings -e 2026-04-01 --lots
 Holdings on 2026-03-31
 
-                                          ||       Date  Age    Quantity  Unit cost       Cost 
-==========================================++===================================================
- assets:fund:{2026-01-01, $1801.21527778} || 2026-01-01  89d  9.216 FUND   $1801.22  $16600.00 
- assets:fund:{2026-02-01, $1928.76430500} || 2026-02-01  58d  7.777 FUND   $1928.76  $15000.00 
- assets:gold:{2026-03-01, $2000.22}       || 2026-03-01  30d    1.5 GOLD   $2000.22   $3000.33 
-------------------------------------------++---------------------------------------------------
-                                          ||                                         $34600.33 
+                                          ||       Date  Age    Quantity  Unit cost       Cost  Price  Value  Gain 
+==========================================++=======================================================================
+ assets:fund:{2026-01-01, $1801.21527778} || 2026-01-01  89d  9.216 FUND   $1801.22  $16600.00                     
+ assets:fund:{2026-02-01, $1928.76430500} || 2026-02-01  58d  7.777 FUND   $1928.76  $15000.00                     
+ assets:gold:{2026-03-01, $2000.22}       || 2026-03-01  30d    1.5 GOLD   $2000.22   $3000.33                     
+------------------------------------------++-----------------------------------------------------------------------
+                                          ||                                         $34600.33                     
 
 # ** 7. Same, aggregated: Avg cost also uses the display precision.
 $ hledger -f- holdings -e 2026-04-01
 Holdings on 2026-03-31
 
-             ||       Date  Age     Quantity  Avg cost       Cost 
-=============++===================================================
- assets:fund ||                  16.993 FUND  $1859.59  $31600.00 
- assets:gold || 2026-03-01  30d     1.5 GOLD  $2000.22   $3000.33 
--------------++---------------------------------------------------
-             ||                                         $34600.33 
+             ||       Date  Age     Quantity  Avg cost       Cost  Price  Value  Gain 
+=============++=======================================================================
+ assets:fund ||                  16.993 FUND  $1859.59  $31600.00                     
+ assets:gold || 2026-03-01  30d     1.5 GOLD  $2000.22   $3000.33                     
+-------------++-----------------------------------------------------------------------
+             ||                                         $34600.33                     
 
 # ** 8. Quantities are also normalised to the commodity's display precision
 # (here 3 decimals, inferred from the first purchase).
@@ -133,21 +134,96 @@ commodity AAAA ; lots:
 $ hledger -f- holdings -e 2026-02-01 --lots
 Holdings on 2026-01-31
 
-                          ||       Date  Age    Quantity  Unit cost  Cost 
-==========================++==============================================
- assets:{2026-01-01, $10} || 2026-01-01  30d  1.234 AAAA        $10   $12 
- assets:{2026-01-02, $12} || 2026-01-02  29d  5.000 AAAA        $12   $60 
---------------------------++----------------------------------------------
-                          ||                                          $72 
+                          ||       Date  Age    Quantity  Unit cost  Cost  Price  Value  Gain 
+==========================++==================================================================
+ assets:{2026-01-01, $10} || 2026-01-01  30d  1.234 AAAA        $10   $12                     
+ assets:{2026-01-02, $12} || 2026-01-02  29d  5.000 AAAA        $12   $60                     
+--------------------------++------------------------------------------------------------------
+                          ||                                          $72                     
 
 # ** 9. --round can select another rounding strategy, eg none shows
 # amounts with their original precision.
 $ hledger -f- holdings -e 2026-02-01 --lots --round=none
 Holdings on 2026-01-31
 
-                          ||       Date  Age    Quantity  Unit cost  Cost 
-==========================++==============================================
- assets:{2026-01-01, $10} || 2026-01-01  30d  1.234 AAAA        $10   $12 
- assets:{2026-01-02, $12} || 2026-01-02  29d      5 AAAA        $12   $60 
---------------------------++----------------------------------------------
-                          ||                                          $72 
+                          ||       Date  Age    Quantity  Unit cost  Cost  Price  Value  Gain 
+==========================++==================================================================
+ assets:{2026-01-01, $10} || 2026-01-01  30d  1.234 AAAA        $10   $12                     
+ assets:{2026-01-02, $12} || 2026-01-02  29d      5 AAAA        $12   $60                     
+--------------------------++------------------------------------------------------------------
+                          ||                                          $72                     
+
+# ** 10. With market prices (P directives), the Price, Value and Gain
+# columns show each holding's market price at the report date, its
+# market value, and its unrealised gain (absolute and percent).
+<
+commodity AAPL  ; lots:
+commodity MSFT  ; lots:
+
+2026-01-01 opening
+    assets:broker:cash     $10000
+    equity:start
+
+2026-01-15 buy
+    assets:broker:stocks    10 AAPL @ $50
+    assets:broker:cash
+
+2026-02-01 buy
+    assets:broker:stocks    10 AAPL @ $60
+    assets:broker:cash
+
+2026-02-15 buy
+    assets:broker:funds      5 MSFT @ $400
+    assets:broker:cash
+
+2026-03-01 sell
+    assets:broker:stocks    -5 AAPL {} @ $70
+    assets:broker:cash
+
+P 2026-03-31 AAPL $72
+P 2026-03-31 MSFT $410
+
+$ hledger -f- holdings -e 2026-04-01
+Holdings on 2026-03-31
+
+                      ||       Date  Age  Quantity  Avg cost   Cost  Price  Value           Gain 
+======================++=========================================================================
+ assets:broker:funds  || 2026-02-15  44d    5 MSFT      $400  $2000   $410  $2050    $50 (+2.5%) 
+ assets:broker:stocks ||                   15 AAPL    $56.67   $850    $72  $1080  $230 (+27.1%) 
+----------------------++-------------------------------------------------------------------------
+                      ||                                      $2850         $3130   $280 (+9.8%) 
+
+# ** 11. Same with --lots: per-lot values and gains.
+$ hledger -f- holdings -e 2026-04-01 --lots
+Holdings on 2026-03-31
+
+                                        ||       Date  Age  Quantity  Unit cost   Cost  Price  Value           Gain 
+========================================++==========================================================================
+ assets:broker:funds:{2026-02-15, $400} || 2026-02-15  44d    5 MSFT       $400  $2000   $410  $2050    $50 (+2.5%) 
+ assets:broker:stocks:{2026-01-15, $50} || 2026-01-15  75d    5 AAPL        $50   $250    $72   $360  $110 (+44.0%) 
+ assets:broker:stocks:{2026-02-01, $60} || 2026-02-01  58d   10 AAPL        $60   $600    $72   $720  $120 (+20.0%) 
+----------------------------------------++--------------------------------------------------------------------------
+                                        ||                                       $2850         $3130   $280 (+9.8%) 
+
+# ** 12. With --infer-market-prices, transaction costs also provide
+# market prices, as usual.
+<
+commodity AAAA ; lots:
+
+2026-01-01 buy
+    assets    1.234 AAAA @ $10
+    assets:cash
+
+2026-01-02 buy
+    assets    5 AAAA @ $12
+    assets:cash
+
+$ hledger -f- holdings -e 2026-02-01 --lots --infer-market-prices
+Holdings on 2026-01-31
+
+                          ||       Date  Age    Quantity  Unit cost  Cost  Price  Value         Gain 
+==========================++=========================================================================
+ assets:{2026-01-01, $10} || 2026-01-01  30d  1.234 AAAA        $10   $12    $12    $15  $2 (+20.0%) 
+ assets:{2026-01-02, $12} || 2026-01-02  29d  5.000 AAAA        $12   $60    $12    $60   $0 (+0.0%) 
+--------------------------++-------------------------------------------------------------------------
+                          ||                                          $72           $75   $2 (+3.4%) 
