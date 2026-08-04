@@ -7142,17 +7142,17 @@ $ hledger bal assets:stocks --lots -N
 
 And if you also record a market price, eg with a `P 2026-03-31 AAPL $72` directive,
 the [holdings](#holdings) command shows an overview of your investment holdings -
-quantities, cost basis, current value and unrealised gain:
+units held, cost basis, current value and unrealised gain:
 
 ```cli
 $ hledger holdings -e 2026-04-01
 Holdings on 2026-03-31
 
-               ||       Date  Age  Quantity  Avg cost  Cost  Price  Value  Weight           Gain  Rgain     XIRR
-===============++================================================================================================
- assets:stocks || 2026-01-15  75d    5 AAPL       $50  $250    $72   $360  100.0%  $110 (+44.0%)   $100  1865.3%
----------------++------------------------------------------------------------------------------------------------
-               ||                                      $250          $360  100.0%  $110 (+44.0%)   $100  1865.3%
+               ||       Date  Age   Units  Avg cost  Cost  Price  Value  Weight           Gain  Rgain     XIRR
+===============++==============================================================================================
+ assets:stocks || 2026-01-15  75d  5 AAPL       $50  $250    $72   $360  100.0%  $110 (+44.0%)   $100  1865.3%
+---------------++----------------------------------------------------------------------------------------------
+               ||                                    $250          $360  100.0%  $110 (+44.0%)   $100  1865.3%
 ```
 
 Or use `print -a` to see maximum detail on how hledger has analysed your entries -
@@ -7666,12 +7666,12 @@ unrealised gain):
 $ hledger holdings -e 2026-04-01 --lots
 Holdings on 2026-03-31
 
-                                 ||       Date  Age  Quantity  Unit cost  Cost  Price  Value  Weight  Gain  Rgain  XIRR
-=================================++=====================================================================================
- assets:stocks:{2026-01-15, $50} || 2026-01-15  75d    5 AAPL        $50  $250                               $100
- assets:stocks:{2026-02-01, $60} || 2026-02-01  58d   10 AAPL        $60  $600
----------------------------------++-------------------------------------------------------------------------------------
-                                 ||                                       $850                               $100
+                                 ||       Date  Age    Units  Unit cost  Cost  Price  Value  Weight  Gain  Rgain  XIRR
+=================================++====================================================================================
+ assets:stocks:{2026-01-15, $50} || 2026-01-15  75d   5 AAPL        $50  $250                               $100
+ assets:stocks:{2026-02-01, $60} || 2026-02-01  58d  10 AAPL        $60  $600
+---------------------------------++------------------------------------------------------------------------------------
+                                 ||                                      $850                               $100
 ```
 
 and `print -x --lots` shows the inferred lot subaccounts and gain postings.
