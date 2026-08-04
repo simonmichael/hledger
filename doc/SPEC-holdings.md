@@ -54,6 +54,8 @@ Notes:
   `1y3m`, and/or a long/short-term capital gains indicator could be added.)
 - Rows with no known market price show blank Price, Value and Gain,
   rather than pretending the gain is zero.
+- Amounts are displayed normalised to their commodity's display precision
+  (unlike lot names, which can show more precision).
 - The totals row shows only the commodity-independent columns:
   Cost, Value, Gain.
 - Possible future columns: portfolio weight %, realised gain, XIRR.
@@ -138,17 +140,28 @@ Holdings on 2026-03-31
 
 ## Implementation notes
 
-- The table is a single-period MultiBalanceReport-shaped table: rows from the
-  standard account-tree display machinery, but columns are per-row attributes
-  instead of periods. Rendering via Text.Tabular.AsciiWide as in Balance.hs.
-- Cell data comes from lot state (as computed by journalCalculateLots) plus
-  market prices.
+- The holdings command receives the journal with lot detail uncollapsed,
+  regardless of --lots (see maybeCollapseLotDetail in Hledger.Cli.Utils);
+  it aggregates lots itself.
+- Rows come from a single-period, end-balances (Historical) multiBalanceReport:
+  run on the lot-detailed journal with --lots (rows are lot subaccounts),
+  or on the collapsed journal otherwise (rows are the base accounts).
+  Rows without lots beneath them are filtered out.
+  (balanceReport was considered but it is just a thin projection of
+  multiBalanceReport; MBR keeps the row structure, totals and valuation
+  machinery we need.)
+- Per-lot quantities are summed from the lot subaccounts' postings
+  (amount arithmetic discards cost basis, so balances alone don't suffice).
+  Each lot's cost basis is parsed back from the lot subaccount name, which by
+  construction contains the acquisition date and unit cost.
+- Rendering via Text.Tabular.AsciiWide as in Balance.hs.
 
 ## Phases
 
-1. Layout mockup: skeleton `holdings` command printing the sample layout above. (current)
-2. Real single-attribute report: rows from the journal's lotful accounts, with
-   Quantity and Cost columns.
+1. Layout mockup: skeleton `holdings` command printing the sample layout above. (done)
+2. Real report in list mode: rows from the journal's lotful accounts, with
+   Date, Age, Quantity, Unit/Avg cost and Cost columns; --lots; totals row;
+   functional tests (hledger/test/holdings.test). --tree errors out. (done)
 3. Valuation columns: Price, Value, Gain.
-4. Date/Age columns, `--lots`/`--tree`/`--depth` behavior, totals row.
+4. `--tree`/`--depth` behavior.
 5. Output formats, sorting, extra columns.

@@ -130,6 +130,7 @@ maybeCollapseLotDetail :: CliOpts -> Journal -> Journal
 maybeCollapseLotDetail opts
   | boolopt "lots" rawopts        = id
   | boolopt "ignore-lots" rawopts = id
+  | command_ opts == "holdings"   = id  -- holdings always needs lot detail; it aggregates lots itself
   | otherwise                     = journalCollapseLotDetail
   where rawopts = rawopts_ opts
 
