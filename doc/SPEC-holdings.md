@@ -191,4 +191,5 @@ Holdings on 2026-03-31
 7. Extra columns, on demand: portfolio weight %, humanised Age (eg 2m14d)
    or a long/short-term indicator, realised gain, XIRR.
 8. Docs integration: mention holdings in the manual's lot reporting
-   sections; maybe a demo.
+   sections (First lots example, Lot subaccounts, Lot reporting example).
+   (done)
