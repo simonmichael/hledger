@@ -19,9 +19,10 @@ module Hledger.Cli.Commands.Holdings (
 
 import Control.Applicative ((<|>))
 import Data.Default (def)
-import Data.List.Extra (intercalate, nubSort)
+import Data.List.Extra (intercalate, nubSort, sortOn)
 import Data.Map.Strict qualified as M
-import Data.Maybe (fromMaybe, isJust, listToMaybe)
+import Data.Maybe (fromMaybe, isJust, listToMaybe, mapMaybe)
+import Data.Ord (Down(..))
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
 import Data.Time.Calendar (addDays, diffDays)
@@ -39,6 +40,7 @@ holdingsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Holdings.txt")
   (flattreeflags True ++
    [flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
+   ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by value (or cost) instead of account name, largest first"
    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
    ,flagReq ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
      intercalate "\n"
@@ -216,7 +218,8 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     mbr = multiBalanceReport rspec' j'
       where
         rspec' = rspec{_rsReportOpts=ropts{balanceaccum_=Historical, interval_=NoInterval
-                                          ,conversionop_=Just NoConversionOp, value_=Nothing}}
+                                          ,conversionop_=Just NoConversionOp, value_=Nothing
+                                          ,sort_amount_=False}}  -- -S sorts by value/cost below, not by quantities
         j' = if showlots then j else journalCollapseLotDetail j
     -- Rows to display: those with lots at or beneath them. In list mode,
     -- also drop rows whose lots all appear in a deeper displayed row
@@ -233,10 +236,27 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     toprows = [ r | r <- rows
               , not $ any (\r2 -> prrFullName r2 `isAccountNamePrefixOf` prrFullName r) rows ]
 
+    -- The display order: by account name, or with -S by each row's Value
+    -- (falling back to Cost), largest first. Sorting compares the keys
+    -- along each row's chain of displayed ancestors, so in tree mode each
+    -- level is sorted and subtrees stay together. Ties (and rows mixing
+    -- commodities, which are summed crudely) keep the account name order.
+    sortedrows
+      | not $ sort_amount_ ropts = rows
+      | otherwise = sortOn keypath rows
+      where
+        keymap = M.fromList [(prrFullName r, Down $ rowSortKey r) | r <- rows]
+        keypath r = mapMaybe (`M.lookup` keymap) $ reverse (parentAccountNames a) ++ [a]
+          where a = prrFullName r
+        rowSortKey r = case rowValuation r of
+          Just (_, val) -> sumq val
+          Nothing       -> sumq $ mixed $ rowLotCosts r
+          where sumq = sum . map aquantity . amounts
+
     tbl = maybe id addtotalrow mtotalrow $ Table
-      (Group NoLine $ map (Header . renderacct) rows)
+      (Group NoLine $ map (Header . renderacct) sortedrows)
       (Group NoLine $ map Header colheadings)
-      (map rowcells rows)
+      (map rowcells sortedrows)
       where
         addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
           Table (Group NoLine [Header ""]) (Header []) [totalrow]
