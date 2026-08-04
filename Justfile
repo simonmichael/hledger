@@ -1758,7 +1758,7 @@ ai-ccusagej-recent *BALARGS:
 
 # Run ai-ccusagej-recent repeatedly.
 @ai-ccusagej-recent-watch *BALARGS:
-    while true; do just ai-ccusagej-recent; echo; read -p "press enter to update.."; done
+    while true; do just ai-ccusagej-recent -c1.kt {{ BALARGS }}; echo; read -p "press enter to update.."; done
 
 # Extract the "AI usage:" disclosure lines from commit messages to aicommits.csv.
 @ai-commits-csv:
