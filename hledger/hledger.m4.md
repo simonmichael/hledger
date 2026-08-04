@@ -7138,6 +7138,19 @@ $ hledger bal assets:stocks --lots -N
               5 AAPL  assets:stocks:{2026-01-15, $50}
 ```
 
+And if you also record a market price, eg with a `P 2026-03-31 AAPL $72` directive,
+the [holdings](#holdings) command shows an overview of your investment holdings -
+quantities, cost basis, current value and unrealised gain:
+
+```cli
+$ hledger holdings -e 2026-04-01
+Holdings on 2026-03-31
+
+               ||       Date  Age  Quantity  Avg cost  Cost  Price  Value           Gain
+===============++========================================================================
+ assets:stocks || 2026-01-15  75d    5 AAPL       $50  $250    $72   $360  $110 (+44.0%)
+```
+
 Or use `print -a` to see maximum detail on how hledger has analysed your entries -
 lot subaccounts, inferred annotations, and posting types:
 
@@ -7199,7 +7212,8 @@ so it will infer cost basis annotations automatically, and you won't need to wri
 Internally, hledger tracks each lot in a subaccount, named like the cost basis.
 You don't need to write these subaccounts in the journal; hledger infers them automatically.
 They are hidden from reports by default, since there can be many lots.
-To show them, just add the `--lots` flag to any report.  Eg:
+To show them, just add the `--lots` flag to any report
+(the [holdings](#holdings) command is designed for viewing them).  Eg:
 
 ```journal
 2026-01-15 buy
@@ -7639,6 +7653,21 @@ In all cases, `balance --lots` shows the current lot balances:
 $ hledger bal assets:stocks --lots -N
               5 AAPL  assets:stocks:{2026-01-15, $50}
              10 AAPL  assets:stocks:{2026-02-01, $60}
+```
+
+[holdings](#holdings) shows a fuller overview of them, with acquisition dates
+and cost basis (and, when market prices are recorded, current value and
+unrealised gain):
+```
+$ hledger holdings -e 2026-04-01 --lots
+Holdings on 2026-03-31
+
+                                 ||       Date  Age  Quantity  Unit cost  Cost  Price  Value  Gain
+=================================++================================================================
+ assets:stocks:{2026-01-15, $50} || 2026-01-15  75d    5 AAPL        $50  $250
+ assets:stocks:{2026-02-01, $60} || 2026-02-01  58d   10 AAPL        $60  $600
+---------------------------------++----------------------------------------------------------------
+                                 ||                                       $850
 ```
 
 and `print -x --lots` shows the inferred lot subaccounts and gain postings.
