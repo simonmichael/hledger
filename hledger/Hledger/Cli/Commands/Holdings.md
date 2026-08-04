@@ -17,6 +17,8 @@ Flags:
                                    to match precision
                             hard - round amounts to precision (default)
                             all  - also round cost amounts to precision
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
 ```
 
 This command is a work in progress.
