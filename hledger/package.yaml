@@ -75,6 +75,7 @@ extra-source-files:
 - Hledger/Cli/Commands/Files.txt
 - Hledger/Cli/Commands/Get.txt
 - Hledger/Cli/Commands/Help.txt
+- Hledger/Cli/Commands/Holdings.txt
 - Hledger/Cli/Commands/Import.txt
 - Hledger/Cli/Commands/Incomestatement.txt
 - Hledger/Cli/Commands/Notes.txt
