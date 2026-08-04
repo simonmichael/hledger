@@ -127,6 +127,7 @@ library
       Hledger.Cli.Commands.Files
       Hledger.Cli.Commands.Get
       Hledger.Cli.Commands.Help
+      Hledger.Cli.Commands.Holdings
       Hledger.Cli.Commands.Import
       Hledger.Cli.Commands.Incomestatement
       Hledger.Cli.Commands.Notes

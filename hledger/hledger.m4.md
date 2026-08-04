@@ -7724,6 +7724,7 @@ You can list all of a command's options by running `hledger CMD -h`.
 **[Advanced report commands](#advanced-report-commands)**
 
 - [balance](#balance) (bal)                        - show balance changes, end balances, budgets, gains..
+- [holdings](#holdings)                            - show investment holdings
 - [roi](#roi)                                      - show return on investments
 
 **[Chart commands](#chart-commands)**

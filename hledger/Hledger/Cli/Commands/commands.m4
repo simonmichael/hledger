@@ -55,6 +55,7 @@ _command_({{Incomestatement}})
 # Advanced report commands
 
 _command_({{Balance}})
+_command_({{Holdings}})
 _command_({{Roi}})
 
 # Chart commands

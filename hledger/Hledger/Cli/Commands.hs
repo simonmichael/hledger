@@ -41,6 +41,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Diff
   ,module Hledger.Cli.Commands.Get
   ,module Hledger.Cli.Commands.Help
+  ,module Hledger.Cli.Commands.Holdings
   ,module Hledger.Cli.Commands.Import
   ,module Hledger.Cli.Commands.Incomestatement
   ,module Hledger.Cli.Commands.Notes
@@ -92,6 +93,7 @@ import Hledger.Cli.Commands.Diff
 import Hledger.Cli.Commands.Files
 import Hledger.Cli.Commands.Get
 import Hledger.Cli.Commands.Help
+import Hledger.Cli.Commands.Holdings
 import Hledger.Cli.Commands.Import
 import Hledger.Cli.Commands.Incomestatement
 import Hledger.Cli.Commands.Notes
@@ -132,6 +134,7 @@ builtinCommands = [
   ,(filesmode              , files)
   ,(getmode                , getcmd)
   ,(helpmode               , help')
+  ,(holdingsmode           , holdings)
   ,(importmode             , importcmd)
   ,(incomestatementmode    , incomestatement)
   ,(notesmode              , notes)
@@ -268,6 +271,7 @@ commandsList progversion builtin othercmds cmdaliases =
     -----------------------------------------80-------------------------------------
   ,bold' "ADVANCED REPORTS"
   ," balance (bal)            show balance changes, end balances, gains, budgets.."
+  ," holdings                 show investment holdings"
   ,"+lots                     show a commodity's lots"                               -- hledger-lots
   ," roi                      show return on investments"
   ,""
