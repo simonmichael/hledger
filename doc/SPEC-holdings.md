@@ -177,5 +177,7 @@ Holdings on 2026-03-31
    functional tests (hledger/test/holdings.test). --tree errors out. (done)
 3. Valuation columns: Price, Value, Gain, with market prices from the
    standard price oracle; blank when no market price is known. (done)
-4. `--tree`/`--depth` behavior.
+4. `--tree`/`--depth` behavior: parent rows aggregate the lots beneath
+   them, showing only lot-tracked commodities; totals sum only the topmost
+   displayed rows, avoiding double counting. (done)
 5. Output formats, sorting, extra columns.
