@@ -19,6 +19,7 @@ module Hledger.Cli.Commands.Holdings (
 ) where
 
 import Control.Applicative ((<|>))
+import Control.Monad (guard)
 import Data.Aeson (Value, object, (.=))
 import Data.Decimal (roundTo)
 import Data.Default (def)
@@ -43,6 +44,7 @@ import Hledger.Write.Ods (printFods)
 import Hledger.Write.Spreadsheet (addHeaderBorders, headerCell)
 import Hledger.Write.Spreadsheet qualified as Ods
 import Lucid qualified as L
+import Numeric.RootFinding (RiddersParam(..), Root(..), Tolerance(..), ridders)
 import System.IO qualified as IO
 import Text.Tabular.AsciiWide
 
@@ -82,8 +84,11 @@ data Holding = Holding {
   ,hCost      :: T.Text           -- ^ total cost basis
   ,hPrice     :: Maybe T.Text     -- ^ market price at the valuation date
   ,hValue     :: Maybe T.Text     -- ^ market value
+  ,hWeight    :: Maybe Quantity   -- ^ percentage of the portfolio's value, rounded to 1 decimal
   ,hGain      :: Maybe T.Text     -- ^ unrealised gain
   ,hGainPct   :: Maybe Quantity   -- ^ unrealised gain percent, rounded to 1 decimal
+  ,hRgain     :: Maybe T.Text     -- ^ realised gain, from disposals so far
+  ,hXirr      :: Maybe Double     -- ^ annualised internal rate of return percent
   }
 
 holdingCsv :: Holding -> [T.Text]
@@ -97,8 +102,11 @@ holdingCsv h =
   ,hCost h
   ,fromMaybe "" (hPrice h)
   ,fromMaybe "" (hValue h)
+  ,maybe "" (T.pack . show) (hWeight h)
   ,fromMaybe "" (hGain h)
   ,maybe "" (T.pack . show) (hGainPct h)
+  ,fromMaybe "" (hRgain h)
+  ,maybe "" (T.pack . printf "%.1f") (hXirr h)
   ]
 
 holdingJson :: Holding -> Value
@@ -112,9 +120,28 @@ holdingJson h = object
   ,"cost"      .= hCost h
   ,"price"     .= hPrice h
   ,"value"     .= hValue h
+  ,"weight"    .= hWeight h
   ,"gain"      .= hGain h
   ,"gainpct"   .= hGainPct h
+  ,"rgain"     .= hRgain h
+  ,"xirr"      .= hXirr h
   ]
+
+-- | Show an age in days compactly: in days, or if a year or more,
+-- in years with one decimal digit (approximating years as 365 days):
+-- eg 44d, 1.1y.
+showage :: Integer -> T.Text
+showage d
+  | d >= 365  = T.pack (show (roundTo 1 (fromIntegral d / 365))) <> "y"
+  | otherwise = T.pack (show d) <> "d"
+
+-- | Show a (rounded) percentage: eg 64.3%.
+showpct :: Quantity -> T.Text
+showpct p = T.pack (show p) <> "%"
+
+-- | Show an XIRR percentage with 1 decimal place: eg 12.3%.
+showxirr :: Double -> T.Text
+showxirr x = T.pack $ printf "%.1f%%" x
 
 -- | Show the holdings report: the assets held in lot-tracked accounts
 -- as of the report end date, one row per account (or per lot, with --lots).
@@ -154,25 +181,72 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     mend = queryEndDate False q
     reportdate = maybe (_rsDay rspec) (addDays (-1)) mend
 
-    -- The quantity held in each lot subaccount, from its postings.
-    -- Keyed by account and commodity, so amounts in different commodities
-    -- (not expected in a lot subaccount, but possible) don't merge wrongly.
-    -- Postings are restricted by the report query's non-date terms and its
-    -- end date (but not its begin date; holdings are cumulative).
-    lotmap :: M.Map (AccountName, CommoditySymbol) Amount
-    lotmap = M.fromListWith (+)
-      [ ((paccount p, acommodity a), amountStripCost a)
+    -- The query used to select lot subaccount postings: the report query
+    -- without its date terms (holdings are cumulative to the end date,
+    -- added here) and depth terms (--depth only clips the displayed rows;
+    -- the lots beneath still count).
+    endq = And [filterQuery (\x -> not $ queryIsDateOrDate2 x || queryIsDepth x) q
+               ,Date $ DateSpan Nothing (Exact <$> mend)]
+
+    -- The postings contributing to each lot subaccount, keyed by account
+    -- and commodity (so amounts in different commodities, not expected in
+    -- a lot subaccount but possible, don't merge wrongly).
+    lotpostings :: [((AccountName, CommoditySymbol), (Day, Amount))]
+    lotpostings =
+      [ ((paccount p, acommodity a), (postingDate p, a))
       | p <- journalPostings j
       , isJust $ lotSubaccountName $ paccount p
       , endq `matchesPosting` p
       , a <- amountsRaw $ pamount p
       ]
-      where
-        -- the query without its date terms (holdings are cumulative to the
-        -- end date, added below) and depth terms (--depth only clips the
-        -- displayed rows; the lots beneath still count)
-        endq = And [filterQuery (\x -> not $ queryIsDateOrDate2 x || queryIsDepth x) q
-                   ,Date $ DateSpan Nothing (Exact <$> mend)]
+
+    -- The quantity held in each lot subaccount.
+    lotmap :: M.Map (AccountName, CommoditySymbol) Amount
+    lotmap = M.fromListWith (+) [(k, amountStripCost a) | (k, (_, a)) <- lotpostings]
+
+    -- Each lot subaccount's cashflows in the cost commodity, for XIRR:
+    -- each posting's transacted cost if any (so, proceeds when disposing),
+    -- otherwise its cost basis value. Negative = money invested.
+    flowmap :: M.Map (AccountName, CommoditySymbol) [(Day, Amount)]
+    flowmap = M.fromListWith (++)
+      [ (k, [(d, negate flowamt)])
+      | (k, (d, a)) <- lotpostings
+      , Just flowamt <- [case acost a of
+          Just _  -> Just $ amountCost a
+          Nothing -> multiplyAmount (aquantity a) <$> (cbCost =<< acostbasis a)]
+      ]
+
+    -- Each lot subaccount's realised gains, in the cost commodity:
+    -- for each dispose posting (negative, with a transacted price and a
+    -- cost basis), the proceeds minus the cost basis of the disposed units.
+    rgainmap :: M.Map (AccountName, CommoditySymbol) Amount
+    rgainmap = M.fromListWith (+)
+      [ (k, proceeds - basis)
+      | (k, (_, a)) <- lotpostings
+      , aquantity a < 0
+      , isJust $ acost a
+      , let proceeds = negate $ amountCost a
+      , Just ub <- [cbCost =<< acostbasis a]
+      , let basis = multiplyAmount (negate $ aquantity a) ub
+      , acommodity proceeds == acommodity basis
+      ]
+
+    -- The values in a map whose keys are at or under the given account
+    -- (and in the given held commodity, if specified).
+    underIn :: M.Map (AccountName, CommoditySymbol) v -> AccountName -> Maybe CommoditySymbol -> [v]
+    underIn m acct mc =
+      [ v | ((sub, c), v) <- M.toAscList m
+      , acct == sub || acct `isAccountNamePrefixOf` sub
+      , maybe True (== c) mc
+      ]
+
+    -- The cashflows of the lots at or under an account, optionally of one held commodity.
+    flowsUnder :: AccountName -> Maybe CommoditySymbol -> [(Day, Amount)]
+    flowsUnder acct mc = concat $ underIn flowmap acct mc
+
+    -- The realised gains of the lots at or under an account, optionally of one held commodity.
+    rgainsUnder :: AccountName -> Maybe CommoditySymbol -> [Amount]
+    rgainsUnder = underIn rgainmap
 
     -- A lot subaccount's cost basis, parsed from its name
     -- (which by construction contains the acquisition date and unit cost).
@@ -225,26 +299,79 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                           nullamt{acommodity=pcomm, aquantity=n}
           Just (mkamt rate, mkamt (rate * aquantity qa))
 
-    -- How to convert a row's cost amounts for display, so that the Cost,
-    -- Unit/Avg cost and Gain columns follow the valuation commodity when
-    -- -V/-X/--value is in effect: convert to the requested commodity, or
-    -- to the commodity the row's value came out in, at the valuation date.
-    -- Costs already in the target commodity, or with no target or no
-    -- market price, are left unchanged.
-    rowCostValuer :: PeriodicReportRow DisplayName MixedAmount -> Amount -> Amount
-    rowCostValuer r = case mvalue of
+    -- How to convert cost amounts (Cost, Unit/Avg cost, Rgain, and the
+    -- cost side of Gain) for display when -V/-X/--value is in effect:
+    -- convert to the requested commodity, or to the given fallback
+    -- commodity (the row's or portfolio's value commodity), at the
+    -- valuation date. Costs already in the target commodity, or with no
+    -- target or no market price, are left unchanged.
+    costValuerTo :: Maybe CommoditySymbol -> Amount -> Amount
+    costValuerTo mfallback = case mvalue of
       Nothing -> id
-      Just _ -> case mtargetcomm <|> mrowvaluecomm of
+      Just _ -> case mtargetcomm <|> mfallback of
         Nothing -> id
         -- styleAmounts is reapplied after conversion, since
         -- amountValueAtDate leaves full precision displayed
         Just tc -> \a -> if acommodity a == tc then a
                          else styleAmounts styles $
                               amountValueAtDate priceoracle styles (Just tc) valuationdate a
+
+    rowCostValuer :: PeriodicReportRow DisplayName MixedAmount -> Amount -> Amount
+    rowCostValuer r = costValuerTo mrowvaluecomm
       where
         mrowvaluecomm = case rowValuation r of
           Just (_, val) | [v] <- amounts val -> Just $ acommodity v
           _ -> Nothing
+
+    -- The annualised internal rate of return implied by dated cashflows
+    -- (negative = money invested) up to the report date, as a percentage,
+    -- calculated like roi's IRR. Nothing if it can not be solved.
+    -- Note: this duplicates the solver setup and rate convention of
+    -- Roi.hs's solveIRR/interestSum (not exported); keep them in sync,
+    -- or extract a shared helper.
+    xirrPct :: [(Day, Quantity)] -> Maybe Double
+    xirrPct cf =
+      case ridders (RiddersParam 100 (AbsTol 0.00001)) (0.000000000001, 10000) npv of
+        Root rate -> Just $ (rate - 1) * 100
+        _         -> Nothing
+      where
+        npv rate = sum [realToFrac n * rate ** (fromIntegral (diffDays reportdate t) / 365.25) | (t, n) <- cf]
+
+    -- XIRR from cashflows plus a final value amount at the report date,
+    -- when they are all in one commodity.
+    xirrOf :: [(Day, Amount)] -> Amount -> Maybe Double
+    xirrOf flows finalv = do
+      guard $ not $ null flows
+      guard $ all ((== acommodity finalv) . acommodity . snd) flows
+      xirrPct $ (reportdate, aquantity finalv) : [(d, aquantity a) | (d, a) <- flows]
+
+    -- The total value of the displayed holdings, when all are priced;
+    -- and its commodity, when it has just one.
+    mportfoliovalue :: Maybe MixedAmount
+    mportfoliovalue = do
+      rowvals <- traverse rowValuation toprows
+      Just $ mixed $ concatMap (amounts . snd) rowvals
+    mportvaluecomm = case amounts <$> mportfoliovalue of
+      Just [v] -> Just $ acommodity v
+      _        -> Nothing
+
+    -- The distinct base accounts of the displayed rows (excluding any
+    -- contained in another). Account-level totals (Rgain, XIRR) are
+    -- computed from these, so that they include fully disposed lots,
+    -- which have no displayed row of their own (eg with --lots).
+    topbases :: [AccountName]
+    topbases = [ b | b <- bases, not $ any (`isAccountNamePrefixOf` b) bases ]
+      where bases = nubSort $ map (lotBaseAccount . prrFullName) toprows
+
+    -- A value's percentage of the portfolio's total value, when both are
+    -- single amounts in the same commodity. Rounded to 1 decimal place.
+    weightPct :: MixedAmount -> Maybe Quantity
+    weightPct val = do
+      tot <- mportfoliovalue
+      [t] <- Just $ amounts tot
+      [v] <- Just $ amounts val
+      guard $ acommodity v == acommodity t && aquantity t /= 0
+      Just $ roundTo 1 $ 100 * aquantity v / aquantity t
 
     -- Render a gain (and percent gain) from single-commodity value and
     -- cost amounts, if their commodities match.
@@ -328,7 +455,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       where
         addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
           Table (Group NoLine [Header ""]) (Header []) [totalrow]
-    colheadings = ["Date", "Age", "Quantity", if showlots then "Unit cost" else "Avg cost", "Cost", "Price", "Value", "Gain"]
+    colheadings = ["Date", "Age", "Quantity", if showlots then "Unit cost" else "Avg cost", "Cost", "Price", "Value", "Weight", "Gain", "Rgain", "XIRR"]
     renderacct r = T.replicate (prrIndent r * 2) " " <> prrDisplayName r
 
     rowLotCosts r = [rowCostValuer r $ multiplyAmount (aquantity a) c
@@ -337,25 +464,34 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     -- The text table's cells: each cell's parts joined,
     -- multi-line in Quantity and Price, one-line elsewhere.
     rowcells = zipWith T.intercalate cellseps . rowCellParts
-    cellseps = [", ", ", ", "\n", ", ", ", ", "\n", ", ", ", "]
+    cellseps = [", ", ", ", "\n", ", ", ", ", "\n", ", ", ", ", ", ", ", ", ", "]
 
     -- A row's cells, each as a list of parts:
     -- one part per commodity amount in the amount cells, at most one part elsewhere.
     rowCellParts :: PeriodicReportRow DisplayName MixedAmount -> [[T.Text]]
-    rowCellParts r = [[datecell], [agecell], qtyparts, [unitcostcell], costparts, priceparts, valueparts, [gaincell]]
+    rowCellParts r = [[datecell], [agecell], qtyparts, [unitcostcell], costparts, priceparts, valueparts, [weightcell], [gaincell], rgainparts, [xirrcell]]
       where
-        (priceparts, valueparts, gaincell) = case rowValuation r of
-          Nothing -> ([], [], "")
+        acct = prrFullName r
+        (priceparts, valueparts, gaincell, weightcell) = case rowValuation r of
+          Nothing -> ([], [], "", "")
           Just (prices, val) ->
             ( map showamt prices
             , map showamt $ amounts val
             , showgain (amounts val) (amounts $ mixed costs)
+            , maybe "" showpct $ weightPct val
             )
-        rowlots = lotsUnder $ prrFullName r
+        rgainparts = case map (rowCostValuer r) $ rgainsUnder acct Nothing of
+          [] -> []
+          rs -> map showamt $ amounts $ mixed rs
+        xirrcell = fromMaybe "" $ do
+          (_, val) <- rowValuation r
+          [v] <- Just $ amounts val
+          showxirr <$> xirrOf (flowsUnder acct Nothing) v
+        rowlots = lotsUnder acct
         dates = nubSort [cbDate =<< mcb | (_, mcb) <- rowlots]
         -- Date and Age are shown when the row's lots all have the same date.
         (datecell, agecell) = case dates of
-          [Just dt] -> (showDate dt, T.pack (show $ diffDays reportdate dt) <> "d")
+          [Just dt] -> (showDate dt, showage $ diffDays reportdate dt)
           _         -> ("", "")
         qtyparts = map (showamt . styleAmounts styles) $ rowQtyAmounts r
         costs = rowLotCosts r
@@ -386,9 +522,9 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
            mtotalrowparts
       where
         -- per-column css classes, so the html cells can be styled
-        colclasses = ["account","date","age","quantity","unitcost","cost","price","value","gain"]
+        colclasses = ["account","date","age","quantity","unitcost","cost","price","value","weight","gain","rgain","xirr"]
         -- which of the other columns' cell parts are amounts
-        amountcols = [False, False, True, True, True, True, True, True]
+        amountcols = [False, False, True, True, True, True, True, False, True, True, False]
         hcell cls t = plain <$> (headerCell t){Ods.cellClass = Ods.Class cls}
         -- body cells are right-aligned, except the first two columns
         -- (Account and Date); headings are unaffected
@@ -433,8 +569,11 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
               , hCost      = coststr
               , hPrice     = mpricestr
               , hValue     = mvalstr
+              , hWeight    = mweight
               , hGain      = mgainstr
               , hGainPct   = mpct
+              , hRgain     = mrgainstr
+              , hXirr      = mxirr
               }
               where
                 c = acommodity qa
@@ -456,10 +595,15 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                 mto = case mvalue of
                   Nothing -> listToMaybe [acommodity cb | (_, mcb) <- clots, Just cb <- [cbCost =<< mcb]]
                   Just _  -> mtargetcomm
-                (mpricestr, mvalstr, mgainstr, mpct) =
+                mrgainstr = case map (rowCostValuer r) $ rgainsUnder acct (Just c) of
+                  [] -> Nothing
+                  rs -> Just $ showamts' rs
+                (mpricestr, mvalstr, mgainstr, mpct, mweight, mxirr) =
                   case priceoracle (valuationdate, c, mto) of
-                    Nothing -> (Nothing, Nothing, Nothing, Nothing)
-                    Just (pcomm, rate) -> (Just $ showamt price, Just $ showamt val, mgainstr', mpct')
+                    Nothing -> (Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
+                    Just (pcomm, rate) -> (Just $ showamt price, Just $ showamt val, mgainstr', mpct'
+                                          ,weightPct $ mixedAmount val
+                                          ,xirrOf (flowsUnder acct (Just c)) val)
                       where
                         mkamt n = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
                                     nullamt{acommodity=pcomm, aquantity=n}
@@ -476,7 +620,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
 
     csvoutput :: CSV
     csvoutput =
-      ["account","commodity","date","age","quantity","unitcost","cost","price","value","gain","gainpct"]
+      ["account","commodity","date","age","quantity","unitcost","cost","price","value","weight","gain","gainpct","rgain","xirr"]
       : map holdingCsv holdingrecords
 
     -- Grand totals row (as cell parts, like rowCellParts): the Cost,
@@ -485,17 +629,23 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     -- Value and Gain are blank unless all rows have a market price.
     mtotalrowparts :: Maybe [[T.Text]]
     mtotalrowparts
-      | no_total_ ropts || length toprows < 2 = Nothing
-      | otherwise = Just [[], [], [], [], costparts, [], valueparts, [gaincell]]
+      | no_total_ ropts = Nothing
+      | otherwise = Just [[], [], [], [], costparts, [], valueparts, [weightcell], [gaincell], rgainparts, [xirrcell]]
       where
         totcosts = concatMap rowLotCosts toprows
         costparts = map showamt $ amounts $ mixed totcosts
-        mrowvals = map rowValuation toprows
-        (valueparts, gaincell) = case sequence mrowvals of
-          Nothing -> ([], "")
-          Just rowvals -> ( map showamt $ amounts totvalue
-                          , showgain (amounts totvalue) (amounts $ mixed totcosts))
-            where totvalue = mixed $ concatMap (amounts . snd) rowvals
+        (valueparts, weightcell, gaincell) = case mportfoliovalue of
+          Nothing -> ([], "", "")
+          Just totvalue -> ( map showamt $ amounts totvalue
+                           , maybe "" showpct $ weightPct totvalue
+                           , showgain (amounts totvalue) (amounts $ mixed totcosts))
+        rgainparts = case map (costValuerTo mportvaluecomm) $ concatMap (\b -> rgainsUnder b Nothing) topbases of
+          [] -> []
+          rs -> map showamt $ amounts $ mixed rs
+        xirrcell = fromMaybe "" $ do
+          totvalue <- mportfoliovalue
+          [tv] <- Just $ amounts totvalue
+          showxirr <$> xirrOf (concatMap (\b -> flowsUnder b Nothing) topbases) tv
         showamt = T.pack . showAmountWith noCostFmt
 
     -- An average cost: total cost / total quantity, showing significant

@@ -279,6 +279,9 @@ interestSum :: Day -> CashFlow -> Double -> Double
 interestSum referenceDay cf rate = sum $ map go cf
   where go (t,m) = realToFrac (unMix m) * rate ** (fromIntegral (referenceDay `diffDays` t) / 365.25)
 
+-- Note: Holdings.hs's xirrPct duplicates this solver setup and
+-- interestSum's rate convention; keep them in sync, or extract a
+-- shared helper.
 solveIRR :: (Double -> Double) -> String -> String -> Double
 solveIRR npv errNotBracketed errSearchFailed =
   case ridders (RiddersParam 100 (AbsTol 0.00001))
