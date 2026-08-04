@@ -9,6 +9,7 @@ Flags:
                             except where the account is depth-clipped.
   -t --tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
+     --no-elide             in tree mode, don't squash boring parent accounts
   -N --no-total             omit the final total row
      --round=TYPE           how much rounding or padding should be done when
                             displaying amounts ?
@@ -25,7 +26,10 @@ This command is a work in progress.
 
 It shows the assets held in lot-tracked accounts (see [Lots](#lots))
 as of the report end date: one row per account, or one row per lot
-with `--lots`. Columns show each holding's acquisition date and age
+with `--lots`. With `--tree`, accounts are shown as a tree, with
+parent rows aggregating the lots beneath them; `--depth` limits and
+aggregates the displayed rows as usual.
+Columns show each holding's acquisition date and age
 (when the row's lots share a single date), the quantity held,
 the unit cost (or average cost, on rows aggregating multiple lots),
 the total cost basis, the current market price, the market value,
@@ -46,4 +50,4 @@ Amounts are displayed with their commodity's display precision
 (unlike lot names, which can show more precision);
 `--round` can select another rounding strategy.
 
-Not yet implemented: tree mode; output formats other than text.
+Not yet implemented: output formats other than text.

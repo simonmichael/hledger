@@ -38,7 +38,8 @@ import Text.Tabular.AsciiWide
 holdingsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Holdings.txt")
   (flattreeflags True ++
-   [flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
+   [flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
+   ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
    ,flagReq ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
      intercalate "\n"
      ["how much rounding or padding should be done when displaying amounts ?"
@@ -61,8 +62,7 @@ holdingsmode = hledgerCommandMode
 -- (see maybeCollapseLotDetail); it aggregates lots itself.
 holdings :: CliOpts -> Journal -> IO ()
 holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts}} j = do
-  if accountlistmode_ ropts == ALTree then error' "holdings: --tree is not yet supported"
-  else if (case mvalue of Just (AtThen _) -> True; _ -> False)
+  if (case mvalue of Just (AtThen _) -> True; _ -> False)
   then error' "holdings: --value=then is not supported"
   else rounding `seq`  -- validate the --round value before any output
     writeOutputLazyText opts $
@@ -77,6 +77,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         tbl
   where
     showlots = boolopt "lots" rawopts
+    tree = accountlistmode_ ropts == ALTree
 
     -- The date this report shows holdings at: the day before the (exclusive)
     -- report end date if specified, otherwise today.
@@ -97,7 +98,10 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       , a <- amountsRaw $ pamount p
       ]
       where
-        endq = And [filterQuery (not . queryIsDateOrDate2) q
+        -- the query without its date terms (holdings are cumulative to the
+        -- end date, added below) and depth terms (--depth only clips the
+        -- displayed rows; the lots beneath still count)
+        endq = And [filterQuery (\x -> not $ queryIsDateOrDate2 x || queryIsDepth x) q
                    ,Date $ DateSpan Nothing (Exact <$> mend)]
 
     -- A lot subaccount's cost basis, parsed from its name
@@ -141,8 +145,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         pvs <- mapM lookup1 qas
         Just (map fst pvs, mixed (map snd pvs))
       where
-        -- strip costs so each commodity appears as one amount
-        qas = filter (not . amountLooksZero) $ amounts $ mixedAmountStripCosts $ prrTotal r
+        qas = rowQtyAmounts r
         mto = case mvalue of
           Nothing -> listToMaybe [acommodity c | (_, mcb) <- lotsUnder (prrFullName r), Just c <- [cbCost =<< mcb]]
           Just _  -> mtargetcomm
@@ -186,6 +189,16 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
             | otherwise        = ""
     showgain _ _ = ""
 
+    -- A row's quantities of lot-tracked commodities: its balance restricted
+    -- to the commodities of the lots at or beneath it. This excludes other
+    -- commodities (eg cash) from parent account rows in tree mode, and
+    -- strips costs so each commodity appears as one amount.
+    rowQtyAmounts :: PeriodicReportRow DisplayName MixedAmount -> [Amount]
+    rowQtyAmounts r =
+      filter (\a -> acommodity a `elem` lotcomms && not (amountLooksZero a)) $
+      amounts $ mixedAmountStripCosts $ prrTotal r
+      where lotcomms = [acommodity a | (a, _) <- lotsUnder $ prrFullName r]
+
     -- The lots held at or under the given account, excluding empty ones.
     lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
     lotsUnder acct =
@@ -205,11 +218,20 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         rspec' = rspec{_rsReportOpts=ropts{balanceaccum_=Historical, interval_=NoInterval
                                           ,conversionop_=Just NoConversionOp, value_=Nothing}}
         j' = if showlots then j else journalCollapseLotDetail j
-    rows = filter keeprow $ prRows mbr
+    -- Rows to display: those with lots at or beneath them. In list mode,
+    -- also drop rows whose lots all appear in a deeper displayed row
+    -- (eg a base account posted to directly, when its lot subaccounts
+    -- are shown); in tree mode such parent rows are wanted.
+    rows = filter keeprow candidates
       where
-        keeprow r
-          | showlots  = isJust $ lotSubaccountName $ prrFullName r
-          | otherwise = not $ null $ lotsUnder $ prrFullName r
+        candidates = filter (not . null . lotsUnder . prrFullName) $ prRows mbr
+        keeprow r = tree ||
+          not (any (\r2 -> prrFullName r `isAccountNamePrefixOf` prrFullName r2) candidates)
+
+    -- The topmost displayed rows: those not contained in another displayed
+    -- row. Totals are computed from these, to avoid double counting.
+    toprows = [ r | r <- rows
+              , not $ any (\r2 -> prrFullName r2 `isAccountNamePrefixOf` prrFullName r) rows ]
 
     tbl = maybe id addtotalrow mtotalrow $ Table
       (Group NoLine $ map (Header . renderacct) rows)
@@ -239,7 +261,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         (datecell, agecell) = case dates of
           [Just dt] -> (showDate dt, T.pack (show $ diffDays reportdate dt) <> "d")
           _         -> ("", "")
-        qtycell = T.pack $ showMixedAmountWith oneLineNoCostFmt $ styleAmounts styles $ prrTotal r
+        qtycell = T.intercalate "\n" $ map (T.pack . showAmountWith noCostFmt . styleAmounts styles) $ rowQtyAmounts r
         costs = rowLotCosts r
         costcell = showamts costs
         unitcostcell = case (rowlots, costs) of
@@ -258,14 +280,15 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
             pdiv = case asprecision (astyle avg) of Precision n -> n; _ -> defaultMaxDisplayPrecision
             pstyle = case asprecision (astyle costa) of Precision n -> n; _ -> 2
 
-    -- Grand totals row: the Cost, Value and Gain columns.
+    -- Grand totals row: the Cost, Value and Gain columns, summed over the
+    -- topmost displayed rows (which include everything below them).
     -- Value and Gain are blank unless all rows have a market price.
     mtotalrow
-      | no_total_ ropts || length rows < 2 = Nothing
+      | no_total_ ropts || length toprows < 2 = Nothing
       | otherwise = Just ["", "", "", "", showamts totcosts, "", totvaluecell, totgaincell]
       where
-        totcosts = concatMap rowLotCosts rows
-        mrowvals = map rowValuation rows
+        totcosts = concatMap rowLotCosts toprows
+        mrowvals = map rowValuation toprows
         (totvaluecell, totgaincell) = case sequence mrowvals of
           Nothing -> ("", "")
           Just rowvals -> ( T.pack $ showMixedAmountWith oneLineNoCostFmt totvalue

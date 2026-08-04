@@ -59,13 +59,50 @@ Holdings on 2026-03-31
 ======================++=========================================================
  assets:broker:stocks ||             15 AAPL    $56.67  $850                     
 
-# ** 4. Tree mode is not yet supported.
-$ hledger -f- holdings --tree
->2
-hledger: Error: holdings: --tree is not yet supported
->=1
+# ** 4. Tree mode: parent account rows aggregate the lots beneath them
+# (and show only lot-tracked commodities, not eg cash). Lot subaccounts
+# appear as leaves with --lots. No totals row when there is a single
+# top-level row.
+$ hledger -f- holdings -e 2026-04-01 --lots --tree
+Holdings on 2026-03-31
 
-# ** 5. A journal with no lots reports no holdings.
+                            ||       Date  Age  Quantity  Unit cost   Cost  Price  Value  Gain 
+============================++=================================================================
+ assets:broker              ||                   15 AAPL             $2850                     
+                            ||                    5 MSFT                                       
+   funds:{2026-02-15, $400} || 2026-02-15  44d    5 MSFT       $400  $2000                     
+   stocks                   ||                   15 AAPL     $56.67   $850                     
+     {2026-01-15, $50}      || 2026-01-15  75d    5 AAPL        $50   $250                     
+     {2026-02-01, $60}      || 2026-02-01  58d   10 AAPL        $60   $600                     
+
+# ** 5. --no-elide shows boring parent accounts (and single lots)
+# as separate rows.
+$ hledger -f- holdings -e 2026-04-01 --lots --tree --no-elide
+Holdings on 2026-03-31
+
+                          ||       Date  Age  Quantity  Unit cost   Cost  Price  Value  Gain 
+==========================++=================================================================
+ assets                   ||                   15 AAPL             $2850                     
+                          ||                    5 MSFT                                       
+   broker                 ||                   15 AAPL             $2850                     
+                          ||                    5 MSFT                                       
+     funds                || 2026-02-15  44d    5 MSFT       $400  $2000                     
+       {2026-02-15, $400} || 2026-02-15  44d    5 MSFT       $400  $2000                     
+     stocks               ||                   15 AAPL     $56.67   $850                     
+       {2026-01-15, $50}  || 2026-01-15  75d    5 AAPL        $50   $250                     
+       {2026-02-01, $60}  || 2026-02-01  58d   10 AAPL        $60   $600                     
+
+# ** 6. --depth clips and aggregates the displayed rows; the lots
+# beneath still count.
+$ hledger -f- holdings -e 2026-04-01 --depth 2
+Holdings on 2026-03-31
+
+               || Date  Age  Quantity  Avg cost   Cost  Price  Value  Gain 
+===============++==========================================================
+ assets:broker ||             15 AAPL            $2850                     
+               ||              5 MSFT                                      
+
+# ** 7. A journal with no lots reports no holdings.
 <
 2026-01-01 opening
     assets:cash     $100
@@ -76,7 +113,7 @@ Holdings on 2026-01-01
 
 (no holdings)
 
-# ** 6. Amounts are shown with their commodity's display precision.
+# ** 8. Amounts are shown with their commodity's display precision.
 # Inferred per-unit costs in lot names can have up to 8 decimals;
 # Unit cost, Avg cost and Cost are still displayed with the commodity's
 # standard display precision (here, 2 digits).
@@ -107,7 +144,7 @@ Holdings on 2026-03-31
 ------------------------------------------++-----------------------------------------------------------------------
                                           ||                                         $34600.33                     
 
-# ** 7. Same, aggregated: Avg cost also uses the display precision.
+# ** 9. Same, aggregated: Avg cost also uses the display precision.
 $ hledger -f- holdings -e 2026-04-01
 Holdings on 2026-03-31
 
@@ -118,7 +155,7 @@ Holdings on 2026-03-31
 -------------++-----------------------------------------------------------------------
              ||                                         $34600.33                     
 
-# ** 8. Quantities are also normalised to the commodity's display precision
+# ** 10. Quantities are also normalised to the commodity's display precision
 # (here 3 decimals, inferred from the first purchase).
 <
 commodity AAAA ; lots:
@@ -141,7 +178,7 @@ Holdings on 2026-01-31
 --------------------------++------------------------------------------------------------------
                           ||                                          $72                     
 
-# ** 9. --round can select another rounding strategy, eg none shows
+# ** 11. --round can select another rounding strategy, eg none shows
 # amounts with their original precision.
 $ hledger -f- holdings -e 2026-02-01 --lots --round=none
 Holdings on 2026-01-31
@@ -153,7 +190,7 @@ Holdings on 2026-01-31
 --------------------------++------------------------------------------------------------------
                           ||                                          $72                     
 
-# ** 10. With market prices (P directives), the Price, Value and Gain
+# ** 12. With market prices (P directives), the Price, Value and Gain
 # columns show each holding's market price at the report date, its
 # market value, and its unrealised gain (absolute and percent).
 <
@@ -193,7 +230,7 @@ Holdings on 2026-03-31
 ----------------------++-------------------------------------------------------------------------
                       ||                                      $2850         $3130   $280 (+9.8%) 
 
-# ** 11. Same with --lots: per-lot values and gains.
+# ** 13. Same with --lots: per-lot values and gains.
 $ hledger -f- holdings -e 2026-04-01 --lots
 Holdings on 2026-03-31
 
@@ -205,7 +242,7 @@ Holdings on 2026-03-31
 ----------------------------------------++--------------------------------------------------------------------------
                                         ||                                       $2850         $3130   $280 (+9.8%) 
 
-# ** 12. With --infer-market-prices, transaction costs also provide
+# ** 14. With --infer-market-prices, transaction costs also provide
 # market prices, as usual.
 <
 commodity AAAA ; lots:
@@ -229,7 +266,7 @@ Holdings on 2026-01-31
                           ||                                          $72           $75   $2 (+3.4%) 
 
 
-# ** 13. -X/--value=end,COMM value holdings in the given commodity:
+# ** 15. -X/--value=end,COMM value holdings in the given commodity:
 # the Price and Value columns, and also the Cost, Unit/Avg cost and Gain
 # columns (converted at the valuation date, so percent gain is unchanged).
 # Converted amounts are also normalised to the commodity's display precision.
@@ -251,7 +288,7 @@ Holdings on 2026-03-31
 ===============++=================================================================================
  assets:stocks || 2026-01-15  75d   10 AAPL    €45.62  €456.15  €65.69  €656.86  €200.71 (+44.0%) 
 
-# ** 14. -V values in the default valuation commodity.
+# ** 16. -V values in the default valuation commodity.
 $ hledger -f- holdings -e 2026-04-01 -V
 Holdings on 2026-03-31
 
@@ -259,7 +296,7 @@ Holdings on 2026-03-31
 ===============++========================================================================
  assets:stocks || 2026-01-15  75d   10 AAPL       $50  $500    $72   $720  $220 (+44.0%) 
 
-# ** 15. --value=then is not supported.
+# ** 17. --value=then is not supported.
 $ hledger -f- holdings --value=then
 >2
 hledger: Error: holdings: --value=then is not supported
