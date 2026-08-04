@@ -1872,14 +1872,21 @@ installcommithook:
 @holdings-beancount *ARGS:
     bean-report examples/example.beancount holdings {{ ARGS }}
 
-holdings-beancount-examples *ARGS:
+# Show a rledger sample holdings report.
+@holdings-rledger *ARGS:
+    rledger report examples/example.beancount holdings {{ ARGS }}
+
+# Show a hledger sample holdings report.
+@holdings-hledger *ARGS:
+    hledger -f examples/lots/lot-entries.journal holdings {{ ARGS }}
+
+# Show several holdings report examples.
+holdings-examples:
     just holdings-beancount
     just holdings-beancount --by root-account
     just holdings-beancount --by account
     just holdings-beancount --by commodity
     just holdings-beancount --by currency
-
-# Show a rledger sample holdings report.
-@holdings-rledger *ARGS:
-    rledger report examples/example.beancount holdings {{ ARGS }}
+    just holdings-rledger
+    just holdings-hledger
 
