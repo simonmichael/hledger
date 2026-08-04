@@ -10,6 +10,7 @@ default or shown as rows with --lots.
 -}
 
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.Cli.Commands.Holdings (
@@ -36,9 +37,11 @@ import Hledger.Cli.Commands.Print (roundFromRawOpts)
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Hledger.Write.Html (Html, htmlAsLazyText, styledTableHtml, toHtml)
+import Hledger.Write.Ods (printFods)
 import Hledger.Write.Spreadsheet (addHeaderBorders, headerCell)
 import Hledger.Write.Spreadsheet qualified as Ods
 import Lucid qualified as L
+import System.IO qualified as IO
 import Text.Tabular.AsciiWide
 
 -- | Command line options for this command.
@@ -57,7 +60,7 @@ holdingsmode = hledgerCommandMode
      ,"hard - round amounts to precision (default)"
      ,"all  - also round cost amounts to precision"
      ]
-   ,outputFormatFlag ["txt","csv","tsv","html"]
+   ,outputFormatFlag ["txt","csv","tsv","html","fods"]
    ,outputFileFlag])
   cligeneralflagsgroups1
   hiddenflags
@@ -79,6 +82,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       "csv"  -> printCSV csvoutput
       "tsv"  -> printTSV csvoutput
       "html" -> (<>"\n") $ htmlAsLazyText $ styledTableHtml htmltable
+      "fods" -> printFods IO.localeEncoding $ M.singleton "Holdings" ((1,0), fodstable)
       fmt    -> error' $ unsupportedOutputFormatError fmt
   where
     txtoutput =
@@ -314,42 +318,49 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
           _ -> ""
         showamt = T.pack . showAmountWith noCostFmt
 
-    -- The html output's table: like the text table, but with single-line
-    -- cells, an Account column heading, and a Total: row heading.
-    htmltable :: [[Ods.Cell Ods.NumLines Html]]
-    htmltable =
+    -- Spreadsheet-shaped tables for the html and fods output: like the
+    -- text table, but with single-line cells, an Account column heading,
+    -- and a Total: row heading. Parameterised on how to convert plain
+    -- text, and a cell's list of (possibly amount) parts, to content.
+    spreadsheetWith :: forall content. (T.Text -> content) -> (Bool -> [T.Text] -> content)
+                    -> [[Ods.Cell Ods.NumLines content]]
+    spreadsheetWith plain parts =
       addHeaderBorders (zipWith hcell colclasses ("Account" : colheadings))
       : [ zipWith3 bodycell [0..] colclasses
-            (toHtml (acctcell r) : zipWith partsHtml amountcols (rowCellParts r))
+            (plain (acctcell r) : zipWith parts amountcols (rowCellParts r))
         | r <- sortedrows ]
       ++ maybe [] (\tot -> addTotalBorders
            [zipWith3 totalcell [0..] colclasses
-              (toHtml ("Total:"::T.Text) : zipWith partsHtml amountcols tot) :: [Ods.Cell () Html]])
+              (plain "Total:" : zipWith parts amountcols tot) :: [Ods.Cell () content]])
            mtotalrowparts
       where
-        -- per-column css classes, so the cells can be styled
+        -- per-column css classes, so the html cells can be styled
         colclasses = ["account","date","age","quantity","unitcost","cost","price","value","gain"]
         -- which of the other columns' cell parts are amounts
         amountcols = [False, False, True, True, True, True, True, True]
-        hcell :: Ods.Lines border => T.Text -> T.Text -> Ods.Cell border Html
-        hcell cls t = toHtml <$> (headerCell t){Ods.cellClass = Ods.Class cls}
+        hcell cls t = plain <$> (headerCell t){Ods.cellClass = Ods.Class cls}
         -- body cells are right-aligned, except the first two columns
         -- (Account and Date); headings are unaffected
-        bodycell :: Ods.Lines border => Int -> T.Text -> content -> Ods.Cell border content
+        bodycell :: Ods.Lines border => Int -> T.Text -> content' -> Ods.Cell border content'
         bodycell i cls t = (Ods.defaultCell t)
           {Ods.cellType = if i < 2 then Ods.TypeString else Ods.TypeMixedAmount
           ,Ods.cellClass = Ods.Class cls}
-        totalcell :: Ods.Lines border => Int -> T.Text -> Html -> Ods.Cell border Html
         totalcell i cls = bodycell i (cls <> " coltotal")
         -- indent tree-mode account names with no-break spaces
         acctcell r = T.replicate (prrIndent r * 2) "\160" <> prrDisplayName r
-        -- each commodity amount gets its own span with an "amount" class,
-        -- so eg wrapping within amounts can be prevented with css
-        partsHtml :: Bool -> [T.Text] -> Html
+
+    -- Each commodity amount gets its own span with an "amount" class,
+    -- so eg wrapping within amounts can be prevented with css.
+    htmltable :: [[Ods.Cell Ods.NumLines Html]]
+    htmltable = spreadsheetWith toHtml partsHtml
+      where
         partsHtml isamount parts =
           mconcat $ intersperse (toHtml (", "::T.Text)) $
           map (\p -> if isamount then L.span_ [L.class_ "amount"] (toHtml p) else toHtml p) $
           filter (not . T.null) parts
+
+    fodstable :: [[Ods.Cell Ods.NumLines T.Text]]
+    fodstable = spreadsheetWith id (\_ -> T.intercalate ", " . filter (not . T.null))
 
     -- CSV/TSV output: one record per displayed row and commodity, with
     -- machine-friendlier fields: full account names, age in days, bare

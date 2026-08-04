@@ -21,7 +21,7 @@ Flags:
                             hard - round amounts to precision (default)
                             all  - also round cost amounts to precision
   -O --output-format=FMT    select the output format. Supported formats:
-                            txt, csv, tsv, html.
+                            txt, csv, tsv, html, fods.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 ```
@@ -72,4 +72,7 @@ naming its column (`account`, `date`, `age`, `quantity`, `unitcost`,
 `coltotal`), and each commodity amount is enclosed in a span with
 class `amount` (eg allowing wrapping within amounts to be prevented).
 
-Not yet implemented: fods or json output.
+With `-O fods`, a spreadsheet document readable by LibreOffice etc.
+is produced, with the same single-line cells as the html output.
+
+Not yet implemented: json output.
