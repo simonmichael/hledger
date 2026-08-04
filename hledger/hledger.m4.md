@@ -7584,6 +7584,18 @@ account equity:unrealised-gain  ; type:U
     equity:unrealised-gain   $10
 ```
 
+### Gain postings and the roi command
+
+When using the [roi](#roi) command with a journal that records lots,
+make sure `--pnl` matches both gain accounts, eg:
+
+```cli
+$ hledger roi --inv assets:stocks --pnl 'revenues:gain|equity:unrealised-gain'
+```
+
+Otherwise the unrealised-gain postings added to each disposal (see above)
+are counted as cash flows in and out of the investment, distorting the report.
+
 ## Lot postings and balance assertions 
 
 On a dispose or transfer posting without an explicit lot subaccount, a [balance assertion](#balance-assertions)

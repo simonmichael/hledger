@@ -124,6 +124,15 @@ postings in the example below would be classifed as:
   snake oil     $50            ; investment posting
 ```
 
+### Using roi with lots
+
+If your journal records [lots](#lots), each disposal transaction has a
+balanced pair of gain postings, by default to `revenues:gain` (the
+realised gain) and `equity:unrealised-gain` (reclassifying the
+accumulated unrealised gain). Make sure `--pnl` matches both accounts, eg
+`--pnl 'revenues:gain|equity:unrealised-gain'`; otherwise the
+unrealised-gain postings are counted as cash flows in and out of the
+investment, distorting the report.
 
 ### IRR and TWR explained
 
