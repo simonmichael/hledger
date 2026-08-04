@@ -187,6 +187,7 @@ library
     , network
     , safe >=0.3.20
     , shakespeare >=2.0.2.2
+    , streaming-commons
     , template-haskell
     , text >=1.2.4.1
     , time >=1.5

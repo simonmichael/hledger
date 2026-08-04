@@ -90,7 +90,7 @@ webflags =
       ["port"]
       (\s opts -> Right $ setopt "port" s opts)
       "PORT"
-      ("listen on this TCP port (default: " ++ show defport ++ ")")
+      ("listen on this TCP port (default: " ++ show defport ++ "); 0 means a free port chosen by the OS")
   , flagReq
       ["socket"]
       (\s opts -> Right $ setopt "socket" s opts)
