@@ -23,7 +23,7 @@ import Data.List.Extra (intercalate, nubSort)
 import Data.Map.Strict qualified as M
 import Data.Maybe (fromMaybe, isJust, listToMaybe)
 import Data.Text qualified as T
-import Data.Text.Lazy.IO qualified as TL
+import Data.Text.Lazy qualified as TL
 import Data.Time.Calendar (addDays, diffDays)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 import Text.Printf (printf)
@@ -31,6 +31,7 @@ import Text.Printf (printf)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print (roundFromRawOpts)
+import Hledger.Cli.Utils (writeOutputLazyText)
 import Text.Tabular.AsciiWide
 
 -- | Command line options for this command.
@@ -46,7 +47,8 @@ holdingsmode = hledgerCommandMode
      ,"       to match precision"
      ,"hard - round amounts to precision (default)"
      ,"all  - also round cost amounts to precision"
-     ]])
+     ]
+   ,outputFileFlag])
   cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
@@ -58,21 +60,21 @@ holdingsmode = hledgerCommandMode
 -- synthetic postings) uncollapsed, regardless of --lots
 -- (see maybeCollapseLotDetail); it aggregates lots itself.
 holdings :: CliOpts -> Journal -> IO ()
-holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts}} j = do
+holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts}} j = do
   if accountlistmode_ ropts == ALTree then error' "holdings: --tree is not yet supported"
   else if (case mvalue of Just (AtThen _) -> True; _ -> False)
   then error' "holdings: --value=then is not supported"
-  else rounding `seq` do  -- validate the --round value before any output
-    putStrLn $ "Holdings on " ++ T.unpack (showDate reportdate)
-    putStrLn ""
-    if null rows
-    then putStrLn "(no holdings)"
-    else TL.putStr $ renderTable
-      def{tableBorders=False}
-      (textCell TopLeft)
-      (textCell TopRight)
-      (textCell TopRight)
-      tbl
+  else rounding `seq`  -- validate the --round value before any output
+    writeOutputLazyText opts $
+      "Holdings on " <> TL.fromStrict (showDate reportdate) <> "\n\n" <>
+      if null rows
+      then "(no holdings)\n"
+      else renderTable
+        def{tableBorders=False}
+        (textCell TopLeft)
+        (textCell TopRight)
+        (textCell TopRight)
+        tbl
   where
     showlots = boolopt "lots" rawopts
 
