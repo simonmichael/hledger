@@ -1597,12 +1597,16 @@ processAcquirePosting styles j needsLabels txnDate t lotState p = do
                  baseAcct commodity (aquantity lotAmt) lotBasis lotState
           else Right (lotBasis, lotState)
 
-        let fullCb     = CostBasis{cbDate = Just date, cbLabel = lotLabel'', cbCost = Just lotBasisStored}
-            -- For an inferred cost, widen precision to the commodity style's
+        let -- For an inferred cost, widen precision to the commodity style's
             -- declared minimum (eg 2.5 -> 2.50 with 'commodity €1.00'); for
             -- a user-written explicit cost, preserve their formatting.
             widenIfInferred = if cbInferred then widenLotCbCost styles else id
-            lotName    = showLotNameForMethod method (widenIfInferred $ styleLotCbCost styles fullCb)
+            -- The stored cost basis is styled/widened the same way as the lot
+            -- subaccount name, so that later renderings of this lot's name
+            -- (on dispose and transfer postings) match the acquire's.
+            fullCb     = widenIfInferred $ styleLotCbCost styles
+                           CostBasis{cbDate = Just date, cbLabel = lotLabel'', cbCost = Just lotBasisStored}
+            lotName    = showLotNameForMethod method fullCb
             -- When cost basis was inferred, fill it in on the user's original cb
             -- so that print shows {$50} not {}. Style it the same way as the
             -- lot subaccount name.

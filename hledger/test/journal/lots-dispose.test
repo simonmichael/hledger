@@ -656,3 +656,24 @@ $ hledger -f- print --lots
 >2 /no lots available for commodity FUND in account assets:fund/
 >=1
 
+
+# ** 36. When a declared commodity display style widens an inferred cost
+# basis (eg 'commodity 1.00 €' shows 2.5 as 2.50), disposal postings use
+# the same widened lot subaccount name as the acquire, since the widened
+# cost basis is stored with the lot. #2659
+<
+commodity AAAA ; lots:
+commodity 1.00 €
+
+2026-01-01
+    assets       100.00 AAAA @@ 250 €
+    cash
+
+2026-01-02
+    assets       -40.00 AAAA {} @ 3 €
+    cash
+
+$ hledger -f- bal --lots -e 2026-01-03 assets cur:AAAA
+          60.00 AAAA  assets:{2026-01-01, 2.50 €}
+--------------------
+          60.00 AAAA  
