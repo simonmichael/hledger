@@ -32,10 +32,18 @@ With --tree, accounts are shown as a tree, with parent rows aggregating
 the lots beneath them; --depth limits and aggregates the displayed rows
 as usual. With -S/--sort-amount, rows are sorted by market value (or by
 cost, when unpriced), largest first. Columns show each holding's
-acquisition date and age (when the row's lots share a single date), the
-quantity held, the unit cost (or average cost, on rows aggregating
-multiple lots), the total cost basis, the current market price, the
-market value, and the unrealised gain (absolute and percent).
+acquisition date and age (when the row's lots share a single date; ages
+are shown in days, or from one year in years with one decimal digit, eg
+44d or 1.1y, approximating years as 365 days), the quantity held, the
+unit cost (or average cost, on rows aggregating multiple lots), the
+total cost basis, the current market price, the market value, the
+percentage of the portfolio's total value (Weight), the unrealised gain
+(absolute and percent), the realised gain from disposals so far (Rgain),
+and the annualised internal rate of return (XIRR, calculated from the
+account's dated cashflows and current value, like roi's IRR; it includes
+realised gains). In the totals row, Rgain and XIRR are account-level:
+they also include fully disposed lots, which have no row of their own
+(eg with --lots).
 
 Market prices at the report date come from P directives, and from
 transaction costs with --infer-market-prices, as usual; holdings are

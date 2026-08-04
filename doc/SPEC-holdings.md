@@ -42,7 +42,10 @@ json...).
 | Cost      | total cost basis                                               |
 | Price     | current market price per unit                                  |
 | Value     | current market value (Quantity x Price)                        |
+| Weight    | percentage of the portfolio's total value                      |
 | Gain      | unrealised gain: Value - Cost, absolute and percent            |
+| Rgain     | realised gain from disposals so far                            |
+| XIRR      | annualised internal rate of return, like roi's IRR             |
 
 Notes:
 - On rows aggregating multiple lots, Date and Age are blank,
@@ -50,20 +53,38 @@ Notes:
   it is titled "Unit cost" when `--lots` is in effect).
   (Alternatives considered for aggregated Date/Age: oldest lot's date/age,
   a date range, quantity-weighted average age.)
-- Age is shown in days, eg `75d`. (Could later be humanised, eg `2m14d` or
-  `1y3m`, and/or a long/short-term capital gains indicator could be added.)
+- Age is shown in days, or from one year in years with one decimal digit,
+  eg `44d`, `1.1y`, approximating years as 365 days. (A long/short-term
+  capital gains indicator could be added later.) The csv/json outputs
+  keep age as a number of days.
+- Weight is each row's value as a percentage of the portfolio's total
+  value; blank unless all displayed holdings are priced in one commodity.
+- Rgain sums each dispose posting's proceeds minus the cost basis of the
+  disposed units, for the lots at or under the row's account. Fully
+  disposed lots have no row of their own (eg with --lots), but their
+  realised gains are included in the totals row, which computes Rgain
+  and XIRR from the displayed rows' base accounts - consistent across
+  display modes. Fully disposed accounts don't appear in the report at
+  all, so neither do their realised gains.
+- XIRR solves for the annualised rate of return implied by the account's
+  dated cashflows (acquisitions at transacted or basis cost, disposals at
+  proceeds) plus its current value, like roi's IRR (using ridders,
+  rate**(days/365.25)); it thus includes realised gains. Blank when
+  unpriced, when cashflow commodities differ from the value commodity
+  (eg under -X), or when unsolvable.
+  The final cashflow is the displayed Value, treated as received at the
+  report date (even if `--value` priced it at a different date) -
+  consistent with the Value and Gain columns.
 - Rows with no known market price show blank Price, Value and Gain,
   rather than pretending the gain is zero.
 - Amounts are displayed normalised to their commodity's display precision
   by default (unlike lot names, which can show more precision);
   `--round` can select another rounding strategy (default: hard).
-- The totals row shows only the commodity-independent columns:
-  Cost, Value, Gain.
-- Possible future columns: portfolio weight %, realised gain, XIRR.
+- The totals row (shown unless -N) shows only the commodity-independent
+  columns: Cost, Value, Weight (100%), Gain, Rgain, XIRR.
+- Possible future columns: a long/short-term capital gains indicator.
 
 ## Valuation
-
-- The report date is the report end date (today by default, or set with `-e`).
 - Prices are market prices at the report date, from P directives, and from
   transaction costs with `--infer-market-prices`, looked up with the standard
   price oracle. Each holding is valued in its cost commodity when possible
@@ -194,8 +215,29 @@ Holdings on 2026-03-31
    JSON output: an array of holding objects with the CSV fields;
    quantities and gain percents use hledger's usual JSON number
    encoding, missing values are null. (done)
-7. Extra columns, on demand: portfolio weight %, humanised Age (eg 2m14d)
-   or a long/short-term indicator, realised gain, XIRR.
+7. Extra columns: Weight (portfolio %), humanised Age (eg 1.1y),
+   Rgain (realised gain), XIRR; also added to the csv/tsv/json outputs
+   (with age still numeric there). (done)
 8. Docs integration: mention holdings in the manual's lot reporting
    sections (First lots example, Lot subaccounts, Lot reporting example).
    (done)
+
+## Open questions
+
+### Future-dated postings
+
+Without an explicit report end date (eg set by -e), 
+holdings includes future-dated postings in its quantities
+(like other hledger reports), but prices are computed as of the
+valuation date, and ages as of the report end date (both are today by default).
+This means future positions are typically valued/aged as of today, 
+future-dated lots will show a negative age, and future P directives are invisible.
+
+An alternative was tried (2026-08-04) and rolled back: defaulting the
+report end date to today (treating a missing end date as today+1 in the
+lot posting query, the internal multiBalanceReport query, and the report
+date), like hledger-ui's hiding of future transactions. It was judged
+not worth the inconsistency with other reports, for now; the motivating
+example (examples/lots/lot-entries.journal needing -e to show prices)
+was fixed instead by moving its story dates into the past. Could be
+revisited if future-dated journals prove troublesome in practice.
