@@ -40,7 +40,7 @@ Columns show each holding's acquisition date and age
 (when the row's lots share a single date; ages are shown in days, or
 from one year in years with one decimal digit, eg `44d` or `1.1y`,
 approximating years as 365 days),
-the quantity held,
+the units held,
 the unit cost (or average cost, on rows aggregating multiple lots),
 the total cost basis, the current market price, the market value,
 the percentage of the portfolio's total value (Weight),
@@ -69,7 +69,7 @@ Amounts are displayed with their commodity's display precision
 
 With `-O csv` or `-O tsv`, machine-readable output is produced instead:
 one record per row and commodity, with full account names, age in days,
-bare quantity and gain percent numbers, gain and gain percent as
+bare units and gain percent numbers, gain and gain percent as
 separate fields, and no totals records.
 Amounts are shown without digit group marks; as in other commands'
 CSV output, the decimal mark follows the commodity's display style.
@@ -78,7 +78,7 @@ subaccounts.)
 
 With `-O html`, an HTML table is produced: like the text table,
 but with single-line cells. For styling, each cell has a css class
-naming its column (`account`, `date`, `age`, `quantity`, `unitcost`,
+naming its column (`account`, `date`, `age`, `units`, `unitcost`,
 `cost`, `price`, `value`, `gain`; totals row cells also have
 `coltotal`), and each commodity amount is enclosed in a span with
 class `amount` (eg allowing wrapping within amounts to be prevented).
@@ -87,6 +87,6 @@ With `-O fods`, a spreadsheet document readable by LibreOffice etc.
 is produced, with the same single-line cells as the html output.
 
 With `-O json`, a JSON array of holding objects is produced, with the
-same fields as the CSV output; quantities and gain percents are
+same fields as the CSV output; units and gain percents are
 JSON number objects as in other commands' JSON output, and missing
 values are null.

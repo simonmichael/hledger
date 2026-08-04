@@ -37,11 +37,11 @@ json...).
 |-----------|----------------------------------------------------------------|
 | Date      | the lot's acquisition date                                     |
 | Age       | how long the lot has been held, as of the report date          |
-| Quantity  | number of units held                                           |
+| Units     | number of units held                                           |
 | Unit cost | cost basis per unit ("Avg cost" on rows aggregating lots)      |
 | Cost      | total cost basis                                               |
 | Price     | current market price per unit                                  |
-| Value     | current market value (Quantity x Price)                        |
+| Value     | current market value (Units x Price)                           |
 | Weight    | percentage of the portfolio's total value                      |
 | Gain      | unrealised gain: Value - Cost, absolute and percent            |
 | Rgain     | realised gain from disposals so far                            |
@@ -99,7 +99,7 @@ Notes:
   currency conversion. Costs with no market price to the valuation
   commodity are left unconverted (making Gain blank).
 - `--value=then` is not supported (holdings is a snapshot report).
-- `-B/--cost` has no effect; quantities always stay quantities.
+- `-B/--cost` has no effect; units always stay units.
 
 ## Layout mockups
 
@@ -113,7 +113,7 @@ Default (list mode, lot subaccounts hidden):
 $ hledger holdings
 Holdings on 2026-03-31
 
-                      ||       Date  Age  Quantity  Avg cost   Cost  Price  Value           Gain
+                      ||       Date  Age     Units  Avg cost   Cost  Price  Value           Gain
 ======================++========================================================================
  assets:broker:funds  || 2026-02-15  44d    5 MSFT   $400.00  $2000   $410  $2050    $50  (+2.5%)
  assets:broker:stocks ||                   15 AAPL    $56.67   $850    $72  $1080   $230 (+27.1%)
@@ -130,7 +130,7 @@ With `--lots` (lot subaccounts become rows; Avg cost becomes exact Unit cost):
 $ hledger holdings --lots
 Holdings on 2026-03-31
 
-                                        ||       Date  Age  Quantity  Unit cost   Cost  Price  Value           Gain
+                                        ||       Date  Age     Units  Unit cost   Cost  Price  Value           Gain
 ========================================++=========================================================================
  assets:broker:funds:{2026-02-15, $400} || 2026-02-15  44d    5 MSFT       $400  $2000   $410  $2050    $50  (+2.5%)
  assets:broker:stocks:{2026-01-15, $50} || 2026-01-15  75d    5 AAPL        $50   $250    $72   $360   $110 (+44.0%)
@@ -146,7 +146,7 @@ multi-line as in bal):
 $ hledger holdings --lots --tree
 Holdings on 2026-03-31
 
-                          ||       Date  Age  Quantity  Unit cost   Cost  Price  Value           Gain
+                          ||       Date  Age     Units  Unit cost   Cost  Price  Value           Gain
 ==========================++=========================================================================
  assets                   ||                  15 AAPL              $2850         $3130   $280  (+9.8%)
                           ||                   5 MSFT
@@ -166,7 +166,7 @@ where meaningless):
 $ hledger holdings --depth 2
 Holdings on 2026-03-31
 
-                || Quantity   Cost  Value          Gain
+                ||    Units   Cost  Value          Gain
 ================++=====================================
  assets:broker  ||  15 AAPL  $2850  $3130  $280 (+9.8%)
                 ||   5 MSFT
@@ -184,7 +184,7 @@ Holdings on 2026-03-31
   (balanceReport was considered but it is just a thin projection of
   multiBalanceReport; MBR keeps the row structure, totals and valuation
   machinery we need.)
-- Per-lot quantities are summed from the lot subaccounts' postings
+- Per-lot units are summed from the lot subaccounts' postings
   (amount arithmetic discards cost basis, so balances alone don't suffice).
   Each lot's cost basis is parsed back from the lot subaccount name, which by
   construction contains the acquisition date and unit cost.
@@ -194,7 +194,7 @@ Holdings on 2026-03-31
 
 1. Layout mockup: skeleton `holdings` command printing the sample layout above. (done)
 2. Real report in list mode: rows from the journal's lotful accounts, with
-   Date, Age, Quantity, Unit/Avg cost and Cost columns; --lots; totals row;
+   Date, Age, Units, Unit/Avg cost and Cost columns; --lots; totals row;
    functional tests (hledger/test/holdings.test). --tree errors out. (done)
 3. Valuation columns: Price, Value, Gain, with market prices from the
    standard price oracle; blank when no market price is known. (done)
@@ -205,7 +205,7 @@ Holdings on 2026-03-31
    largest first; tree mode sorts each subtree level, keeping subtrees
    together. (done)
 6. CSV/TSV output: one record per row and commodity, with full account
-   names, age in days, bare quantity and gain percent numbers, Gain and
+   names, age in days, bare units and gain percent numbers, Gain and
    Gain% as separate fields, and no totals records. (done)
    HTML output: like the text table, but with single-line cells, via the
    spreadsheet-cell machinery. Amount cells are right-aligned; each cell
@@ -213,7 +213,7 @@ Holdings on 2026-03-31
    and each commodity amount is in a span with class "amount". (done)
    FODS output: the same single-line cells, via printFods. (done)
    JSON output: an array of holding objects with the CSV fields;
-   quantities and gain percents use hledger's usual JSON number
+   units and gain percents use hledger's usual JSON number
    encoding, missing values are null. (done)
 7. Extra columns: Weight (portfolio %), humanised Age (eg 1.1y),
    Rgain (realised gain), XIRR; also added to the csv/tsv/json outputs
@@ -227,7 +227,7 @@ Holdings on 2026-03-31
 ### Future-dated postings
 
 Without an explicit report end date (eg set by -e), 
-holdings includes future-dated postings in its quantities
+holdings includes future-dated postings in its units
 (like other hledger reports), but prices are computed as of the
 valuation date, and ages as of the report end date (both are today by default).
 This means future positions are typically valued/aged as of today, 
