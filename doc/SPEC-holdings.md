@@ -186,8 +186,11 @@ Holdings on 2026-03-31
 6. CSV/TSV output: one record per row and commodity, with full account
    names, age in days, bare quantity and gain percent numbers, Gain and
    Gain% as separate fields, and no totals records. (done)
-   (HTML/FODS/JSON possibly later, via the standard output-format
-   machinery.)
+   HTML output: like the text table, but with single-line cells, via the
+   spreadsheet-cell machinery. Amount cells are right-aligned; each cell
+   has a css class naming its column (plus coltotal on the totals row),
+   and each commodity amount is in a span with class "amount". (done)
+   (FODS/JSON possibly later.)
 7. Extra columns, on demand: portfolio weight %, humanised Age (eg 2m14d)
    or a long/short-term indicator, realised gain, XIRR.
 8. Docs integration: mention holdings in the manual's lot reporting

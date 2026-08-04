@@ -20,7 +20,7 @@ Flags:
                             hard - round amounts to precision (default)
                             all  - also round cost amounts to precision
   -O --output-format=FMT    select the output format. Supported formats:
-                            txt, csv, tsv.
+                            txt, csv, tsv, html.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 
@@ -58,4 +58,11 @@ marks; as in other commands' CSV output, the decimal mark follows the
 commodity's display style. (Note in tree mode, parent account records
 repeat the data of their subaccounts.)
 
-Not yet implemented: html, fods or json output.
+With -O html, an HTML table is produced: like the text table, but with
+single-line cells. For styling, each cell has a css class naming its
+column (account, date, age, quantity, unitcost, cost, price, value,
+gain; totals row cells also have coltotal), and each commodity amount is
+enclosed in a span with class amount (eg allowing wrapping within
+amounts to be prevented).
+
+Not yet implemented: fods or json output.

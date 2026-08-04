@@ -352,3 +352,8 @@ P 2026-03-31 AAAA 3,10 €
 $ hledger -f- holdings -e 2026-04-01 -O csv
 "account","commodity","date","age","quantity","unitcost","cost","price","value","gain","gainpct"
 "assets:stocks","AAAA","2026-01-15","75","1000,5","2,25 €","2251,12 €","3,10 €","3101,55 €","850,42 €","37.8"
+
+# ** 21. HTML output: an HTML table like the text table, with single-line
+# cells and a totals row.
+$ hledger -f- holdings -e 2026-04-01 -O html
+> /<td class="account">assets:stocks<\/td><td class="date">2026-01-15<\/td><td align="right" class="age">75d<\/td><td align="right" class="quantity"><span class="amount">1000,5 AAAA<\/span><\/td>/

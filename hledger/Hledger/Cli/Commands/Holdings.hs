@@ -19,7 +19,7 @@ module Hledger.Cli.Commands.Holdings (
 
 import Control.Applicative ((<|>))
 import Data.Default (def)
-import Data.List.Extra (intercalate, nubSort, sortOn)
+import Data.List.Extra (intercalate, intersperse, nubSort, sortOn)
 import Data.Map.Strict qualified as M
 import Data.Maybe (fromMaybe, isJust, listToMaybe, mapMaybe)
 import Data.Ord (Down(..))
@@ -31,9 +31,14 @@ import Text.Printf (printf)
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Commands.Balance (addTotalBorders)
 import Hledger.Cli.Commands.Print (roundFromRawOpts)
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
+import Hledger.Write.Html (Html, htmlAsLazyText, styledTableHtml, toHtml)
+import Hledger.Write.Spreadsheet (addHeaderBorders, headerCell)
+import Hledger.Write.Spreadsheet qualified as Ods
+import Lucid qualified as L
 import Text.Tabular.AsciiWide
 
 -- | Command line options for this command.
@@ -52,7 +57,7 @@ holdingsmode = hledgerCommandMode
      ,"hard - round amounts to precision (default)"
      ,"all  - also round cost amounts to precision"
      ]
-   ,outputFormatFlag ["txt","csv","tsv"]
+   ,outputFormatFlag ["txt","csv","tsv","html"]
    ,outputFileFlag])
   cligeneralflagsgroups1
   hiddenflags
@@ -70,10 +75,11 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
   then error' "holdings: --value=then is not supported"
   else rounding `seq`  -- validate the --round value before any output
     writeOutputLazyText opts $ case outputFormatFromOpts opts of
-      "txt" -> txtoutput
-      "csv" -> printCSV csvoutput
-      "tsv" -> printTSV csvoutput
-      fmt   -> error' $ unsupportedOutputFormatError fmt
+      "txt"  -> txtoutput
+      "csv"  -> printCSV csvoutput
+      "tsv"  -> printTSV csvoutput
+      "html" -> (<>"\n") $ htmlAsLazyText $ styledTableHtml htmltable
+      fmt    -> error' $ unsupportedOutputFormatError fmt
   where
     txtoutput =
       "Holdings on " <> TL.fromStrict (showDate reportdate) <> "\n\n" <>
@@ -260,7 +266,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
           Nothing       -> sumq $ mixed $ rowLotCosts r
           where sumq = sum . map aquantity . amounts
 
-    tbl = maybe id addtotalrow mtotalrow $ Table
+    tbl = maybe id addtotalrow (map (T.intercalate ", ") <$> mtotalrowparts) $ Table
       (Group NoLine $ map (Header . renderacct) sortedrows)
       (Group NoLine $ map Header colheadings)
       (map rowcells sortedrows)
@@ -273,13 +279,21 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     rowLotCosts r = [rowCostValuer r $ multiplyAmount (aquantity a) c
                     | (a, mcb) <- lotsUnder $ prrFullName r, Just c <- [cbCost =<< mcb]]
 
-    rowcells r = [datecell, agecell, qtycell, unitcostcell, costcell, pricecell, valuecell, gaincell]
+    -- The text table's cells: each cell's parts joined,
+    -- multi-line in Quantity and Price, one-line elsewhere.
+    rowcells = zipWith T.intercalate cellseps . rowCellParts
+    cellseps = [", ", ", ", "\n", ", ", ", ", "\n", ", ", ", "]
+
+    -- A row's cells, each as a list of parts:
+    -- one part per commodity amount in the amount cells, at most one part elsewhere.
+    rowCellParts :: PeriodicReportRow DisplayName MixedAmount -> [[T.Text]]
+    rowCellParts r = [[datecell], [agecell], qtyparts, [unitcostcell], costparts, priceparts, valueparts, [gaincell]]
       where
-        (pricecell, valuecell, gaincell) = case rowValuation r of
-          Nothing -> ("", "", "")
+        (priceparts, valueparts, gaincell) = case rowValuation r of
+          Nothing -> ([], [], "")
           Just (prices, val) ->
-            ( T.intercalate "\n" $ map (T.pack . showAmountWith noCostFmt) prices
-            , T.pack $ showMixedAmountWith oneLineNoCostFmt val
+            ( map showamt prices
+            , map showamt $ amounts val
             , showgain (amounts val) (amounts $ mixed costs)
             )
         rowlots = lotsUnder $ prrFullName r
@@ -288,16 +302,54 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         (datecell, agecell) = case dates of
           [Just dt] -> (showDate dt, T.pack (show $ diffDays reportdate dt) <> "d")
           _         -> ("", "")
-        qtycell = T.intercalate "\n" $ map (T.pack . showAmountWith noCostFmt . styleAmounts styles) $ rowQtyAmounts r
+        qtyparts = map (showamt . styleAmounts styles) $ rowQtyAmounts r
         costs = rowLotCosts r
-        costcell = showamts costs
+        costparts = map showamt $ amounts $ mixed costs
         unitcostcell = case (rowlots, costs) of
-          ([(_, mcb)], _) -> maybe "" (T.pack . showAmountWith noCostFmt . rowCostValuer r) (cbCost =<< mcb)
+          ([(_, mcb)], _) -> maybe "" (showamt . rowCostValuer r) (cbCost =<< mcb)
           (_, _:_) | [totcost] <- amounts (mixed costs)
                    , [totqty] <- amounts (mixed $ map fst rowlots)
                    , not $ amountLooksZero totqty
-                   -> T.pack $ showAmountWith noCostFmt $ avgcost totqty totcost
+                   -> showamt $ avgcost totqty totcost
           _ -> ""
+        showamt = T.pack . showAmountWith noCostFmt
+
+    -- The html output's table: like the text table, but with single-line
+    -- cells, an Account column heading, and a Total: row heading.
+    htmltable :: [[Ods.Cell Ods.NumLines Html]]
+    htmltable =
+      addHeaderBorders (zipWith hcell colclasses ("Account" : colheadings))
+      : [ zipWith3 bodycell [0..] colclasses
+            (toHtml (acctcell r) : zipWith partsHtml amountcols (rowCellParts r))
+        | r <- sortedrows ]
+      ++ maybe [] (\tot -> addTotalBorders
+           [zipWith3 totalcell [0..] colclasses
+              (toHtml ("Total:"::T.Text) : zipWith partsHtml amountcols tot) :: [Ods.Cell () Html]])
+           mtotalrowparts
+      where
+        -- per-column css classes, so the cells can be styled
+        colclasses = ["account","date","age","quantity","unitcost","cost","price","value","gain"]
+        -- which of the other columns' cell parts are amounts
+        amountcols = [False, False, True, True, True, True, True, True]
+        hcell :: Ods.Lines border => T.Text -> T.Text -> Ods.Cell border Html
+        hcell cls t = toHtml <$> (headerCell t){Ods.cellClass = Ods.Class cls}
+        -- body cells are right-aligned, except the first two columns
+        -- (Account and Date); headings are unaffected
+        bodycell :: Ods.Lines border => Int -> T.Text -> content -> Ods.Cell border content
+        bodycell i cls t = (Ods.defaultCell t)
+          {Ods.cellType = if i < 2 then Ods.TypeString else Ods.TypeMixedAmount
+          ,Ods.cellClass = Ods.Class cls}
+        totalcell :: Ods.Lines border => Int -> T.Text -> Html -> Ods.Cell border Html
+        totalcell i cls = bodycell i (cls <> " coltotal")
+        -- indent tree-mode account names with no-break spaces
+        acctcell r = T.replicate (prrIndent r * 2) "\160" <> prrDisplayName r
+        -- each commodity amount gets its own span with an "amount" class,
+        -- so eg wrapping within amounts can be prevented with css
+        partsHtml :: Bool -> [T.Text] -> Html
+        partsHtml isamount parts =
+          mconcat $ intersperse (toHtml (", "::T.Text)) $
+          map (\p -> if isamount then L.span_ [L.class_ "amount"] (toHtml p) else toHtml p) $
+          filter (not . T.null) parts
 
     -- CSV/TSV output: one record per displayed row and commodity, with
     -- machine-friendlier fields: full account names, age in days, bare
@@ -351,22 +403,24 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                             where gainq = aquantity val - aquantity costamt
                           _ -> ("", "")
 
-    -- Grand totals row: the Cost, Value and Gain columns, summed over the
-    -- topmost displayed rows (which include everything below them).
+    -- Grand totals row (as cell parts, like rowCellParts): the Cost,
+    -- Value and Gain columns, summed over the topmost displayed rows
+    -- (which include everything below them).
     -- Value and Gain are blank unless all rows have a market price.
-    mtotalrow
+    mtotalrowparts :: Maybe [[T.Text]]
+    mtotalrowparts
       | no_total_ ropts || length toprows < 2 = Nothing
-      | otherwise = Just ["", "", "", "", showamts totcosts, "", totvaluecell, totgaincell]
+      | otherwise = Just [[], [], [], [], costparts, [], valueparts, [gaincell]]
       where
         totcosts = concatMap rowLotCosts toprows
+        costparts = map showamt $ amounts $ mixed totcosts
         mrowvals = map rowValuation toprows
-        (totvaluecell, totgaincell) = case sequence mrowvals of
-          Nothing -> ("", "")
-          Just rowvals -> ( T.pack $ showMixedAmountWith oneLineNoCostFmt totvalue
+        (valueparts, gaincell) = case sequence mrowvals of
+          Nothing -> ([], "")
+          Just rowvals -> ( map showamt $ amounts totvalue
                           , showgain (amounts totvalue) (amounts $ mixed totcosts))
             where totvalue = mixed $ concatMap (amounts . snd) rowvals
-
-    showamts = T.pack . showMixedAmountWith oneLineNoCostFmt . mixed
+        showamt = T.pack . showAmountWith noCostFmt
 
     -- An average cost: total cost / total quantity, showing significant
     -- decimal digits up to the cost commodity's display precision
