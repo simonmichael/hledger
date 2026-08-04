@@ -1,0 +1,6 @@
+/* hledger.css - a sample style sheet for hledger's HTML output.
+   HTML reports (eg from bal or holdings) are styled by a hledger.css
+   file in the same directory, if present. */
+
+/* Don't wrap within dates or commodity amounts (eg in the holdings report). */
+td.date, span.amount { white-space: nowrap; }
