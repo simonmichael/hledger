@@ -700,6 +700,7 @@ Here are those commands and the formats currently supported:
 | balancesheet       | Y   | Y    | Y       | Y    |        |           |     | Y    |
 | balancesheetequity | Y   | Y    | Y       | Y    |        |           |     | Y    |
 | cashflow           | Y   | Y    | Y       | Y    |        |           |     | Y    |
+| holdings           | Y   | Y    | Y       | Y    |        |           |     | Y    |
 | incomestatement    | Y   | Y    | Y       | Y    |        |           |     | Y    |
 | print              | Y   | Y    | Y       | Y    | Y      | Y         | Y   | Y    |
 | register           | Y   | Y    | Y       | Y    |        |           |     | Y    |

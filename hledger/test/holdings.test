@@ -361,3 +361,7 @@ $ hledger -f- holdings -e 2026-04-01 -O html
 # ** 22. FODS output: a flat opendocument spreadsheet.
 $ hledger -f- holdings -e 2026-04-01 -O fods
 > /office:mimetype="application\/vnd\.oasis\.opendocument\.spreadsheet"/
+
+# ** 23. JSON output: an array of holding objects with the CSV fields.
+$ hledger -f- holdings -e 2026-04-01 -O json
+> /"unitcost": "2,25 €"/
