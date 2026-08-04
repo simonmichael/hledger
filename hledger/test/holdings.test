@@ -357,3 +357,7 @@ $ hledger -f- holdings -e 2026-04-01 -O csv
 # cells and a totals row.
 $ hledger -f- holdings -e 2026-04-01 -O html
 > /<td class="account">assets:stocks<\/td><td class="date">2026-01-15<\/td><td align="right" class="age">75d<\/td><td align="right" class="quantity"><span class="amount">1000,5 AAAA<\/span><\/td>/
+
+# ** 22. FODS output: a flat opendocument spreadsheet.
+$ hledger -f- holdings -e 2026-04-01 -O fods
+> /office:mimetype="application\/vnd\.oasis\.opendocument\.spreadsheet"/

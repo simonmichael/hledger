@@ -190,7 +190,8 @@ Holdings on 2026-03-31
    spreadsheet-cell machinery. Amount cells are right-aligned; each cell
    has a css class naming its column (plus coltotal on the totals row),
    and each commodity amount is in a span with class "amount". (done)
-   (FODS/JSON possibly later.)
+   FODS output: the same single-line cells, via printFods. (done)
+   (JSON possibly later.)
 7. Extra columns, on demand: portfolio weight %, humanised Age (eg 2m14d)
    or a long/short-term indicator, realised gain, XIRR.
 8. Docs integration: mention holdings in the manual's lot reporting
