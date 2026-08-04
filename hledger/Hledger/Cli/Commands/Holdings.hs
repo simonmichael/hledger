@@ -53,6 +53,7 @@ holdingsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Holdings.txt")
   (flattreeflags True ++
    [flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
+   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in list mode, omit N leading account name parts"
    ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by value (or cost) instead of account name, largest first"
    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
    ,flagReq ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
