@@ -55,7 +55,8 @@ Notes:
 - Rows with no known market price show blank Price, Value and Gain,
   rather than pretending the gain is zero.
 - Amounts are displayed normalised to their commodity's display precision
-  (unlike lot names, which can show more precision).
+  by default (unlike lot names, which can show more precision);
+  `--round` can select another rounding strategy (default: hard).
 - The totals row shows only the commodity-independent columns:
   Cost, Value, Gain.
 - Possible future columns: portfolio weight %, realised gain, XIRR.

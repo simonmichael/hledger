@@ -10,6 +10,13 @@ Flags:
   -t --tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
   -N --no-total             omit the final total row
+     --round=TYPE           how much rounding or padding should be done when
+                            displaying amounts ?
+                            none - show original decimal digits
+                            soft - just add or remove decimal zeros
+                                   to match precision
+                            hard - round amounts to precision (default)
+                            all  - also round cost amounts to precision
 ```
 
 This command is a work in progress.
@@ -21,7 +28,8 @@ with `--lots`. Columns show each holding's acquisition date and age
 the unit cost (or average cost, on rows aggregating multiple lots),
 and the total cost basis.
 Amounts are displayed with their commodity's display precision
-(unlike lot names, which can show more precision).
+(unlike lot names, which can show more precision);
+`--round` can select another rounding strategy.
 
 Not yet implemented: market price, market value and unrealised gain
 columns; tree mode; output formats other than text.
