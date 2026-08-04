@@ -20,6 +20,8 @@ Flags:
                                    to match precision
                             hard - round amounts to precision (default)
                             all  - also round cost amounts to precision
+  -O --output-format=FMT    select the output format. Supported formats:
+                            txt, csv, tsv.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
 ```
@@ -54,4 +56,13 @@ Amounts are displayed with their commodity's display precision
 (unlike lot names, which can show more precision);
 `--round` can select another rounding strategy.
 
-Not yet implemented: output formats other than text.
+With `-O csv` or `-O tsv`, machine-readable output is produced instead:
+one record per row and commodity, with full account names, age in days,
+bare quantity and gain percent numbers, gain and gain percent as
+separate fields, and no totals records.
+Amounts are shown without digit group marks; as in other commands'
+CSV output, the decimal mark follows the commodity's display style.
+(Note in tree mode, parent account records repeat the data of their
+subaccounts.)
+
+Not yet implemented: html, fods or json output.

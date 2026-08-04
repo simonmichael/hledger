@@ -183,8 +183,10 @@ Holdings on 2026-03-31
 5. Sorting: `-S/--sort-amount` sorts rows by Value (falling back to Cost),
    largest first; tree mode sorts each subtree level, keeping subtrees
    together. (done)
-6. CSV/TSV output: one row per commodity, Gain and Gain% as separate
-   columns. (HTML/FODS/JSON possibly later, via the standard output-format
+6. CSV/TSV output: one record per row and commodity, with full account
+   names, age in days, bare quantity and gain percent numbers, Gain and
+   Gain% as separate fields, and no totals records. (done)
+   (HTML/FODS/JSON possibly later, via the standard output-format
    machinery.)
 7. Extra columns, on demand: portfolio weight %, humanised Age (eg 2m14d)
    or a long/short-term indicator, realised gain, XIRR.

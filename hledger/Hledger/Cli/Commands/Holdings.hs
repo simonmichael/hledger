@@ -32,7 +32,8 @@ import Text.Printf (printf)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Print (roundFromRawOpts)
-import Hledger.Cli.Utils (writeOutputLazyText)
+import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
+import Hledger.Write.Csv (CSV, printCSV, printTSV)
 import Text.Tabular.AsciiWide
 
 -- | Command line options for this command.
@@ -51,6 +52,7 @@ holdingsmode = hledgerCommandMode
      ,"hard - round amounts to precision (default)"
      ,"all  - also round cost amounts to precision"
      ]
+   ,outputFormatFlag ["txt","csv","tsv"]
    ,outputFileFlag])
   cligeneralflagsgroups1
   hiddenflags
@@ -67,7 +69,13 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
   if (case mvalue of Just (AtThen _) -> True; _ -> False)
   then error' "holdings: --value=then is not supported"
   else rounding `seq`  -- validate the --round value before any output
-    writeOutputLazyText opts $
+    writeOutputLazyText opts $ case outputFormatFromOpts opts of
+      "txt" -> txtoutput
+      "csv" -> printCSV csvoutput
+      "tsv" -> printTSV csvoutput
+      fmt   -> error' $ unsupportedOutputFormatError fmt
+  where
+    txtoutput =
       "Holdings on " <> TL.fromStrict (showDate reportdate) <> "\n\n" <>
       if null rows
       then "(no holdings)\n"
@@ -77,7 +85,6 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         (textCell TopRight)
         (textCell TopRight)
         tbl
-  where
     showlots = boolopt "lots" rawopts
     tree = accountlistmode_ ropts == ALTree
 
@@ -291,14 +298,58 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                    , not $ amountLooksZero totqty
                    -> T.pack $ showAmountWith noCostFmt $ avgcost totqty totcost
           _ -> ""
-        -- An average cost: total cost / total quantity, showing significant
-        -- decimal digits up to the cost commodity's display precision
-        -- (at least 2), without trailing zeros.
-        avgcost qtya costa = amountSetPrecision (Precision (min pdiv (max 2 pstyle))) avg
+
+    -- CSV/TSV output: one record per displayed row and commodity, with
+    -- machine-friendlier fields: full account names, age in days, bare
+    -- quantity and gain percent numbers, and gain and gain percent as
+    -- separate fields. No totals records.
+    csvoutput :: CSV
+    csvoutput =
+      ["account","commodity","date","age","quantity","unitcost","cost","price","value","gain","gainpct"]
+      : concatMap rowrecords sortedrows
+      where
+        rowrecords r = map rec $ rowQtyAmounts r
           where
-            avg  = divideAmountAndUpdatePrecision (aquantity qtya) costa
-            pdiv = case asprecision (astyle avg) of Precision n -> n; _ -> defaultMaxDisplayPrecision
-            pstyle = case asprecision (astyle costa) of Precision n -> n; _ -> 2
+            acct = prrFullName r
+            rec qa = [acct, c, dtstr, agestr, qtystr, ucoststr, coststr, pricestr, valstr, gainstr, pctstr]
+              where
+                c = acommodity qa
+                showamt  = T.pack . showAmountWith machineFmt
+                showamts' = T.pack . showMixedAmountWith machineFmt . mixed
+                clots = filter ((==c) . acommodity . fst) $ lotsUnder acct
+                dates = nubSort [cbDate =<< mcb | (_, mcb) <- clots]
+                (dtstr, agestr) = case dates of
+                  [Just dt] -> (showDate dt, T.pack $ show $ diffDays reportdate dt)
+                  _         -> ("", "")
+                qtystr = T.pack $ showAmountWith machineFmt{displayCommodity=False} $ styleAmounts styles qa
+                ccosts = [rowCostValuer r $ multiplyAmount (aquantity a) cb | (a, mcb) <- clots, Just cb <- [cbCost =<< mcb]]
+                coststr = showamts' ccosts
+                ucoststr = case (clots, ccosts) of
+                  ([(_, mcb)], _) -> maybe "" (showamt . rowCostValuer r) (cbCost =<< mcb)
+                  (_, _:_) | [totcost] <- amounts (mixed ccosts)
+                           , not $ amountLooksZero qa
+                           -> showamt $ avgcost qa totcost
+                  _ -> ""
+                mto = case mvalue of
+                  Nothing -> listToMaybe [acommodity cb | (_, mcb) <- clots, Just cb <- [cbCost =<< mcb]]
+                  Just _  -> mtargetcomm
+                (pricestr, valstr, gainstr, pctstr) =
+                  case priceoracle (valuationdate, c, mto) of
+                    Nothing -> ("", "", "", "")
+                    Just (pcomm, rate) -> (showamt price, showamt val, gainstr', pctstr')
+                      where
+                        mkamt n = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
+                                    nullamt{acommodity=pcomm, aquantity=n}
+                        price = mkamt rate
+                        val   = mkamt (rate * aquantity qa)
+                        (gainstr', pctstr') = case amounts (mixed ccosts) of
+                          [costamt] | acommodity costamt == pcomm ->
+                            ( showamt $ mkamt gainq
+                            , if aquantity costamt /= 0
+                              then T.pack $ printf "%.1f" (realToFrac (100 * gainq / aquantity costamt) :: Double)
+                              else "" )
+                            where gainq = aquantity val - aquantity costamt
+                          _ -> ("", "")
 
     -- Grand totals row: the Cost, Value and Gain columns, summed over the
     -- topmost displayed rows (which include everything below them).
@@ -316,3 +367,12 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
             where totvalue = mixed $ concatMap (amounts . snd) rowvals
 
     showamts = T.pack . showMixedAmountWith oneLineNoCostFmt . mixed
+
+    -- An average cost: total cost / total quantity, showing significant
+    -- decimal digits up to the cost commodity's display precision
+    -- (at least 2), without trailing zeros.
+    avgcost qtya costa = amountSetPrecision (Precision (min pdiv (max 2 pstyle))) avg
+      where
+        avg  = divideAmountAndUpdatePrecision (aquantity qtya) costa
+        pdiv = case asprecision (astyle avg) of Precision n -> n; _ -> defaultMaxDisplayPrecision
+        pstyle = case asprecision (astyle costa) of Precision n -> n; _ -> 2

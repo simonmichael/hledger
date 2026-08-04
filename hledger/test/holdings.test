@@ -328,3 +328,27 @@ Holdings on 2026-03-31
  assets:apples || 2026-01-15  75d   10 AAPL       $50   $500    $72   $720  $220 (+44.0%) 
 ---------------++-------------------------------------------------------------------------
                ||                                      $2500         $2770  $270 (+10.8%) 
+
+# ** 19. CSV output: one record per row and commodity, with full account
+# names, age in days, bare quantity and gain percent numbers, and gain
+# and gain percent as separate fields. (TSV is the same, tab-separated.)
+$ hledger -f- holdings -e 2026-04-01 -O csv
+"account","commodity","date","age","quantity","unitcost","cost","price","value","gain","gainpct"
+"assets:apples","AAPL","2026-01-15","75","10","$50","$500","$72","$720","$220","44.0"
+"assets:msoft","MSFT","2026-02-15","44","5","$400","$2000","$410","$2050","$50","2.5"
+
+# ** 20. CSV/TSV amounts have no digit group marks; the decimal mark
+# follows the commodity's display style, as in other commands' CSV output.
+<
+commodity AAAA ; lots:
+commodity 1.000,00 €
+
+2026-01-15 buy
+    assets:stocks   1000,5 AAAA @ 2,25 €
+    assets:cash
+
+P 2026-03-31 AAAA 3,10 €
+
+$ hledger -f- holdings -e 2026-04-01 -O csv
+"account","commodity","date","age","quantity","unitcost","cost","price","value","gain","gainpct"
+"assets:stocks","AAAA","2026-01-15","75","1000,5","2,25 €","2251,12 €","3,10 €","3101,55 €","850,42 €","37.8"
