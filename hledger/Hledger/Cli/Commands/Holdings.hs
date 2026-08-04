@@ -18,23 +18,33 @@ module Hledger.Cli.Commands.Holdings (
 ) where
 
 import Data.Default (def)
-import Data.List.Extra (nubSort)
+import Data.List.Extra (intercalate, nubSort)
 import Data.Map.Strict qualified as M
-import Data.Maybe (isJust)
+import Data.Maybe (fromMaybe, isJust)
 import Data.Text qualified as T
 import Data.Text.Lazy.IO qualified as TL
 import Data.Time.Calendar (addDays, diffDays)
-import System.Console.CmdArgs.Explicit (flagNone)
+import System.Console.CmdArgs.Explicit (flagNone, flagReq)
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Commands.Print (roundFromRawOpts)
 import Text.Tabular.AsciiWide
 
 -- | Command line options for this command.
 holdingsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Holdings.txt")
   (flattreeflags True ++
-   [flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"])
+   [flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
+   ,flagReq ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
+     intercalate "\n"
+     ["how much rounding or padding should be done when displaying amounts ?"
+     ,"none - show original decimal digits"
+     ,"soft - just add or remove decimal zeros"
+     ,"       to match precision"
+     ,"hard - round amounts to precision (default)"
+     ,"all  - also round cost amounts to precision"
+     ]])
   cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")
@@ -48,7 +58,7 @@ holdingsmode = hledgerCommandMode
 holdings :: CliOpts -> Journal -> IO ()
 holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts}} j = do
   if accountlistmode_ ropts == ALTree then error' "holdings: --tree is not yet supported"
-  else do
+  else rounding `seq` do  -- validate the --round value before any output
     putStrLn $ "Holdings on " ++ T.unpack (showDate reportdate)
     putStrLn ""
     if null rows
@@ -97,8 +107,10 @@ holdings CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsR
       Just cb{cbCost = styleAmounts styles <$> cbCost cb}
       where parseAmt = either (const Nothing) Just . parseamount
 
-    -- Amounts are displayed normalised to their commodity's display precision.
-    styles = journalCommodityStylesWith HardRounding j
+    -- Amounts are displayed normalised to their commodity's display
+    -- precision by default; --round can choose another rounding strategy.
+    rounding = fromMaybe HardRounding $ roundFromRawOpts rawopts
+    styles = journalCommodityStylesWith rounding j
 
     -- The lots held at or under the given account, excluding empty ones.
     lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
