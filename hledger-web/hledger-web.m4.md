@@ -80,7 +80,8 @@ Flags:
                             origin; setting ORIGIN to "*" allows requests from
                             any origin
      --host=IPADDR          listen on this IP address (default: 127.0.0.1)
-     --port=PORT            listen on this TCP port (default: 5000)
+     --port=PORT            listen on this TCP port (default: 5000); 0 means
+                            a free port chosen by the OS
      --socket=SOCKET        listen on the given unix socket instead of an IP
                             address and port (unix only; implies --serve)
      --base-url=BASEURL     set the base url (default: http://IPADDR:PORT)
@@ -97,6 +98,10 @@ The special address `0.0.0.0` causes it to listen on all of this machine's addre
 
 Similarly, you can use `--port` to listen on a TCP port other than 5000.
 This is useful if you want to run multiple hledger-web instances on a machine.
+`--port 0` makes the operating system choose a free port, which is reported
+in the startup message and in the default base url. This can be useful eg
+when scripting; it is supported with `--serve` and `--serve-api`, but not
+with `--serve-browse`.
 
 When `--socket` is used, hledger-web creates and communicates via a socket file instead of a TCP port.
 This can be more secure, respects unix file permissions, and makes certain use cases easier,

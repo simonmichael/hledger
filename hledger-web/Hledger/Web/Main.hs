@@ -29,6 +29,7 @@ import Control.Exception (bracket)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
 #endif
 import Control.Monad (when, void)
+import Data.Streaming.Network (bindRandomPortTCP)
 import Data.String (fromString)
 import Data.Text qualified as T
 import Network.Socket
@@ -47,7 +48,7 @@ import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
 import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.Web.Application (makeApplication)
-import Hledger.Web.Settings (Extra(..), parseExtra)
+import Hledger.Web.Settings (Extra(..), parseExtra, defbaseurl)
 import Hledger.Web.Test (hledgerWebTest)
 import Hledger.Web.WebOptions
 
@@ -109,9 +110,25 @@ web opts0 j = do
   let depthlessinitialq = filterQuery (not . queryIsDepth) . _rsQuery . reportspec_ $ cliopts_ opts
       j' = filterJournalTransactions depthlessinitialq j
       h = host_ opts
-      p = port_ opts
-      u = base_url_ opts
+      p0 = port_ opts
       staticRoot = T.pack <$> file_url_ opts  -- XXX not used #2139
+
+  -- --port 0 means "let the operating system choose a free port". To learn which
+  -- port it chose (so we can report it and build the base url), we must bind the
+  -- listening socket ourselves rather than let warp do it. This isn't supported in
+  -- --serve-browse mode, which needs a known port up front to open the browser at.
+  when (p0 == 0 && socket_ opts == Nothing && server_mode_ opts == ServeBrowse) $
+    error' $ unlines  -- PARTIAL:
+      ["--port 0 (let the operating system choose a free port) is not supported with --serve-browse."
+      ,"Please use --serve or --serve-api instead, which will report the chosen port."]
+  mtcpsock <- if p0 == 0 && socket_ opts == Nothing
+                then Just <$> bindRandomPortTCP (fromString h)
+                else return Nothing
+  let p = maybe p0 fst mtcpsock
+      -- If the base url is the default one (built from host and port), rebuild it
+      -- with the chosen port; if the user set --base-url, leave it untouched.
+      u | base_url_ opts == defbaseurl h p0 = defbaseurl h p
+        | otherwise                         = base_url_ opts
       appconfig = AppConfig{appEnv = Development
                            ,appHost = fromString h
                            ,appPort = p
@@ -151,8 +168,8 @@ web opts0 j = do
       putStrLn "Press ctrl-c to quit"
       hFlush stdout
       let warpsettings = setHost (fromString h) (setPort p defaultSettings)
-      case socket_ opts of
-        Just s -> do
+      case (socket_ opts, mtcpsock) of
+        (Just s, _) -> do
           if isUnixDomainSocketAvailable then
             bracket
               (do
@@ -172,5 +189,7 @@ web opts0 j = do
               ,"Please try again without --socket."
               ]
 
-        Nothing -> Network.Wai.Handler.Warp.runSettings warpsettings app
+        -- --port 0: serve on the socket we already bound to the OS-chosen port.
+        (Nothing, Just (_, sock)) -> Network.Wai.Handler.Warp.runSettingsSocket warpsettings sock app
+        (Nothing, Nothing)        -> Network.Wai.Handler.Warp.runSettings warpsettings app
 
