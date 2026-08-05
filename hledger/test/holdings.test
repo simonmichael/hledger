@@ -431,3 +431,50 @@ Holdings on 2026-03-31
  stocks || 2026-02-01  58d  10 AAPL       $60  $600                                        $200       
 --------++--------------------------------------------------------------------------------------------
         ||                                     $600                                        $200       
+
+# ** 27. A display style declared for the "%" commodity (eg with -c)
+# styles the percent columns: Weight, UGain% and XIRR.
+<
+commodity AAPL ; lots:
+
+2026-01-15 buy
+    assets  10 AAPL @ $50
+    assets:cash
+
+2026-02-01 sell some
+    assets  -5 AAPL @ $70
+    assets:cash
+
+P 2026-03-31 AAPL $72
+
+$ hledger -f- holdings -e 2026-04-01 -c '1.00 %'
+Holdings on 2026-03-31
+
+        ||       Date  Age   Units  Avg cost  Cost  Price  Value    Weight  UGain    UGain%  RGain       XIRR 
+========++====================================================================================================
+ assets || 2026-01-15  75d  5 AAPL       $50  $250    $72   $360  100.00 %   $110  +44.00 %   $100  1865.32 % 
+--------++----------------------------------------------------------------------------------------------------
+        ||                                    $250          $360  100.00 %   $110  +44.00 %   $100  1865.32 % 
+
+# ** 28. A % style inferred from journal % amounts also styles the
+# percent columns (here, adding a space before the sign).
+<
+commodity AAPL ; lots:
+
+2026-01-10 some unrelated percent amount
+    (misc:rate)   5.0 %
+
+2026-01-15 buy
+    assets  10 AAPL @ $50
+    assets:cash
+
+P 2026-03-31 AAPL $72
+
+$ hledger -f- holdings -e 2026-04-01
+Holdings on 2026-03-31
+
+        ||       Date  Age    Units  Avg cost  Cost  Price  Value   Weight  UGain   UGain%  RGain     XIRR 
+========++=================================================================================================
+ assets || 2026-01-15  75d  10 AAPL       $50  $500    $72   $720  100.0 %   $220  +44.0 %         490.5 % 
+--------++-------------------------------------------------------------------------------------------------
+        ||                                     $500          $720  100.0 %   $220  +44.0 %         490.5 % 

@@ -81,6 +81,11 @@ Notes:
 - Amounts are displayed normalised to their commodity's display precision
   by default (unlike lot names, which can show more precision);
   `--round` can select another rounding strategy (default: hard).
+- The percent columns (Weight, UGain%, XIRR) are shown with 1 decimal
+  digit, or with the display style of the "%" commodity if any
+  (eg by a commodity directive or `-c '0.00 %'`), so their precision and
+  symbol placement can be customised. The csv/tsv/json outputs keep
+  bare percent numbers.
 - The totals row (shown unless -N) shows only the commodity-independent
   columns: Cost, Value, Weight (100%), UGain, UGain%, RGain, XIRR.
 - Possible future columns: a long/short-term capital gains indicator.

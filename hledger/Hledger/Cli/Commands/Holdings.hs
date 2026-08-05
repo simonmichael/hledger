@@ -136,14 +136,6 @@ showage d
   | d >= 365  = T.pack (show (roundTo 1 (fromIntegral d / 365))) <> "y"
   | otherwise = T.pack (show d) <> "d"
 
--- | Show a (rounded) percentage: eg 64.3%.
-showpct :: Quantity -> T.Text
-showpct p = T.pack (show p) <> "%"
-
--- | Show an XIRR percentage with 1 decimal place: eg 12.3%.
-showxirr :: Double -> T.Text
-showxirr x = T.pack $ printf "%.1f%%" x
-
 -- | Show the holdings report: the assets held in lot-tracked accounts
 -- as of the report end date, one row per account (or per lot, with --lots).
 --
@@ -365,14 +357,36 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       where bases = nubSort $ map (lotBaseAccount . prrFullName) toprows
 
     -- A value's percentage of the portfolio's total value, when both are
-    -- single amounts in the same commodity. Rounded to 1 decimal place.
+    -- single amounts in the same commodity.
     weightPct :: MixedAmount -> Maybe Quantity
     weightPct val = do
       tot <- mportfoliovalue
       [t] <- Just $ amounts tot
       [v] <- Just $ amounts val
       guard $ acommodity v == acommodity t && aquantity t /= 0
-      Just $ roundTo 1 $ 100 * aquantity v / aquantity t
+      Just $ 100 * aquantity v / aquantity t
+
+    -- The commodity display styles, plus a default style for the "%"
+    -- commodity if none is declared or inferred: one decimal digit,
+    -- and the % sign on the right with no space.
+    pctstyles = M.union styles $ M.singleton "%" $
+      amountstyle{ascommodityside=R, asprecision=Precision 1, asrounding=HardRounding}
+
+    -- Show a percentage (for the Weight, UGain% and XIRR columns) as a
+    -- "%" commodity amount, using the display style of "%" (eg from a
+    -- commodity directive or -c) or the default above: eg 64.3%.
+    showpct :: Quantity -> T.Text
+    showpct p =
+      T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} $
+      styleAmounts pctstyles nullamt{acommodity="%", aquantity=p}
+
+    -- Like showpct, but always signed: eg +44.0%.
+    showsignedpct :: Quantity -> T.Text
+    showsignedpct p = (if p >= 0 then "+" else "") <> showpct p
+
+    -- Show an XIRR percentage, like showpct: eg 12.3%.
+    showxirr :: Double -> T.Text
+    showxirr = showpct . realToFrac
 
     -- Render a gain amount and percent gain, as separate texts, from
     -- single-commodity value and cost amounts, if their commodities match.
@@ -383,7 +397,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         gain = aquantity v - aquantity c
         gainamt = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
                     nullamt{acommodity=acommodity v, aquantity=gain}
-        pct | aquantity c /= 0 = T.pack $ printf "%+.1f%%" (realToFrac (100 * gain / aquantity c) :: Double)
+        pct | aquantity c /= 0 = showsignedpct $ 100 * gain / aquantity c
             | otherwise        = ""
     showgain _ _ = ("", "")
 
@@ -603,7 +617,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                   case priceoracle (valuationdate, c, mto) of
                     Nothing -> (Nothing, Nothing, Nothing, Nothing, Nothing, Nothing)
                     Just (pcomm, rate) -> (Just $ showamt price, Just $ showamt val, mgainstr', mpct'
-                                          ,weightPct $ mixedAmount val
+                                          ,roundTo 1 <$> weightPct (mixedAmount val)
                                           ,xirrOf (flowsUnder acct (Just c)) val)
                       where
                         mkamt n = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
