@@ -66,6 +66,9 @@ has no effect.
 Amounts are displayed with their commodity's display precision
 (unlike lot names, which can show more precision);
 `--round` can select another rounding strategy.
+The percent columns (Weight, UGain%, XIRR) are shown with one decimal
+digit, or with the display style configured for the `%` commodity
+(eg by `-c '0.00 %'`).
 
 With `-O csv` or `-O tsv`, machine-readable output is produced instead:
 one record per row and commodity, with full account names, age in days,

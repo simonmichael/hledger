@@ -57,7 +57,9 @@ also converted to it (at the valuation date, so percent gain is
 unaffected). --value=then is not supported, and -B/--cost has no effect.
 Amounts are displayed with their commodity's display precision (unlike
 lot names, which can show more precision); --round can select another
-rounding strategy.
+rounding strategy. The percent columns (Weight, UGain%, XIRR) are shown
+with one decimal digit, or with the display style of the % commodity if
+any (eg by a commodity directive or -c '0.00 %').
 
 With -O csv or -O tsv, machine-readable output is produced instead: one
 record per row and commodity, with full account names, age in days, bare
