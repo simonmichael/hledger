@@ -157,7 +157,11 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       fmt    -> error' $ unsupportedOutputFormatError fmt
   where
     txtoutput =
-      "Holdings on " <> TL.fromStrict (showDate reportdate) <> "\n\n" <>
+      -- The default title can be customised or suppressed with --title.
+      (case effectiveTitle ropts ("Holdings on " <> showDate reportdate) of
+         "" -> ""
+         t  -> TL.fromStrict t <> "\n\n")
+      <>
       if null rows
       then "(no holdings)\n"
       else renderTable
