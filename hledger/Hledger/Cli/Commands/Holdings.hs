@@ -4,8 +4,8 @@ The @holdings@ command shows a report of investment holdings (lot-tracked assets
 
 Work in progress; see doc/SPEC-holdings.md.
 Currently it shows the Date, Age, Units, Unit/Avg cost, Cost, Price,
-Value and Gain columns in list mode, with lot subaccounts aggregated by
-default or shown as rows with --lots.
+Value, Weight, UGain, UGain%, RGain and XIRR columns, with lot
+subaccounts aggregated by default or shown as rows with --lots.
 
 -}
 
@@ -86,8 +86,8 @@ data Holding = Holding {
   ,hPrice     :: Maybe T.Text     -- ^ market price at the valuation date
   ,hValue     :: Maybe T.Text     -- ^ market value
   ,hWeight    :: Maybe Quantity   -- ^ percentage of the portfolio's value, rounded to 1 decimal
-  ,hGain      :: Maybe T.Text     -- ^ unrealised gain
-  ,hGainPct   :: Maybe Quantity   -- ^ unrealised gain percent, rounded to 1 decimal
+  ,hUgain     :: Maybe T.Text     -- ^ unrealised gain
+  ,hUgainPct  :: Maybe Quantity   -- ^ unrealised gain percent, rounded to 1 decimal
   ,hRgain     :: Maybe T.Text     -- ^ realised gain, from disposals so far
   ,hXirr      :: Maybe Double     -- ^ annualised internal rate of return percent
   }
@@ -104,8 +104,8 @@ holdingCsv h =
   ,fromMaybe "" (hPrice h)
   ,fromMaybe "" (hValue h)
   ,maybe "" (T.pack . show) (hWeight h)
-  ,fromMaybe "" (hGain h)
-  ,maybe "" (T.pack . show) (hGainPct h)
+  ,fromMaybe "" (hUgain h)
+  ,maybe "" (T.pack . show) (hUgainPct h)
   ,fromMaybe "" (hRgain h)
   ,maybe "" (T.pack . printf "%.1f") (hXirr h)
   ]
@@ -122,8 +122,8 @@ holdingJson h = object
   ,"price"     .= hPrice h
   ,"value"     .= hValue h
   ,"weight"    .= hWeight h
-  ,"gain"      .= hGain h
-  ,"gainpct"   .= hGainPct h
+  ,"ugain"     .= hUgain h
+  ,"ugainpct"  .= hUgainPct h
   ,"rgain"     .= hRgain h
   ,"xirr"      .= hXirr h
   ]
@@ -300,8 +300,8 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                           nullamt{acommodity=pcomm, aquantity=n}
           Just (mkamt rate, mkamt (rate * aquantity qa))
 
-    -- How to convert cost amounts (Cost, Unit/Avg cost, Rgain, and the
-    -- cost side of Gain) for display when -V/-X/--value is in effect:
+    -- How to convert cost amounts (Cost, Unit/Avg cost, RGain, and the
+    -- cost side of UGain) for display when -V/-X/--value is in effect:
     -- convert to the requested commodity, or to the given fallback
     -- commodity (the row's or portfolio's value commodity), at the
     -- valuation date. Costs already in the target commodity, or with no
@@ -357,7 +357,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       _        -> Nothing
 
     -- The distinct base accounts of the displayed rows (excluding any
-    -- contained in another). Account-level totals (Rgain, XIRR) are
+    -- contained in another). Account-level totals (RGain, XIRR) are
     -- computed from these, so that they include fully disposed lots,
     -- which have no displayed row of their own (eg with --lots).
     topbases :: [AccountName]
@@ -374,18 +374,18 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       guard $ acommodity v == acommodity t && aquantity t /= 0
       Just $ roundTo 1 $ 100 * aquantity v / aquantity t
 
-    -- Render a gain (and percent gain) from single-commodity value and
-    -- cost amounts, if their commodities match.
-    showgain :: [Amount] -> [Amount] -> T.Text
+    -- Render a gain amount and percent gain, as separate texts, from
+    -- single-commodity value and cost amounts, if their commodities match.
+    showgain :: [Amount] -> [Amount] -> (T.Text, T.Text)
     showgain [v] [c] | acommodity v == acommodity c =
-      T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} gainamt ++ pct
+      (T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} gainamt, pct)
       where
         gain = aquantity v - aquantity c
         gainamt = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
                     nullamt{acommodity=acommodity v, aquantity=gain}
-        pct | aquantity c /= 0 = printf " (%+.1f%%)" (realToFrac (100 * gain / aquantity c) :: Double)
+        pct | aquantity c /= 0 = T.pack $ printf "%+.1f%%" (realToFrac (100 * gain / aquantity c) :: Double)
             | otherwise        = ""
-    showgain _ _ = ""
+    showgain _ _ = ("", "")
 
     -- A row's units of lot-tracked commodities: its balance restricted
     -- to the commodities of the lots at or beneath it. This excludes other
@@ -456,7 +456,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       where
         addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
           Table (Group NoLine [Header ""]) (Header []) [totalrow]
-    colheadings = ["Date", "Age", "Units", if showlots then "Unit cost" else "Avg cost", "Cost", "Price", "Value", "Weight", "Gain", "Rgain", "XIRR"]
+    colheadings = ["Date", "Age", "Units", if showlots then "Unit cost" else "Avg cost", "Cost", "Price", "Value", "Weight", "UGain", "UGain%", "RGain", "XIRR"]
     renderacct r = T.replicate (prrIndent r * 2) " " <> prrDisplayName r
 
     rowLotCosts r = [rowCostValuer r $ multiplyAmount (aquantity a) c
@@ -465,16 +465,16 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     -- The text table's cells: each cell's parts joined,
     -- multi-line in Units and Price, one-line elsewhere.
     rowcells = zipWith T.intercalate cellseps . rowCellParts
-    cellseps = [", ", ", ", "\n", ", ", ", ", "\n", ", ", ", ", ", ", ", ", ", "]
+    cellseps = [", ", ", ", "\n", ", ", ", ", "\n", ", ", ", ", ", ", ", ", ", ", ", "]
 
     -- A row's cells, each as a list of parts:
     -- one part per commodity amount in the amount cells, at most one part elsewhere.
     rowCellParts :: PeriodicReportRow DisplayName MixedAmount -> [[T.Text]]
-    rowCellParts r = [[datecell], [agecell], unitparts, [unitcostcell], costparts, priceparts, valueparts, [weightcell], [gaincell], rgainparts, [xirrcell]]
+    rowCellParts r = [[datecell], [agecell], unitparts, [unitcostcell], costparts, priceparts, valueparts, [weightcell], [ugaincell], [ugainpctcell], rgainparts, [xirrcell]]
       where
         acct = prrFullName r
-        (priceparts, valueparts, gaincell, weightcell) = case rowValuation r of
-          Nothing -> ([], [], "", "")
+        (priceparts, valueparts, (ugaincell, ugainpctcell), weightcell) = case rowValuation r of
+          Nothing -> ([], [], ("", ""), "")
           Just (prices, val) ->
             ( map showamt prices
             , map showamt $ amounts val
@@ -523,9 +523,9 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
            mtotalrowparts
       where
         -- per-column css classes, so the html cells can be styled
-        colclasses = ["account","date","age","units","unitcost","cost","price","value","weight","gain","rgain","xirr"]
+        colclasses = ["account","date","age","units","unitcost","cost","price","value","weight","ugain","ugainpct","rgain","xirr"]
         -- which of the other columns' cell parts are amounts
-        amountcols = [False, False, True, True, True, True, True, False, True, True, False]
+        amountcols = [False, False, True, True, True, True, True, False, True, False, True, False]
         hcell cls t = plain <$> (headerCell t){Ods.cellClass = Ods.Class cls}
         -- body cells are right-aligned, except the first two columns
         -- (Account and Date); headings are unaffected
@@ -571,8 +571,8 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
               , hPrice     = mpricestr
               , hValue     = mvalstr
               , hWeight    = mweight
-              , hGain      = mgainstr
-              , hGainPct   = mpct
+              , hUgain     = mgainstr
+              , hUgainPct  = mpct
               , hRgain     = mrgainstr
               , hXirr      = mxirr
               }
@@ -621,22 +621,22 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
 
     csvoutput :: CSV
     csvoutput =
-      ["account","commodity","date","age","units","unitcost","cost","price","value","weight","gain","gainpct","rgain","xirr"]
+      ["account","commodity","date","age","units","unitcost","cost","price","value","weight","ugain","ugainpct","rgain","xirr"]
       : map holdingCsv holdingrecords
 
     -- Grand totals row (as cell parts, like rowCellParts): the Cost,
-    -- Value and Gain columns, summed over the topmost displayed rows
+    -- Value and gain columns, summed over the topmost displayed rows
     -- (which include everything below them).
-    -- Value and Gain are blank unless all rows have a market price.
+    -- Value and gains are blank unless all rows have a market price.
     mtotalrowparts :: Maybe [[T.Text]]
     mtotalrowparts
       | no_total_ ropts = Nothing
-      | otherwise = Just [[], [], [], [], costparts, [], valueparts, [weightcell], [gaincell], rgainparts, [xirrcell]]
+      | otherwise = Just [[], [], [], [], costparts, [], valueparts, [weightcell], [ugaincell], [ugainpctcell], rgainparts, [xirrcell]]
       where
         totcosts = concatMap rowLotCosts toprows
         costparts = map showamt $ amounts $ mixed totcosts
-        (valueparts, weightcell, gaincell) = case mportfoliovalue of
-          Nothing -> ([], "", "")
+        (valueparts, weightcell, (ugaincell, ugainpctcell)) = case mportfoliovalue of
+          Nothing -> ([], "", ("", ""))
           Just totvalue -> ( map showamt $ amounts totvalue
                            , maybe "" showpct $ weightPct totvalue
                            , showgain (amounts totvalue) (amounts $ mixed totcosts))

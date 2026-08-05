@@ -178,21 +178,21 @@ $ hledger -f lot-entries.journal roi --inv assets:broker --pnl 'revenue:gains|eq
 $ hledger -f lot-entries.journal holdings -e 2026-04-01 --infer-market-prices
 Holdings on 2026-03-31
 
-                ||       Date   Age     Units  Avg cost  Cost  Price  Value  Weight          Gain  Rgain    XIRR 
-================++===============================================================================================
- assets:broker  || 2025-04-01  364d  0.1 ETSY       $80    $8   $100    $10    2.0%   $2 (+25.0%)   $196   17.9% 
- assets:broker2 || 2026-01-01   89d  5.0 ETSY       $90  $450   $100   $500   98.0%  $50 (+11.1%)   $498  144.2% 
-----------------++-----------------------------------------------------------------------------------------------
-                ||                                       $458          $510  100.0%  $52 (+11.4%)   $694   47.8% 
+                ||       Date   Age     Units  Avg cost  Cost  Price  Value  Weight  UGain  UGain%  RGain    XIRR
+================++================================================================================================
+ assets:broker  || 2025-04-01  364d  0.1 ETSY       $80    $8   $100    $10    2.0%     $2  +25.0%   $196   17.9%
+ assets:broker2 || 2026-01-01   89d  5.0 ETSY       $90  $450   $100   $500   98.0%    $50  +11.1%   $498  144.2%
+----------------++------------------------------------------------------------------------------------------------
+                ||                                       $458          $510  100.0%    $52  +11.4%   $694   47.8%
 
 
 These agree as closely as the two reports can on this journal:
 
-Measure      holdings (totals row)         roi
------------  ----------------------------  ---------------------
-Value        $510                          $510   (exact match)
-Total gain   Gain $52 + Rgain $694 = $746  PnL $755  (~$9 apart)
-Return       XIRR 47.8%                    IRR 48.55%  (0.75pp apart)
+Measure      holdings (totals row)           roi
+-----------  ------------------------------  ---------------------
+Value        $510                            $510   (exact match)
+Total gain   UGain $52 + RGain $694 = $746   PnL $755  (~$9 apart)
+Return       XIRR 47.8%                      IRR 48.55%  (0.75pp apart)
 
 1. -e 2026-04-01 (holdings) and -e 2026-03-31 (roi): the one-day
 offset makes both reports value and discount to the same date,
@@ -232,11 +232,11 @@ nonsense (PnL $1496). Adding the ugain account (--pnl
 'revenue:gains|equity:unrealised-gain') fixes it: PnL $752, IRR
 48.3%. This seems worth documenting in the lots or roi docs.
 
-2. Coverage differs by design. Holdings' totals show Rgain $196:
+2. Coverage differs by design. Holdings' totals show RGain $196:
 only assets:broker, because assets:broker2 is fully disposed and has
 no row (documented behavior). The journal's total realised gain is
 $743; roi includes closed positions, hence its much larger PnL. So
-"holdings Rgain" and "roi PnL" answer different questions on
+"holdings RGain" and "roi PnL" answer different questions on
 journals with closed accounts.
 
 3. roi's residual ~$7 discrepancy (PnL $752 vs $745 = $743 realised
