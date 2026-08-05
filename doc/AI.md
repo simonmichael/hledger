@@ -214,17 +214,17 @@ Other contributors' usage estimates can be added here too.
 - elsewhere
   - [The Closing of the Frontier](https://tanyaverma.sh/2026/04/10/closing-of-the-frontier.html) ([discussion](https://news.ycombinator.com/item?id=47742790))
   - [The Wonders of AI: We Are Retiring Our Bug Bounty Program](https://turso.tech/blog/the-wonders-of-ai) ([discussion](https://news.ycombinator.com/item?id=48148391))
-  - https://news.ycombinator.com/item?id=48142553 Have a Coherent AI Policy
-  - https://github.com/rust-lang/rust-forge/pull/1040 Add an LLM policy for rust-lang/rust
+  - <https://news.ycombinator.com/item?id=48142553> Have a Coherent AI Policy
+  - <https://github.com/rust-lang/rust-forge/pull/1040> Add an LLM policy for rust-lang/rust
   - [Pope Leo XIV: Magnifica Humanitas: On Safeguarding The Human Person In The Time Of Artificial Intelligence](https://www.vatican.va/content/leo-xiv/en/encyclicals/documents/20260515-magnifica-humanitas.html)
     ([summary](https://www.theregister.com/ai-ml/2026/05/26/pope-leo-warns-ai-boom-can-give-big-tech-and-the-people-who-run-it-too-much-power/5245883))
 
 ### Policies
 - <https://sfconservancy.org/llm-gen-ai/llm-backed-generative-ai-recommendations.html>
-- <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy/>
+- <https://docs.fedoraproject.org/en-US/council/policy/ai-contribution-policy>
 - <https://github.com/stanford-cs336/assignment1-basics/blob/main/CLAUDE.md>
 - <https://ladybird.org/posts/changing-how-we-develop-ladybird/> ([discussion](https://news.ycombinator.com/item?id=48409191))
-- <https://blog.rust-lang.org/inside-rust/2026/08/05/rust-langrust-is-adopting-an-llm-policy/>
+- <https://blog.rust-lang.org/inside-rust/2026/08/05/rust-langrust-is-adopting-an-llm-policy> ([discussion](https://news.ycombinator.com/item?id=49179039))
 
 ### Law
 - <https://www.congress.gov/crs-product/LSB10922>
