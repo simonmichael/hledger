@@ -36,9 +36,9 @@ cost, when unpriced), largest first. Columns show each holding's
 acquisition date and age (when the row's lots share a single date; ages
 are shown in days, or from one year in years with one decimal digit, eg
 44d or 1.1y, approximating years as 365 days), the units held, the unit
-cost (or average cost, on rows aggregating multiple lots), the total
-cost basis, the current market price, the market value, the percentage
-of the portfolio's total value (Weight), the unrealised gain and gain
+cost (or average cost, on rows aggregating multiple lots), the current
+market price, the total cost basis, the market value, the percentage of
+the portfolio's total value (Weight), the unrealised gain and gain
 percent (UGain, UGain%), the realised gain from disposals so far
 (RGain), and the annualised internal rate of return (XIRR, calculated
 from the account's dated cashflows and current value, like roi's IRR; it
@@ -58,8 +58,8 @@ unaffected). --value=then is not supported, and -B/--cost has no effect.
 Amounts are displayed with their commodity's display precision (unlike
 lot names, which can show more precision); --round can select another
 rounding strategy. The percent columns (Weight, UGain%, XIRR) are shown
-with one decimal digit, or with the display style of the % commodity if
-any (eg by a commodity directive or -c '0.00 %').
+with one decimal digit, or with the display style configured for the %
+commodity (eg by -c '0.00 %').
 
 With -O csv or -O tsv, machine-readable output is produced instead: one
 record per row and commodity, with full account names, age in days, bare
@@ -71,7 +71,7 @@ repeat the data of their subaccounts.)
 
 With -O html, an HTML table is produced: like the text table, but with
 single-line cells. For styling, each cell has a css class naming its
-column (account, date, age, units, unitcost, cost, price, value, weight,
+column (account, date, age, units, unitcost, price, cost, value, weight,
 ugain, ugainpct, rgain, xirr; totals row cells also have coltotal), and
 each commodity amount is enclosed in a span with class amount (eg
 allowing wrapping within amounts to be prevented).

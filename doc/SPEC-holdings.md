@@ -39,8 +39,8 @@ json...).
 | Age       | how long the lot has been held, as of the report date          |
 | Units     | number of units held                                           |
 | Unit cost | cost basis per unit ("Avg cost" on rows aggregating lots)      |
-| Cost      | total cost basis                                               |
 | Price     | current market price per unit                                  |
+| Cost      | total cost basis                                               |
 | Value     | current market value (Units x Price)                           |
 | Weight    | percentage of the portfolio's total value                      |
 | UGain     | unrealised gain: Value - Cost                                  |
@@ -119,12 +119,12 @@ Default (list mode, lot subaccounts hidden):
 $ hledger holdings
 Holdings on 2026-03-31
 
-                      ||       Date  Age    Units  Avg cost   Cost  Price  Value  Weight  UGain  UGain%  RGain    XIRR
+                      ||       Date  Age    Units  Avg cost  Price   Cost  Value  Weight  UGain  UGain%  RGain    XIRR
 ======================++===============================================================================================
- assets:broker:funds  || 2026-02-15  44d   5 MSFT      $400  $2000   $410  $2050   65.5%    $50    2.5%          22.7%
- assets:broker:stocks ||                  15 AAPL    $56.67   $850    $72  $1080   34.5%   $230   27.1%   $100  419.4%
+ assets:broker:funds  || 2026-02-15  44d   5 MSFT      $400   $410  $2000  $2050   65.5%    $50    2.5%          22.7%
+ assets:broker:stocks ||                  15 AAPL    $56.67    $72   $850  $1080   34.5%   $230   27.1%   $100  419.4%
 ----------------------++-----------------------------------------------------------------------------------------------
-                      ||                                     $2850         $3130  100.0%   $280    9.8%   $100  137.8%
+                      ||                                            $2850  $3130  100.0%   $280    9.8%   $100  137.8%
 ```
 
 (assets:broker:funds holds a single lot, so its Date/Age are shown even though
@@ -138,13 +138,13 @@ With `--lots` (lot subaccounts become rows; Avg cost becomes exact Unit cost):
 $ hledger holdings --lots
 Holdings on 2026-03-31
 
-                                        ||       Date  Age    Units  Unit cost   Cost  Price  Value  Weight  UGain  UGain%  RGain    XIRR
+                                        ||       Date  Age    Units  Unit cost  Price   Cost  Value  Weight  UGain  UGain%  RGain    XIRR
 ========================================++================================================================================================
- assets:broker:funds:{2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400  $2000   $410  $2050   65.5%    $50    2.5%          22.7%
- assets:broker:stocks:{2026-01-15, $50} || 2026-01-15  75d   5 AAPL        $50   $250    $72   $360   11.5%   $110   44.0%   $100  759.2%
- assets:broker:stocks:{2026-02-01, $60} || 2026-02-01  58d  10 AAPL        $60   $600    $72   $720   23.0%   $120   20.0%         215.2%
+ assets:broker:funds:{2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400   $410  $2000  $2050   65.5%    $50    2.5%          22.7%
+ assets:broker:stocks:{2026-01-15, $50} || 2026-01-15  75d   5 AAPL        $50    $72   $250   $360   11.5%   $110   44.0%   $100  759.2%
+ assets:broker:stocks:{2026-02-01, $60} || 2026-02-01  58d  10 AAPL        $60    $72   $600   $720   23.0%   $120   20.0%         215.2%
 ----------------------------------------++------------------------------------------------------------------------------------------------
-                                        ||                                      $2850         $3130  100.0%   $280    9.8%   $100  137.8%
+                                        ||                                             $2850  $3130  100.0%   $280    9.8%   $100  137.8%
 ```
 
 With `--lots --tree` (parent rows aggregate; multi-commodity cells go
@@ -154,18 +154,18 @@ multi-line as in bal; boring parents are squashed as usual):
 $ hledger holdings --lots --tree
 Holdings on 2026-03-31
 
-                              ||       Date  Age    Units  Unit cost   Cost  Price  Value  Weight  UGain  UGain%  RGain    XIRR
+                              ||       Date  Age    Units  Unit cost  Price   Cost  Value  Weight  UGain  UGain%  RGain    XIRR
 ==============================++================================================================================================
- assets                       ||                  15 AAPL             $2850    $72  $3130  100.0%   $280    9.8%   $100  137.8%
-                              ||                   5 MSFT                     $410
-   broker                     ||                  15 AAPL             $2850    $72  $3130  100.0%   $280    9.8%   $100  137.8%
-                              ||                   5 MSFT                     $410
-     funds:{2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400  $2000   $410  $2050   65.5%    $50    2.5%          22.7%
-     stocks                   ||                  15 AAPL     $56.67   $850    $72  $1080   34.5%   $230   27.1%   $100  419.4%
-       {2026-01-15, $50}      || 2026-01-15  75d   5 AAPL        $50   $250    $72   $360   11.5%   $110   44.0%   $100  759.2%
-       {2026-02-01, $60}      || 2026-02-01  58d  10 AAPL        $60   $600    $72   $720   23.0%   $120   20.0%         215.2%
+ assets                       ||                  15 AAPL               $72  $2850  $3130  100.0%   $280    9.8%   $100  137.8%
+                              ||                   5 MSFT              $410
+   broker                     ||                  15 AAPL               $72  $2850  $3130  100.0%   $280    9.8%   $100  137.8%
+                              ||                   5 MSFT              $410
+     funds:{2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400   $410  $2000  $2050   65.5%    $50    2.5%          22.7%
+     stocks                   ||                  15 AAPL     $56.67    $72   $850  $1080   34.5%   $230   27.1%   $100  419.4%
+       {2026-01-15, $50}      || 2026-01-15  75d   5 AAPL        $50    $72   $250   $360   11.5%   $110   44.0%   $100  759.2%
+       {2026-02-01, $60}      || 2026-02-01  58d  10 AAPL        $60    $72   $600   $720   23.0%   $120   20.0%         215.2%
 ------------------------------++------------------------------------------------------------------------------------------------
-                              ||                                      $2850         $3130  100.0%   $280    9.8%   $100  137.8%
+                              ||                                             $2850  $3130  100.0%   $280    9.8%   $100  137.8%
 ```
 
 With `--depth 2` (aggregation up the tree):
@@ -174,12 +174,12 @@ With `--depth 2` (aggregation up the tree):
 $ hledger holdings --depth 2
 Holdings on 2026-03-31
 
-               || Date  Age    Units  Avg cost   Cost  Price  Value  Weight  UGain  UGain%  RGain    XIRR
+               || Date  Age    Units  Avg cost  Price   Cost  Value  Weight  UGain  UGain%  RGain    XIRR
 ===============++=========================================================================================
- assets:broker ||            15 AAPL            $2850    $72  $3130  100.0%   $280    9.8%   $100  137.8%
-               ||             5 MSFT                    $410
+ assets:broker ||            15 AAPL              $72  $2850  $3130  100.0%   $280    9.8%   $100  137.8%
+               ||             5 MSFT             $410
 ---------------++-----------------------------------------------------------------------------------------
-               ||                               $2850         $3130  100.0%   $280    9.8%   $100  137.8%
+               ||                                      $2850  $3130  100.0%   $280    9.8%   $100  137.8%
 ```
 
 ## Implementation notes
