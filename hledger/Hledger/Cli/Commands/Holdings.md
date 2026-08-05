@@ -36,6 +36,8 @@ parent rows aggregating the lots beneath them; `--depth` limits and
 aggregates the displayed rows as usual.
 With `-S/--sort-amount`, rows are sorted by market value (or by cost,
 when unpriced), largest first.
+The report title ("Holdings on DATE") can be customised with
+`--title=TEXT`, or suppressed with `--title=""`.
 Columns show each holding's acquisition date and age
 (when the row's lots share a single date; ages are shown in days, or
 from one year in years with one decimal digit, eg `44d` or `1.1y`,

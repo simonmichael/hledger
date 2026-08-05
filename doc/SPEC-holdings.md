@@ -30,6 +30,8 @@ json...).
   hidden (aggregated into their base account) by default,
   shown as rows with `--lots`.
 - A totals row is shown at the bottom (disable with `-N/--no-total`).
+- The text output's title, "Holdings on DATE", can be customised with
+  `--title=TEXT` or suppressed with `--title=""`.
 
 ## Columns
 
