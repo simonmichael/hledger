@@ -1,7 +1,13 @@
 Additional notes about the hledger project's AI usage, complementing ../AI.md.
-See also the ai scripts in the main Justfile (`just h ai-`).
 
-- ai.journal      - a log of estimated project AI usage
-- ai.rules        - csv rules for importing from summarised ccusage.journal to ai.journal
-- ccusage.journal - a personal log of claude code usage
-- ccusage.rules   - csv rules for generating ccusage.journal from the `ccusage` tool.
+See also the ai scripts in Justfile: `just ai-help`
+Files that might exist here (+ are committed)::
+
++ ccusage.rules       - for reading `ccusage` output (to generate ccusage.journal)
+- ccusage.journal     - a local snapshot of claude code usage (from ccusage). Transient.
++ ai.rules            - for reading ccusage.journal's monthly areg report (for import to ai.journal)
+- aicommits.csv       - a local snapshot of AI usage info from the hledger repo's commit messages
++ aicommits.csv.rules - for reading aicommits.csv (for import to ai.journal)
+- aiextra.csv         - a local log of additional AI usage not recorded in commit messages (for import to ai.journal)
++ ai.journal          - the project's public log of estimated monthly overall AI usage
++ commodities.journal - commodity declarations and unit conversion rates
