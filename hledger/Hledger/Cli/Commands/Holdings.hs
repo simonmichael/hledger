@@ -380,10 +380,6 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} $
       styleAmounts pctstyles nullamt{acommodity="%", aquantity=p}
 
-    -- Like showpct, but always signed: eg +44.0%.
-    showsignedpct :: Quantity -> T.Text
-    showsignedpct p = (if p >= 0 then "+" else "") <> showpct p
-
     -- Show an XIRR percentage, like showpct: eg 12.3%.
     showxirr :: Double -> T.Text
     showxirr = showpct . realToFrac
@@ -397,7 +393,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         gain = aquantity v - aquantity c
         gainamt = styleAmounts styles $ amountSetFullPrecisionUpTo Nothing
                     nullamt{acommodity=acommodity v, aquantity=gain}
-        pct | aquantity c /= 0 = showsignedpct $ 100 * gain / aquantity c
+        pct | aquantity c /= 0 = showpct $ 100 * gain / aquantity c
             | otherwise        = ""
     showgain _ _ = ("", "")
 
