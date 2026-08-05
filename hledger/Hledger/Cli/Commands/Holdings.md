@@ -44,19 +44,19 @@ the units held,
 the unit cost (or average cost, on rows aggregating multiple lots),
 the total cost basis, the current market price, the market value,
 the percentage of the portfolio's total value (Weight),
-the unrealised gain (absolute and percent),
-the realised gain from disposals so far (Rgain),
+the unrealised gain and gain percent (UGain, UGain%),
+the realised gain from disposals so far (RGain),
 and the annualised internal rate of return (XIRR, calculated from the
 account's dated cashflows and current value, like roi's IRR;
 it includes realised gains).
-In the totals row, Rgain and XIRR are account-level: they also include
+In the totals row, RGain and XIRR are account-level: they also include
 fully disposed lots, which have no row of their own (eg with `--lots`).
 
 Market prices at the report date come from
 [P directives](#p-directives), and from transaction costs with
 `--infer-market-prices`, as usual; holdings are valued in their cost
 commodity when possible. When a holding has no market price,
-its Price, Value and Gain columns are left blank.
+its Price, Value and gain columns are left blank.
 
 With `-V`, `-X COMM` or `--value` ([Valuation](#valuation)), holdings
 are valued in the default or given valuation commodity instead, and the
@@ -79,7 +79,8 @@ subaccounts.)
 With `-O html`, an HTML table is produced: like the text table,
 but with single-line cells. For styling, each cell has a css class
 naming its column (`account`, `date`, `age`, `units`, `unitcost`,
-`cost`, `price`, `value`, `gain`; totals row cells also have
+`cost`, `price`, `value`, `weight`, `ugain`, `ugainpct`, `rgain`,
+`xirr`; totals row cells also have
 `coltotal`), and each commodity amount is enclosed in a span with
 class `amount` (eg allowing wrapping within amounts to be prevented).
 
