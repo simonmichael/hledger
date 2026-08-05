@@ -5,7 +5,7 @@ Here is the current specification for lots functionality, most of which has been
 See also 
 - hledger manual: Cost basis
 - hledger manual: Lot reporting
-- <https://github.com/simonmichael/hledger/blob/main/examples/lots/lot-entries.journal>
+- <https://github.com/simonmichael/hledger/blob/main/examples/lots/lots.journal>
 - <https://joyful.com/hledger+lot+tracking>
 - <https://github.com/simonmichael/hledger/issues/1015>
 
@@ -714,7 +714,7 @@ Display behaviour:
 
 For end-to-end walkthroughs, see the user manual's "First lots example" and "Lot reporting example" sections.
 
-A larger collection of example entries: <https://github.com/simonmichael/hledger/blob/main/examples/lots/lot-entries.journal>
+A larger collection of example entries: <https://github.com/simonmichael/hledger/blob/main/examples/lots/lots.journal>
 
 ### Disposal
 

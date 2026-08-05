@@ -4,8 +4,8 @@
 ; transferring, and disposing of lot-tracked commodities (stocks, cryptocurrency, etc.).
 ; Use it as a starting point or reference for your own entries.
 ;
-; To try it:  hledger -f lots-entries.journal print --lots [--verbose-tags]
-;             hledger -f lots-entries.journal bal --lots [-M]
+; To try it:  hledger -f lots.journal print --lots [--verbose-tags]
+;             hledger -f lots.journal bal --lots [-M]
 ;
 ; This journal is written so that both hledger1 and hledger2 accept it.
 ; (Only hledger2 will calculate lot movements and capital gains correctly.)
@@ -159,7 +159,7 @@ account revenue:gains  ; type: G
 
 ; Recording an occasional market price allows reports to show current
 ; market value and unrealised gain. Eg try:
-;   hledger -f lot-entries.journal holdings
+;   hledger -f lots.journal holdings
 P 2026-05-01 ETSY $95
 
 
@@ -168,14 +168,14 @@ comment
 ###############################################################################
 Comparing roi and holdings with this journal.
 
-$ hledger -f lot-entries.journal roi --inv assets:broker --pnl 'revenue:gains|equity:unrealised-gain' -e 2026-03-31 --value=end,$ --infer-market-prices
+$ hledger -f lots.journal roi --inv assets:broker --pnl 'revenue:gains|equity:unrealised-gain' -e 2026-03-31 --value=end,$ --infer-market-prices
 +---++------------+------------++---------------+----------+-------------+------++--------++------------+----------+
 |   ||      Begin |        End || Value (begin) | Cashflow | Value (end) |  PnL ||    IRR || TWR/period | TWR/year |
 +===++============+============++===============+==========+=============+======++========++============+==========+
 | 1 || 2025-01-01 | 2026-03-30 ||             0 |    $-245 |        $510 | $755 || 48.55% ||      7.15% |    5.71% |
 +---++------------+------------++---------------+----------+-------------+------++--------++------------+----------+
 
-$ hledger -f lot-entries.journal holdings -e 2026-04-01 --infer-market-prices
+$ hledger -f lots.journal holdings -e 2026-04-01 --infer-market-prices
 Holdings on 2026-03-31
 
                 ||       Date   Age     Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain    XIRR
