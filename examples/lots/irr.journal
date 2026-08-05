@@ -28,9 +28,9 @@ $ hledger -f examples/lots/irr.journal roi --inv assets:stocks --pnl 'revenues:g
 $ hledger -f examples/lots/irr.journal holdings -N -e 2026-04-02
 Holdings on 2026-04-01
 
-               ||       Date  Age   Units  Avg cost  Cost  Price  Value  Weight  UGain  UGain%  RGain     XIRR
+               ||       Date  Age   Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain     XIRR
 ===============++==============================================================================================
- assets:stocks || 2026-01-15  76d  5 AAPL       $50  $250    $72   $360  100.0%   $110   44.0%   $100  1809.1%
+ assets:stocks || 2026-01-15  76d  5 AAPL       $50    $72  $250   $360  100.0%   $110   44.0%   $100  1809.1%
 
 1. roi's PnL $210 = holdings' UGain $110 + RGain $100.
 

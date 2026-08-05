@@ -3,7 +3,7 @@
 The @holdings@ command shows a report of investment holdings (lot-tracked assets).
 
 Work in progress; see doc/SPEC-holdings.md.
-Currently it shows the Date, Age, Units, Unit/Avg cost, Cost, Price,
+Currently it shows the Date, Age, Units, Unit/Avg cost, Price, Cost,
 Value, Weight, UGain, UGain%, RGain and XIRR columns, with lot
 subaccounts aggregated by default or shown as rows with --lots.
 
@@ -82,8 +82,8 @@ data Holding = Holding {
   ,hAge       :: Maybe Integer    -- ^ days held at the report date
   ,hUnits     :: Amount           -- ^ units held, styled
   ,hUnitCost  :: Maybe T.Text     -- ^ unit or average cost
-  ,hCost      :: T.Text           -- ^ total cost basis
   ,hPrice     :: Maybe T.Text     -- ^ market price at the valuation date
+  ,hCost      :: T.Text           -- ^ total cost basis
   ,hValue     :: Maybe T.Text     -- ^ market value
   ,hWeight    :: Maybe Quantity   -- ^ percentage of the portfolio's value, rounded to 1 decimal
   ,hUgain     :: Maybe T.Text     -- ^ unrealised gain
@@ -100,8 +100,8 @@ holdingCsv h =
   ,maybe "" (T.pack . show) (hAge h)
   ,T.pack $ showAmountWith machineFmt{displayCommodity=False} (hUnits h)
   ,fromMaybe "" (hUnitCost h)
-  ,hCost h
   ,fromMaybe "" (hPrice h)
+  ,hCost h
   ,fromMaybe "" (hValue h)
   ,maybe "" (T.pack . show) (hWeight h)
   ,fromMaybe "" (hUgain h)
@@ -118,8 +118,8 @@ holdingJson h = object
   ,"age"       .= hAge h
   ,"units"     .= aquantity (hUnits h)
   ,"unitcost"  .= hUnitCost h
-  ,"cost"      .= hCost h
   ,"price"     .= hPrice h
+  ,"cost"      .= hCost h
   ,"value"     .= hValue h
   ,"weight"    .= hWeight h
   ,"ugain"     .= hUgain h
@@ -466,7 +466,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       where
         addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
           Table (Group NoLine [Header ""]) (Header []) [totalrow]
-    colheadings = ["Date", "Age", "Units", if showlots then "Unit cost" else "Avg cost", "Cost", "Price", "Value", "Weight", "UGain", "UGain%", "RGain", "XIRR"]
+    colheadings = ["Date", "Age", "Units", if showlots then "Unit cost" else "Avg cost", "Price", "Cost", "Value", "Weight", "UGain", "UGain%", "RGain", "XIRR"]
     renderacct r = T.replicate (prrIndent r * 2) " " <> prrDisplayName r
 
     rowLotCosts r = [rowCostValuer r $ multiplyAmount (aquantity a) c
@@ -475,12 +475,12 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     -- The text table's cells: each cell's parts joined,
     -- multi-line in Units and Price, one-line elsewhere.
     rowcells = zipWith T.intercalate cellseps . rowCellParts
-    cellseps = [", ", ", ", "\n", ", ", ", ", "\n", ", ", ", ", ", ", ", ", ", ", ", "]
+    cellseps = [", ", ", ", "\n", ", ", "\n", ", ", ", ", ", ", ", ", ", ", ", ", ", "]
 
     -- A row's cells, each as a list of parts:
     -- one part per commodity amount in the amount cells, at most one part elsewhere.
     rowCellParts :: PeriodicReportRow DisplayName MixedAmount -> [[T.Text]]
-    rowCellParts r = [[datecell], [agecell], unitparts, [unitcostcell], costparts, priceparts, valueparts, [weightcell], [ugaincell], [ugainpctcell], rgainparts, [xirrcell]]
+    rowCellParts r = [[datecell], [agecell], unitparts, [unitcostcell], priceparts, costparts, valueparts, [weightcell], [ugaincell], [ugainpctcell], rgainparts, [xirrcell]]
       where
         acct = prrFullName r
         (priceparts, valueparts, (ugaincell, ugainpctcell), weightcell) = case rowValuation r of
@@ -533,7 +533,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
            mtotalrowparts
       where
         -- per-column css classes, so the html cells can be styled
-        colclasses = ["account","date","age","units","unitcost","cost","price","value","weight","ugain","ugainpct","rgain","xirr"]
+        colclasses = ["account","date","age","units","unitcost","price","cost","value","weight","ugain","ugainpct","rgain","xirr"]
         -- which of the other columns' cell parts are amounts
         amountcols = [False, False, True, True, True, True, True, False, True, False, True, False]
         hcell cls t = plain <$> (headerCell t){Ods.cellClass = Ods.Class cls}
@@ -631,7 +631,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
 
     csvoutput :: CSV
     csvoutput =
-      ["account","commodity","date","age","units","unitcost","cost","price","value","weight","ugain","ugainpct","rgain","xirr"]
+      ["account","commodity","date","age","units","unitcost","price","cost","value","weight","ugain","ugainpct","rgain","xirr"]
       : map holdingCsv holdingrecords
 
     -- Grand totals row (as cell parts, like rowCellParts): the Cost,
@@ -641,7 +641,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     mtotalrowparts :: Maybe [[T.Text]]
     mtotalrowparts
       | no_total_ ropts = Nothing
-      | otherwise = Just [[], [], [], [], costparts, [], valueparts, [weightcell], [ugaincell], [ugainpctcell], rgainparts, [xirrcell]]
+      | otherwise = Just [[], [], [], [], [], costparts, valueparts, [weightcell], [ugaincell], [ugainpctcell], rgainparts, [xirrcell]]
       where
         totcosts = concatMap rowLotCosts toprows
         costparts = map showamt $ amounts $ mixed totcosts

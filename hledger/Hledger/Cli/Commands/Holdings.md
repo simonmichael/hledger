@@ -42,7 +42,7 @@ from one year in years with one decimal digit, eg `44d` or `1.1y`,
 approximating years as 365 days),
 the units held,
 the unit cost (or average cost, on rows aggregating multiple lots),
-the total cost basis, the current market price, the market value,
+the current market price, the total cost basis, the market value,
 the percentage of the portfolio's total value (Weight),
 the unrealised gain and gain percent (UGain, UGain%),
 the realised gain from disposals so far (RGain),
@@ -82,7 +82,7 @@ subaccounts.)
 With `-O html`, an HTML table is produced: like the text table,
 but with single-line cells. For styling, each cell has a css class
 naming its column (`account`, `date`, `age`, `units`, `unitcost`,
-`cost`, `price`, `value`, `weight`, `ugain`, `ugainpct`, `rgain`,
+`price`, `cost`, `value`, `weight`, `ugain`, `ugainpct`, `rgain`,
 `xirr`; totals row cells also have
 `coltotal`), and each commodity amount is enclosed in a span with
 class `amount` (eg allowing wrapping within amounts to be prevented).
