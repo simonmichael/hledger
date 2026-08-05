@@ -1878,7 +1878,7 @@ installcommithook:
 
 # Show a hledger sample holdings report.
 @holdings-hledger *ARGS:
-    hledger -f examples/lots/lot-entries.journal holdings {{ ARGS }}
+    hledger -f examples/lots/lots.journal holdings {{ ARGS }}
 
 # Show several holdings report examples.
 holdings-examples:

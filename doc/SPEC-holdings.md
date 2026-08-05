@@ -250,6 +250,6 @@ report end date to today (treating a missing end date as today+1 in the
 lot posting query, the internal multiBalanceReport query, and the report
 date), like hledger-ui's hiding of future transactions. It was judged
 not worth the inconsistency with other reports, for now; the motivating
-example (examples/lots/lot-entries.journal needing -e to show prices)
+example (examples/lots/lots.journal needing -e to show prices)
 was fixed instead by moving its story dates into the past. Could be
 revisited if future-dated journals prove troublesome in practice.
