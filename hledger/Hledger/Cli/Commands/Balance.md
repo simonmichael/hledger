@@ -55,7 +55,8 @@ Flags:
                             total
   -r --related              show the other accounts transacted with, instead
      --invert               display all amounts with reversed sign
-     --transpose            switch rows and columns (use vertical time axis)
+     --transpose            switch rows and columns (use vertical time axis);
+                            repeat to cancel
      --layout=ARG           how to lay out multi-commodity amounts and the
                             overall table:
                             'wide[,W]': commodities on same line, up to W wide

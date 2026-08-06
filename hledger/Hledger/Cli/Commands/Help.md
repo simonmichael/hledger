@@ -2,6 +2,7 @@
 
 Show the hledger user manual with `info`, `man`, or a pager.
 With a (case insensitive) TOPIC argument, try to open it at that section heading.
+(Enclose TOPIC in quotes if it contains spaces.)
 
 ```flags
 Flags:
