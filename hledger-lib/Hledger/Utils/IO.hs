@@ -105,6 +105,8 @@ module Hledger.Utils.IO (
   brightWhite',
   rgb',
   sgrresetall,
+  accent,
+  gradientStr,
 
   -- ** Generic
 
@@ -970,6 +972,40 @@ brightWhite'  = ansiWrapUnsafe sgrbrightwhite sgrresetfg
 
 rgb' :: Float -> Float -> Float -> String -> String
 rgb' r g b  = ansiWrapUnsafe (sgrrgb r g b) sgrresetfg
+
+-- | Choose and apply an accent color for hledger output, if possible
+-- picking one that will contrast with the current terminal background colour.
+accent :: String -> String
+accent
+  | not useColorOnStdoutUnsafe    = id  -- XXX unsafe accenting the title banner - seems to work, even respecting config file
+  | terminalIsLight == Just False = brightWhite'
+  | terminalIsLight == Just True  = brightBlack'
+  | otherwise                     = id
+
+-- | Colour a string with hledger's diagonal blue-to-green gradient: each
+-- character's colour depends on its position (@row@, and column counting from
+-- @col0@) within a grid @h@ rows tall and @w@ columns wide, fading blue at the
+-- top-left to green at the bottom-right. The gradient is brighter on a dark
+-- terminal background and darker on a light one. The whole string is wrapped in
+-- the given intensity style (eg 'bold'' or 'faint''); the per-character colour
+-- codes only touch the foreground, so the intensity is kept across the string.
+-- Falls back to the single 'accent' colour when the background lightness is
+-- unknown, and to no colouring when colour is off.
+gradientStr :: (String -> String) -> Int -> Int -> Int -> Int -> String -> String
+gradientStr intensity h w row col0 s
+  | not useColorOnStdoutUnsafe = s
+  | otherwise = intensity $ case terminalIsLight of
+      Nothing    -> accent s
+      Just light ->
+        let (r1,g1,b1) = if light then (0.12,0.44,0.69) else (0.16,0.71,0.85)  -- start (blue)
+            (r2,g2,b2) = if light then (0.25,0.49,0.12) else (0.48,0.75,0.26)  -- end   (green)
+            fullspan   = fromIntegral (max 1 (h + w - 2)) :: Float
+            paint c ch
+              | ch == ' ' = " "  -- leave gaps uncoloured, and out of the escape-code noise
+              | otherwise = rgb' (mix r1 r2) (mix g1 g2) (mix b1 b2) [ch]
+              where t     = fromIntegral (row + c) / fullspan  -- 0 at top-left, 1 at bottom-right
+                    mix a b = a + (b - a) * t
+        in concat $ zipWith paint [col0..] s
 
 -- Generic:
 

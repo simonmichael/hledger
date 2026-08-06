@@ -35,7 +35,6 @@ The command syntax is the same as with `run`:
 - enter one hledger command at a time, without the usual `hledger` first word
 - empty lines and comment text from `#` to end of line are ignored
 - use single or double quotes to quote arguments when needed
-- type `exit` or `quit` or control-D to exit the REPL.
 
 While it is running, the REPL remembers your command history, and you can navigate in the usual ways:
 
@@ -49,22 +48,29 @@ Generally `repl` command lines should feel much like the normal hledger CLI, but
 eg it requires full command names or official abbreviations (as seen in the commands list).
 Command aliases defined in a config file can also be used.
 
-The `commands` and `help` commands, and the command help flags
-(`CMD --tldr`, `CMD -h/--help`, `CMD --info`, `CMD --man`), can be useful.
-
 You can type control-C to cancel a long-running command (but only once; typing it a second time will exit the REPL).
 
 To run a single shell command without leaving the REPL, type `! SHELLCMD`
 (eg `! ls` or `! git status`).
 
-And in most shells you can type control-Z to temporarily exit to the shell (and then `fg` to return to the REPL).
+In most shells you can type control-Z to temporarily exit to the shell (and then `fg` to return to the REPL).
+
+These commands can be useful for help:
+`?` (alias for `commands`),
+`help -h`,
+`help [-i|-m] ['TOPIC']`,
+`CMD [--tldr|--info|--man|-h]`,
+`!hledger -h`.
+
+To exit the REPL, use control-D or `quit` or `exit`.
 
 ### Examples
 
 Start the REPL and enter some commands:
 ```cli
 $ hledger repl 
-Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
+hledger 1.52
+Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF / control-d.
 2025> stats
 Main file           : .../2025.journal
 ...
@@ -79,7 +85,8 @@ Main file           : .../2025.journal
 or:
 ```cli
 $ hledger repl -f some.journal
-Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF.
+hledger 1.52
+Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF / control-d.
 some> bs
 ...
 some> print -b 'last week'

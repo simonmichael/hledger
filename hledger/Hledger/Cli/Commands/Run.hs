@@ -49,6 +49,7 @@ import Text.Printf (printf)
 import System.FilePath (takeBaseName, getSearchPath)
 import System.Directory (doesDirectoryExist, getModificationTime)
 import System.Process (system)
+import Hledger.Cli.Version (packageversion)
 
 -- | Command line options for this command.
 runmode = hledgerCommandMode
@@ -214,8 +215,6 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
 runREPL :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> Bool -> IO ()
 runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch = do
   isTerminal <- isStdinTerminal
-  -- Use the main input file's base name as the prompt.
-  let prompt = takeBaseName (snd $ splitReaderPrefix $ NE.head jpaths) ++ "> "
   -- Mutable alias and addon state, so these can be reloaded when their sources change on disk.
   confmtime0 <- maybe (return 0) (fmap (fromMaybe 0) . maybeFileModificationTime . fst) mconfinfo
   aliasesRef <- newIORef (confmtime0, cmdaliases)
@@ -224,14 +223,29 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
   if not isTerminal
     then runInputT defaultSettings (loop aliasesRef addonsRef False "")
     else do
-      putStrLn "Enter hledger commands. To exit, enter 'quit' or 'exit', or send EOF."
+      -- Show a startup banner: the program name and version and a usage hint,
+      -- coloured with a gradient like the commands list when supported.
+      -- w <- fromMaybe 80 <$> getTerminalWidth
+      let
+        grad intensity row s = gradientStr intensity 2 (length s) row 0 s
+        fpath = snd $ splitReaderPrefix $ NE.head jpaths
+                  --------------------------------------80----------------------------------------
+        title  =  progname <> " " <> packageversion
+        hint   = "Ready for hledger commands. For help, type ? or help -h. To exit: q or ctrl-d."
+        prompt = stxMarkEscapes $ grad faint' 2 $ takeBaseName fpath ++ "> "
+      -- putStrLn $ grad faint' 0 $ replicate w '-'
+      putStrLn $ grad bold' 1 title
+      putStrLn $ faint' hint
+      -- Then run the REPL loop.
       runInputT defaultSettings (loop aliasesRef addonsRef True prompt)
+
   where
   loop :: IORef (POSIXTime,[(CommandAlias,CommandLine)]) -> IORef (POSIXTime,[String]) -> Bool -> String -> InputT IO ()
   loop aliasesRef addonsRef interactive prompt = do
     minput <- getInputLine prompt
     case minput of
       Nothing -> return ()
+      Just "q" -> return ()
       Just "quit" -> return ()
       Just "exit" -> return ()
       Just input -> do
@@ -262,6 +276,18 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
 isStdinTerminal = do
   op <- hIsOpen stdin
   if op then hIsTerminalDevice stdin else return False
+
+-- | Mark any ANSI escape sequences (eg SGR colour/style codes) in a string as zero-width
+-- for haskeline, by appending a \STX character to each. Haskeline treats text between
+-- \ESC and \STX as zero-width; without this, escape codes in the prompt make it
+-- miscalculate the prompt's width, garbling the display.
+stxMarkEscapes :: String -> String
+stxMarkEscapes ('\ESC':cs) =
+  case break (=='m') cs of  -- SGR escape sequences end with 'm'
+    (code, 'm':rest) -> '\ESC' : code ++ "m\STX" ++ stxMarkEscapes rest
+    _                -> '\ESC' : cs  -- unterminated escape sequence, leave as is
+stxMarkEscapes (c:cs) = c : stxMarkEscapes cs
+stxMarkEscapes ""     = ""
 
 -- | Cache of all journals that have been read by commands given to "run",
 -- keyed by the fully-expanded filename.
