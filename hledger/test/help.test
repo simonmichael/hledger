@@ -29,3 +29,7 @@ $ hledger help journal
 $ hledger help examples nosuchcommand
 >2 /there are no examples for hledger-nosuchcommand/
 >=1
+
+# ** 8. help quickref shows the quick reference card.
+$ hledger help quickref
+> /HLEDGER QUICK REFERENCE/

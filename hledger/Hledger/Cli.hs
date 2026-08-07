@@ -124,6 +124,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import Hledger.Cli.Commands
+import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.Cli.Commands.Run
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
@@ -174,15 +175,17 @@ confflagsmode = defMode{
   }
 
 -- | The help command: show some part of hledger's documentation, dispatching on
--- its first argument to a subtopic. Recognised subtopics are: commands (the commands list),
--- usage [CMD] (command-line usage, general or for CMD), manual [TOPIC] (the
--- manual, optionally at TOPIC), and examples [CMD..] (brief tldr examples).
+-- its first argument to a subtopic. Recognised subtopics are: quickref (the quick
+-- reference card), commands (the commands list), usage [CMD] (command-line usage,
+-- general or for CMD), manual [TOPIC] (the manual, optionally at TOPIC), and
+-- examples [CMD..] (brief tldr examples).
 -- Any other first argument is treated as a manual topic. addons is the list of
 -- known addon command names, used when showing general usage.
 help :: [String] -> CliOpts -> IO ()
 help addons opts =
   case listofstringopt "args" (rawopts_ opts) of
     []              -> manual opts Nothing
+    "quickref":_    -> showQuickref
     "commands":_    -> commands opts nulljournal
     "usage":rest    ->
       let usagemode = case rest of
