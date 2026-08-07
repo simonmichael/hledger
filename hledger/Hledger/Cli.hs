@@ -372,7 +372,7 @@ main = handleExit $ withGhcDebug' $ do
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $ do
     let aliasnote = if effectivecmdarg /= cmdarg then " (expanded from the " <> cmdarg <> " command alias)" else ""
-    error' $ "command " <> effectivecmdarg <> aliasnote <> " is not recognised. Run with no command to see a list."
+    error' $ "command " <> effectivecmdarg <> aliasnote <> " is not recognised. Run 'hledger help commands' to see a list."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
@@ -486,7 +486,7 @@ main = handleExit $ withGhcDebug' $ do
         | webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" mmodecmdname
 
         -- 6.4.2. builtin command which should not require or read the journal - run it
-        | cmdname `elem` ["commands","demo","setup","test"] ->
+        | cmdname `elem` ["demo","setup","test"] ->
           cmdaction opts (ignoredjournal cmdname)
 
         -- 6.4.3. builtin command which can work with a non-existent journal

@@ -591,7 +591,7 @@ p1    = print --oneline
 rev10 = balance type:R -2 -X$ -p 'every 10 years from 2000'
 ```
 
-With this in your config file, you'll see a `rev10` command in the `hledger commands` list,
+With this in your config file, you'll see a `rev10` command in the `hledger help commands` list,
 and `hledger rev10` will run the balance command above.
 Options or arguments written at the command line will be added at the end, usually overriding those in the alias;
 eg `hledger rev10 -X €` will convert to `€` instead of `$`.
@@ -7713,7 +7713,7 @@ $ hledger print desc:sell -a
 <a name="commands-overview"></a>
 
 Here are hledger's standard [subcommands](#commands).
-You can list these by running `hledger`.
+You can list these by running `hledger help commands`.
 If you have installed more [add-on commands](../scripts.md), they also will be listed.
 
 In the following command docs, each command's specific options are shown.
@@ -7725,9 +7725,8 @@ You can list all of a command's options by running `hledger CMD -h`.
 
 **[Help commands](#help-commands)**
 
-- [commands](#commands-1)                          - show the hledger commands list (default)
+- [help](#help)                                    - show documentation (quickref, commands, usage, manual, examples..)
 - [demo](#demo)                                    - show small hledger demos in the terminal
-- [help](#help)                                    - show the hledger manual with info, man, or pager
 
 **[User interface commands](#user-interface-commands)**
 
@@ -7809,19 +7808,22 @@ Here are some quick examples of how to do some basic tasks with hledger.
 
 ## Getting help
 
-Here's how to list commands and view options and command docs:
+Here's how to get a quick overview, list commands, and view options and command docs:
 
 ```cli
-$ hledger                # show available commands
+$ hledger                # show a quick reference card (also: hledger -?)
+$ hledger help commands  # show available commands
 $ hledger --help         # show common options
 $ hledger CMD --help     # show CMD's options, common options and CMD's documentation
 ```
 
-You can also view your hledger version's manual in several formats
-by using the [help command](#help). Eg:
+The [help command](#help) is a documentation hub; its first argument
+selects what to show. Eg:
 ```cli
-$ hledger help           # show the hledger manual with info, man or $PAGER (best available)
+$ hledger help           # show the quick reference card
+$ hledger help manual    # show the hledger manual with info, man or $PAGER (best available)
 $ hledger help journal   # show the journal topic in the hledger manual
+$ hledger help examples print   # show brief examples for the print command
 $ hledger help --help    # find out more about the help command
 ```
 

@@ -43,9 +43,10 @@ helpmode = hledgerCommandMode
   ,flagNone ["m"] (setboolopt "help-m")   "show the manual with man"
   ,flagNone ["p"] (setboolopt "help-p") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
   ,flagNone ["w"] (setboolopt "help-w") "show the manual on the web"
+  ,flagNone ["builtin"] (setboolopt "builtin") "with the commands topic, show only built-in commands"
   ]
   [(helpflagstitle, helpflags)]
-  []
+  hiddenflags  -- accept --conf/--no-conf etc., eg so "help commands" can show config aliases
   ([], Just $ argsFlag "[TOPIC]")
 
 -- | The help command: display the hledger manual, optionally positioned at the

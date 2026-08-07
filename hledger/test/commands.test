@@ -1,9 +1,0 @@
-# * commands command
-
-# ** 1. The commands command shows the commands list.
-$ hledger commands
-> /Commands \(including installed/
-
-# ** 2. With --builtin, show only builtin commands.
-$ hledger commands --builtin
-> /Commands \(showing built-in/

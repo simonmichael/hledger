@@ -33,3 +33,7 @@ $ hledger help examples nosuchcommand
 # ** 8. help quickref shows the quick reference card.
 $ hledger help quickref
 > /HLEDGER QUICK REFERENCE/
+
+# ** 9. help commands --builtin shows only built-in commands.
+$ hledger help commands --builtin
+> /Commands \(showing built-in/

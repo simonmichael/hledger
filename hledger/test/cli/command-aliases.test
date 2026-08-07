@@ -82,7 +82,7 @@ $  printf '[alias]\nbadline\n' >$$.conf; hledger --conf $$.conf -f /dev/null fil
 >= 1
 
 # ** 12. Command aliases are shown in the commands list.
-$  printf '[alias]\nnetworth = bse -H --tree\n' >$$.conf; hledger --conf $$.conf commands | grep -A1 '^ALIASES'; rm -f $$.conf
+$  printf '[alias]\nnetworth = bse -H --tree\n' >$$.conf; hledger --conf $$.conf help commands | grep -A1 '^ALIASES'; rm -f $$.conf
 ALIASES
  networth = bse -H --tree
 
@@ -93,7 +93,7 @@ $  printf '[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf -n -f /dev/
 
 # ** 14. A --no-conf flag inside the config file (which is ignored, see cli.test)
 # does not hide the file's aliases from the commands list.
-$  printf -- '--no-conf\n\n[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf commands | grep -c '^ALIASES'; rm -f $$.conf
+$  printf -- '--no-conf\n\n[alias]\nlist = files\n' >$$.conf; hledger --conf $$.conf help commands | grep -c '^ALIASES'; rm -f $$.conf
 1
 
 # ** 15. Command aliases can be used in run's command line arguments.
@@ -160,7 +160,7 @@ $  printf '[alias]\nbad = !false\n' >$$.conf; hledger --conf $$.conf bad; s=$?; 
 >= 1
 
 # ** 24. Shell aliases are shown in the commands list, with their ! definition.
-$  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf commands | grep -A1 '^ALIASES'; rm -f $$.conf
+$  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf help commands | grep -A1 '^ALIASES'; rm -f $$.conf
 ALIASES
  hi = !echo hello
 

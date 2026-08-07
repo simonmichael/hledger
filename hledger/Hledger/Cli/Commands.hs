@@ -126,7 +126,6 @@ builtinCommands = [
   ,(checkmode              , check)
   ,(closemode              , close)
   ,(codesmode              , codes)
-  ,(commandsmode           , commands)
   ,(commoditiesmode        , commodities)
   ,(demomode               , demo)
   ,(descriptionsmode       , descriptions)
@@ -223,11 +222,13 @@ commandsList progversion builtin othercmds cmdaliases =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "HELP"
-  ," commands                 show this commands list (default)"
-  ," --examples [COMMAND]     show brief command examples [for COMMAND]"
-  ," --help/-h [COMMAND]      show full command line help [for COMMAND]"
-  ," help [-i|-m|-p] [TOPIC]  show the hledger manual     [for TOPIC]"
+  ," help [SUBTOPIC]          show documentation (quickref, commands, usage,"
+  ,"                          manual, examples, install, docs, support, home)"
   ," demo [DEMO]              show brief demos in the terminal"
+  ," -?                       show a quick reference card (the default)"
+  ," --help/-h [COMMAND]      show command line usage [for COMMAND]"
+  ," --examples [COMMAND]     show brief command examples [for COMMAND]"
+  ," --man/--info/--webman    show the manual (in a viewer or web browser)"
   -- ,"                          for more help, see https://hledger.org"
   ,""
     -----------------------------------------80-------------------------------------
@@ -343,17 +344,6 @@ commandsListExtractCommands addonsonly l =
   , let cmdname:_ = words line
   ]
   -- Keep synced with commandsList.
-
-commandsmode =
-  hledgerCommandMode
-    $(embedFileRelative "Hledger/Cli/Commands/Commands.txt")
-    [flagNone ["builtin"] (setboolopt "builtin")  "show only builtin commands, not addons"
-    ]
-    [(helpflagstitle, helpflags)]
-    hiddenflags  -- accept --conf/--no-conf, to show/hide command aliases defined in a config file
-    -- flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
-
-    ([], Nothing)
 
 -- | Display the commands list.
 commands :: CliOpts -> Journal -> IO ()
