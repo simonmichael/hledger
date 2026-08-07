@@ -173,6 +173,27 @@ confflagsmode = defMode{
   ,modeArgs = ([], Just $ argsFlag "")
   }
 
+-- | The help command: show some part of hledger's documentation, dispatching on
+-- its first argument to a subtopic. Recognised subtopics are: commands (the commands list),
+-- usage [CMD] (command-line usage, general or for CMD), manual [TOPIC] (the
+-- manual, optionally at TOPIC), and examples [CMD..] (brief tldr examples).
+-- Any other first argument is treated as a manual topic. addons is the list of
+-- known addon command names, used when showing general usage.
+help :: [String] -> CliOpts -> IO ()
+help addons opts =
+  case listofstringopt "args" (rawopts_ opts) of
+    []              -> manual opts Nothing
+    "commands":_    -> commands opts nulljournal
+    "usage":rest    ->
+      let usagemode = case rest of
+            c:_ | Just (m,_) <- findBuiltinCommand c -> m
+            _                                        -> mainmode addons
+      in runPager $ showModeUsage usagemode ++ "\n"
+    "manual":rest   -> manual opts (headMay rest)
+    "examples":rest -> mapM_ runTldrForPage $
+                         if null rest then ["hledger"] else map ("hledger-"<>) rest
+    topic:_         -> manual opts (Just topic)
+
 ------------------------------------------------------------------------------
 -- | hledger CLI's main procedure.
 --
@@ -450,7 +471,7 @@ main = handleExit $ withGhcDebug' $ do
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
 
         -- 6.4.2. builtin command which should not require or read the journal - run it
-        | cmdname `elem` ["commands","demo","help","setup","test"] ->
+        | cmdname `elem` ["commands","demo","setup","test"] ->
           cmdaction opts (ignoredjournal cmdname)
 
         -- 6.4.3. builtin command which can work with a non-existent journal
@@ -465,7 +486,12 @@ main = handleExit $ withGhcDebug' $ do
           let mconfinfo = (\f -> (f, cliconfrawopts)) <$> mconffile
           in Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo (Just addonCommandNames) opts
 
-        -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
+        -- 6.4.5. the help command - shows documentation, dispatching on its first
+        -- argument (journal-less); needs findBuiltinCommand and the addon names,
+        -- which live here, so it is special-cased like run/repl above.
+        | cmdname == "help" -> help addons opts
+
+        -- 6.4.6. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
     -- 6.5. external addon command found - run it,

@@ -226,15 +226,15 @@ $ hledger help
 
 # ** 39.
 $ hledger help -p -h
-> /Show the hledger user manual/
+> /hledger's documentation/
 
 # ** 40.
 $ hledger help -m -h
-> /Show the hledger user manual/
+> /hledger's documentation/
 
 # ** 41.
 $ hledger help -i -h
-> /Show the hledger user manual/
+> /hledger's documentation/
 
 # ** 42. --conf/--no-conf flags inside a config file are ignored: which config file to use
 # was decided before reading it, so they are dropped from the config's general arguments.

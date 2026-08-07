@@ -1,8 +1,15 @@
 ## help
 
-Show the hledger user manual with `info`, `man`, or a pager.
-With a (case insensitive) TOPIC argument, try to open it at that section heading.
-(Enclose TOPIC in quotes if it contains spaces.)
+Show some part of hledger's documentation. The first argument selects what to show:
+
+- `help commands`: the commands list
+- `help usage [CMD]`: command-line usage, in general or for CMD
+- `help manual [TOPIC]`: the manual (with `info`, `man` or a pager), optionally at TOPIC
+- `help examples [CMD..]`: brief command examples
+
+With any other first argument, or none, it shows the manual, with that
+argument selecting a TOPIC. TOPIC is matched case insensitively against
+the manual's section headings. (Enclose TOPIC in quotes if it contains spaces.)
 
 ```flags
 Flags:
@@ -12,8 +19,8 @@ Flags:
                            (less is always used if TOPIC is specified)
 ```
 
-This command shows the hledger manual built in to your hledger executable.
-It can be useful when offline, or when you prefer the terminal to a web browser,
+The manual is built in to your hledger executable, so it can be useful when offline,
+or when you prefer the terminal to a web browser,
 or when the appropriate hledger manual or viewers are not installed properly on your system.
 
 By default it chooses the best viewer found in $PATH, trying in this order:
@@ -31,7 +38,10 @@ For a prefix match, you can write '`TOPIC.*`'.
 Examples
 ```cli
 $ hledger help -h                 # show the help command's usage
+$ hledger help commands           # show the commands list
+$ hledger help usage balance      # show the balance command's usage
 $ hledger help                    # show the manual with info, man or $PAGER
 $ hledger help 'time periods'     # show the manual's "Time periods" topic
 $ hledger help 'time periods' -m  # use man, even if info is installed
+$ hledger help examples print     # show brief examples for the print command
 ```

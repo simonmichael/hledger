@@ -1,0 +1,31 @@
+# * help command
+# The help command is a documentation hub, dispatching on its first argument.
+
+# ** 1. Bare help shows the manual (plain text, since stdout is a pipe here).
+$ hledger help
+> /hledger User Manuals/
+
+# ** 2. help commands shows the commands list.
+$ hledger help commands
+> /Commands \(including installed/
+
+# ** 3. help usage shows general command-line usage.
+$ hledger help usage
+> /hledger's main command line interface/
+
+# ** 4. help usage CMD shows that command's usage.
+$ hledger help usage balance
+> /^balance \[OPTIONS\]/
+
+# ** 5. help manual TOPIC shows the manual.
+$ hledger help manual journal
+> /hledger User Manuals/
+
+# ** 6. An unrecognised help argument is treated as a manual topic.
+$ hledger help journal
+> /hledger User Manuals/
+
+# ** 7. help examples errors clearly when a command has no examples.
+$ hledger help examples nosuchcommand
+>2 /there are no examples for hledger-nosuchcommand/
+>=1
