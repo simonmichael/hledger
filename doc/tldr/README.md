@@ -1,3 +1,17 @@
+2026-08:
+
+Our --tldr flag has been renamed to --examples. I think some people in need of tldr won't know the acronym.
+
+And I think we'll stop syncing with and using the content from the official tldr-pages repo.
+Because it adds friction and maintenance cost, and it restricts our content quite a lot (commands only, style rules..).
+Also, having these docs built in to software, which is easy to do nowadays,
+is just more robust and will always be preferable to having to install and update a separate tool.
+
+But we'll keep using tldr's basic format, and for now we keep using an
+external tldr executable for rendering, since it probably does a better job.
+
+2024:
+
 [tldr-pages](https://tldr.sh) provides very short, example-focussed doc pages for many command line tools, 
 which can be viewed quickly with a `tldr` client
 (such as [tealdeer](https://github.com/tealdeer-rs/tealdeer)).
@@ -39,7 +53,7 @@ As of 2025Q3, besides english there's
 
 ## Usage tips
 
-Some of these pages are embedded in `hledger`, `hledger-ui` and `hledger-web`, accessible with `--tldr`.
+Some of these pages are embedded in `hledger`, `hledger-ui` and `hledger-web`, accessible with `--examples`.
 We may find other ways to use them in future.
 
 <https://tldr.inbrowser.app> is an online (& offline) tldr viewer,

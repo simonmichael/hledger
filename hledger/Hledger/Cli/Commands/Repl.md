@@ -59,7 +59,7 @@ These commands can be useful for help:
 `?` (alias for `commands`),
 `help -h`,
 `help [-i|-m] ['TOPIC']`,
-`CMD [--tldr|--info|--man|-h]`,
+`CMD [--examples|--info|--man|-h]`,
 `!hledger -h`.
 
 To exit the REPL, use control-D or `quit` or `exit`.

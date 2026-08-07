@@ -224,7 +224,7 @@ commandsList progversion builtin othercmds cmdaliases =
     -----------------------------------------80-------------------------------------
   ,bold' "HELP"
   ," commands                 show this commands list (default)"
-  ," --tldr    [COMMAND]      show brief command examples [for COMMAND]"
+  ," --examples [COMMAND]     show brief command examples [for COMMAND]"
   ," --help/-h [COMMAND]      show full command line help [for COMMAND]"
   ," help [-i|-m|-p] [TOPIC]  show the hledger manual     [for TOPIC]"
   ," demo [DEMO]              show brief demos in the terminal"

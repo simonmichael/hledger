@@ -32,9 +32,7 @@ but when you have a question about functionality, this doc should answer it.
 It is detailed, so do skip ahead or skim when needed.
 You can read it on hledger.org, or as an info manual or man page on your system.
 You can also open a built-in copy, at a point of interest, by running\
-`hledger --man [CMD]`, `hledger --info [CMD]` or `hledger help [TOPIC]`.
-
-(And for shorter help, try `hledger --tldr [CMD]`.)
+`hledger help [TOPIC]`.
 
 The main function of the hledger CLI is
 to read plain text files describing financial transactions,
@@ -258,7 +256,7 @@ And the following general options are common to most hledger commands:
 _generaloptions_
 
 Usually hledger accepts any unambiguous flag prefix,
-eg you can write `--tl` instead of `--tldr` or `--dry` instead of `--dry-run`.
+eg you can write `--dry` instead of `--dry-run`.
 
 You can combine short flags which don't take arguments, eg you can write `-MAST` instead of `-M -A -S -T`.
 Flags requiring an argument can't be combined in this way (`-If FILE` won't work).

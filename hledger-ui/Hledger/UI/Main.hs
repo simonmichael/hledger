@@ -112,7 +112,7 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
 
   case True of
     _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
-    _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
+    _ | boolopt "examples" rawopts -> runTldrForPage "hledger-ui"
     _ | boolopt "info"    rawopts -> runInfoForTopic "hledger-ui" Nothing
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
     _ | boolopt "version" rawopts -> putStrLn prognameandversion

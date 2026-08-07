@@ -81,7 +81,7 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
     | boolopt "help"            rawopts_ -> runPager $ showModeUsage webmode ++ "\n"
-    | boolopt "tldr"            rawopts_ -> runTldrForPage "hledger-web"
+    | boolopt "examples"        rawopts_ -> runTldrForPage "hledger-web"
     | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | boolopt "man"             rawopts_ -> runManForTopic  "hledger-web" Nothing
     | boolopt "version"         rawopts_ -> putStrLn prognameandversion

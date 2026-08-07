@@ -189,7 +189,7 @@ tldr name = lookup name tldrs
 runTldrForPage :: TldrPage -> IO ()
 runTldrForPage name =
   case tldr name of
-    Nothing -> error' $ "sorry, there's no " <> name <> " tldr page yet"
+    Nothing -> error' $ "sorry, there are no examples for " <> name <> " yet"
     Just b -> do
       let fallback = do
             hPutStrLn stderr "Warning: could not run tldr --render, using fallback viewer instead.\n"

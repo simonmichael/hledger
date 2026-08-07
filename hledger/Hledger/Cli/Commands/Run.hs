@@ -181,13 +181,13 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
               let
                 rawopts      = rawopts_ opts
                 mmodecmdname = headMay $ modeNames cmdmode
-                helpFlag     = boolopt "help"    rawopts
-                tldrFlag     = boolopt "tldr"    rawopts
-                infoFlag     = boolopt "info"    rawopts
-                manFlag      = boolopt "man"     rawopts
+                helpFlag     = boolopt "help"     rawopts
+                examplesFlag = boolopt "examples" rawopts
+                infoFlag     = boolopt "info"     rawopts
+                manFlag      = boolopt "man"      rawopts
               if
-                | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
-                | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
+                | helpFlag     -> runPager $ showModeUsage cmdmode ++ "\n"
+                | examplesFlag -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
                 | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
                 | manFlag   -> runManForTopic "hledger"  mmodecmdname
                 | cmdname `elem` journalCreatingCommandNames ->

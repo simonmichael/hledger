@@ -272,7 +272,7 @@ reportflags = [
 helpflags :: [Flag RawOpts]
 helpflags = [
   flagNone ["help","h"] (setboolopt "help")    "show command line help"
- ,flagNone ["tldr"]     (setboolopt "tldr")    "show command examples with tldr"
+ ,flagNone ["examples"] (setboolopt "examples") "show command examples"
  ,flagNone ["info"]     (setboolopt "info")    "show the manual with info"
  ,flagNone ["man"]      (setboolopt "man")     "show the manual with man"
  ,flagNone ["version"]  (setboolopt "version") "show version information"
@@ -679,7 +679,7 @@ propagatedGeneralFlagNames :: [String]
 propagatedGeneralFlagNames =
   filter (`notElem` (["file","f"] ++ helpactionflags))
     $ concatMap flagNames (inputflags ++ reportflags ++ helpflags)
-  where helpactionflags = ["help","h","tldr","info","man","version"]
+  where helpactionflags = ["help","h","examples","info","man","version"]
 
 -- | Extract the propagated general flags from these raw options, as a raw option
 -- association list, for passing to run/repl subcommands.

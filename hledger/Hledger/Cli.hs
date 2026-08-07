@@ -401,11 +401,11 @@ main = handleExit $ withGhcDebug' $ do
   -- preventing this, and trying to detect them without cmdargs, and always do the
   -- right thing with builtin commands and addon commands, gets much too complicated.)
   let
-    helpFlag    = boolopt "help"    rawopts
-    tldrFlag    = boolopt "tldr"    rawopts
-    infoFlag    = boolopt "info"    rawopts
-    manFlag     = boolopt "man"     rawopts
-    versionFlag = boolopt "version" rawopts
+    helpFlag     = boolopt "help"     rawopts
+    examplesFlag = boolopt "examples" rawopts
+    infoFlag     = boolopt "info"     rawopts
+    manFlag      = boolopt "man"      rawopts
+    versionFlag  = boolopt "version"  rawopts
     -- ignoredopts    cmd = error' $ cmd ++ " tried to read options but is not supposed to"
     ignoredjournal cmd = error' $ cmd ++ " tried to read the journal but is not supposed to"
 
@@ -424,12 +424,12 @@ main = handleExit $ withGhcDebug' $ do
    if
     -- 6.1. no command and a help/doc flag found - show general help/docs
     | nocmdprovided && helpFlag -> runPager $ showModeUsage (mainmode []) ++ "\n"
-    | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
+    | nocmdprovided && examplesFlag -> runTldrForPage  "hledger"
     | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
     | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
 
     -- 6.2. --version flag found and none of these other conditions - show version
-    | versionFlag && not (isaddoncmd || helpFlag || tldrFlag || infoFlag || manFlag) -> putStrLn prognameandversion
+    | versionFlag && not (isaddoncmd || helpFlag || examplesFlag || infoFlag || manFlag) -> putStrLn prognameandversion
 
     -- 6.3. no command found, nothing else to do - show the commands list
     | nocmdprovided -> do
@@ -445,7 +445,7 @@ main = handleExit $ withGhcDebug' $ do
       if
         -- 6.4.1. help/doc flag - show command help/docs
         | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
-        | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
+        | examplesFlag -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
 
