@@ -4,7 +4,7 @@ Common commands
  Data           add get import close
  Status         setup stats files accounts commodities check
  Reports        print areg reg bs is bal holdings roi
-repl commands   ? HLEDGERCMD !SHELLCMD '!hledger -h' echo q C-d C-c C-z
+repl commands   ? HLEDGERCMD !SHELLCMD echo q C-d C-c C-z
 help topics     quickref commands install relnotes docs support home
                 usage [CMD] | manual [TOPIC] | [TOPIC] | examples [TOPIC [..]]
 Common flags
