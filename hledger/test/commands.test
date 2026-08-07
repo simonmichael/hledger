@@ -1,13 +1,9 @@
 # * commands command
 
-# ** 0. Print the commands list by default.
-$ hledger
+# ** 1. The commands command shows the commands list.
+$ hledger commands
 > /Commands \(including installed/
 
-# ** 0. Print the commands list with the commands command specified.
-#$ hledger commands
-#> /Commands /
-
-# ** 0. Print the commands list showing only builtin commands.
+# ** 2. With --builtin, show only builtin commands.
 $ hledger commands --builtin
 > /Commands \(showing built-in/

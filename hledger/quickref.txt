@@ -8,7 +8,7 @@ repl commands   ? HLEDGERCMD !SHELLCMD '!hledger -h' echo q C-d C-c C-z
 help topics     quickref commands
                 usage [CMD] | manual [TOPIC] | [TOPIC] | examples [TOPIC [..]]
 Common flags
- Help           -h/--help --man --info --examples
+ Help           -? -h/--help --man --info --examples
  Data           -f --rules -s -I --forecast --pivot
  Reports        -p -b -e -D/-W/-M/-Q/-Y -C/-U -E -B/-V/-X/--value --lots
  Output         --pretty --title -c -o/-O

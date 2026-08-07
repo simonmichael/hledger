@@ -45,6 +45,7 @@ import Yesod.Default.Main (defaultDevelApp)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.Web.Application (makeApplication)
 import Hledger.Web.Settings (Extra(..), parseExtra)
 import Hledger.Web.Test (hledgerWebTest)
@@ -80,6 +81,7 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
   wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
+    | boolopt "quickref"        rawopts_ -> showQuickref
     | boolopt "help"            rawopts_ -> runPager $ showModeUsage webmode ++ "\n"
     | boolopt "examples"        rawopts_ -> runTldrForPage "hledger-web"
     | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing

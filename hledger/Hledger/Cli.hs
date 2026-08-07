@@ -425,6 +425,7 @@ main = handleExit $ withGhcDebug' $ do
   -- preventing this, and trying to detect them without cmdargs, and always do the
   -- right thing with builtin commands and addon commands, gets much too complicated.)
   let
+    quickrefFlag = boolopt "quickref" rawopts
     helpFlag     = boolopt "help"     rawopts
     examplesFlag = boolopt "examples" rawopts
     infoFlag     = boolopt "info"     rawopts
@@ -447,18 +448,19 @@ main = handleExit $ withGhcDebug' $ do
   withArgs (progname:finalargs) $
    if
     -- 6.1. no command and a help/doc flag found - show general help/docs
+    | nocmdprovided && quickrefFlag -> showQuickref
     | nocmdprovided && helpFlag -> runPager $ showModeUsage (mainmode []) ++ "\n"
     | nocmdprovided && examplesFlag -> runTldrForPage  "hledger"
     | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
     | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
 
     -- 6.2. --version flag found and none of these other conditions - show version
-    | versionFlag && not (isaddoncmd || helpFlag || examplesFlag || infoFlag || manFlag) -> putStrLn prognameandversion
+    | versionFlag && not (isaddoncmd || quickrefFlag || helpFlag || examplesFlag || infoFlag || manFlag) -> putStrLn prognameandversion
 
-    -- 6.3. no command found, nothing else to do - show the commands list
+    -- 6.3. no command found, nothing else to do - show the quick reference card
     | nocmdprovided -> do
-        dbg1IO "no command, showing commands list" ()
-        commands opts (ignoredjournal "commands")
+        dbg1IO "no command, showing quickref" ()
+        showQuickref
 
     -- 6.4. builtin command found
     | Just (cmdmode, cmdaction) <- mbuiltincmdaction -> do
@@ -468,6 +470,7 @@ main = handleExit $ withGhcDebug' $ do
       -- run the builtin command according to its type
       if
         -- 6.4.1. help/doc flag - show command help/docs
+        | quickrefFlag -> showQuickref
         | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
         | examplesFlag -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname

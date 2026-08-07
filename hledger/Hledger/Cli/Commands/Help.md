@@ -2,7 +2,7 @@
 
 Show some part of hledger's documentation. The first argument selects what to show:
 
-- `help quickref`: a quick reference card
+- `help quickref`: a quick reference / overview (default)
 - `help commands`: the commands list
 - `help usage [CMD]`: command-line usage, in general or for CMD
 - `help manual [TOPIC]`: the manual (with `info`, `man` or a pager), optionally at TOPIC
