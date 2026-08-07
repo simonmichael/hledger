@@ -184,7 +184,7 @@ uiInitialState uopts0@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=rspec@ReportSpe
             _rsReportOpts=ropts{
                depth_    = queryDepth $ _rsQuery rspec,  -- query's depth part
                period_   = periodfromoptsandargs,       -- query's date part
-               no_elide_ = True,  -- avoid squashing boring account names, for a more regular tree (unlike hledger)
+               no_elide_ = accountlistmode_ ropts == ALTree,   -- avoid squashing boring account names, for a more regular tree (unlike hledger)
                empty_    = not $ empty_ ropts,  -- show zero items by default, hide them with -E (unlike hledger)
                declared_ = True  -- always show declared accounts even if unused
                }
