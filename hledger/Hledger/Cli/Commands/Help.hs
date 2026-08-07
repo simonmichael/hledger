@@ -14,6 +14,7 @@ module Hledger.Cli.Commands.Help (
 
    helpmode
   ,help'
+  ,manual
 
   ) where
 
@@ -43,13 +44,18 @@ helpmode = hledgerCommandMode
   []
   ([], Just $ argsFlag "[TOPIC]")
 
--- | Display the hledger manual in various formats.
+-- | The help command: display the hledger manual, optionally positioned at the
+-- topic named by the first argument.
+help' :: CliOpts -> Journal -> IO ()
+help' opts _ = manual opts (headMay $ listofstringopt "args" $ rawopts_ opts)
+
+-- | Display the hledger manual in various formats, optionally positioned at the given topic.
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager` flags.
 -- Otherwise it will use the first available of: info, man, $PAGER, less, stdout
 -- (and always stdout if output is non-interactive, the terminal is dumb, or we are
 -- in an Emacs buffer that can't render fullscreen viewers, eg shell/comint or eshell).
-help' :: CliOpts -> Journal -> IO ()
-help' opts _ = do
+manual :: CliOpts -> Maybe Topic -> IO ()
+manual opts mtopic = do
   exes <- likelyExecutablesInPath
   pagerprog <- fromMaybe "less" <$> lookupEnv "PAGER"
   interactive <- hIsTerminalDevice stdout
@@ -62,8 +68,6 @@ help' opts _ = do
   -- back to plain text there like the dumb/non-interactive case.
   emacsnonterm <- (\m -> not (null m) && not ("term" `isInfixOf` m)) . fromMaybe "" <$> lookupEnv "INSIDE_EMACS"
   let
-    args = take 1 $ listofstringopt "args" $ rawopts_ opts
-    mtopic = headMay args
     [info, man, pager, cat] =
       [runInfoForTopic, runManForTopic, runPagerForTopic, printHelpForTopic]
     viewer
