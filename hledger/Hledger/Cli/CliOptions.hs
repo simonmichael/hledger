@@ -62,6 +62,7 @@ module Hledger.Cli.CliOptions (
   insertRawOpts,
   cliOptsDropArgs,
   journalCreatingCommandNames,
+  journalIgnoringCommandNames,
   argsMarkRunCommands,
   runCommandsMarker,
   outputFormats,
@@ -704,6 +705,13 @@ cliOptsDropArgs copts@CliOpts{rawopts_} = copts{rawopts_ = dropRawOpt "args" raw
 -- so a missing journal file is tolerated rather than an error.
 journalCreatingCommandNames :: [String]
 journalCreatingCommandNames = ["add","import"]
+
+-- | Names of builtin commands which do not read the journal at all.
+-- These are dispatched specially, both at the CLI and in run/repl, so they
+-- never read or check the journal (help is handled by the CLI's help hub,
+-- which also does not read the journal).
+journalIgnoringCommandNames :: [String]
+journalIgnoringCommandNames = ["demo","help","setup","test"]
 
 -- | The name of a hidden marker flag used internally by the run command to
 -- recognise inline commands. run reads inline commands (rather than command

@@ -485,26 +485,27 @@ main = handleExit $ withGhcDebug' $ do
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
         | webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" mmodecmdname
 
-        -- 6.4.2. builtin command which should not require or read the journal - run it
-        | cmdname `elem` ["demo","setup","test"] ->
+        -- 6.4.2. the help command - shows documentation, dispatching on its first
+        -- argument (journal-less); needs findBuiltinCommand and the addon names,
+        -- which live here, so it is special-cased like run/repl below.
+        -- Handled before the journal-less group so it uses the hub, not help'.
+        | cmdname == "help" -> help addons opts
+
+        -- 6.4.3. builtin command which should not require or read the journal - run it
+        | cmdname `elem` journalIgnoringCommandNames ->
           cmdaction opts (ignoredjournal cmdname)
 
-        -- 6.4.3. builtin command which can work with a non-existent journal
+        -- 6.4.4. builtin command which can work with a non-existent journal
         | cmdname `elem` journalCreatingCommandNames ->
           withPossibleJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
-        -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
+        -- 6.4.5. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
         | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons cmdaliases shellaliasesallowed opts
         | cmdname == "repl" ->
           -- the config file (if any) and the opts to re-read it with, so repl can auto-reload aliases;
           -- and the addon-rescan action, so repl can auto-reload the addon command list
           let mconfinfo = (\f -> (f, cliconfrawopts)) <$> mconffile
           in Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo (Just addonCommandNames) opts
-
-        -- 6.4.5. the help command - shows documentation, dispatching on its first
-        -- argument (journal-less); needs findBuiltinCommand and the addon names,
-        -- which live here, so it is special-cased like run/repl above.
-        | cmdname == "help" -> help addons opts
 
         -- 6.4.6. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
