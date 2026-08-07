@@ -100,7 +100,7 @@ where
 #if MIN_VERSION_base(4,20,0)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
 #endif
-import Control.Monad (when, unless)
+import Control.Monad (when, unless, void)
 import Data.Bifunctor (second)
 import Data.Char (isDigit)
 import Data.Either (isRight)
@@ -178,13 +178,15 @@ confflagsmode = defMode{
 -- its first argument to a subtopic. Recognised subtopics are: quickref (the quick
 -- reference card), commands (the commands list), usage [CMD] (command-line usage,
 -- general or for CMD), manual [TOPIC] (the manual, optionally at TOPIC), and
--- examples [CMD..] (brief tldr examples).
--- Any other first argument is treated as a manual topic. addons is the list of
--- known addon command names, used when showing general usage.
+-- examples [CMD..] (brief tldr examples), and install/docs/support/home
+-- (open the corresponding hledger.org page in a web browser).
+-- With no argument it shows the quickref card; any other first argument is
+-- treated as a manual topic. addons is the list of known addon command names,
+-- used when showing general usage.
 help :: [String] -> CliOpts -> IO ()
 help addons opts =
   case listofstringopt "args" (rawopts_ opts) of
-    []              -> manual opts Nothing
+    []              -> showQuickref
     "quickref":_    -> showQuickref
     "commands":_    -> commands opts nulljournal
     "usage":rest    ->
@@ -195,6 +197,10 @@ help addons opts =
     "manual":rest   -> manual opts (headMay rest)
     "examples":rest -> mapM_ runTldrForPage $
                          if null rest then ["hledger"] else map ("hledger-"<>) rest
+    "install":_     -> void $ openBrowserOn "https://hledger.org/install.html"
+    "docs":_        -> void $ openBrowserOn "https://hledger.org/doc.html"
+    "support":_     -> void $ openBrowserOn "https://hledger.org/support.html"
+    "home":_        -> void $ openBrowserOn "https://hledger.org"
     topic:_         -> manual opts (Just topic)
 
 ------------------------------------------------------------------------------
@@ -426,6 +432,7 @@ main = handleExit $ withGhcDebug' $ do
   -- right thing with builtin commands and addon commands, gets much too complicated.)
   let
     quickrefFlag = boolopt "quickref" rawopts
+    webmanFlag   = boolopt "webman"   rawopts
     helpFlag     = boolopt "help"     rawopts
     examplesFlag = boolopt "examples" rawopts
     infoFlag     = boolopt "info"     rawopts
@@ -453,9 +460,10 @@ main = handleExit $ withGhcDebug' $ do
     | nocmdprovided && examplesFlag -> runTldrForPage  "hledger"
     | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
     | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
+    | nocmdprovided && webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" Nothing
 
     -- 6.2. --version flag found and none of these other conditions - show version
-    | versionFlag && not (isaddoncmd || quickrefFlag || helpFlag || examplesFlag || infoFlag || manFlag) -> putStrLn prognameandversion
+    | versionFlag && not (isaddoncmd || quickrefFlag || helpFlag || examplesFlag || infoFlag || manFlag || webmanFlag) -> putStrLn prognameandversion
 
     -- 6.3. no command found, nothing else to do - show the quick reference card
     | nocmdprovided -> do
@@ -475,6 +483,7 @@ main = handleExit $ withGhcDebug' $ do
         | examplesFlag -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
+        | webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" mmodecmdname
 
         -- 6.4.2. builtin command which should not require or read the journal - run it
         | cmdname `elem` ["commands","demo","setup","test"] ->

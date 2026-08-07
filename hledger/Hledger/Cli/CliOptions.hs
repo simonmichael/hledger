@@ -276,6 +276,7 @@ helpflags = [
  ,flagNone ["examples"] (setboolopt "examples") "show command examples"
  ,flagNone ["info"]     (setboolopt "info")    "show the manual with info"
  ,flagNone ["man"]      (setboolopt "man")     "show the manual with man"
+ ,flagNone ["webman"]   (setboolopt "webman")  "show the manual on the web"
  ,flagNone ["version"]  (setboolopt "version") "show version information"
   -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL] in help.
   -- But flagReq plus special handling in Cli.hs makes the = optional, removing a source of confusion.
@@ -680,7 +681,7 @@ propagatedGeneralFlagNames :: [String]
 propagatedGeneralFlagNames =
   filter (`notElem` (["file","f"] ++ helpactionflags))
     $ concatMap flagNames (inputflags ++ reportflags ++ helpflags)
-  where helpactionflags = ["quickref","help","h","examples","info","man","version"]
+  where helpactionflags = ["quickref","help","h","examples","info","man","webman","version"]
 
 -- | Extract the propagated general flags from these raw options, as a raw option
 -- association list, for passing to run/repl subcommands.

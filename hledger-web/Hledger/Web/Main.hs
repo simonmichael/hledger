@@ -28,7 +28,7 @@ import Control.Exception (bracket)
 #if MIN_VERSION_base(4,20,0)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
 #endif
-import Control.Monad (when)
+import Control.Monad (when, void)
 import Data.String (fromString)
 import Data.Text qualified as T
 import Network.Socket
@@ -86,6 +86,7 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
     | boolopt "examples"        rawopts_ -> runTldrForPage "hledger-web"
     | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | boolopt "man"             rawopts_ -> runManForTopic  "hledger-web" Nothing
+    | boolopt "webman"          rawopts_ -> void $ openBrowserOn $ webManualUrl "hledger-web" Nothing
     | boolopt "version"         rawopts_ -> putStrLn prognameandversion
     -- boolopt "binary-filename" rawopts_ -> putStrLn (binaryfilename progname)
     | boolopt "test"            rawopts_ -> do

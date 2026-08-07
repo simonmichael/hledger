@@ -18,6 +18,7 @@ module Hledger.Cli.Commands.Help (
 
   ) where
 
+import Control.Monad (void)
 import Data.Char (toLower)
 import Data.List (isInfixOf)
 import Data.Maybe
@@ -28,6 +29,8 @@ import System.IO
 
 import Hledger.Cli.CliOptions
 import Hledger.Cli.DocFiles
+import Hledger.Cli.Utils (openBrowserOn)
+import Hledger.Cli.Version (webManualUrl)
 import Hledger.Data.RawOptions
 import Hledger.Data.Types
 import Hledger.Utils (embedFileRelative)
@@ -39,6 +42,7 @@ helpmode = hledgerCommandMode
   [flagNone ["i"] (setboolopt "help-i")  "show the manual with info"
   ,flagNone ["m"] (setboolopt "help-m")   "show the manual with man"
   ,flagNone ["p"] (setboolopt "help-p") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
+  ,flagNone ["w"] (setboolopt "help-w") "show the manual on the web"
   ]
   [(helpflagstitle, helpflags)]
   []
@@ -70,7 +74,9 @@ manual opts mtopic = do
   let
     [info, man, pager, cat] =
       [runInfoForTopic, runManForTopic, runPagerForTopic, printHelpForTopic]
+    web tool mt = void $ openBrowserOn $ webManualUrl tool mt
     viewer
+      | boolopt "help-w" $ rawopts_ opts = web
       | boolopt "help-i" $ rawopts_ opts = info
       | boolopt "help-m" $ rawopts_ opts = man
       | boolopt "help-p" $ rawopts_ opts = pager

@@ -1,9 +1,9 @@
 # * help command
 # The help command is a documentation hub, dispatching on its first argument.
 
-# ** 1. Bare help shows the manual (plain text, since stdout is a pipe here).
+# ** 1. Bare help shows the quick reference card (like plain hledger).
 $ hledger help
-> /hledger User Manuals/
+> /HLEDGER QUICK REFERENCE/
 
 # ** 2. help commands shows the commands list.
 $ hledger help commands

@@ -7,10 +7,12 @@ Show some part of hledger's documentation. The first argument selects what to sh
 - `help usage [CMD]`: command-line usage, in general or for CMD
 - `help manual [TOPIC]`: the manual (with `info`, `man` or a pager), optionally at TOPIC
 - `help examples [CMD..]`: brief command examples
+- `help install`, `help docs`, `help support`, `help home`: open the corresponding hledger.org page in a web browser
 
-With any other first argument, or none, it shows the manual, with that
-argument selecting a TOPIC. TOPIC is matched case insensitively against
-the manual's section headings. (Enclose TOPIC in quotes if it contains spaces.)
+With no argument, it shows the quickref card (like plain `hledger`).
+With any other first argument, it shows the manual, with that argument
+selecting a TOPIC, matched case insensitively against the manual's section
+headings. (Enclose TOPIC in quotes if it contains spaces.)
 
 ```flags
 Flags:
@@ -18,6 +20,7 @@ Flags:
   -m                       show the manual with man
   -p                       show the manual with $PAGER or less
                            (less is always used if TOPIC is specified)
+  -w                       show the manual on the web
 ```
 
 The manual is built in to your hledger executable, so it can be useful when offline,

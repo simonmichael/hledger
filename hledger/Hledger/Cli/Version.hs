@@ -19,12 +19,15 @@ module Hledger.Cli.Version (
   parseHledgerVersion,
   packageversion,
   packagemajorversion,
+  docVersion,
+  webManualUrl,
   versionStringWith,
 )
 where
 
 import GitHash (GitInfo, giHash, giCommitDate)  -- giDirty
 import System.Info (os, arch)
+import Data.Char (toLower)
 import Data.List (intercalate)
 import Data.List.NonEmpty (NonEmpty ((:|)), nonEmpty, toList)
 import Data.List.Split (splitOn)
@@ -195,6 +198,24 @@ packageversion =
 -- | Just the first 1-2 components of packageversion.
 packagemajorversion :: PackageVersionString
 packagemajorversion = intercalate "." $ take 2 $ splitAtElement '.' packageversion
+
+-- | The hledger.org path segment for this build's online manuals:
+-- the major.minor version for a release build, or "dev" for a dev build
+-- (one whose package version is newer than the latest release, ie ends in .98/.99).
+docVersion :: String
+docVersion = case toVersion packageversion of
+  Just v | isReleaseVersion v -> packagemajorversion
+  _                           -> "dev"
+
+-- | The URL of the given hledger tool's manual on hledger.org, for this build's
+-- version (see 'docVersion'), optionally at a section anchor derived from a
+-- heading (lower-cased, with spaces replaced by hyphens).
+-- The program name should be hledger, hledger-ui or hledger-web.
+webManualUrl :: ProgramName -> Maybe String -> String
+webManualUrl prog mheading =
+  "https://hledger.org/" <> docVersion <> "/" <> prog <> ".html"
+    <> maybe "" (("#"<>) . headingAnchor) mheading
+  where headingAnchor = map (\c -> if c==' ' then '-' else toLower c)
 
 -- | Given possible git state info from the build directory (or a git error, which is ignored),
 -- and the debug build flag, executable name and package version for the package being built,

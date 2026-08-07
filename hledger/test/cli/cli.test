@@ -213,10 +213,9 @@ $ hledger balance -m foo
 >2 /Unknown flag: -m/
 >= 1
 
-# ** 38. help with no viewer flag is non-interactive here (stdout is a pipe), so it
-# prints the plain text manual.
+# ** 38. help with no argument shows the quick reference card (like plain hledger).
 $ hledger help
-> /hledger User Manuals/
+> /HLEDGER QUICK REFERENCE/
 
 # help accepts -p, -m and -i as valueless flags selecting a viewer. Appending -h makes
 # hledger print the command's help and exit before launching any (possibly interactive)
