@@ -206,7 +206,7 @@ setList = set accountlistmode ALFlat
 
 -- | Toggle between flat and tree mode. If current mode is unspecified/default, assume it's flat.
 toggleTree :: UIState -> UIState
-toggleTree = over accountlistmode toggleTreeMode
+toggleTree = over no_elide not . over accountlistmode toggleTreeMode
   where
     toggleTreeMode ALTree = ALFlat
     toggleTreeMode ALFlat = ALTree
