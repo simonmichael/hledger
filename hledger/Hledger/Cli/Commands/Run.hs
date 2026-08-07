@@ -44,6 +44,7 @@ import System.Console.Haskeline
 import Data.Maybe (isJust, fromMaybe, catMaybes)
 import Safe (headMay)
 import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
+import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.Cli.Utils (journalTransform, journalFileIsNewer, maybeFileModificationTime)
 import Text.Printf (printf)
 import System.FilePath (takeBaseName, getSearchPath)
@@ -262,6 +263,8 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
+                "?"       -> showQuickref         -- ? or bare help: show the quick reference card
+                "help"    -> showQuickref
                 _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ parseCommand input
         liftIO $ if interactive
           then action `catches`

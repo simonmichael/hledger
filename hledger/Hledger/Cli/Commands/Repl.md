@@ -56,10 +56,9 @@ To run a single shell command without leaving the REPL, type `! SHELLCMD`
 In most shells you can type control-Z to temporarily exit to the shell (and then `fg` to return to the REPL).
 
 These commands can be useful for help:
-`?` (alias for `commands`),
-`help -h`,
-`help [-i|-m] ['TOPIC']`,
-`CMD [--examples|--info|--man|-h]`,
+`?` or `help` (show the quick reference card),
+`CMD [--examples|--info|--man|-h]` (a command's examples, manual, or usage),
+`!hledger help ...` (run the full help command via the shell),
 `!hledger -h`.
 
 To exit the REPL, use control-D or `quit` or `exit`.

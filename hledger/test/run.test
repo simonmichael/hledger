@@ -320,3 +320,10 @@ exphl
 $ sh -c 'C=$(mktemp "${TMPDIR:-/tmp}/hledger-exphl.XXXXXX"); J=$(mktemp "${TMPDIR:-/tmp}/hledger-exphlj.XXXXXX"); printf "[alias]\nexphl = run -- echo %sNonreimbursed expenses:%s\n" "'"'"'" "'"'"'" > "$C"; printf "2017-01-01 x\n  a  1\n  b\n" > "$J"; hledger repl --conf "$C" -f "$J"; rm -f "$C" "$J"'
 >
 Nonreimbursed expenses:
+
+# ** 24. In the repl, ? and help (with no argument) show the quick reference card.
+<
+?
+help
+$ hledger repl -f sample.journal
+> /HLEDGER QUICK REFERENCE/
