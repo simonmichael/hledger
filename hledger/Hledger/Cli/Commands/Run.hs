@@ -266,8 +266,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                "?"       -> showQuickref         -- ? or bare help: show the quick reference card
-                "help"    -> showQuickref
+                "?"       -> showQuickref         -- ?: show the quick reference card (help does this via its command action)
                 _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ parseCommand input
         liftIO $ if interactive
           then action `catches`

@@ -327,3 +327,10 @@ Nonreimbursed expenses:
 help
 $ hledger repl -f sample.journal
 > /HLEDGER QUICK REFERENCE/
+
+# ** 25. In the repl, help subtopics dispatch like the help command at the CLI
+# (here: help usage CMD shows that command's usage, not the manual).
+<
+help usage balance
+$ hledger repl -f sample.journal
+> /^balance \[OPTIONS\]/

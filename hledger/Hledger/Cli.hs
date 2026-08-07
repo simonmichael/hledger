@@ -82,7 +82,6 @@ If not, see <https://www.gnu.org/licenses/>.
 
 module Hledger.Cli (
   main,
-  mainmode,
   argsToCliOpts,
   -- * Re-exports
   module Hledger.Cli.CliOptions,
@@ -133,75 +132,11 @@ import Hledger.Cli.Version
 
 verboseDebugLevel = 8
 
--- | The overall cmdargs mode describing hledger's command-line options and subcommands.
--- The names of known addons are provided so they too can be recognised as commands.
-mainmode addons = defMode {
-  modeNames = [progname ++ " [COMMAND]"]
- ,modeArgs = ([], Just $ argsFlag "[ARGS]")
- ,modeHelp = unlines ["hledger's main command line interface. Run with no ARGS to list commands."]
- ,modeGroupModes = Group {
-    -- subcommands in the unnamed group, shown first:
-    groupUnnamed = [
-     ]
-    -- subcommands in named groups:
-   ,groupNamed = [
-     ]
-    -- subcommands handled but not shown in the help:
-   ,groupHidden = map fst builtinCommands ++ map addonCommandMode addons
-   }
- ,modeGroupFlags = Group {
-     -- flags in named groups: (keep synced with Hledger.Cli.CliOptions.highlightHelp)
-     groupNamed = cligeneralflagsgroups1
-     -- flags in the unnamed group, shown last: (keep synced with dropUnsupportedOpts)
-    ,groupUnnamed = confflags
-     -- other flags handled but not shown in help:
-    ,groupHidden = hiddenflagsformainmode
-    }
- ,modeHelpSuffix = []
-    -- "Examples:" :
-    -- map (progname ++) [
-    --  "                         list commands"
-    -- ," CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)"
-    -- ,"-CMD [OPTS] [ARGS]       or run addon commands directly"
-    -- ," -h                      show general usage"
-    -- ," CMD -h                  show command usage"
-    -- ," help [MANUAL]           show any of the hledger manuals in various formats"
-    -- ]
- }
 -- A dummy mode just for parsing --conf/--no-conf flags.
 confflagsmode = defMode{
    modeGroupFlags=Group [] confflags []
   ,modeArgs = ([], Just $ argsFlag "")
   }
-
--- | The help command: show some part of hledger's documentation, dispatching on
--- its first argument to a subtopic. Recognised subtopics are: quickref (the quick
--- reference card), commands (the commands list), usage [CMD] (command-line usage,
--- general or for CMD), manual [TOPIC] (the manual, optionally at TOPIC), and
--- examples [CMD..] (brief tldr examples), and install/docs/support/home
--- (open the corresponding hledger.org page in a web browser).
--- With no argument it shows the quickref card; any other first argument is
--- treated as a manual topic. addons is the list of known addon command names,
--- used when showing general usage.
-help :: [String] -> CliOpts -> IO ()
-help addons opts =
-  case listofstringopt "args" (rawopts_ opts) of
-    []              -> showQuickref
-    "quickref":_    -> showQuickref
-    "commands":_    -> commands opts nulljournal
-    "usage":rest    ->
-      let usagemode = case rest of
-            c:_ | Just (m,_) <- findBuiltinCommand c -> m
-            _                                        -> mainmode addons
-      in runPager $ showModeUsage usagemode ++ "\n"
-    "manual":rest   -> manual opts (headMay rest)
-    "examples":rest -> mapM_ runTldrForPage $
-                         if null rest then ["hledger"] else map ("hledger-"<>) rest
-    "install":_     -> void $ openBrowserOn "https://hledger.org/install.html"
-    "docs":_        -> void $ openBrowserOn "https://hledger.org/doc.html"
-    "support":_     -> void $ openBrowserOn "https://hledger.org/support.html"
-    "home":_        -> void $ openBrowserOn "https://hledger.org"
-    topic:_         -> manual opts (Just topic)
 
 ------------------------------------------------------------------------------
 -- | hledger CLI's main procedure.
@@ -485,21 +420,16 @@ main = handleExit $ withGhcDebug' $ do
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
         | webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" mmodecmdname
 
-        -- 6.4.2. the help command - shows documentation, dispatching on its first
-        -- argument (journal-less); needs findBuiltinCommand and the addon names,
-        -- which live here, so it is special-cased like run/repl below.
-        -- Handled before the journal-less group so it uses the hub, not help'.
-        | cmdname == "help" -> help addons opts
-
-        -- 6.4.3. builtin command which should not require or read the journal - run it
+        -- 6.4.2. builtin command which should not require or read the journal - run it
+        -- (help/setup/demo/test; help's own action dispatches its subtopics)
         | cmdname `elem` journalIgnoringCommandNames ->
           cmdaction opts (ignoredjournal cmdname)
 
-        -- 6.4.4. builtin command which can work with a non-existent journal
+        -- 6.4.3. builtin command which can work with a non-existent journal
         | cmdname `elem` journalCreatingCommandNames ->
           withPossibleJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
-        -- 6.4.5. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
+        -- 6.4.4. "run" and "repl" need findBuiltinCommands passed to it to avoid circular dependency in the code
         | cmdname == "run"  -> Hledger.Cli.Commands.Run.run Nothing findBuiltinCommand addons cmdaliases shellaliasesallowed opts
         | cmdname == "repl" ->
           -- the config file (if any) and the opts to re-read it with, so repl can auto-reload aliases;
@@ -507,7 +437,7 @@ main = handleExit $ withGhcDebug' $ do
           let mconfinfo = (\f -> (f, cliconfrawopts)) <$> mconffile
           in Hledger.Cli.Commands.Run.repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo (Just addonCommandNames) opts
 
-        -- 6.4.6. all other builtin commands - read the journal and if successful run the command with it
+        -- 6.4.5. all other builtin commands - read the journal and if successful run the command with it
         | otherwise -> withJournal opts $ \j -> runWithExpandedCurQueries opts j cmdaction
 
     -- 6.5. external addon command found - run it,

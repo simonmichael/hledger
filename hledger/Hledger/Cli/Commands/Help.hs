@@ -13,7 +13,6 @@ The help command.
 module Hledger.Cli.Commands.Help (
 
    helpmode
-  ,help'
   ,manual
 
   ) where
@@ -22,7 +21,6 @@ import Control.Monad (void)
 import Data.Char (toLower)
 import Data.List (isInfixOf)
 import Data.Maybe
-import Safe (headMay)
 import System.Console.CmdArgs.Explicit
 import System.Environment
 import System.IO
@@ -32,7 +30,6 @@ import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils (openBrowserOn)
 import Hledger.Cli.Version (webManualUrl)
 import Hledger.Data.RawOptions
-import Hledger.Data.Types
 import Hledger.Utils (embedFileRelative)
 --import Hledger.Utils.Debug
 
@@ -48,11 +45,6 @@ helpmode = hledgerCommandMode
   [(helpflagstitle, helpflags)]
   hiddenflags  -- accept --conf/--no-conf etc., eg so "help commands" can show config aliases
   ([], Just $ argsFlag "[TOPIC]")
-
--- | The help command: display the hledger manual, optionally positioned at the
--- topic named by the first argument.
-help' :: CliOpts -> Journal -> IO ()
-help' opts _ = manual opts (headMay $ listofstringopt "args" $ rawopts_ opts)
 
 -- | Display the hledger manual in various formats, optionally positioned at the given topic.
 -- You can select a docs viewer with one of the `--info`, `--man`, `--pager` flags.
