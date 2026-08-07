@@ -21,6 +21,8 @@ Flags:
   -p                       show the manual with $PAGER or less
                            (less is always used if TOPIC is specified)
   -w                       show the manual on the web
+     --builtin             with the commands topic, show only built-in
+                           commands
 ```
 
 The manual is built in to your hledger executable, so it can be useful when offline,
