@@ -321,9 +321,8 @@ $ sh -c 'C=$(mktemp "${TMPDIR:-/tmp}/hledger-exphl.XXXXXX"); J=$(mktemp "${TMPDI
 >
 Nonreimbursed expenses:
 
-# ** 24. In the repl, ? and help (with no argument) show the quick reference card.
+# ** 24. In the repl, help (with no argument) shows the quick reference card.
 <
-?
 help
 $ hledger repl -f sample.journal
 > /HLEDGER QUICK REFERENCE/

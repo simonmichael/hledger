@@ -44,7 +44,6 @@ import System.Console.Haskeline
 import Data.Maybe (isJust, fromMaybe, catMaybes)
 import Safe (headMay)
 import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
-import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.Cli.Utils (journalTransform, journalFileIsNewer, maybeFileModificationTime)
 import Text.Printf (printf)
 import System.FilePath (takeBaseName, getSearchPath)
@@ -235,7 +234,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
         fpath = snd $ splitReaderPrefix $ NE.head jpaths
                   --------------------------------------80----------------------------------------
         title  =  progname <> " " <> packageversion
-        hint   = "Ready for hledger commands. For help, type ? or help -h. To exit: q or ctrl-d."
+        hint   = "Ready for hledger commands. For help, type help or help -h. To exit: q or ctrl-d."
         prompt = stxMarkEscapes $ grad faint' 2 $ takeBaseName fpath ++ "> "
       -- putStrLn $ grad faint' 0 $ replicate w '-'
       putStrLn $ grad bold' 1 title
@@ -266,7 +265,6 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                "?"       -> showQuickref         -- ?: show the quick reference card (help does this via its command action)
                 _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ parseCommand input
         liftIO $ if interactive
           then action `catches`

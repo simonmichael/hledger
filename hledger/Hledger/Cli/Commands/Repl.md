@@ -15,8 +15,8 @@ This command is experimental and could change in the future.
 As with the `run` command, each input file (or each input file/input options combination) is parsed just once,
 so commands will run more quickly than if you ran them individually at the command line.
 
-Also like `run`, the input file(s) specified for the `repl` command will be the default input for all interactive commands.
-You can override this temporarily by specifying an `-f` option in particular commands.
+The input file(s) specified for the `repl` command will be used throughout the session;
+but you can override this temporarily by specifying new `-f` options for a command.
 
 Before running a command, any input files which have changed on disk are automatically reloaded.
 Also command aliases are reloaded if the config file has changed,
@@ -34,7 +34,14 @@ The command syntax is the same as with `run`:
 
 - enter one hledger command at a time, without the usual `hledger` first word
 - empty lines and comment text from `#` to end of line are ignored
-- use single or double quotes to quote arguments when needed
+- enclose arguments in quotes if they contain spaces.
+
+Use `help` or `help commands` to list commands.
+Addons in PATH and command aliases defined in a config file can also be used.
+Generally `repl` should feel much like using hledger at the command line.
+But `repl` requires full command names or official abbreviations (it does not recognise ad hoc abbreviations).
+
+To run a single shell command, type `! SHELLCMD` (eg `! ls` or `! git status`).
 
 While it is running, the REPL remembers your command history, and you can navigate in the usual ways:
 
@@ -43,25 +50,11 @@ While it is running, the REPL remembers your command history, and you can naviga
 - control-R to search for a past command
 - TAB to complete file paths.
 
-Generally `repl` command lines should feel much like the normal hledger CLI, but you may find differences.
-`repl` is a little stricter;
-eg it requires full command names or official abbreviations (as seen in the commands list).
-Command aliases defined in a config file can also be used.
-
 You can type control-C to cancel a long-running command (but only once; typing it a second time will exit the REPL).
-
-To run a single shell command without leaving the REPL, type `! SHELLCMD`
-(eg `! ls` or `! git status`).
 
 In most shells you can type control-Z to temporarily exit to the shell (and then `fg` to return to the REPL).
 
-These commands can be useful for help:
-`?` or `help` (show the quick reference card),
-`CMD [--examples|--info|--man|-h]` (a command's examples, manual, or usage),
-`!hledger help ...` (run the full help command via the shell),
-`!hledger -h`.
-
-To exit the REPL, use control-D or `quit` or `exit`.
+To exit the REPL, use control-D or `q` or `quit` or `exit`.
 
 ### Examples
 
