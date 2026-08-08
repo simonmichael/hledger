@@ -667,7 +667,7 @@ If you use the bash or zsh shells, you can optionally set up context-sensitive a
 Try pressing `hledger<SPACE><TAB><TAB>` (should list all hledger commands)
 or `hledger reg acct:<TAB><TAB>` (should list your top-level account names).
 If completions aren't working, or for more details, see [Install > Shell completions](install.html#shell-completions).
-˜
+
 # Output
 
 ## Output destination
@@ -784,7 +784,7 @@ You can override this by setting the `NO_COLOR` environment variable to disable 
 or by using the `--color/--colour` option, perhaps in your config file,
 with a `y`/`yes` or `n`/`no` value to force it on or off.
 
-#### Paging˜
+#### Paging
 
 In unix-like environments, when displaying large output (in any output format) in the terminal,
 hledger tries to use a pager when appropriate.
@@ -819,8 +819,7 @@ and when colour output is enabled:
 
 You can prevent this by setting your preferred options in the `HLEDGER_LESS` variable, which will be used instead of `LESS`.
 
-˜
-### HTML output˜˜
+### HTML output
 
 HTML output can be styled by an optional `hledger.css` file in the same directory
 (there is a sample in the hledger source repository).
