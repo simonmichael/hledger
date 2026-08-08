@@ -124,13 +124,17 @@ manualHeadings tool = maybeToList (fmap (\t -> (t, 1)) $ manualTitle tool) ++ se
       , map toLower h `notElem` ["name", "synopsis", "description"]
       ]
     headingOf l = case span (==' ') l of
-      ("",    rest) -> (\h -> (h, if allCaps h then 2 else 3)) <$> headingText rest
-      ("   ", rest) -> (\h -> (h, 4))                          <$> headingText rest
+      ("",    rest) -> (\h -> (h, if level2Caps h then 2 else 3)) <$> headingText rest
+      ("   ", rest) -> (\h -> (h, 4))                             <$> headingText rest
       _             -> Nothing
     headingText s
       | null s' || "  " `isInfixOf` s' = Nothing
       | otherwise                      = Just s'
       where s' = dropWhileEnd (==' ') s
+    -- An all-caps column-0 heading is normally a level-2 section, except for a
+    -- few that are really level-3 subsections, eg CSV (a data format, sibling of
+    -- the Journal/Timeclock/Timedot sections).
+    level2Caps h = allCaps h && h `notElem` ["CSV"]
     allCaps s = any isUpper s && not (any isLower s)
 
 -- | Every matchable help topic as (name, tool, heading): every manual's headings

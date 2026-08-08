@@ -105,3 +105,8 @@ $ hledger help manual
 # ** 25. Listing just the matching topics indents them all equally instead.
 $ hledger help -l text
 > /^  Text encoding/
+
+# ** 26. An all-caps heading that is really a subsection (CSV) is level 3
+# (two spaces), like its sibling Journal, not level 2.
+$ hledger help manual
+> /^  CSV/
