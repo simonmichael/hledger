@@ -190,8 +190,15 @@ mainmode addons = defMode {
 -- With no argument it shows the quickref card; any other first argument is
 -- treated as a manual topic.
 help :: CliOpts -> Journal -> IO ()
-help opts _ =
-  case listofstringopt "args" (rawopts_ opts) of
+help opts _
+  -- With -l, always list matching manual topics, bypassing the special
+  -- subcommands (commands, usage, examples, install, etc). A leading "manual"
+  -- argument is the (now implicit) subcommand name, so it's consumed rather than
+  -- treated as a topic; thus `help -l manual` behaves like `help manual -l`.
+  | boolopt "help-l" (rawopts_ opts) = manual opts $ headMay $ case args of
+      "manual":rest -> rest
+      _             -> args
+  | otherwise = case args of
     []              -> showQuickref
     "quickref":_    -> showQuickref
     "commands":_    -> commands opts nulljournal
@@ -208,7 +215,9 @@ help opts _ =
     "docs":_        -> void $ openBrowserOn "https://hledger.org/doc.html"
     "support":_     -> void $ openBrowserOn "https://hledger.org/support.html"
     "home":_        -> void $ openBrowserOn "https://hledger.org"
-    topic:_         -> manual opts (Just topic)
+    _               -> manual opts (headMay args)
+  where
+    args = listofstringopt "args" (rawopts_ opts)
 
 -- figlet -f FONTNAME hledger, then escape backslashes
 _banner_slant = drop 1 [""

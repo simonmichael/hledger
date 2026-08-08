@@ -1,5 +1,5 @@
 # * help command
-# The help command is a documentation hub, dispatching on its first argument.
+# The help command shows documentation, dispatching on its first argument.
 
 # ** 1. Bare help shows the quick reference card (like plain hledger).
 $ hledger help
@@ -33,19 +33,46 @@ $ hledger help nosuchtopic
 $ hledger help "text enc"
 > /hledger User Manuals/
 
-# ** 9. An ambiguous topic (matching several headings) shows a note listing them.
-$ hledger help Text
->2 /matches several manual sections/
+# ** 9. A unique infix (substring) match resolves to that section.
+$ hledger help periods
+> /hledger User Manuals/
 
-# ** 10. help examples errors clearly when a command has no examples.
+# ** 10. An ambiguous topic (matching several headings) lists them, so one can be chosen.
+$ hledger help Text
+> /matches several manual sections/
+
+# ** 11. A multi-word TOPIC must be quoted.
+$ hledger help 'time periods'
+> /hledger User Manuals/
+
+# ** 12. The empty topic lists all manual topics.
+$ hledger help ''
+> /hledger manual topics:/
+
+# ** 13. help manual with no topic lists all manual topics.
+$ hledger help manual
+> /hledger manual topics:/
+
+# ** 14. The manual title (HLEDGER, with the (1) stripped) can be matched.
+$ hledger help hledger
+> /hledger User Manuals/
+
+# ** 15. help -l TOPIC just lists the matching topics (instead of showing the manual).
+$ hledger help -l text
+>
+hledger manual topics matching "text":
+  Text encoding
+  Text output
+
+# ** 16. help examples errors clearly when a command has no examples.
 $ hledger help examples nosuchcommand
 >2 /there are no examples for hledger-nosuchcommand/
 >=1
 
-# ** 11. help quickref shows the quick reference card.
+# ** 17. help quickref shows the quick reference card.
 $ hledger help quickref
 > /HLEDGER QUICK REFERENCE/
 
-# ** 12. help commands --builtin shows only built-in commands.
+# ** 18. help commands --builtin shows only built-in commands.
 $ hledger help commands --builtin
 > /Commands \(showing built-in/

@@ -30,7 +30,7 @@ import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils (openBrowserOn)
 import Hledger.Cli.Version (webManualUrl)
 import Hledger.Data.RawOptions
-import Hledger.Utils (embedFileRelative)
+import Hledger.Utils (embedFileRelative, runPager)
 --import Hledger.Utils.Debug
 
 helpmode = hledgerCommandMode
@@ -40,6 +40,7 @@ helpmode = hledgerCommandMode
   ,flagNone ["m"] (setboolopt "help-m")   "show the manual with man"
   ,flagNone ["p"] (setboolopt "help-p") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
   ,flagNone ["w"] (setboolopt "help-w") "show the manual on the web"
+  ,flagNone ["l"] (setboolopt "help-l") "just list the manual topics matching TOPIC"
   ,flagNone ["builtin"] (setboolopt "builtin") "with the commands topic, show only built-in commands"
   ]
   [(helpflagstitle, helpflags)]
@@ -52,20 +53,38 @@ helpmode = hledgerCommandMode
 -- (and always stdout if output is non-interactive, the terminal is dumb, or we are
 -- in an Emacs buffer that can't render fullscreen viewers, eg shell/comint or eshell).
 manual :: CliOpts -> Maybe Topic -> IO ()
-manual opts mtopic = case mtopic of
-  Nothing -> showManualAt Nothing
-  Just t  -> case resolveManualTopic "hledger" t of
-    TopicFound h      -> showManualAt (Just h)
-    -- If the topic matches no heading or several, show a note on stderr and
-    -- stop - rather than raising an error, or showing the manual from the top.
-    TopicNotFound     -> hPutStrLn stderr $
-      "\"" <> t <> "\" does not match any section heading in the hledger manual.\n"
-      <> "Run `hledger help manual` to browse the manual, or `hledger help` for the quick reference."
-    TopicAmbiguous hs -> hPutStrLn stderr $
-      "\"" <> t <> "\" matches several manual sections:\n"
-      <> unlines (map ("  " <>) hs)
-      <> "Please use a more specific topic."
+manual opts mtopic
+  -- With -l, just list the matching topics rather than showing the manual.
+  | listonly  = case manualTopicsMatching "hledger" topic of
+      [] -> notFound
+      hs -> listTopics matchingHeading hs
+  | otherwise = case resolveManualTopic "hledger" topic of
+      -- The title isn't a line the viewers can scroll to, so show the manual
+      -- from the top for it (rather than searching for the title text, which eg
+      -- makes info jump to the first node starting with the program name).
+      TopicFound h
+        | Just h == manualTitle "hledger" -> showManualAt Nothing
+        | otherwise                       -> showManualAt (Just h)
+      -- No match: show a note on stderr and stop, rather than raising an error.
+      TopicNotFound     -> notFound
+      -- Several matches (or none requested, ie the empty topic, which matches
+      -- every heading): list them so the user can pick a specific topic. This
+      -- is what `hledger help manual` (with no topic) does.
+      TopicAmbiguous hs -> listTopics ambiguousHeading hs
   where
+    listonly = boolopt "help-l" $ rawopts_ opts
+    topic    = fromMaybe "" mtopic
+    -- List the given topics, in the pager if the list is long and one is available.
+    listTopics heading hs = runPager $ unlines $ heading : map ("  " <>) hs
+    notFound = hPutStrLn stderr $
+      "\"" <> topic <> "\" does not match any section heading in the hledger manual.\n"
+      <> "Run `hledger help manual` to list all topics, or `hledger help` for the quick reference."
+    ambiguousHeading
+      | null topic = "hledger manual topics:"
+      | otherwise  = "\"" <> topic <> "\" matches several manual sections; please be more specific:"
+    matchingHeading
+      | null topic = "hledger manual topics:"
+      | otherwise  = "hledger manual topics matching \"" <> topic <> "\":"
     -- Show the manual, positioned at the given heading if any, in the best viewer.
     showManualAt mtopic' = do
       exes <- likelyExecutablesInPath

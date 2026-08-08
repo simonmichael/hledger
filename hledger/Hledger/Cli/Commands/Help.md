@@ -6,21 +6,24 @@ Show some part of hledger's documentation. The first argument selects what to sh
 - `commands`:           all hledger commands, including addons and aliases
 - `usage [CMD]`:        command line options help (like -h/--help)
 - `examples [CMD]`:     command line examples
-- `manual [TOPIC]`:     the user manual, optionally at the TOPIC heading
+- `manual [TOPIC]`:     list the manual's topics, or show it at the TOPIC heading
 - `TOPIC`               the user manual at TOPIC (like `manual TOPIC`)
 - `install | relnotes | docs | support | home`: hledger.org pages, in a web browser
 
-TOPIC is a section heading in the manual, or a prefix, matched case insensitively.
+TOPIC is a section heading in the manual, or part of one, matched case insensitively.
+Enclose it in quotes if it contains spaces.
+With no TOPIC (`hledger help manual`), all manual topics are listed.
 The manual will be shown in a default viewer (info, man, pager, web browser),
 or you can choose with -i/-m/-p/-w.
 
 ```flags
 Flags:
-  -i                       when showing the manual, use info
-  -m                       when showing the manual, use man
-  -p                       when showing the manual, use $PAGER or less
-  -w                       when showing the manual, use a web browser
-     --builtin             when showing commands, show only built-in commands
+  -i                       use info for showing the manual
+  -m                       use man for showing the manual
+  -p                       use less (or $PAGER) for showing the manual
+  -w                       use a web browser for showing the manual
+  -l                       just list matched manual topics
+     --builtin             for 'commands': show only built-in commands
 ```
 
 The manual is built in to your hledger executable, so it can be useful when offline,
@@ -35,10 +38,11 @@ If no viewer can be found, or if running non-interactively, it just prints the m
 
 Examples
 ```cli
-$ hledger help -h                 # show the help command's options
 $ hledger help                    # show the quick reference
-$ hledger help commands           # show the commands list
-$ hledger help manual commands    # show the "Commands" section of the manual
-$ hledger help 'time periods' -m  # show the "Time periods" section of the manual, using man
-$ hledger help examples print     # show brief examples for the print command
+$ hledger help -h                 # show the help command's options
+$ hledger help commands           # list all commands
+$ hledger help 'time periods'     # show the "Time periods" section of the manual
+$ hledger help -l                 # list the manual's topics
+$ hledger help -l journal         # list the manual topics matching "journal"
+$ hledger help examples add       # show examples for the add command
 ```

@@ -12,7 +12,9 @@ module Hledger.Cli.DocFiles (
 
    Topic
   ,TopicResolution(..)
+  ,manualTitle
   ,manualHeadings
+  ,manualTopicsMatching
   ,resolveManualTopic
   ,printHelpForTopic
   ,runManForTopic
@@ -91,20 +93,32 @@ manuals = [
 manualTxt :: Tool -> ByteString
 manualTxt name = maybe (fromString $ "No text manual found for tool: "++name) second3 $ lookup name manuals
 
--- | The section headings in this tool's manual, as they appear in the rendered
--- plain text: non-blank lines at the left margin or indented exactly three
--- spaces, containing no run of two or more spaces (which would indicate wrapped
--- prose, a table, an option entry, or the running page header). The standard
--- man-page headings NAME and DESCRIPTION are dropped, as they aren't useful
--- hledger topics and their generic names could clash with real ones.
+-- | This tool's manual title, taken from the top running-header line
+-- (eg "HLEDGER(1)  hledger User Manuals  HLEDGER(1)"), with the "(N)" section
+-- number stripped (eg "HLEDGER"). Nothing if the manual has no such header.
+-- Note this title is not itself a line the viewers can scroll to, so callers
+-- resolving a topic to it should show the manual from the top.
+manualTitle :: Tool -> Maybe Topic
+manualTitle tool = case dropWhile null . lines . BC.unpack $ manualTxt tool of
+  (l:_) | (w:_) <- words l, '(' `elem` w -> Just $ takeWhile (/= '(') w
+  _                                       -> Nothing
+
+-- | The section headings in this tool's manual, usable as help topics.
+-- These are the manual title (see 'manualTitle'), plus the section headings in
+-- the rendered plain text: non-blank lines at the left margin or indented
+-- exactly three spaces, containing no run of two or more spaces (which would
+-- indicate wrapped prose, a table, an option entry, or a running header).
+-- The standard man-page headings NAME, SYNOPSIS and DESCRIPTION are dropped, as
+-- they aren't useful topics and their generic names could clash with real ones.
 manualHeadings :: Tool -> [Topic]
-manualHeadings tool =
-  [ h
-  | l <- lines . BC.unpack $ manualTxt tool
-  , h <- maybeToList $ headingOf l
-  , map toLower h `notElem` ["name", "description"]
-  ]
+manualHeadings tool = maybeToList (manualTitle tool) ++ sections
   where
+    sections =
+      [ h
+      | l <- lines . BC.unpack $ manualTxt tool
+      , h <- maybeToList $ headingOf l
+      , map toLower h `notElem` ["name", "synopsis", "description"]
+      ]
     headingOf l = case span (==' ') l of
       ("",    rest) -> headingText rest
       ("   ", rest) -> headingText rest
@@ -124,15 +138,27 @@ data TopicResolution = TopicNotFound | TopicFound Topic | TopicAmbiguous [Topic]
 -- the section reliably, and lets callers respond to a bad topic.
 resolveManualTopic :: Tool -> Topic -> TopicResolution
 resolveManualTopic tool topic =
-  case filter ((== t) . map toLower) headings of
+  -- Broaden the search from exact to prefix to infix matches: a single exact,
+  -- prefix, or infix match is treated as unambiguous and used. Otherwise, when
+  -- the match is ambiguous, list all matches of any kind (ie all infix matches).
+  -- (An exact match always wins, even over other prefix or infix matches.)
+  case filter ((== t) . lc) headings of
     (h:_) -> TopicFound h
-    []    -> case nub $ filter ((t `isPrefixOf`) . map toLower) headings of
-      []  -> TopicNotFound
-      [h] -> TopicFound h
-      hs  -> TopicAmbiguous hs
+    []    -> case (nub $ filter ((t `isPrefixOf`) . lc) headings, nub $ filter ((t `isInfixOf`) . lc) headings) of
+      ([h], _)  -> TopicFound h
+      ([], [h]) -> TopicFound h
+      ([], [])  -> TopicNotFound
+      (_,  hs)  -> TopicAmbiguous hs
   where
     headings = manualHeadings tool
-    t = map toLower . dropWhileEnd (==' ') $ dropWhile (==' ') topic
+    lc = map toLower
+    t  = lc . dropWhileEnd (==' ') $ dropWhile (==' ') topic
+
+-- | The manual headings that contain the given topic as a case-insensitive
+-- substring (all headings if the topic is empty). Used by help's -l list mode.
+manualTopicsMatching :: Tool -> Topic -> [Topic]
+manualTopicsMatching tool topic = nub $ filter ((t `isInfixOf`) . map toLower) $ manualHeadings tool
+  where t = map toLower . dropWhileEnd (==' ') $ dropWhile (==' ') topic
 
 -- | Get the manual as man source (nroff) for this tool, or a not found message.
 manualMan :: Tool -> ByteString
