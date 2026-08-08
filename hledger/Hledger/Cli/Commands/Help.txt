@@ -13,9 +13,12 @@ what to show:
   the corresponding hledger.org page in a web browser
 
 With no argument, it shows the quickref card (like plain hledger). With
-any other first argument, it shows the manual, with that argument
-selecting a TOPIC, matched case insensitively against the manual's
-section headings. (Enclose TOPIC in quotes if it contains spaces.)
+any other first argument, it shows the manual, positioned at a TOPIC
+selected by that argument. TOPIC is matched case insensitively against
+the manual's section headings; an exact match is preferred, otherwise a
+unique prefix (abbreviation) is accepted. If TOPIC matches no heading, or
+is an ambiguous prefix, help reports an error (listing the candidates
+when ambiguous). Enclose TOPIC in quotes if it contains spaces.
 
 Flags:
   -i                       show the manual with info

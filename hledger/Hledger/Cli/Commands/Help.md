@@ -2,27 +2,25 @@
 
 Show some part of hledger's documentation. The first argument selects what to show:
 
-- `help quickref`: a quick reference / overview (default)
-- `help commands`: the commands list
-- `help usage [CMD]`: command-line usage, in general or for CMD
-- `help manual [TOPIC]`: the manual (with `info`, `man` or a pager), optionally at TOPIC
-- `help examples [CMD..]`: brief command examples
-- `help install`, `help relnotes`, `help docs`, `help support`, `help home`: open the corresponding hledger.org page in a web browser
+- `quickref` (or none): a quick reference / overview
+- `commands`:           all hledger commands, including addons and aliases
+- `usage [CMD]`:        command line options help (like -h/--help)
+- `examples [CMD]`:     command line examples
+- `manual [TOPIC]`:     the user manual, optionally at the TOPIC heading
+- `TOPIC`               the user manual at TOPIC (like `manual TOPIC`)
+- `install | relnotes | docs | support | home`: hledger.org pages, in a web browser
 
-With no argument, it shows the quickref card (like plain `hledger`).
-With any other first argument, it shows the manual, with that argument
-selecting a TOPIC, matched case insensitively against the manual's section
-headings. (Enclose TOPIC in quotes if it contains spaces.)
+TOPIC is a section heading in the manual, or a prefix, matched case insensitively.
+The manual will be shown in a default viewer (info, man, pager, web browser),
+or you can choose with -i/-m/-p/-w.
 
 ```flags
 Flags:
-  -i                       show the manual with info
-  -m                       show the manual with man
-  -p                       show the manual with $PAGER or less
-                           (less is always used if TOPIC is specified)
-  -w                       show the manual on the web
-     --builtin             with the commands topic, show only built-in
-                           commands
+  -i                       when showing the manual, use info
+  -m                       when showing the manual, use man
+  -p                       when showing the manual, use $PAGER or less
+  -w                       when showing the manual, use a web browser
+     --builtin             when showing commands, show only built-in commands
 ```
 
 The manual is built in to your hledger executable, so it can be useful when offline,
@@ -35,19 +33,12 @@ By default it chooses the best viewer found in $PATH, trying in this order:
 You can force the use of info, man, or a pager with the `-i`, `-m`, or `-p` flags.
 If no viewer can be found, or if running non-interactively, it just prints the manual to stdout.
 
-When using `info`, TOPIC can match either the full heading or a prefix.
-If your `info --version` is < 6, you'll need to upgrade it, eg with '`brew install texinfo`' on mac.
-
-When using `man` or `less`, TOPIC must match the full heading.
-For a prefix match, you can write '`TOPIC.*`'.
-
 Examples
 ```cli
-$ hledger help -h                 # show the help command's usage
+$ hledger help -h                 # show the help command's options
+$ hledger help                    # show the quick reference
 $ hledger help commands           # show the commands list
-$ hledger help usage balance      # show the balance command's usage
-$ hledger help                    # show the manual with info, man or $PAGER
-$ hledger help 'time periods'     # show the manual's "Time periods" topic
-$ hledger help 'time periods' -m  # use man, even if info is installed
+$ hledger help manual commands    # show the "Commands" section of the manual
+$ hledger help 'time periods' -m  # show the "Time periods" section of the manual, using man
 $ hledger help examples print     # show brief examples for the print command
 ```

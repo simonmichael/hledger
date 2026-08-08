@@ -25,15 +25,27 @@ $ hledger help manual journal
 $ hledger help journal
 > /hledger User Manuals/
 
-# ** 7. help examples errors clearly when a command has no examples.
+# ** 7. A manual topic matching no heading shows a note (not an error, and not the manual).
+$ hledger help nosuchtopic
+>2 /does not match any section heading in the hledger manual/
+
+# ** 8. A unique case-insensitive prefix of a heading resolves to that section.
+$ hledger help "text enc"
+> /hledger User Manuals/
+
+# ** 9. An ambiguous topic (matching several headings) shows a note listing them.
+$ hledger help Text
+>2 /matches several manual sections/
+
+# ** 10. help examples errors clearly when a command has no examples.
 $ hledger help examples nosuchcommand
 >2 /there are no examples for hledger-nosuchcommand/
 >=1
 
-# ** 8. help quickref shows the quick reference card.
+# ** 11. help quickref shows the quick reference card.
 $ hledger help quickref
 > /HLEDGER QUICK REFERENCE/
 
-# ** 9. help commands --builtin shows only built-in commands.
+# ** 12. help commands --builtin shows only built-in commands.
 $ hledger help commands --builtin
 > /Commands \(showing built-in/

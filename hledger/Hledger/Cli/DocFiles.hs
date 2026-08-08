@@ -11,6 +11,9 @@ Embedded documentation files in various formats, and helpers for viewing them.
 module Hledger.Cli.DocFiles (
 
    Topic
+  ,TopicResolution(..)
+  ,manualHeadings
+  ,resolveManualTopic
   ,printHelpForTopic
   ,runManForTopic
   ,runInfoForTopic
@@ -21,9 +24,10 @@ module Hledger.Cli.DocFiles (
 
 import Control.Exception
 import Data.ByteString (ByteString)
-import Data.Char (isUpper, isLower)
+import Data.Char (isUpper, isLower, toLower)
 import Data.ByteString.Char8 qualified as BC
-import Data.Maybe (fromMaybe)
+import Data.List (dropWhileEnd, isInfixOf, isPrefixOf, nub)
+import Data.Maybe (fromMaybe, maybeToList)
 import Data.String
 import System.Directory (findExecutable)
 import System.Environment (setEnv)
@@ -86,6 +90,49 @@ manuals = [
 -- | Get the manual as plain text for this tool, or a not found message.
 manualTxt :: Tool -> ByteString
 manualTxt name = maybe (fromString $ "No text manual found for tool: "++name) second3 $ lookup name manuals
+
+-- | The section headings in this tool's manual, as they appear in the rendered
+-- plain text: non-blank lines at the left margin or indented exactly three
+-- spaces, containing no run of two or more spaces (which would indicate wrapped
+-- prose, a table, an option entry, or the running page header). The standard
+-- man-page headings NAME and DESCRIPTION are dropped, as they aren't useful
+-- hledger topics and their generic names could clash with real ones.
+manualHeadings :: Tool -> [Topic]
+manualHeadings tool =
+  [ h
+  | l <- lines . BC.unpack $ manualTxt tool
+  , h <- maybeToList $ headingOf l
+  , map toLower h `notElem` ["name", "description"]
+  ]
+  where
+    headingOf l = case span (==' ') l of
+      ("",    rest) -> headingText rest
+      ("   ", rest) -> headingText rest
+      _             -> Nothing
+    headingText s
+      | null s' || "  " `isInfixOf` s' = Nothing
+      | otherwise                      = Just s'
+      where s' = dropWhileEnd (==' ') s
+
+-- | The result of resolving a user-supplied topic against the manual's headings.
+data TopicResolution = TopicNotFound | TopicFound Topic | TopicAmbiguous [Topic]
+
+-- | Resolve a topic to a manual section heading. A case-insensitive exact match
+-- wins; otherwise a unique case-insensitive prefix match is used; otherwise the
+-- topic is unknown (no match) or ambiguous (several prefix matches). Resolving
+-- to a full heading lets all viewers (including info and the web anchor) locate
+-- the section reliably, and lets callers respond to a bad topic.
+resolveManualTopic :: Tool -> Topic -> TopicResolution
+resolveManualTopic tool topic =
+  case filter ((== t) . map toLower) headings of
+    (h:_) -> TopicFound h
+    []    -> case nub $ filter ((t `isPrefixOf`) . map toLower) headings of
+      []  -> TopicNotFound
+      [h] -> TopicFound h
+      hs  -> TopicAmbiguous hs
+  where
+    headings = manualHeadings tool
+    t = map toLower . dropWhileEnd (==' ') $ dropWhile (==' ') topic
 
 -- | Get the manual as man source (nroff) for this tool, or a not found message.
 manualMan :: Tool -> ByteString
