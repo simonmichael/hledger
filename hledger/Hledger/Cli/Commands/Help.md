@@ -22,12 +22,14 @@ or you can choose with -i/-m/-p/-w.
 
 ```flags
 Flags:
-  -i                       use info for showing the manual
-  -m                       use man for showing the manual
-  -p                       use less (or $PAGER) for showing the manual
-  -w                       use a web browser for showing the manual
-  -l                       just list matched manual topics
-     --builtin             for 'commands': show only built-in commands
+  -i                       show the manual with info
+  -m                       show the manual with man
+  -p                       show the manual with $PAGER or less
+                           (less is always used if TOPIC is specified)
+  -w                       show the manual on the web
+  -l                       just list the manual topics matching TOPIC
+     --builtin             with the commands topic, show only built-in
+                           commands
 ```
 
 The manual is built in to your hledger executable, so it can be useful when offline,
