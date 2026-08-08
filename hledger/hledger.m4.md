@@ -7805,7 +7805,7 @@ _commands_
 
 Here are some quick examples of how to do some basic tasks with hledger.
 
-## Getting help
+# Getting help
 
 Here's how to get a quick overview, list commands, and view options and command docs:
 
@@ -7829,7 +7829,7 @@ $ hledger help --help    # find out more about the help command
 To view manuals and introductory docs on the web, visit <https://hledger.org>.
 Chat and mail list support and discussion archives can be found at <https://hledger.org/support>.
 
-## Constructing command lines
+# Constructing command lines
 
 hledger has a flexible command line interface.
 We strive to keep it simple and ergonomic, but if you run into one of
@@ -7842,7 +7842,7 @@ here are some tips that might help:
 - if needed, also add a backslash to hide regular expression metacharacters from the shell
 - to see how a misbehaving command line is being parsed, add `--debug=2`.
 
-## Starting a journal file
+# Starting a journal file
 
 hledger looks for your accounting data in a journal file, `$HOME/.hledger.journal` by default:
 ```cli
@@ -7877,9 +7877,9 @@ Commodities              : 0 ()
 Market prices            : 0 ()
 ```
 
-## Setting LEDGER_FILE
+# Setting LEDGER_FILE
 
-### Set LEDGER_FILE on unix
+## Set LEDGER_FILE on unix
 
 It depends on your shell, but running these commands in the terminal will work for many people;
 adapt if needed:
@@ -7898,7 +7898,7 @@ When correctly configured:
 - `env | grep LEDGER_FILE` will show your new setting
 - and so should `hledger setup` and `hledger files`.
 
-### Set LEDGER_FILE on mac
+## Set LEDGER_FILE on mac
 
 In a terminal window, follow the unix procedure above.
 
@@ -7918,7 +7918,7 @@ When correctly configured for GUI applications:
 - apps started from the dock or a spotlight search, such as a GUI Emacs,
   will be aware of the new LEDGER_FILE setting.
 
-### Set LEDGER_FILE on Windows
+## Set LEDGER_FILE on Windows
 
 It can be easier to create a default file at `C:\Users\USER\.hledger.journal`,
 and have it [include](hledger.md#include-directive) your other files.
@@ -7955,7 +7955,7 @@ When correctly configured:
 - in a new powershell window, `$env:LEDGER_FILE` will show your new setting
 - and so should `hledger setup` and (once the file exists) `hledger files`.
 
-## Setting opening balances
+# Setting opening balances
 
 Pick a starting date for which you can look up the balances of some
 real-world assets (bank accounts, wallet..) and liabilities (credit cards..).
@@ -8031,7 +8031,7 @@ If you're using version control, this could be a good time to commit the journal
 $ git commit -m 'initial balances' 2023.journal
 ```
 
-## Recording transactions
+# Recording transactions
 
 As you spend or receive money, you can record these transactions
 using one of the methods above (text editor, hledger add)
@@ -8055,7 +8055,7 @@ and hledger.org for more ideas:
   assets:bank:checking    $1000
 ```
 
-## Reconciling
+# Reconciling
 
 Periodically you should reconcile - compare your hledger-reported balances
 against external sources of truth, like bank statements or your bank's website -
@@ -8107,7 +8107,7 @@ If you're using version control, this can be another good time to commit:
 $ git commit -m 'txns' 2023.journal
 ```
 
-## Reporting
+# Reporting
 
 Here are some basic reports.
 
@@ -8255,7 +8255,7 @@ $ hledger activity -W
 2023-01-06 ****
 2023-01-13 ****
 ```
-## Migrating to a new file
+# Migrating to a new file
 
 At the end of the year, you may want to continue your journal in a new file,
 so that old transactions don't slow down or clutter your reports,

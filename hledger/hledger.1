@@ -14800,7 +14800,7 @@ $ hledger test \-\- \-h         # show tasty\(aqs options
 .PP
 .SH PART 5: COMMON TASKS
 Here are some quick examples of how to do some basic tasks with hledger.
-.SS Getting help
+.SH Getting help
 Here\(aqs how to get a quick overview, list commands, and view options
 and command docs:
 .IP
@@ -14827,7 +14827,7 @@ To view manuals and introductory docs on the web, visit
 https://hledger.org.
 Chat and mail list support and discussion archives can be found at
 https://hledger.org/support.
-.SS Constructing command lines
+.SH Constructing command lines
 hledger has a flexible command line interface.
 We strive to keep it simple and ergonomic, but if you run into one of
 the sharp edges described in OPTIONS, here are some tips that might
@@ -14846,7 +14846,7 @@ metacharacters from the shell
 .IP \(bu 2
 to see how a misbehaving command line is being parsed, add
 \f[CR]\-\-debug=2\f[R].
-.SS Starting a journal file
+.SH Starting a journal file
 hledger looks for your accounting data in a journal file,
 \f[CR]$HOME/.hledger.journal\f[R] by default:
 .IP
@@ -14884,7 +14884,7 @@ Accounts                 : 0 (depth 0)
 Commodities              : 0 ()
 Market prices            : 0 ()
 .EE
-.SS Setting LEDGER_FILE
+.SH Setting LEDGER_FILE
 .SS Set LEDGER_FILE on unix
 It depends on your shell, but running these commands in the terminal
 will work for many people; adapt if needed:
@@ -14978,7 +14978,7 @@ new setting
 .IP \(bu 2
 and so should \f[CR]hledger setup\f[R] and (once the file exists)
 \f[CR]hledger files\f[R].
-.SS Setting opening balances
+.SH Setting opening balances
 Pick a starting date for which you can look up the balances of some
 real\-world assets (bank accounts, wallet..)
 and liabilities (credit cards..).
@@ -15067,7 +15067,7 @@ Eg:
 .EX
 $ git commit \-m \(aqinitial balances\(aq 2023.journal
 .EE
-.SS Recording transactions
+.SH Recording transactions
 As you spend or receive money, you can record these transactions using
 one of the methods above (text editor, hledger add) or by using the
 hledger\-iadd or hledger\-web add\-ons, or by using the import command
@@ -15089,7 +15089,7 @@ hledger.org for more ideas:
   income:salary
   assets:bank:checking    $1000
 .EE
-.SS Reconciling
+.SH Reconciling
 Periodically you should reconcile \- compare your hledger\-reported
 balances against external sources of truth, like bank statements or your
 bank\(aqs website \- to be sure that your ledger accurately represents
@@ -15150,7 +15150,7 @@ commit:
 .EX
 $ git commit \-m \(aqtxns\(aq 2023.journal
 .EE
-.SS Reporting
+.SH Reporting
 Here are some basic reports.
 .PP
 Show all transactions:
@@ -15308,7 +15308,7 @@ $ hledger activity \-W
 2023\-01\-06 ****
 2023\-01\-13 ****
 .EE
-.SS Migrating to a new file
+.SH Migrating to a new file
 At the end of the year, you may want to continue your journal in a new
 file, so that old transactions don\(aqt slow down or clutter your
 reports, and to help ensure the integrity of your accounting history.
