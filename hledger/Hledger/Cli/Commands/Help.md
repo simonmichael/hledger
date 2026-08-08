@@ -3,11 +3,11 @@
 Show some part of hledger's documentation. The first argument selects what to show:
 
 - `quickref` (or none): a quick reference / overview
-- `commands`:           all hledger commands, including addons and aliases
+- `commands`:           all commands, including addons and aliases
 - `usage [CMD]`:        command line options help (like -h/--help)
 - `examples [CMD]`:     command line examples
-- `manual [TOPIC]`:     list the manual's topics, or show it at the TOPIC heading
-- `TOPIC`               the user manual at TOPIC (like `manual TOPIC`)
+- `manual [TOPIC]`:     view a topic in the manual, or list them all
+- `TOPIC`               view a topic in the manual (like `manual TOPIC`)
 - `install | relnotes | docs | support | home`: hledger.org pages, in a web browser
 
 TOPIC is a section heading in the hledger, hledger-ui or hledger-web manual,
