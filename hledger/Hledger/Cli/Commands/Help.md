@@ -13,7 +13,8 @@ Show some part of hledger's documentation. The first argument selects what to sh
 TOPIC is a section heading in the hledger, hledger-ui or hledger-web manual,
 or part of one, matched case insensitively.
 Enclose it in quotes if it contains spaces.
-With no TOPIC (`hledger help manual`), all manual topics are listed.
+With no TOPIC (`hledger help manual`), all manual topics are listed,
+indented to show (most of) their hierarchy.
 A section name that appears in more than one manual is given a "-ui" or "-web"
 suffix in the hledger-ui/hledger-web manuals (eg `options-ui`); these suffixed
 names are matchable and appear in the topic list.

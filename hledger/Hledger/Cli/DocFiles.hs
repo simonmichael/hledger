@@ -103,30 +103,35 @@ manualTitle tool = case dropWhile null . lines . BC.unpack $ manualTxt tool of
   (l:_) | (w:_) <- words l, '(' `elem` w -> Just $ takeWhile (/= '(') w
   _                                       -> Nothing
 
--- | The section headings in this tool's manual, usable as help topics.
--- These are the manual title (see 'manualTitle'), plus the section headings in
--- the rendered plain text: non-blank lines at the left margin or indented
--- exactly three spaces, containing no run of two or more spaces (which would
--- indicate wrapped prose, a table, an option entry, or a running header).
--- The standard man-page headings NAME, SYNOPSIS and DESCRIPTION are dropped, as
--- they aren't useful topics and their generic names could clash with real ones.
-manualHeadings :: Tool -> [Topic]
-manualHeadings tool = maybeToList (manualTitle tool) ++ sections
+-- | The section headings in this tool's manual, each with its hierarchy level,
+-- usable as help topics. Some heading hierarchy is lost in the rendered plain
+-- text, but we recover an approximate level for each: the manual title (see
+-- 'manualTitle') is level 1; an all-caps column-0 heading (eg OPTIONS,
+-- PART 1: ...) is level 2; any other column-0 heading (eg Options, Journal) is
+-- level 3; and a heading indented three spaces is level 4. Headings are
+-- non-blank lines at the left margin or indented exactly three spaces,
+-- containing no run of two or more spaces (which would indicate wrapped prose,
+-- a table, an option entry, or a running header). The standard man-page
+-- headings NAME, SYNOPSIS and DESCRIPTION are dropped, as they aren't useful
+-- topics and their generic names could clash with real ones.
+manualHeadings :: Tool -> [(Topic, Int)]
+manualHeadings tool = maybeToList (fmap (\t -> (t, 1)) $ manualTitle tool) ++ sections
   where
     sections =
-      [ h
+      [ hl
       | l <- lines . BC.unpack $ manualTxt tool
-      , h <- maybeToList $ headingOf l
+      , hl@(h, _) <- maybeToList $ headingOf l
       , map toLower h `notElem` ["name", "synopsis", "description"]
       ]
     headingOf l = case span (==' ') l of
-      ("",    rest) -> headingText rest
-      ("   ", rest) -> headingText rest
+      ("",    rest) -> (\h -> (h, if allCaps h then 2 else 3)) <$> headingText rest
+      ("   ", rest) -> (\h -> (h, 4))                          <$> headingText rest
       _             -> Nothing
     headingText s
       | null s' || "  " `isInfixOf` s' = Nothing
       | otherwise                      = Just s'
       where s' = dropWhileEnd (==' ') s
+    allCaps s = any isUpper s && not (any isLower s)
 
 -- | Every matchable help topic as (name, tool, heading): every manual's headings
 -- (each with the tool whose manual it belongs to), given a unique name for
@@ -135,11 +140,11 @@ manualHeadings tool = maybeToList (manualTitle tool) ++ sections
 -- manual (so eg OPTIONS becomes OPTIONS-ui / OPTIONS-web, keeping every name
 -- unique and unambiguously matchable). hledger headings always keep their bare
 -- name, as does any section name unique to one manual.
-manualTopics :: [(Topic, Tool, Topic)]
-manualTopics = [(topicName tool h, tool, h) | (tool, h) <- rawpairs]
+manualTopics :: [(Topic, Tool, Topic, Int)]
+manualTopics = [(topicName tool h, tool, h, lvl) | (tool, (h, lvl)) <- rawpairs]
   where
-    rawpairs = [(tool, h) | tool <- map fst manuals, h <- manualHeadings tool]
-    manualsWith lch = nub [tool | (tool, h) <- rawpairs, map toLower h == lch]
+    rawpairs = [(tool, hl) | tool <- map fst manuals, hl <- manualHeadings tool]
+    manualsWith lch = nub [tool | (tool, (h, _)) <- rawpairs, map toLower h == lch]
     topicName tool h = case tool of
       "hledger-ui"  | shared -> h ++ "-ui"
       "hledger-web" | shared -> h ++ "-web"
@@ -148,8 +153,9 @@ manualTopics = [(topicName tool h, tool, h) | (tool, h) <- rawpairs]
 
 -- | The result of resolving a user-supplied topic against all the manuals'
 -- topics. A found match carries the tool whose manual it belongs to and the
--- heading to scroll to; an ambiguous match carries the matching topic names.
-data TopicResolution = TopicNotFound | TopicFound Tool Topic | TopicAmbiguous [Topic]
+-- heading to scroll to; an ambiguous match carries the matching topic names,
+-- each with its manual heading level (for hierarchical listing).
+data TopicResolution = TopicNotFound | TopicFound Tool Topic | TopicAmbiguous [(Topic, Int)]
 
 -- | Resolve a topic to a manual section, searching all the manuals' topic names.
 -- A case-insensitive exact match wins; otherwise a unique prefix match is used;
@@ -165,23 +171,26 @@ resolveManualTopic topic =
       ([tp], _)  -> found tp
       ([], [tp]) -> found tp
       ([], [])   -> TopicNotFound
-      (_,  tps)  -> TopicAmbiguous (map name tps)
-    _    -> TopicAmbiguous (map name infixes)
+      (_,  tps)  -> TopicAmbiguous (map nameLevel tps)
+    _    -> TopicAmbiguous (map nameLevel infixes)
   where
     exacts   = nub $ filter ((== t)          . lc . name) manualTopics
     prefixes = nub $ filter ((t `isPrefixOf`) . lc . name) manualTopics
     infixes  = nub $ filter ((t `isInfixOf`)  . lc . name) manualTopics
-    found (_, tool, h) = TopicFound tool h
-    name (n, _, _) = n
+    found (_, tool, h, _) = TopicFound tool h
+    name (n, _, _, _) = n
+    nameLevel (n, _, _, lvl) = (n, lvl)
     lc = map toLower
     t  = lc . dropWhileEnd (==' ') $ dropWhile (==' ') topic
 
--- | The topic names that contain the given topic as a case-insensitive substring
--- (all topics if the topic is empty). Used by help's -l list mode.
-manualTopicsMatching :: Topic -> [Topic]
-manualTopicsMatching topic = nub $ map name $ filter ((t `isInfixOf`) . lc . name) manualTopics
+-- | The topic names (each with its manual heading level, for hierarchical
+-- listing) that contain the given topic as a case-insensitive substring (all
+-- topics if the topic is empty). Used by help's -l list mode.
+manualTopicsMatching :: Topic -> [(Topic, Int)]
+manualTopicsMatching topic = nub $ map nameLevel $ filter ((t `isInfixOf`) . lc . name) manualTopics
   where
-    name (n, _, _) = n
+    name (n, _, _, _) = n
+    nameLevel (n, _, _, lvl) = (n, lvl)
     lc = map toLower
     t  = lc . dropWhileEnd (==' ') $ dropWhile (==' ') topic
 

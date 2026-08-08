@@ -74,8 +74,13 @@ manual opts mtopic
   where
     listonly = boolopt "help-l" $ rawopts_ opts
     topic    = fromMaybe "" mtopic
+    -- Are we listing all the topics (rather than just those matching a TOPIC)?
+    listall  = null topic
     -- List the given topic names, in the pager if the list is long and one is available.
-    listTopics heading names = runPager $ unlines $ heading : map ("  " <>) names
+    -- When listing all topics, indent each by its manual heading level (minus one)
+    -- to show the hierarchy; when listing just the matches, indent them all equally.
+    listTopics heading nls = runPager $ unlines $ heading : map fmt nls
+      where fmt (n, lvl) = replicate (if listall then lvl - 1 else 2) ' ' <> n
     notFound = hPutStrLn stderr $
       "\"" <> topic <> "\" does not match any manual section heading.\n"
       <> "Run `hledger help manual` to list all topics, or `hledger help` for the quick reference."

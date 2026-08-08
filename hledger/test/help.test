@@ -92,3 +92,16 @@ $ hledger help OPTIONS-ui
 # ** 22. The -ui/-web suffixed names are listed too.
 $ hledger help -l options
 > /OPTIONS-ui/
+
+# ** 23. Listing all topics indents each by its manual heading level: a
+# top-level (all-caps column-0) heading by one space.
+$ hledger help manual
+> /^ PART 1: USER INTERFACE/
+
+# ** 24. ...and a fourth-level (column-3) heading by three spaces.
+$ hledger help manual
+> /^   Text encoding/
+
+# ** 25. Listing just the matching topics indents them all equally instead.
+$ hledger help -l text
+> /^  Text encoding/
