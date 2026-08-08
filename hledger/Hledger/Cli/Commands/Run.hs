@@ -234,7 +234,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
         fpath = snd $ splitReaderPrefix $ NE.head jpaths
                   --------------------------------------80----------------------------------------
         title  =  progname <> " " <> packageversion
-        hint   = "Ready for hledger commands. For help, type help or help -h. To exit: q or ctrl-d."
+        hint   = "Ready for hledger or !shell commands. For help: h or h -h. To exit: q or ctrl-d."
         prompt = stxMarkEscapes $ grad faint' 2 $ takeBaseName fpath ++ "> "
       -- putStrLn $ grad faint' 0 $ replicate w '-'
       putStrLn $ grad bold' 1 title
@@ -265,7 +265,11 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ parseCommand input
+                -- h is a short alias for the help command.
+                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $
+                             case parseCommand input of
+                               "h":rest -> "help":rest
+                               cmd      -> cmd
         liftIO $ if interactive
           then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)

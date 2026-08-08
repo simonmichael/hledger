@@ -36,7 +36,7 @@ The command syntax is the same as with `run`:
 - empty lines and comment text from `#` to end of line are ignored
 - enclose arguments in quotes if they contain spaces.
 
-Use `help` or `help commands` to list commands.
+Use `help` (or `h`) to show the quick reference, or `help commands` to list commands.
 Addons in PATH and command aliases defined in a config file can also be used.
 Generally `repl` should feel much like using hledger at the command line.
 But `repl` requires full command names or official abbreviations (it does not recognise ad hoc abbreviations).

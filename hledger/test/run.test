@@ -333,3 +333,10 @@ $ hledger repl -f sample.journal
 help usage balance
 $ hledger repl -f sample.journal
 > /^balance \[OPTIONS\]/
+
+# ** 26. In the repl, h is a short alias for help, passing arguments through
+# (here: h usage CMD works like help usage CMD).
+<
+h usage balance
+$ hledger repl -f sample.journal
+> /^balance \[OPTIONS\]/
