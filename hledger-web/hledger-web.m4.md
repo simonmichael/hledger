@@ -392,8 +392,6 @@ $ curl http://127.0.0.1:5000/add -X PUT -H 'Content-Type: application/json' --da
 
 # DEBUG OUTPUT
 
-## Debug output
-
 You can add `--debug[=N]` to the command line to log debug output.
 N ranges from 1 (least output, the default) to 9 (maximum output).
 Typically you would start with 1 and increase until you are seeing enough.
