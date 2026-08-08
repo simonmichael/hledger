@@ -128,37 +128,62 @@ manualHeadings tool = maybeToList (manualTitle tool) ++ sections
       | otherwise                      = Just s'
       where s' = dropWhileEnd (==' ') s
 
--- | The result of resolving a user-supplied topic against the manual's headings.
-data TopicResolution = TopicNotFound | TopicFound Topic | TopicAmbiguous [Topic]
-
--- | Resolve a topic to a manual section heading. A case-insensitive exact match
--- wins; otherwise a unique case-insensitive prefix match is used; otherwise the
--- topic is unknown (no match) or ambiguous (several prefix matches). Resolving
--- to a full heading lets all viewers (including info and the web anchor) locate
--- the section reliably, and lets callers respond to a bad topic.
-resolveManualTopic :: Tool -> Topic -> TopicResolution
-resolveManualTopic tool topic =
-  -- Broaden the search from exact to prefix to infix matches: a single exact,
-  -- prefix, or infix match is treated as unambiguous and used. Otherwise, when
-  -- the match is ambiguous, list all matches of any kind (ie all infix matches).
-  -- (An exact match always wins, even over other prefix or infix matches.)
-  case filter ((== t) . lc) headings of
-    (h:_) -> TopicFound h
-    []    -> case (nub $ filter ((t `isPrefixOf`) . lc) headings, nub $ filter ((t `isInfixOf`) . lc) headings) of
-      ([h], _)  -> TopicFound h
-      ([], [h]) -> TopicFound h
-      ([], [])  -> TopicNotFound
-      (_,  hs)  -> TopicAmbiguous hs
+-- | Every matchable help topic as (name, tool, heading): every manual's headings
+-- (each with the tool whose manual it belongs to), given a unique name for
+-- matching and listing. The name is the heading, but with "-ui"/"-web" appended
+-- for a hledger-ui/hledger-web heading whose bare name also occurs in another
+-- manual (so eg OPTIONS becomes OPTIONS-ui / OPTIONS-web, keeping every name
+-- unique and unambiguously matchable). hledger headings always keep their bare
+-- name, as does any section name unique to one manual.
+manualTopics :: [(Topic, Tool, Topic)]
+manualTopics = [(topicName tool h, tool, h) | (tool, h) <- rawpairs]
   where
-    headings = manualHeadings tool
+    rawpairs = [(tool, h) | tool <- map fst manuals, h <- manualHeadings tool]
+    manualsWith lch = nub [tool | (tool, h) <- rawpairs, map toLower h == lch]
+    topicName tool h = case tool of
+      "hledger-ui"  | shared -> h ++ "-ui"
+      "hledger-web" | shared -> h ++ "-web"
+      _                      -> h
+      where shared = length (manualsWith (map toLower h)) > 1
+
+-- | The result of resolving a user-supplied topic against all the manuals'
+-- topics. A found match carries the tool whose manual it belongs to and the
+-- heading to scroll to; an ambiguous match carries the matching topic names.
+data TopicResolution = TopicNotFound | TopicFound Tool Topic | TopicAmbiguous [Topic]
+
+-- | Resolve a topic to a manual section, searching all the manuals' topic names.
+-- A case-insensitive exact match wins; otherwise a unique prefix match is used;
+-- otherwise a unique infix match is used. Resolving to a heading (and its tool)
+-- lets all viewers (including info and the web anchor) locate the section
+-- reliably, and lets callers respond to a bad topic. When the match is
+-- ambiguous, all matches of any kind (ie all infix matches) are listed.
+resolveManualTopic :: Topic -> TopicResolution
+resolveManualTopic topic =
+  case exacts of
+    [tp] -> found tp
+    []   -> case (prefixes, infixes) of
+      ([tp], _)  -> found tp
+      ([], [tp]) -> found tp
+      ([], [])   -> TopicNotFound
+      (_,  tps)  -> TopicAmbiguous (map name tps)
+    _    -> TopicAmbiguous (map name infixes)
+  where
+    exacts   = nub $ filter ((== t)          . lc . name) manualTopics
+    prefixes = nub $ filter ((t `isPrefixOf`) . lc . name) manualTopics
+    infixes  = nub $ filter ((t `isInfixOf`)  . lc . name) manualTopics
+    found (_, tool, h) = TopicFound tool h
+    name (n, _, _) = n
     lc = map toLower
     t  = lc . dropWhileEnd (==' ') $ dropWhile (==' ') topic
 
--- | The manual headings that contain the given topic as a case-insensitive
--- substring (all headings if the topic is empty). Used by help's -l list mode.
-manualTopicsMatching :: Tool -> Topic -> [Topic]
-manualTopicsMatching tool topic = nub $ filter ((t `isInfixOf`) . map toLower) $ manualHeadings tool
-  where t = map toLower . dropWhileEnd (==' ') $ dropWhile (==' ') topic
+-- | The topic names that contain the given topic as a case-insensitive substring
+-- (all topics if the topic is empty). Used by help's -l list mode.
+manualTopicsMatching :: Topic -> [Topic]
+manualTopicsMatching topic = nub $ map name $ filter ((t `isInfixOf`) . lc . name) manualTopics
+  where
+    name (n, _, _) = n
+    lc = map toLower
+    t  = lc . dropWhileEnd (==' ') $ dropWhile (==' ') topic
 
 -- | Get the manual as man source (nroff) for this tool, or a not found message.
 manualMan :: Tool -> ByteString

@@ -10,9 +10,13 @@ Show some part of hledger's documentation. The first argument selects what to sh
 - `TOPIC`               the user manual at TOPIC (like `manual TOPIC`)
 - `install | relnotes | docs | support | home`: hledger.org pages, in a web browser
 
-TOPIC is a section heading in the manual, or part of one, matched case insensitively.
+TOPIC is a section heading in the hledger, hledger-ui or hledger-web manual,
+or part of one, matched case insensitively.
 Enclose it in quotes if it contains spaces.
 With no TOPIC (`hledger help manual`), all manual topics are listed.
+A section name that appears in more than one manual is given a "-ui" or "-web"
+suffix in the hledger-ui/hledger-web manuals (eg `options-ui`); these suffixed
+names are matchable and appear in the topic list.
 The manual will be shown in a default viewer (info, man, pager, web browser),
 or you can choose with -i/-m/-p/-w.
 
@@ -41,7 +45,8 @@ Examples
 $ hledger help                    # show the quick reference
 $ hledger help -h                 # show the help command's options
 $ hledger help commands           # list all commands
-$ hledger help 'time periods'     # show the "Time periods" section of the manual
+$ hledger help 'time periods'     # show the "Time periods" section in the manual
+$ hledger help keys               # show the "KEYS" section in the hledger-ui manual
 $ hledger help -l                 # list the manual's topics
 $ hledger help -l journal         # list the manual topics matching "journal"
 $ hledger help examples add       # show examples for the add command

@@ -27,7 +27,7 @@ $ hledger help journal
 
 # ** 7. A manual topic matching no heading shows a note (not an error, and not the manual).
 $ hledger help nosuchtopic
->2 /does not match any section heading in the hledger manual/
+>2 /does not match any manual section heading/
 
 # ** 8. A unique case-insensitive prefix of a heading resolves to that section.
 $ hledger help "text enc"
@@ -47,11 +47,11 @@ $ hledger help 'time periods'
 
 # ** 12. The empty topic lists all manual topics.
 $ hledger help ''
-> /hledger manual topics:/
+> /^manual topics:/
 
 # ** 13. help manual with no topic lists all manual topics.
 $ hledger help manual
-> /hledger manual topics:/
+> /^manual topics:/
 
 # ** 14. The manual title (HLEDGER, with the (1) stripped) can be matched.
 $ hledger help hledger
@@ -60,7 +60,7 @@ $ hledger help hledger
 # ** 15. help -l TOPIC just lists the matching topics (instead of showing the manual).
 $ hledger help -l text
 >
-hledger manual topics matching "text":
+manual topics matching "text":
   Text encoding
   Text output
 
@@ -76,3 +76,19 @@ $ hledger help quickref
 # ** 18. help commands --builtin shows only built-in commands.
 $ hledger help commands --builtin
 > /Commands \(showing built-in/
+
+# ** 19. The hledger-ui manual's title opens that manual.
+$ hledger help hledger-ui
+> /HLEDGER-UI/
+
+# ** 20. A topic unique to the hledger-web manual resolves to it.
+$ hledger help permissions
+> /HLEDGER-WEB/
+
+# ** 21. A section name shared across manuals gets a -ui/-web suffix, which is matchable.
+$ hledger help OPTIONS-ui
+> /HLEDGER-UI/
+
+# ** 22. The -ui/-web suffixed names are listed too.
+$ hledger help -l options
+> /OPTIONS-ui/
