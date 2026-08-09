@@ -296,10 +296,10 @@ commandsList progversion builtin othercmds cmdaliases =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES"
-  ," repl                     run commands efficiently from an interactive prompt"
-  ," run                      run commands efficiently from a file or command line"
   ,"+ui                       run a terminal UI"
   ,"+web                      run a web UI"
+  ," repl                     run commands efficiently from an interactive prompt"
+  ," run                      run commands efficiently from a file or command line"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "ENTERING DATA"

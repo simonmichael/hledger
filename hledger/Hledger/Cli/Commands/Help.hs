@@ -36,12 +36,12 @@ import Hledger.Utils (embedFileRelative, runPager)
 helpmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Help.txt")
   -- The help-* names avoid a clash with the --info and --man flags handled in Cli.hs.
-  [flagNone ["i"] (setboolopt "help-i")  "show the manual with info"
-  ,flagNone ["m"] (setboolopt "help-m")   "show the manual with man"
-  ,flagNone ["p"] (setboolopt "help-p") "show the manual with $PAGER or less\n(less is always used if TOPIC is specified)"
-  ,flagNone ["w"] (setboolopt "help-w") "show the manual on the web"
+  [flagNone ["i"] (setboolopt "help-i") "use info when showing the manual"
+  ,flagNone ["m"] (setboolopt "help-m") "use man when showing the manual"
+  ,flagNone ["p"] (setboolopt "help-p") "use less (or $PAGER) when showing the manual"
+  ,flagNone ["w"] (setboolopt "help-w") "use a web browser when showing the manual"
   ,flagNone ["l"] (setboolopt "help-l") "just list the manual topics matching TOPIC"
-  ,flagNone ["builtin"] (setboolopt "builtin") "with the commands topic, show only built-in commands"
+  ,flagNone ["builtin"] (setboolopt "builtin") "with commands: show only built-in commands"
   ]
   [(helpflagstitle, helpflags)]
   hiddenflags  -- accept --conf/--no-conf etc., eg so "help commands" can show config aliases

@@ -1,13 +1,13 @@
 ## help
 
-Show some part of hledger's documentation. The first argument selects what to show:
+Show some part of hledger's documentation, selected by arguments:
 
-- `quickref` (or none): a quick reference / overview
-- `commands`:           all commands, including addons and aliases
-- `usage [CMD]`:        command line options help (like -h/--help)
-- `examples [CMD]`:     command line examples
-- `manual [TOPIC]`:     view a topic in the manual, or list them all
-- `TOPIC`               view a topic in the manual (like `manual TOPIC`)
+- `quickref` (or no args): a quick reference / overview
+- `commands`:              all commands, including addons and aliases
+- `usage [CMD]`:           command line options help (like -h/--help)
+- `examples [CMD]`:        command line examples
+- `manual [TOPIC]`:        view a topic in the manual, or list them all
+- `TOPIC`:                 (like `manual TOPIC`)
 - `home|install|relnotes|docs|support|sponsor`: browse hledger.org pages
 
 TOPIC is a section heading in the hledger, hledger-ui or hledger-web manual,
@@ -21,14 +21,12 @@ or you can choose with -i/-m/-p/-w.
 
 ```flags
 Flags:
-  -i                       show the manual with info
-  -m                       show the manual with man
-  -p                       show the manual with $PAGER or less
-                           (less is always used if TOPIC is specified)
-  -w                       show the manual on the web
+  -i                       use info when showing the manual
+  -m                       use man when showing the manual
+  -p                       use less (or $PAGER) when showing the manual
+  -w                       use a web browser when showing the manual
   -l                       just list the manual topics matching TOPIC
-     --builtin             with the commands topic, show only built-in
-                           commands
+     --builtin             with commands: show only built-in commands
 ```
 
 The manual is built in to your hledger executable, so it can be useful when offline,
