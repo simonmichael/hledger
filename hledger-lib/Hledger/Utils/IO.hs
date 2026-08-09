@@ -86,6 +86,8 @@ module Hledger.Utils.IO (
   useColorOnStderr,
   useColorOnStdoutUnsafe,
   useColorOnStderrUnsafe,
+  supportsTrueColor,
+  supportsTrueColorUnsafe,
   bold',
   faint',
   black',
@@ -155,7 +157,7 @@ import           GHC.IO.Encoding (getLocaleEncoding, textEncodingName)
 import           GHC.IO.Exception (IOException(..), IOErrorType (ResourceVanished))
 import           Language.Haskell.TH.Syntax (Q, Exp)
 import           Safe (headMay, maximumDef)
-import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor, ConsoleIntensity (..))
+import           System.Console.ANSI (Color(..),ColorIntensity(..), ConsoleLayer(..), SGR(..), hSupportsANSIColor, setSGRCode, getLayerColor, ConsoleIntensity (..), xterm6LevelRGB)
 import           System.Console.Terminal.Size (Window (Window), size)
 import           System.Directory (getHomeDirectory, getModificationTime, findExecutable)
 import           System.Environment (getArgs, getEnvironment, lookupEnv, getProgName)
@@ -894,6 +896,19 @@ useColorOnStdoutUnsafe = unsafePerformIO useColorOnStdout
 useColorOnStderrUnsafe :: Bool
 useColorOnStderrUnsafe = unsafePerformIO useColorOnStderr
 
+-- | Does the terminal appear to support 24-bit "true colour" ?
+-- Detected from the COLORTERM environment variable being "truecolor" or "24bit",
+-- the de-facto convention. This errs conservative: it can miss truecolor terminals
+-- that don't set COLORTERM (eg across ssh/tmux/sudo), in which case we fall back to
+-- 256-colour; and it can't help terminals that set it but don't actually render
+-- truecolor. When false, 'rgb'' downgrades to the nearest xterm 256-colour.
+supportsTrueColor :: IO Bool
+supportsTrueColor = maybe False (`elem` ["truecolor","24bit"]) <$> lookupEnv "COLORTERM"
+
+-- | Like 'supportsTrueColor', but using unsafePerformIO.
+supportsTrueColorUnsafe :: Bool
+supportsTrueColorUnsafe = unsafePerformIO supportsTrueColor
+
 -- | Detect whether ANSI should be used on stdout using useColorOnStdoutUnsafe,
 -- and if so prepend and append the given SGR codes to a string.
 -- Currently used in a few places (the commands list, the recentassertions error message, add, demo);
@@ -925,7 +940,12 @@ sgrbrightblue    = setSGRCode [SetColor Foreground Vivid Blue]
 sgrbrightmagenta = setSGRCode [SetColor Foreground Vivid Magenta]
 sgrbrightcyan    = setSGRCode [SetColor Foreground Vivid Cyan]
 sgrbrightwhite   = setSGRCode [SetColor Foreground Vivid White]
-sgrrgb r g b     = setSGRCode [SetRGBColor Foreground $ sRGB r g b]
+-- Emit a 24-bit truecolor foreground code, or if the terminal doesn't advertise
+-- truecolor support (see supportsTrueColorUnsafe), the nearest xterm 256-colour.
+sgrrgb r g b
+  | supportsTrueColorUnsafe = setSGRCode [SetRGBColor Foreground $ sRGB r g b]
+  | otherwise               = setSGRCode [SetPaletteColor Foreground $ xterm6LevelRGB (lvl r) (lvl g) (lvl b)]
+  where lvl v = max 0 $ min 5 $ round (v * 5)  -- map a 0..1 intensity to a 0..5 colour-cube level
 
 -- | Set various ANSI styles/colours in a string, only if useColorOnStdoutUnsafe says we should.
 bold' :: String -> String
