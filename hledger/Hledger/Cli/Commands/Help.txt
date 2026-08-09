@@ -9,8 +9,7 @@ what to show:
 - examples [CMD]: command line examples
 - manual [TOPIC]: view a topic in the manual, or list them all
 - TOPIC view a topic in the manual (like manual TOPIC)
-- install | relnotes | docs | support | home: hledger.org pages, in a
-  web browser
+- home|install|relnotes|docs|support|sponsor: browse hledger.org pages
 
 TOPIC is a section heading in the hledger, hledger-ui or hledger-web
 manual, or part of one, matched case insensitively. Enclose it in quotes
