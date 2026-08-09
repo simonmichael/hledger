@@ -185,7 +185,7 @@ mainmode addons = defMode {
 -- its first argument to a subtopic. Recognised subtopics are: quickref (the quick
 -- reference card), commands (the commands list), usage [CMD] (command-line usage,
 -- general or for CMD), manual [TOPIC] (the manual, optionally at TOPIC),
--- examples [CMD..] (brief tldr examples), and install/relnotes/docs/support/home
+-- examples [CMD..] (brief tldr examples), and home/install/relnotes/docs/support/sponsor
 -- (open the corresponding hledger.org page in a web browser).
 -- With no argument it shows the quickref card; any other first argument is
 -- treated as a manual topic.
@@ -210,11 +210,12 @@ help opts _
     "manual":rest   -> manual opts (headMay rest)
     "examples":rest -> mapM_ runTldrForPage $
                          if null rest then ["hledger"] else map ("hledger-"<>) rest
+    "home":_        -> void $ openBrowserOn "https://hledger.org"
     "install":_     -> void $ openBrowserOn "https://hledger.org/install.html"
     "relnotes":_    -> void $ openBrowserOn "https://hledger.org/relnotes.html"
     "docs":_        -> void $ openBrowserOn "https://hledger.org/doc.html"
     "support":_     -> void $ openBrowserOn "https://hledger.org/support.html"
-    "home":_        -> void $ openBrowserOn "https://hledger.org"
+    "sponsor":_     -> void $ openBrowserOn "https://hledger.org/sponsor.html"
     _               -> manual opts (headMay args)
   where
     args = listofstringopt "args" (rawopts_ opts)
@@ -290,15 +291,8 @@ commandsList progversion builtin othercmds cmdaliases =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "HELP"
-  ," help [SUBTOPIC]          show documentation (quickref, commands, usage,"
-  ,"                          manual, examples, install, relnotes, docs,"
-  ,"                          support, home)"
-  ," demo [DEMO]              show brief demos in the terminal"
-  ," -?                       show a quick reference card (the default)"
-  ," --help/-h [COMMAND]      show command line usage [for COMMAND]"
-  ," --examples [COMMAND]     show brief command examples [for COMMAND]"
-  ," --man/--info/--webman    show the manual (in a viewer or web browser)"
-  -- ,"                          for more help, see https://hledger.org"
+  ," help                     show documentation"
+  ," demo                     show brief demos in the terminal"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES"
@@ -306,7 +300,6 @@ commandsList progversion builtin othercmds cmdaliases =
   ," run                      run commands efficiently from a file or command line"
   ,"+ui                       run a terminal UI"
   ,"+web                      run a web UI"
-                                                                                     -- see also: MoLe, https://hledger.org/mobile.html
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "ENTERING DATA"

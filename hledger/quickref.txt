@@ -4,9 +4,9 @@ Common commands
  Data           add get import close
  Status         setup stats files accounts commodities check
  Reports        print areg reg bs is bal holdings roi
-repl commands   ? HLEDGERCMD !SHELLCMD echo q C-d C-c C-z
-help topics     commands | usage [CMD] | [manual] [TOPIC] | examples [CMD]
-                install relnotes docs support home
+repl commands   HLEDGERCMD !SHELLCMD echo h q C-d C-c C-z
+help commands   commands | usage [CMD] | [manual] [TOPIC] | examples [CMD]
+                home install relnotes docs support sponsor
 Common flags
  Help           -? -h/--help --man --info --webman --examples
  Data           -f --rules -s -I --forecast --pivot
