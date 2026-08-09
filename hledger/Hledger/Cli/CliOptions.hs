@@ -272,12 +272,12 @@ reportflags = [
 
 helpflags :: [Flag RawOpts]
 helpflags = [
-  flagNone ["?"]        (setboolopt "quickref") "show a quick reference card"
- ,flagNone ["help","h"] (setboolopt "help")    "show command line help"
- ,flagNone ["examples"] (setboolopt "examples") "show command examples"
+  flagNone ["?"]        (setboolopt "quickref") "show the hledger quick reference"
+ ,flagNone ["help","h"] (setboolopt "help")    "show this command's usage help"
  ,flagNone ["info"]     (setboolopt "info")    "show this command's manual with info"
  ,flagNone ["man"]      (setboolopt "man")     "show this command's manual with man"
  ,flagNone ["webman"]   (setboolopt "webman")  "show this command's manual on the web"
+ ,flagNone ["examples"] (setboolopt "examples") "show examples for this command"
  ,flagNone ["version"]  (setboolopt "version") "show version information"
   -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL] in help.
   -- But flagReq plus special handling in Cli.hs makes the = optional, removing a source of confusion.
