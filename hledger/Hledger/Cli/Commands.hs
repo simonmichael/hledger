@@ -16,6 +16,7 @@ the export list, the import list, builtinCommands, commandsList.
 
 module Hledger.Cli.Commands (
    commands
+  ,mainmode
   ,testcmd
   ,builtinCommands
   ,builtinCommandNames
@@ -64,7 +65,7 @@ import Data.List.Extra (groupSortOn, nubOrdOn, nubSort)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar
-import Safe (headErr)
+import Safe (headErr, headMay)
 import System.Console.CmdArgs.Explicit as C
 import System.Environment (withArgs)
 import System.FilePath (dropExtension, takeBaseName, takeExtension)
@@ -107,8 +108,10 @@ import Hledger.Cli.Commands.Run
 import Hledger.Cli.Commands.Setup
 import Hledger.Cli.Commands.Stats
 import Hledger.Cli.Commands.Tags
-import Hledger.Cli.Utils (tests_Cli_Utils)
-import Data.Functor ((<&>))
+import Hledger.Cli.Utils (tests_Cli_Utils, openBrowserOn)
+import Hledger.Cli.Commands.Quickref (showQuickref)
+import Hledger.Cli.DocFiles (runTldrForPage)
+import Data.Functor ((<&>), void)
 
 -- | The cmdargs subcommand mode (for command-line parsing)
 -- and IO action (for doing the command's work) for each builtin command.
@@ -126,14 +129,13 @@ builtinCommands = [
   ,(checkmode              , check)
   ,(closemode              , close)
   ,(codesmode              , codes)
-  ,(commandsmode           , commands)
   ,(commoditiesmode        , commodities)
   ,(demomode               , demo)
   ,(descriptionsmode       , descriptions)
   ,(diffmode               , diff)
   ,(filesmode              , files)
   ,(getmode                , getcmd)
-  ,(helpmode               , help')
+  ,(helpmode               , help)
   ,(holdingsmode           , holdings)
   ,(importmode             , importcmd)
   ,(incomestatementmode    , incomestatement)
@@ -151,6 +153,71 @@ builtinCommands = [
   ,(tagsmode               , tags)
   ,(testmode               , testcmd)
   ]
+
+-- | The overall cmdargs mode describing hledger's command-line options and subcommands.
+-- The names of known addons are provided so they too can be recognised as commands.
+mainmode addons = defMode {
+  modeNames = [progname ++ " [COMMAND]"]
+ ,modeArgs = ([], Just $ argsFlag "[ARGS]")
+ ,modeHelp = unlines ["hledger's main command line interface. Run with no ARGS to list commands."]
+ ,modeGroupModes = Group {
+    -- subcommands in the unnamed group, shown first:
+    groupUnnamed = [
+     ]
+    -- subcommands in named groups:
+   ,groupNamed = [
+     ]
+    -- subcommands handled but not shown in the help:
+   ,groupHidden = map fst builtinCommands ++ map addonCommandMode addons
+   }
+ ,modeGroupFlags = Group {
+     -- flags in named groups: (keep synced with Hledger.Cli.CliOptions.highlightHelp)
+     groupNamed = cligeneralflagsgroups1
+     -- flags in the unnamed group, shown last: (keep synced with dropUnsupportedOpts)
+    ,groupUnnamed = confflags
+     -- other flags handled but not shown in help:
+    ,groupHidden = hiddenflagsformainmode
+    }
+ ,modeHelpSuffix = []
+ }
+
+-- | The help command: show some part of hledger's documentation, dispatching on
+-- its first argument to a subtopic. Recognised subtopics are: quickref (the quick
+-- reference card), commands (the commands list), usage [CMD] (command-line usage,
+-- general or for CMD), manual [TOPIC] (the manual, optionally at TOPIC),
+-- examples [CMD..] (brief tldr examples), and install/relnotes/docs/support/home
+-- (open the corresponding hledger.org page in a web browser).
+-- With no argument it shows the quickref card; any other first argument is
+-- treated as a manual topic.
+help :: CliOpts -> Journal -> IO ()
+help opts _
+  -- With -l, always list matching manual topics, bypassing the special
+  -- subcommands (commands, usage, examples, install, etc). A leading "manual"
+  -- argument is the (now implicit) subcommand name, so it's consumed rather than
+  -- treated as a topic; thus `help -l manual` behaves like `help manual -l`.
+  | boolopt "help-l" (rawopts_ opts) = manual opts $ headMay $ case args of
+      "manual":rest -> rest
+      _             -> args
+  | otherwise = case args of
+    []              -> showQuickref
+    "quickref":_    -> showQuickref
+    "commands":_    -> commands opts nulljournal
+    "usage":rest    ->
+      let usagemode = case rest of
+            c:_ | Just (m,_) <- findBuiltinCommand c -> m
+            _                                        -> mainmode []
+      in runPager $ showModeUsage usagemode ++ "\n"
+    "manual":rest   -> manual opts (headMay rest)
+    "examples":rest -> mapM_ runTldrForPage $
+                         if null rest then ["hledger"] else map ("hledger-"<>) rest
+    "install":_     -> void $ openBrowserOn "https://hledger.org/install.html"
+    "relnotes":_    -> void $ openBrowserOn "https://hledger.org/relnotes.html"
+    "docs":_        -> void $ openBrowserOn "https://hledger.org/doc.html"
+    "support":_     -> void $ openBrowserOn "https://hledger.org/support.html"
+    "home":_        -> void $ openBrowserOn "https://hledger.org"
+    _               -> manual opts (headMay args)
+  where
+    args = listofstringopt "args" (rawopts_ opts)
 
 -- figlet -f FONTNAME hledger, then escape backslashes
 _banner_slant = drop 1 [""
@@ -223,11 +290,14 @@ commandsList progversion builtin othercmds cmdaliases =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "HELP"
-  ," commands                 show this commands list (default)"
-  ," --tldr    [COMMAND]      show brief command examples [for COMMAND]"
-  ," --help/-h [COMMAND]      show full command line help [for COMMAND]"
-  ," help [-i|-m|-p] [TOPIC]  show the hledger manual     [for TOPIC]"
+  ," help [SUBTOPIC]          show documentation (quickref, commands, usage,"
+  ,"                          manual, examples, install, relnotes, docs,"
+  ,"                          support, home)"
   ," demo [DEMO]              show brief demos in the terminal"
+  ," -?                       show a quick reference card (the default)"
+  ," --help/-h [COMMAND]      show command line usage [for COMMAND]"
+  ," --examples [COMMAND]     show brief command examples [for COMMAND]"
+  ," --man/--info/--webman    show the manual (in a viewer or web browser)"
   -- ,"                          for more help, see https://hledger.org"
   ,""
     -----------------------------------------80-------------------------------------
@@ -343,17 +413,6 @@ commandsListExtractCommands addonsonly l =
   , let cmdname:_ = words line
   ]
   -- Keep synced with commandsList.
-
-commandsmode =
-  hledgerCommandMode
-    $(embedFileRelative "Hledger/Cli/Commands/Commands.txt")
-    [flagNone ["builtin"] (setboolopt "builtin")  "show only builtin commands, not addons"
-    ]
-    [(helpflagstitle, helpflags)]
-    hiddenflags  -- accept --conf/--no-conf, to show/hide command aliases defined in a config file
-    -- flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[N]" "show debug output (levels 1-9, default: 1)"
-
-    ([], Nothing)
 
 -- | Display the commands list.
 commands :: CliOpts -> Journal -> IO ()

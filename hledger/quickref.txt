@@ -1,0 +1,20 @@
+HLEDGER QUICK REFERENCE
+Common commands
+ UIs            help ui web repl run
+ Data           add get import close
+ Status         setup stats files accounts commodities check
+ Reports        print areg reg bs is bal holdings roi
+repl commands   ? HLEDGERCMD !SHELLCMD echo q C-d C-c C-z
+help topics     commands | usage [CMD] | [manual] [TOPIC] | examples [CMD]
+                install relnotes docs support home
+Common flags
+ Help           -? -h/--help --man --info --webman --examples
+ Data           -f --rules -s -I --forecast --pivot
+ Reports        -p -b -e -D/-W/-M/-Q/-Y -C/-U -E -B/-V/-X/--value --lots
+ Output         --pretty --title -c -o/-O
+Input formats   journal csv tsv ssv rules timeclock timedot
+Output formats  txt html journal csv tsv fods ledger beancount sql json
+Query prefixes  acct: amt: code: cur: sym: desc: date: depth: note: payee:
+                real: status: type: tag: not: expr: any: all:
+Account types   ALERX  (Asset Liability Equity     Revenue Expense)
+   & subtypes   C VG   (Cash            Conversion Gain           )

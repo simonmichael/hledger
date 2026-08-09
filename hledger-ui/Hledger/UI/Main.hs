@@ -50,6 +50,7 @@ import Brick.BChan qualified as BC
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.UI.Theme
 import Hledger.UI.UIOptions
 import Hledger.UI.UITypes
@@ -111,10 +112,12 @@ hledgerUiMain = handleExit $ withGhcDebug' $ withProgName "hledger-ui.log" $ do 
   let loadcopts = copts'{rawopts_ = setboolopt "lots" (rawopts_ copts')}
 
   case True of
+    _ | boolopt "quickref" rawopts -> showQuickref
     _ | boolopt "help"    rawopts -> runPager $ showModeUsage uimode ++ "\n"
-    _ | boolopt "tldr"    rawopts -> runTldrForPage "hledger-ui"
+    _ | boolopt "examples" rawopts -> runTldrForPage "hledger-ui"
     _ | boolopt "info"    rawopts -> runInfoForTopic "hledger-ui" Nothing
     _ | boolopt "man"     rawopts -> runManForTopic  "hledger-ui" Nothing
+    _ | boolopt "webman"  rawopts -> void $ openBrowserOn $ webManualUrl "hledger-ui" Nothing
     _ | boolopt "version" rawopts -> putStrLn prognameandversion
     -- _ | boolopt "binary-filename" rawopts -> putStrLn (binaryfilename progname)
     _                                         -> withJournal loadcopts $ \j ->

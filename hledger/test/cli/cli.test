@@ -61,17 +61,17 @@ $ hledger --version
 $ hledger balance --version
 > /^hledger [0-9]/
 
-# ** 3. with no command, show commands list
+# ** 3. with no command, show the quick reference card
 $ hledger
-> /^Commands/
+> /HLEDGER QUICK REFERENCE/
 
-# ** 4. commands list still works if there are flags, at least the common ones
+# ** 4. this still works if there are flags, at least the common ones
 $ hledger -fsomefile
-> /^Commands/
+> /HLEDGER QUICK REFERENCE/
 
 # ** 5. and also with a space between flag and value
 $ hledger -f somefile
-> /^Commands/
+> /HLEDGER QUICK REFERENCE/
 
 # ** 6. with -h/--help, and possibly other common flags present, show general cli help
 $ hledger -h --version -f/dev/null
@@ -116,7 +116,7 @@ $ hledger --conf /dev/null check -f/dev/null
 
 # ** 17. --conf works with no command.
 $ hledger --conf /dev/null
-> /Commands/
+> /HLEDGER QUICK REFERENCE/
 
 # ** 18. When moving options written before the command name:
 # if the flag name is used in general options and also one or more commands,
@@ -213,10 +213,9 @@ $ hledger balance -m foo
 >2 /Unknown flag: -m/
 >= 1
 
-# ** 38. help with no viewer flag is non-interactive here (stdout is a pipe), so it
-# prints the plain text manual.
+# ** 38. help with no argument shows the quick reference card (like plain hledger).
 $ hledger help
-> /hledger User Manuals/
+> /HLEDGER QUICK REFERENCE/
 
 # help accepts -p, -m and -i as valueless flags selecting a viewer. Appending -h makes
 # hledger print the command's help and exit before launching any (possibly interactive)
@@ -226,15 +225,15 @@ $ hledger help
 
 # ** 39.
 $ hledger help -p -h
-> /Show the hledger user manual/
+> /hledger's documentation/
 
 # ** 40.
 $ hledger help -m -h
-> /Show the hledger user manual/
+> /hledger's documentation/
 
 # ** 41.
 $ hledger help -i -h
-> /Show the hledger user manual/
+> /hledger's documentation/
 
 # ** 42. --conf/--no-conf flags inside a config file are ignored: which config file to use
 # was decided before reading it, so they are dropped from the config's general arguments.
@@ -249,3 +248,11 @@ $  printf '  --pretty\n  [files]\n\t--pretty\n' >$$.conf; hledger -f /dev/null -
 # ** 44. A blank last line with trailing whitespace and no final newline is tolerated.
 $  printf '  --pretty\n  ' >$$.conf; hledger -f /dev/null --conf $$.conf files; rm -f $$.conf
 /dev/null
+
+# ** 45. -? shows the quick reference card (quote it to avoid shell globbing).
+$ hledger '-?'
+> /HLEDGER QUICK REFERENCE/
+
+# ** 46. -? also works after a command.
+$ hledger balance '-?'
+> /HLEDGER QUICK REFERENCE/

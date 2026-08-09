@@ -28,7 +28,7 @@ import Control.Exception (bracket)
 #if MIN_VERSION_base(4,20,0)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
 #endif
-import Control.Monad (when)
+import Control.Monad (when, void)
 import Data.String (fromString)
 import Data.Text qualified as T
 import Network.Socket
@@ -45,6 +45,7 @@ import Yesod.Default.Main (defaultDevelApp)
 
 import Hledger
 import Hledger.Cli hiding (progname,prognameandversion)
+import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.Web.Application (makeApplication)
 import Hledger.Web.Settings (Extra(..), parseExtra)
 import Hledger.Web.Test (hledgerWebTest)
@@ -80,10 +81,12 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
   wopts@WebOpts{cliopts_=copts@CliOpts{debug_, rawopts_}} <- getHledgerWebOpts
   when (debug_ > 0) $ printf "%s\n" prognameandversion >> printf "opts: %s\n" (show wopts)
   if
+    | boolopt "quickref"        rawopts_ -> showQuickref
     | boolopt "help"            rawopts_ -> runPager $ showModeUsage webmode ++ "\n"
-    | boolopt "tldr"            rawopts_ -> runTldrForPage "hledger-web"
+    | boolopt "examples"        rawopts_ -> runTldrForPage "hledger-web"
     | boolopt "info"            rawopts_ -> runInfoForTopic "hledger-web" Nothing
     | boolopt "man"             rawopts_ -> runManForTopic  "hledger-web" Nothing
+    | boolopt "webman"          rawopts_ -> void $ openBrowserOn $ webManualUrl "hledger-web" Nothing
     | boolopt "version"         rawopts_ -> putStrLn prognameandversion
     -- boolopt "binary-filename" rawopts_ -> putStrLn (binaryfilename progname)
     | boolopt "test"            rawopts_ -> do

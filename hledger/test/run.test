@@ -320,3 +320,30 @@ exphl
 $ sh -c 'C=$(mktemp "${TMPDIR:-/tmp}/hledger-exphl.XXXXXX"); J=$(mktemp "${TMPDIR:-/tmp}/hledger-exphlj.XXXXXX"); printf "[alias]\nexphl = run -- echo %sNonreimbursed expenses:%s\n" "'"'"'" "'"'"'" > "$C"; printf "2017-01-01 x\n  a  1\n  b\n" > "$J"; hledger repl --conf "$C" -f "$J"; rm -f "$C" "$J"'
 >
 Nonreimbursed expenses:
+
+# ** 24. In the repl, help (with no argument) shows the quick reference card.
+<
+help
+$ hledger repl -f sample.journal
+> /HLEDGER QUICK REFERENCE/
+
+# ** 25. In the repl, help subtopics dispatch like the help command at the CLI
+# (here: help usage CMD shows that command's usage, not the manual).
+<
+help usage balance
+$ hledger repl -f sample.journal
+> /^balance \[OPTIONS\]/
+
+# ** 26. In the repl, h is a short alias for help, passing arguments through
+# (here: h usage CMD works like help usage CMD).
+<
+h usage balance
+$ hledger repl -f sample.journal
+> /^balance \[OPTIONS\]/
+
+# ** 27. In the repl, CMD -h shows the full help (including the general flags),
+# not a truncated version, like CMD -h at the command line.
+<
+balance -h
+$ hledger repl -f sample.journal
+> /General input flags:/

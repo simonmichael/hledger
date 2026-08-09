@@ -82,7 +82,6 @@ If not, see <https://www.gnu.org/licenses/>.
 
 module Hledger.Cli (
   main,
-  mainmode,
   argsToCliOpts,
   -- * Re-exports
   module Hledger.Cli.CliOptions,
@@ -100,7 +99,7 @@ where
 #if MIN_VERSION_base(4,20,0)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
 #endif
-import Control.Monad (when, unless)
+import Control.Monad (when, unless, void)
 import Data.Bifunctor (second)
 import Data.Char (isDigit)
 import Data.Either (isRight)
@@ -124,6 +123,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Conf
 import Hledger.Cli.Commands
+import Hledger.Cli.Commands.Quickref (showQuickref)
 import Hledger.Cli.Commands.Run
 import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils
@@ -132,41 +132,6 @@ import Hledger.Cli.Version
 
 verboseDebugLevel = 8
 
--- | The overall cmdargs mode describing hledger's command-line options and subcommands.
--- The names of known addons are provided so they too can be recognised as commands.
-mainmode addons = defMode {
-  modeNames = [progname ++ " [COMMAND]"]
- ,modeArgs = ([], Just $ argsFlag "[ARGS]")
- ,modeHelp = unlines ["hledger's main command line interface. Run with no ARGS to list commands."]
- ,modeGroupModes = Group {
-    -- subcommands in the unnamed group, shown first:
-    groupUnnamed = [
-     ]
-    -- subcommands in named groups:
-   ,groupNamed = [
-     ]
-    -- subcommands handled but not shown in the help:
-   ,groupHidden = map fst builtinCommands ++ map addonCommandMode addons
-   }
- ,modeGroupFlags = Group {
-     -- flags in named groups: (keep synced with Hledger.Cli.CliOptions.highlightHelp)
-     groupNamed = cligeneralflagsgroups1
-     -- flags in the unnamed group, shown last: (keep synced with dropUnsupportedOpts)
-    ,groupUnnamed = confflags
-     -- other flags handled but not shown in help:
-    ,groupHidden = hiddenflagsformainmode
-    }
- ,modeHelpSuffix = []
-    -- "Examples:" :
-    -- map (progname ++) [
-    --  "                         list commands"
-    -- ," CMD [--] [OPTS] [ARGS]  run a command (use -- with addon commands)"
-    -- ,"-CMD [OPTS] [ARGS]       or run addon commands directly"
-    -- ," -h                      show general usage"
-    -- ," CMD -h                  show command usage"
-    -- ," help [MANUAL]           show any of the hledger manuals in various formats"
-    -- ]
- }
 -- A dummy mode just for parsing --conf/--no-conf flags.
 confflagsmode = defMode{
    modeGroupFlags=Group [] confflags []
@@ -342,7 +307,7 @@ main = handleExit $ withGhcDebug' $ do
   -- If a bad command was provided, show that error now, before the full cmdargsParse attempt.
   when badcmdprovided $ do
     let aliasnote = if effectivecmdarg /= cmdarg then " (expanded from the " <> cmdarg <> " command alias)" else ""
-    error' $ "command " <> effectivecmdarg <> aliasnote <> " is not recognised. Run with no command to see a list."
+    error' $ "command " <> effectivecmdarg <> aliasnote <> " is not recognised. Run 'hledger help commands' to see a list."
 
   ---------------------------------------------------------------
   dbgio "\n4. Get applicable options/arguments from config file" ()
@@ -401,11 +366,13 @@ main = handleExit $ withGhcDebug' $ do
   -- preventing this, and trying to detect them without cmdargs, and always do the
   -- right thing with builtin commands and addon commands, gets much too complicated.)
   let
-    helpFlag    = boolopt "help"    rawopts
-    tldrFlag    = boolopt "tldr"    rawopts
-    infoFlag    = boolopt "info"    rawopts
-    manFlag     = boolopt "man"     rawopts
-    versionFlag = boolopt "version" rawopts
+    quickrefFlag = boolopt "quickref" rawopts
+    webmanFlag   = boolopt "webman"   rawopts
+    helpFlag     = boolopt "help"     rawopts
+    examplesFlag = boolopt "examples" rawopts
+    infoFlag     = boolopt "info"     rawopts
+    manFlag      = boolopt "man"      rawopts
+    versionFlag  = boolopt "version"  rawopts
     -- ignoredopts    cmd = error' $ cmd ++ " tried to read options but is not supposed to"
     ignoredjournal cmd = error' $ cmd ++ " tried to read the journal but is not supposed to"
 
@@ -423,18 +390,20 @@ main = handleExit $ withGhcDebug' $ do
   withArgs (progname:finalargs) $
    if
     -- 6.1. no command and a help/doc flag found - show general help/docs
+    | nocmdprovided && quickrefFlag -> showQuickref
     | nocmdprovided && helpFlag -> runPager $ showModeUsage (mainmode []) ++ "\n"
-    | nocmdprovided && tldrFlag -> runTldrForPage  "hledger"
+    | nocmdprovided && examplesFlag -> runTldrForPage  "hledger"
     | nocmdprovided && infoFlag -> runInfoForTopic "hledger" Nothing
     | nocmdprovided && manFlag  -> runManForTopic  "hledger" Nothing
+    | nocmdprovided && webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" Nothing
 
     -- 6.2. --version flag found and none of these other conditions - show version
-    | versionFlag && not (isaddoncmd || helpFlag || tldrFlag || infoFlag || manFlag) -> putStrLn prognameandversion
+    | versionFlag && not (isaddoncmd || quickrefFlag || helpFlag || examplesFlag || infoFlag || manFlag || webmanFlag) -> putStrLn prognameandversion
 
-    -- 6.3. no command found, nothing else to do - show the commands list
+    -- 6.3. no command found, nothing else to do - show the quick reference card
     | nocmdprovided -> do
-        dbg1IO "no command, showing commands list" ()
-        commands opts (ignoredjournal "commands")
+        dbg1IO "no command, showing quickref" ()
+        showQuickref
 
     -- 6.4. builtin command found
     | Just (cmdmode, cmdaction) <- mbuiltincmdaction -> do
@@ -444,13 +413,16 @@ main = handleExit $ withGhcDebug' $ do
       -- run the builtin command according to its type
       if
         -- 6.4.1. help/doc flag - show command help/docs
+        | quickrefFlag -> showQuickref
         | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
-        | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
+        | examplesFlag -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
         | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
         | manFlag   -> runManForTopic "hledger"  mmodecmdname
+        | webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" mmodecmdname
 
         -- 6.4.2. builtin command which should not require or read the journal - run it
-        | cmdname `elem` ["commands","demo","help","setup","test"] ->
+        -- (help/setup/demo/test; help's own action dispatches its subtopics)
+        | cmdname `elem` journalIgnoringCommandNames ->
           cmdaction opts (ignoredjournal cmdname)
 
         -- 6.4.3. builtin command which can work with a non-existent journal

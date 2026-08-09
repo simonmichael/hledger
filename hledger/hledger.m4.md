@@ -32,9 +32,7 @@ but when you have a question about functionality, this doc should answer it.
 It is detailed, so do skip ahead or skim when needed.
 You can read it on hledger.org, or as an info manual or man page on your system.
 You can also open a built-in copy, at a point of interest, by running\
-`hledger --man [CMD]`, `hledger --info [CMD]` or `hledger help [TOPIC]`.
-
-(And for shorter help, try `hledger --tldr [CMD]`.)
+`hledger help [TOPIC]`.
 
 The main function of the hledger CLI is
 to read plain text files describing financial transactions,
@@ -258,7 +256,7 @@ And the following general options are common to most hledger commands:
 _generaloptions_
 
 Usually hledger accepts any unambiguous flag prefix,
-eg you can write `--tl` instead of `--tldr` or `--dry` instead of `--dry-run`.
+eg you can write `--dry` instead of `--dry-run`.
 
 You can combine short flags which don't take arguments, eg you can write `-MAST` instead of `-M -A -S -T`.
 Flags requiring an argument can't be combined in this way (`-If FILE` won't work).
@@ -593,7 +591,7 @@ p1    = print --oneline
 rev10 = balance type:R -2 -X$ -p 'every 10 years from 2000'
 ```
 
-With this in your config file, you'll see a `rev10` command in the `hledger commands` list,
+With this in your config file, you'll see a `rev10` command in the `hledger help commands` list,
 and `hledger rev10` will run the balance command above.
 Options or arguments written at the command line will be added at the end, usually overriding those in the alias;
 eg `hledger rev10 -X €` will convert to `€` instead of `$`.
@@ -669,7 +667,7 @@ If you use the bash or zsh shells, you can optionally set up context-sensitive a
 Try pressing `hledger<SPACE><TAB><TAB>` (should list all hledger commands)
 or `hledger reg acct:<TAB><TAB>` (should list your top-level account names).
 If completions aren't working, or for more details, see [Install > Shell completions](install.html#shell-completions).
-˜
+
 # Output
 
 ## Output destination
@@ -786,7 +784,7 @@ You can override this by setting the `NO_COLOR` environment variable to disable 
 or by using the `--color/--colour` option, perhaps in your config file,
 with a `y`/`yes` or `n`/`no` value to force it on or off.
 
-#### Paging˜
+#### Paging
 
 In unix-like environments, when displaying large output (in any output format) in the terminal,
 hledger tries to use a pager when appropriate.
@@ -821,8 +819,7 @@ and when colour output is enabled:
 
 You can prevent this by setting your preferred options in the `HLEDGER_LESS` variable, which will be used instead of `LESS`.
 
-˜
-### HTML output˜˜
+### HTML output
 
 HTML output can be styled by an optional `hledger.css` file in the same directory
 (there is a sample in the hledger source repository).
@@ -7715,7 +7712,7 @@ $ hledger print desc:sell -a
 <a name="commands-overview"></a>
 
 Here are hledger's standard [subcommands](#commands).
-You can list these by running `hledger`.
+You can list these by running `hledger help commands`.
 If you have installed more [add-on commands](../scripts.md), they also will be listed.
 
 In the following command docs, each command's specific options are shown.
@@ -7727,9 +7724,8 @@ You can list all of a command's options by running `hledger CMD -h`.
 
 **[Help commands](#help-commands)**
 
-- [commands](#commands-1)                          - show the hledger commands list (default)
+- [help](#help)                                    - show documentation (quickref, commands, usage, manual, examples..)
 - [demo](#demo)                                    - show small hledger demos in the terminal
-- [help](#help)                                    - show the hledger manual with info, man, or pager
 
 **[User interface commands](#user-interface-commands)**
 
@@ -7809,28 +7805,31 @@ _commands_
 
 Here are some quick examples of how to do some basic tasks with hledger.
 
-## Getting help
+# Getting help
 
-Here's how to list commands and view options and command docs:
+Here's how to get a quick overview, list commands, and view options and command docs:
 
 ```cli
-$ hledger                # show available commands
+$ hledger                # show a quick reference card (also: hledger -?)
+$ hledger help commands  # show available commands
 $ hledger --help         # show common options
 $ hledger CMD --help     # show CMD's options, common options and CMD's documentation
 ```
 
-You can also view your hledger version's manual in several formats
-by using the [help command](#help). Eg:
+The [help command](#help) is a documentation hub; its first argument
+selects what to show. Eg:
 ```cli
-$ hledger help           # show the hledger manual with info, man or $PAGER (best available)
+$ hledger help           # show the quick reference card
+$ hledger help manual    # show the hledger manual with info, man or $PAGER (best available)
 $ hledger help journal   # show the journal topic in the hledger manual
+$ hledger help examples print   # show brief examples for the print command
 $ hledger help --help    # find out more about the help command
 ```
 
 To view manuals and introductory docs on the web, visit <https://hledger.org>.
 Chat and mail list support and discussion archives can be found at <https://hledger.org/support>.
 
-## Constructing command lines
+# Constructing command lines
 
 hledger has a flexible command line interface.
 We strive to keep it simple and ergonomic, but if you run into one of
@@ -7843,7 +7842,7 @@ here are some tips that might help:
 - if needed, also add a backslash to hide regular expression metacharacters from the shell
 - to see how a misbehaving command line is being parsed, add `--debug=2`.
 
-## Starting a journal file
+# Starting a journal file
 
 hledger looks for your accounting data in a journal file, `$HOME/.hledger.journal` by default:
 ```cli
@@ -7878,9 +7877,9 @@ Commodities              : 0 ()
 Market prices            : 0 ()
 ```
 
-## Setting LEDGER_FILE
+# Setting LEDGER_FILE
 
-### Set LEDGER_FILE on unix
+## Set LEDGER_FILE on unix
 
 It depends on your shell, but running these commands in the terminal will work for many people;
 adapt if needed:
@@ -7899,7 +7898,7 @@ When correctly configured:
 - `env | grep LEDGER_FILE` will show your new setting
 - and so should `hledger setup` and `hledger files`.
 
-### Set LEDGER_FILE on mac
+## Set LEDGER_FILE on mac
 
 In a terminal window, follow the unix procedure above.
 
@@ -7919,7 +7918,7 @@ When correctly configured for GUI applications:
 - apps started from the dock or a spotlight search, such as a GUI Emacs,
   will be aware of the new LEDGER_FILE setting.
 
-### Set LEDGER_FILE on Windows
+## Set LEDGER_FILE on Windows
 
 It can be easier to create a default file at `C:\Users\USER\.hledger.journal`,
 and have it [include](hledger.md#include-directive) your other files.
@@ -7956,7 +7955,7 @@ When correctly configured:
 - in a new powershell window, `$env:LEDGER_FILE` will show your new setting
 - and so should `hledger setup` and (once the file exists) `hledger files`.
 
-## Setting opening balances
+# Setting opening balances
 
 Pick a starting date for which you can look up the balances of some
 real-world assets (bank accounts, wallet..) and liabilities (credit cards..).
@@ -8032,7 +8031,7 @@ If you're using version control, this could be a good time to commit the journal
 $ git commit -m 'initial balances' 2023.journal
 ```
 
-## Recording transactions
+# Recording transactions
 
 As you spend or receive money, you can record these transactions
 using one of the methods above (text editor, hledger add)
@@ -8056,7 +8055,7 @@ and hledger.org for more ideas:
   assets:bank:checking    $1000
 ```
 
-## Reconciling
+# Reconciling
 
 Periodically you should reconcile - compare your hledger-reported balances
 against external sources of truth, like bank statements or your bank's website -
@@ -8108,7 +8107,7 @@ If you're using version control, this can be another good time to commit:
 $ git commit -m 'txns' 2023.journal
 ```
 
-## Reporting
+# Reporting
 
 Here are some basic reports.
 
@@ -8256,7 +8255,7 @@ $ hledger activity -W
 2023-01-06 ****
 2023-01-13 ****
 ```
-## Migrating to a new file
+# Migrating to a new file
 
 At the end of the year, you may want to continue your journal in a new file,
 so that old transactions don't slow down or clutter your reports,

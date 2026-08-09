@@ -181,15 +181,18 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
               let
                 rawopts      = rawopts_ opts
                 mmodecmdname = headMay $ modeNames cmdmode
-                helpFlag     = boolopt "help"    rawopts
-                tldrFlag     = boolopt "tldr"    rawopts
-                infoFlag     = boolopt "info"    rawopts
-                manFlag      = boolopt "man"     rawopts
+                helpFlag     = boolopt "help"     rawopts
+                examplesFlag = boolopt "examples" rawopts
+                infoFlag     = boolopt "info"     rawopts
+                manFlag      = boolopt "man"      rawopts
               if
-                | helpFlag  -> runPager $ showModeUsage cmdmode ++ "\n"
-                | tldrFlag  -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
+                | helpFlag     -> runPager $ showModeUsage cmdmode ++ "\n"
+                | examplesFlag -> runTldrForPage $ maybe "hledger" (("hledger-"<>)) mmodecmdname
                 | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
                 | manFlag   -> runManForTopic "hledger"  mmodecmdname
+                | cmdname `elem` journalIgnoringCommandNames ->
+                  -- help/setup/demo/test never read the journal, as at the CLI
+                  cmdaction opts nulljournal
                 | cmdname `elem` journalCreatingCommandNames ->
                   -- add and import can create a nonexistent journal file, as they do at the CLI
                   withPossibleRunJournal defaultJournalOverride opts (cmdaction opts)
@@ -226,13 +229,19 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
       -- Show a startup banner: the program name and version and a usage hint,
       -- coloured with a gradient like the commands list when supported.
       -- w <- fromMaybe 80 <$> getTerminalWidth
+      -- The interactive prompt is coloured only in terminals that fully emulate one.
+      -- Emacs's M-x shell (comint) advertises xterm but mishandles the cursor movement
+      -- haskeline uses to redraw a prompt containing escape codes, garbling the display;
+      -- there we use a plain prompt (the banner above is fine, being plain putStrLn output).
+      emacs <- insideEmacsNotVterm
       let
         grad intensity row s = gradientStr intensity 2 (length s) row 0 s
         fpath = snd $ splitReaderPrefix $ NE.head jpaths
                   --------------------------------------80----------------------------------------
         title  =  progname <> " " <> packageversion
-        hint   = "Ready for hledger commands. For help, type ? or help -h. To exit: q or ctrl-d."
-        prompt = stxMarkEscapes $ grad faint' 2 $ takeBaseName fpath ++ "> "
+        hint   = "Ready for hledger or !shell commands. For help: h or h -h. To exit: q or ctrl-d."
+        promptbase = takeBaseName fpath ++ "> "
+        prompt = if emacs then promptbase else stxMarkEscapes $ grad faint' 2 promptbase
       -- putStrLn $ grad faint' 0 $ replicate w '-'
       putStrLn $ grad bold' 1 title
       putStrLn $ faint' hint
@@ -262,7 +271,11 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
-                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $ parseCommand input
+                -- h is a short alias for the help command.
+                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $
+                             case parseCommand input of
+                               "h":rest -> "help":rest
+                               cmd      -> cmd
         liftIO $ if interactive
           then action `catches`
                   [Handler (\(e::ErrorCall) -> putStrLn $ rstrip $ show e)

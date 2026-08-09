@@ -25,6 +25,7 @@ description: |
 extra-source-files:
 - CHANGES.md
 - README.md
+- quickref.txt
 - bench/10000x1000x10.journal
 - shell-completion/hledger-completion.bash
 - test/unittest.hs
@@ -67,7 +68,6 @@ extra-source-files:
 - Hledger/Cli/Commands/Check.txt
 - Hledger/Cli/Commands/Close.txt
 - Hledger/Cli/Commands/Codes.txt
-- Hledger/Cli/Commands/Commands.txt
 - Hledger/Cli/Commands/Commodities.txt
 - Hledger/Cli/Commands/Demo.txt
 - Hledger/Cli/Commands/Descriptions.txt

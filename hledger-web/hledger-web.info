@@ -498,16 +498,6 @@ File: hledger-web.info,  Node: DEBUG OUTPUT,  Next: ENVIRONMENT,  Prev: JSON API
 6 DEBUG OUTPUT
 **************
 
-* Menu:
-
-* Debug output::
-
-
-File: hledger-web.info,  Node: Debug output,  Up: DEBUG OUTPUT
-
-6.1 Debug output
-================
-
 You can add '--debug[=N]' to the command line to log debug output.  N
 ranges from 1 (least output, the default) to 9 (maximum output).
 Typically you would start with 1 and increase until you are seeing
@@ -548,9 +538,8 @@ Node: EDITING UPLOADING DOWNLOADING13536
 Node: RELOADING14551
 Node: JSON API15118
 Node: DEBUG OUTPUT20767
-Node: Debug output20919
-Node: ENVIRONMENT21437
-Node: BUGS21673
+Node: ENVIRONMENT21309
+Node: BUGS21545
 
 End Tag Table
 
