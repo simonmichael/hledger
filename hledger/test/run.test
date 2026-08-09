@@ -340,3 +340,10 @@ $ hledger repl -f sample.journal
 h usage balance
 $ hledger repl -f sample.journal
 > /^balance \[OPTIONS\]/
+
+# ** 27. In the repl, CMD -h shows the full help (including the general flags),
+# not a truncated version, like CMD -h at the command line.
+<
+balance -h
+$ hledger repl -f sample.journal
+> /General input flags:/
