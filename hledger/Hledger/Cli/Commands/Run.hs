@@ -229,13 +229,19 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
       -- Show a startup banner: the program name and version and a usage hint,
       -- coloured with a gradient like the commands list when supported.
       -- w <- fromMaybe 80 <$> getTerminalWidth
+      -- The interactive prompt is coloured only in terminals that fully emulate one.
+      -- Emacs's M-x shell (comint) advertises xterm but mishandles the cursor movement
+      -- haskeline uses to redraw a prompt containing escape codes, garbling the display;
+      -- there we use a plain prompt (the banner above is fine, being plain putStrLn output).
+      emacs <- insideEmacsNotVterm
       let
         grad intensity row s = gradientStr intensity 2 (length s) row 0 s
         fpath = snd $ splitReaderPrefix $ NE.head jpaths
                   --------------------------------------80----------------------------------------
         title  =  progname <> " " <> packageversion
         hint   = "Ready for hledger or !shell commands. For help: h or h -h. To exit: q or ctrl-d."
-        prompt = stxMarkEscapes $ grad faint' 2 $ takeBaseName fpath ++ "> "
+        promptbase = takeBaseName fpath ++ "> "
+        prompt = if emacs then promptbase else stxMarkEscapes $ grad faint' 2 promptbase
       -- putStrLn $ grad faint' 0 $ replicate w '-'
       putStrLn $ grad bold' 1 title
       putStrLn $ faint' hint

@@ -69,6 +69,7 @@ module Hledger.Utils.IO (
   getTerminalHeightWidth,
   getTerminalHeight,
   getTerminalWidth,
+  insideEmacsNotVterm,
 
   -- * Pager output
   findPager,
@@ -685,6 +686,17 @@ getTerminalHeight = fmap fst <$> getTerminalHeightWidth
 getTerminalWidth :: IO (Maybe Int)
 getTerminalWidth  = fmap snd <$> getTerminalHeightWidth
 
+-- | Are we running inside an Emacs subprocess other than vterm ?
+-- Terminals like Emacs's M-x shell (comint) advertise a full xterm terminal
+-- but only partially emulate it (SGR colours render, but cursor movement and
+-- terminal queries do not), so interactive line editing, paging and background
+-- colour detection tend to misbehave there.
+-- vterm is excluded because it emulates a terminal fully.
+-- Emacs sets INSIDE_EMACS to eg "30.1,comint" or "30.1,vterm", so we look for a
+-- "vterm" component rather than an exact match.
+insideEmacsNotVterm :: IO Bool
+insideEmacsNotVterm = maybe False (not . ("vterm" `isInfixOf`)) <$> lookupEnv "INSIDE_EMACS"
+
 
 
 -- Pager output
@@ -719,7 +731,7 @@ maybePagerFor output = do
     windows = os == "mingw32"
   pagerno    <- maybe False (not . either error' id . parseYN) <$> getOpt ["pager"]
   outputfile <- hasOutputFile
-  emacsterm  <- lookupEnv "INSIDE_EMACS" <&> (`notElem` [Nothing, Just "vterm"])
+  emacsterm  <- insideEmacsNotVterm
   mhw        <- getTerminalHeightWidth
   mpager     <- findPager
   return $ do
@@ -1058,11 +1070,11 @@ terminalColor = unsafePerformIO . getLayerColor'
 -- A version of ansi-terminal's getLayerColor that is less likely to leak escape sequences to output,
 -- and that returns a RGB of Floats (0..1) that is more compatible with the colour package.
 -- This does nothing in a non-interactive context (eg when piping stdout to another command),
--- inside emacs (emacs shell buffers show the escape sequence for some reason),
--- or in a non-colour-supporting terminal.
+-- inside emacs (comint shell buffers show the query's escape sequence instead of answering it,
+-- and vterm doesn't answer the query at all), or in a non-colour-supporting terminal.
 getLayerColor' :: ConsoleLayer -> IO (Maybe (RGB Float))
 getLayerColor' l = do
-  inemacs       <- not.null <$> lookupEnv "INSIDE_EMACS"
+  inemacs       <- not . null <$> lookupEnv "INSIDE_EMACS"
   interactive   <- hIsTerminalDevice stdout
   supportscolor <- hSupportsANSIColor stdout
   if inemacs || not interactive || not supportscolor then return Nothing
