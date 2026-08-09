@@ -1021,23 +1021,25 @@ accent
 -- terminal background and darker on a light one. The whole string is wrapped in
 -- the given intensity style (eg 'bold'' or 'faint''); the per-character colour
 -- codes only touch the foreground, so the intensity is kept across the string.
--- Falls back to the single 'accent' colour when the background lightness is
--- unknown, and to no colouring when colour is off.
+-- When the background lightness can't be detected (eg inside emacs, where the
+-- background-colour query doesn't work), it uses the light-background palette,
+-- whose deeper shades stay legible on both light and dark backgrounds; only a
+-- background known to be dark gets the brighter dark-background palette.
+-- Colouring is skipped entirely only when colour is off.
 gradientStr :: (String -> String) -> Int -> Int -> Int -> Int -> String -> String
 gradientStr intensity h w row col0 s
   | not useColorOnStdoutUnsafe = s
-  | otherwise = intensity $ case terminalIsLight of
-      Nothing    -> accent s
-      Just light ->
-        let (r1,g1,b1) = if light then (0.12,0.44,0.69) else (0.16,0.71,0.85)  -- start (blue)
-            (r2,g2,b2) = if light then (0.25,0.49,0.12) else (0.48,0.75,0.26)  -- end   (green)
-            fullspan   = fromIntegral (max 1 (h + w - 2)) :: Float
-            paint c ch
-              | ch == ' ' = " "  -- leave gaps uncoloured, and out of the escape-code noise
-              | otherwise = rgb' (mix r1 r2) (mix g1 g2) (mix b1 b2) [ch]
-              where t     = fromIntegral (row + c) / fullspan  -- 0 at top-left, 1 at bottom-right
-                    mix a b = a + (b - a) * t
-        in concat $ zipWith paint [col0..] s
+  | otherwise =
+      let light      = terminalIsLight /= Just False  -- deep palette unless the background is known dark
+          (r1,g1,b1) = if light then (0.12,0.44,0.69) else (0.16,0.71,0.85)  -- start (blue)
+          (r2,g2,b2) = if light then (0.25,0.49,0.12) else (0.48,0.75,0.26)  -- end   (green)
+          fullspan   = fromIntegral (max 1 (h + w - 2)) :: Float
+          paint c ch
+            | ch == ' ' = " "  -- leave gaps uncoloured, and out of the escape-code noise
+            | otherwise = rgb' (mix r1 r2) (mix g1 g2) (mix b1 b2) [ch]
+            where t     = fromIntegral (row + c) / fullspan  -- 0 at top-left, 1 at bottom-right
+                  mix a b = a + (b - a) * t
+      in intensity $ concat $ zipWith paint [col0..] s
 
 -- Generic:
 
