@@ -7677,15 +7677,15 @@ Help commands
 
      * quickref (or none): a quick reference / overview
 
-     * commands: all hledger commands, including addons and aliases
+     * commands: all commands, including addons and aliases
 
      * usage [CMD]: command line options help (like -h/--help)
 
      * examples [CMD]: command line examples
 
-     * manual [TOPIC]: list the manual's topics, or show it at the TOPIC heading
+     * manual [TOPIC]: view a topic in the manual, or list them all
 
-     * TOPIC the user manual at TOPIC (like manual TOPIC)
+     * TOPIC view a topic in the manual (like manual TOPIC)
 
      * install | relnotes | docs | support | home: hledger.org pages, in  a  web
        browser
@@ -7693,12 +7693,10 @@ Help commands
      TOPIC  is  a section heading in the hledger, hledger-ui or hledger-web man-
      ual, or part of one, matched case insensitively.  Enclose it in  quotes  if
      it contains spaces.  With no TOPIC (hledger help manual), all manual topics
-     are  listed,  indented  to  show (most of) their hierarchy.  A section name
-     that appears in more than one manual is given a "-ui" or "-web"  suffix  in
-     the  hledger-ui/hledger-web  manuals  (eg options-ui); these suffixed names
-     are matchable and appear in the topic list.  The manual will be shown in  a
-     default  viewer  (info,  man,  pager,  web browser), or you can choose with
-     -i/-m/-p/-w.
+     are listed, indented to show (most of) their hierarchy.
+
+     The  manual  will  be  shown  in  a  default  viewer (info, man, pager, web
+     browser), or you can choose with -i/-m/-p/-w.
 
             Flags:
               -i                       show the manual with info

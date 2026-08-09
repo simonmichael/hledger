@@ -10153,16 +10153,16 @@ The first argument selects what to show:
 .IP \(bu 2
 \f[CR]quickref\f[R] (or none): a quick reference / overview
 .IP \(bu 2
-\f[CR]commands\f[R]: all hledger commands, including addons and aliases
+\f[CR]commands\f[R]: all commands, including addons and aliases
 .IP \(bu 2
 \f[CR]usage [CMD]\f[R]: command line options help (like \-h/\-\-help)
 .IP \(bu 2
 \f[CR]examples [CMD]\f[R]: command line examples
 .IP \(bu 2
-\f[CR]manual [TOPIC]\f[R]: list the manual\(aqs topics, or show it at
-the TOPIC heading
+\f[CR]manual [TOPIC]\f[R]: view a topic in the manual, or list them all
 .IP \(bu 2
-\f[CR]TOPIC\f[R] the user manual at TOPIC (like \f[CR]manual TOPIC\f[R])
+\f[CR]TOPIC\f[R] view a topic in the manual (like
+\f[CR]manual TOPIC\f[R])
 .IP \(bu 2
 \f[CR]install | relnotes | docs | support | home\f[R]: hledger.org
 pages, in a web browser
@@ -10172,10 +10172,7 @@ manual, or part of one, matched case insensitively.
 Enclose it in quotes if it contains spaces.
 With no TOPIC (\f[CR]hledger help manual\f[R]), all manual topics are
 listed, indented to show (most of) their hierarchy.
-A section name that appears in more than one manual is given a
-\(dq\-ui\(dq or \(dq\-web\(dq suffix in the hledger\-ui/hledger\-web
-manuals (eg \f[CR]options\-ui\f[R]); these suffixed names are matchable
-and appear in the topic list.
+.PP
 The manual will be shown in a default viewer (info, man, pager, web
 browser), or you can choose with \-i/\-m/\-p/\-w.
 .IP

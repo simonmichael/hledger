@@ -9721,12 +9721,11 @@ Show some part of hledger's documentation.  The first argument selects
 what to show:
 
    * 'quickref' (or none): a quick reference / overview
-   * 'commands': all hledger commands, including addons and aliases
+   * 'commands': all commands, including addons and aliases
    * 'usage [CMD]': command line options help (like -h/-help)
    * 'examples [CMD]': command line examples
-   * 'manual [TOPIC]': list the manual's topics, or show it at the TOPIC
-     heading
-   * 'TOPIC' the user manual at TOPIC (like 'manual TOPIC')
+   * 'manual [TOPIC]': view a topic in the manual, or list them all
+   * 'TOPIC' view a topic in the manual (like 'manual TOPIC')
    * 'install | relnotes | docs | support | home': hledger.org pages, in
      a web browser
 
@@ -9734,11 +9733,10 @@ what to show:
 manual, or part of one, matched case insensitively.  Enclose it in
 quotes if it contains spaces.  With no TOPIC ('hledger help manual'),
 all manual topics are listed, indented to show (most of) their
-hierarchy.  A section name that appears in more than one manual is given
-a "-ui" or "-web" suffix in the hledger-ui/hledger-web manuals (eg
-'options-ui'); these suffixed names are matchable and appear in the
-topic list.  The manual will be shown in a default viewer (info, man,
-pager, web browser), or you can choose with -i/-m/-p/-w.
+hierarchy.
+
+   The manual will be shown in a default viewer (info, man, pager, web
+browser), or you can choose with -i/-m/-p/-w.
 
 Flags:
   -i                       show the manual with info
@@ -9862,11 +9860,12 @@ run.  A command can still override them by specifying its own flags.
    * empty lines and comment text from '#' to end of line are ignored
    * enclose arguments in quotes if they contain spaces.
 
-   Use 'help' or 'help commands' to list commands.  Addons in PATH and
-command aliases defined in a config file can also be used.  Generally
-'repl' should feel much like using hledger at the command line.  But
-'repl' requires full command names or official abbreviations (it does
-not recognise ad hoc abbreviations).
+   Use 'help' (or 'h') to show the quick reference, or 'help commands'
+to list commands.  Addons in PATH and command aliases defined in a
+config file can also be used.  Generally 'repl' should feel much like
+using hledger at the command line.  But 'repl' requires full command
+names or official abbreviations (it does not recognise ad hoc
+abbreviations).
 
    To run a single shell command, type '! SHELLCMD' (eg '! ls' or '! git
 status').
@@ -15358,149 +15357,149 @@ Node: Lot reporting example351686
 Node: PART 4 COMMANDS355489
 Node: Help commands358353
 Node: help358526
-Node: demo361436
-Node: User interface commands362512
-Node: repl362723
-Node: Examples365641
-Node: run366273
-Node: Examples 2369050
-Node: ui370074
-Node: web370211
-Node: Data entry commands370339
-Node: add370600
-Node: add and balance assertions373804
-Node: add and balance assignments374381
-Node: import375239
-Node: Default import sources376771
-Node: Fetching new data first377771
-Node: Import dry run378248
-Node: Overlap detection379228
-Node: First import382114
-Node: Importing balance assignments383309
-Node: Import and commodity styles384364
-Node: Import archiving384798
-Node: Import special cases385838
-Node: Multiple journals in the same directory386135
-Node: Import configurations to avoid386833
-Node: Deduplication387809
-Node: Varying file name388339
-Node: Multiple versions388723
-Node: Basic report commands389830
-Node: accounts390131
-Node: codes392653
-Node: commodities393675
-Node: descriptions395466
-Node: files395937
-Node: notes396234
-Node: payees396746
-Node: prices397903
-Node: prices summary399327
-Node: stats400333
-Node: tags402417
-Node: Standard report commands404241
-Node: print404546
-Node: print explicitness407821
-Node: print layout408975
-Node: print amount style410023
-Node: print parseability411250
-Node: print other features412946
-Node: print output format414117
-Node: aregister417605
-Node: aregister and posting dates422132
-Node: register423033
-Node: Custom register output430754
-Node: balancesheet431939
-Node: balancesheetequity436904
-Node: cashflow442239
-Node: incomestatement447052
-Node: Advanced report commands451901
-Node: balance452122
-Node: balance features457683
-Node: Simple balance report459775
-Node: Balance report line format461585
-Node: Filtered balance report464081
-Node: List or tree mode464600
-Node: Depth limiting466113
-Node: Dropping top-level accounts466880
-Node: Showing declared accounts467390
-Node: Sorting by amount468120
-Node: Percentages468974
-Node: Multi-period balance report469681
-Node: Balance change end balance472531
-Node: Balance report modes474168
-Node: Calculation mode474847
-Node: Accumulation mode475919
-Node: Valuation mode477020
-Node: Combining balance report modes478364
-Node: Budget report480394
-Node: Using the budget report482702
-Node: Budget date surprises484978
-Node: Selecting budget goals486342
-Node: Budgeting vs forecasting487290
-Node: Balance report layout488967
-Node: Wide layout490172
-Node: Tall layout492577
-Node: Bare layout493883
-Node: Tidy layout495947
-Node: Balance report output497491
-Node: Some useful balance reports498265
-Node: holdings499525
-Node: roi504682
-Node: Spaces and special characters in --inv and --pnl507182
-Node: Semantics of --inv and --pnl507908
-Node: Using roi with lots509994
-Node: IRR and TWR explained510610
-Node: Chart commands514229
-Node: activity514410
-Node: Data generation commands514907
-Node: close515121
-Node: close --clopen518441
-Node: close --close520337
-Node: close --open520861
-Node: close --assert521111
-Node: close --assign521438
-Node: close --retain522117
-Node: close customisation522974
-Node: close and balance assertions524652
-Node: close examples526372
-Node: Retain earnings526609
-Node: Migrate balances to a new file527112
-Node: More detailed close examples528474
-Node: get528696
-Node: Phase 1 transactions data529302
-Node: Phase 2 prices529705
-Node: Merging new prices530709
-Node: get's helper scripts531513
-Node: getdata531804
-Node: getprices532316
-Node: rewrite533273
-Node: Re-write rules in a file536274
-Node: Diff output format537575
-Node: rewrite vs print --auto538845
-Node: Maintenance commands539559
-Node: check539778
-Node: Basic checks540861
-Node: Strict checks542329
-Node: Other checks543426
-Node: Custom checks545584
-Node: diff546023
-Node: setup547231
-Node: test550098
-Node: PART 5 COMMON TASKS551001
-Node: Getting help551234
-Node: Constructing command lines552361
-Node: Starting a journal file553206
-Node: Setting LEDGER_FILE554590
-Node: Set LEDGER_FILE on unix554858
-Node: Set LEDGER_FILE on mac555373
-Node: Set LEDGER_FILE on Windows556099
-Node: Setting opening balances558000
-Node: Recording transactions561322
-Node: Reconciling562047
-Node: Reporting564436
-Node: Migrating to a new file568550
-Node: BUGS568999
-Node: Troubleshooting569829
+Node: demo361206
+Node: User interface commands362282
+Node: repl362493
+Node: Examples365449
+Node: run366081
+Node: Examples 2368858
+Node: ui369882
+Node: web370019
+Node: Data entry commands370147
+Node: add370408
+Node: add and balance assertions373612
+Node: add and balance assignments374189
+Node: import375047
+Node: Default import sources376579
+Node: Fetching new data first377579
+Node: Import dry run378056
+Node: Overlap detection379036
+Node: First import381922
+Node: Importing balance assignments383117
+Node: Import and commodity styles384172
+Node: Import archiving384606
+Node: Import special cases385646
+Node: Multiple journals in the same directory385943
+Node: Import configurations to avoid386641
+Node: Deduplication387617
+Node: Varying file name388147
+Node: Multiple versions388531
+Node: Basic report commands389638
+Node: accounts389939
+Node: codes392461
+Node: commodities393483
+Node: descriptions395274
+Node: files395745
+Node: notes396042
+Node: payees396554
+Node: prices397711
+Node: prices summary399135
+Node: stats400141
+Node: tags402225
+Node: Standard report commands404049
+Node: print404354
+Node: print explicitness407629
+Node: print layout408783
+Node: print amount style409831
+Node: print parseability411058
+Node: print other features412754
+Node: print output format413925
+Node: aregister417413
+Node: aregister and posting dates421940
+Node: register422841
+Node: Custom register output430562
+Node: balancesheet431747
+Node: balancesheetequity436712
+Node: cashflow442047
+Node: incomestatement446860
+Node: Advanced report commands451709
+Node: balance451930
+Node: balance features457491
+Node: Simple balance report459583
+Node: Balance report line format461393
+Node: Filtered balance report463889
+Node: List or tree mode464408
+Node: Depth limiting465921
+Node: Dropping top-level accounts466688
+Node: Showing declared accounts467198
+Node: Sorting by amount467928
+Node: Percentages468782
+Node: Multi-period balance report469489
+Node: Balance change end balance472339
+Node: Balance report modes473976
+Node: Calculation mode474655
+Node: Accumulation mode475727
+Node: Valuation mode476828
+Node: Combining balance report modes478172
+Node: Budget report480202
+Node: Using the budget report482510
+Node: Budget date surprises484786
+Node: Selecting budget goals486150
+Node: Budgeting vs forecasting487098
+Node: Balance report layout488775
+Node: Wide layout489980
+Node: Tall layout492385
+Node: Bare layout493691
+Node: Tidy layout495755
+Node: Balance report output497299
+Node: Some useful balance reports498073
+Node: holdings499333
+Node: roi504490
+Node: Spaces and special characters in --inv and --pnl506990
+Node: Semantics of --inv and --pnl507716
+Node: Using roi with lots509802
+Node: IRR and TWR explained510418
+Node: Chart commands514037
+Node: activity514218
+Node: Data generation commands514715
+Node: close514929
+Node: close --clopen518249
+Node: close --close520145
+Node: close --open520669
+Node: close --assert520919
+Node: close --assign521246
+Node: close --retain521925
+Node: close customisation522782
+Node: close and balance assertions524460
+Node: close examples526180
+Node: Retain earnings526417
+Node: Migrate balances to a new file526920
+Node: More detailed close examples528282
+Node: get528504
+Node: Phase 1 transactions data529110
+Node: Phase 2 prices529513
+Node: Merging new prices530517
+Node: get's helper scripts531321
+Node: getdata531612
+Node: getprices532124
+Node: rewrite533081
+Node: Re-write rules in a file536082
+Node: Diff output format537383
+Node: rewrite vs print --auto538653
+Node: Maintenance commands539367
+Node: check539586
+Node: Basic checks540669
+Node: Strict checks542137
+Node: Other checks543234
+Node: Custom checks545392
+Node: diff545831
+Node: setup547039
+Node: test549906
+Node: PART 5 COMMON TASKS550809
+Node: Getting help551042
+Node: Constructing command lines552169
+Node: Starting a journal file553014
+Node: Setting LEDGER_FILE554398
+Node: Set LEDGER_FILE on unix554666
+Node: Set LEDGER_FILE on mac555181
+Node: Set LEDGER_FILE on Windows555907
+Node: Setting opening balances557808
+Node: Recording transactions561130
+Node: Reconciling561855
+Node: Reporting564244
+Node: Migrating to a new file568358
+Node: BUGS568807
+Node: Troubleshooting569637
 
 End Tag Table
 
