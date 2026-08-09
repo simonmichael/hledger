@@ -734,8 +734,8 @@ argsMarkRunCommands args'
 
 -- | A helper for addon commands: this parses options and arguments from
 -- the current command line using the given hledger-style cmdargs mode,
--- and returns a CliOpts. Or, with --help or -h present, it prints
--- the full help and exits the program.
+-- and returns a CliOpts. Or, with --help or -h present, it shows
+-- the full help (in the pager if appropriate) and exits the program.
 -- When --debug is present, also prints some debug output.
 -- Note this is not used by the main hledger executable.
 --
@@ -754,7 +754,7 @@ getHledgerCliOpts' mode' args0 = do
   let rawopts = either usageError id $ process mode' args0
   opts <- rawOptsToCliOpts rawopts
   debugArgs args0 opts
-  when (boolopt "help" $ rawopts_ opts) $ putStr longhelp >> exitSuccess
+  when (boolopt "help" $ rawopts_ opts) $ runPager longhelp >> exitSuccess
   return opts
   where
     longhelp = showModeUsage mode'
