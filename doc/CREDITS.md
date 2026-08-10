@@ -11,12 +11,12 @@ Helping hands..
 Good news preachers..
 Bank rollers..
 Broom pushers..
-the pioneer John Wiegley..
+Pioneer John Wiegley..
 and innumerable other benefactors.
 
 ## Commit authors 
 
-Stats as of 2026-07-16: **15393 commits in 19 years by 193 people**
+196 people have contributed 15.5k commits over 19 years.
 
 [hledger repo > Insights > Contributors](https://github.com/simonmichael/hledger/graphs/contributors)
 
