@@ -12,6 +12,7 @@ module Hledger.Data.JournalChecks (
   journalCheckAccounts,
   journalCheckBalanceAssertions,
   journalCheckCommodities,
+  journalUndeclaredCommodities,
   journalCheckLots,
   journalCheckPayees,
   journalCheckPairedConversionPostings,
@@ -80,6 +81,29 @@ journalCheckAccounts j = mapM_ checkacct (journalPostings j)
 journalCheckBalanceAssertions :: Journal -> Either String ()
 journalCheckBalanceAssertions = fmap (const ()) . journalBalanceTransactions defbalancingopts
 
+-- | The distinct commodity symbols referenced in a posting's amount(s) or
+-- balance assertion, ignoring the "missing" amount and bare zeroes (#1767).
+postingCommoditiesUsed :: Posting -> [CommoditySymbol]
+postingCommoditiesUsed Posting{pamount=amt, pbalanceassertion} =
+  map acommodity (filter (not . isIgnorable) $ amountsRaw amt)
+  ++ [acommodity a | Just a <- [baamount <$> pbalanceassertion]]
+  where isIgnorable a = a==missingamt || (amountIsZero a && T.null (acommodity a))  -- #1767
+
+-- | The commodity symbols referenced in a P directive.
+priceDirectiveCommoditiesUsed :: PriceDirective -> [CommoditySymbol]
+priceDirectiveCommoditiesUsed PriceDirective{pdcommodity=c, pdamount=amt} = [c, acommodity amt]
+
+-- | The commodities referenced by this journal's postings and P directives that
+-- have not been declared by a commodity directive, nor as an @alias:@ of one.
+-- These are exactly the commodities that make 'journalCheckCommodities' (hledger
+-- check commodities, and -s) fail. The synthetic 1:1 price directives inferred
+-- from @alias:@ tags contribute only aliases, so they never appear here.
+journalUndeclaredCommodities :: Journal -> [CommoditySymbol]
+journalUndeclaredCommodities j =
+  filter (`S.notMember` commoditiesAndAliases j) . nubSort $
+       concatMap priceDirectiveCommoditiesUsed (jpricedirectives j)
+    ++ concatMap postingCommoditiesUsed        (journalPostings j)
+
 -- | Check that all the commodities used in this journal's postings and P directives
 -- have been declared by commodity directives, returning an error message otherwise.
 journalCheckCommodities :: Journal -> Either String ()
@@ -88,7 +112,7 @@ journalCheckCommodities j = do
   mapM_ checkPostingCommodities $ journalPostings j
   where
     declared = commoditiesAndAliases j
-    firstUndeclaredOf comms = find (`S.notMember` declared) comms
+    firstUndeclaredOf = find (`S.notMember` declared)
 
     errmsg = unlines [
         "%s:%d:"
@@ -101,34 +125,19 @@ journalCheckCommodities j = do
       ,"commodity 1.000,00 %s"
       ]
 
-    checkPriceDirectiveCommodities pd@PriceDirective{pdcommodity=c, pdamount=amt} =
-      case firstUndeclaredOf [c, acommodity amt] of
+    checkPriceDirectiveCommodities pd =
+      case firstUndeclaredOf (priceDirectiveCommoditiesUsed pd) of
         Nothing   -> Right ()
         Just comm -> Left $ printf errmsg f l ex (show comm) comm comm
           where (f,l,_mcols,ex) = makePriceDirectiveErrorExcerpt pd Nothing
 
     checkPostingCommodities p =
-      case firstundeclaredcomm p of
-        Nothing                    -> Right ()
-        Just (comm, _inpostingamt) -> Left $ printf errmsg f l ex (show comm) comm comm
+      case firstUndeclaredOf (postingCommoditiesUsed p) of
+        Nothing   -> Right ()
+        Just comm -> Left $ printf errmsg f l ex (show comm) comm comm
           where
             (f,l,_mcols,ex) = makePostingErrorExcerpt p finderrcols
       where
-        -- Find the first undeclared commodity symbol in this posting's amount or balance assertion amount, if any.
-        -- and whether it was in the posting amount.
-        -- XXX The latter is currently unused, could be used to refine the error highlighting ?
-        firstundeclaredcomm :: Posting -> Maybe (CommoditySymbol, Bool)
-        firstundeclaredcomm Posting{pamount=amt,pbalanceassertion} =
-          case (firstUndeclaredOf postingcomms, firstUndeclaredOf assertioncomms) of
-            (Just c, _) -> Just (c, True)
-            (_, Just c) -> Just (c, False)
-            _           -> Nothing
-          where
-            assertioncomms = [acommodity a | Just a <- [baamount <$> pbalanceassertion]]
-            postingcomms = map acommodity $ filter (not . isIgnorable) $ amountsRaw amt
-              where
-                isIgnorable a = a==missingamt || (amountIsZero a && T.null (acommodity a))  -- #1767
-
         -- Calculate columns suitable for highlighting the excerpt.
         -- We won't show these in the main error line as they aren't
         -- accurate for the actual data.

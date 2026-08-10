@@ -415,7 +415,7 @@ setupJournal meconf = do
       pdesc "all commodities are declared ?"
       let
         numcommodities = length $ journalCommodities j
-        undeclaredcommodities = journalCommoditiesUsed j \\ journalCommoditiesDeclared j
+        undeclaredcommodities = journalUndeclaredCommodities j  -- same logic as "hledger check commodities"
       if null undeclaredcommodities
       then p Y (show numcommodities <> " commodities")
       else p N (show (length undeclaredcommodities) <> " undeclared commodities")
