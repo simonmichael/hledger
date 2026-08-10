@@ -18,3 +18,6 @@ Query prefixes  acct: amt: code: cur: sym: desc: date: depth: note: payee:
                 real: status: type: tag: not: expr: any: all:
 Account types   ALERX  (Asset Liability Equity     Revenue Expense)
    & subtypes   C VG   (Cash            Conversion Gain           )
+Basic checks    parseable autobalanced assertions lots
+Strict checks   balanced commodities accounts
+Other checks    basis tags payees ordereddates recentassertions uniqueleafnames
