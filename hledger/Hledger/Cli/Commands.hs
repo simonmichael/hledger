@@ -37,7 +37,6 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Close
   ,module Hledger.Cli.Commands.Codes
   ,module Hledger.Cli.Commands.Commodities
-  ,module Hledger.Cli.Commands.Demo
   ,module Hledger.Cli.Commands.Descriptions
   ,module Hledger.Cli.Commands.Diff
   ,module Hledger.Cli.Commands.Get
@@ -88,7 +87,6 @@ import Hledger.Cli.Commands.Check
 import Hledger.Cli.Commands.Close
 import Hledger.Cli.Commands.Codes
 import Hledger.Cli.Commands.Commodities
-import Hledger.Cli.Commands.Demo
 import Hledger.Cli.Commands.Descriptions
 import Hledger.Cli.Commands.Diff
 import Hledger.Cli.Commands.Files
@@ -130,7 +128,6 @@ builtinCommands = [
   ,(closemode              , close)
   ,(codesmode              , codes)
   ,(commoditiesmode        , commodities)
-  ,(demomode               , demo)
   ,(descriptionsmode       , descriptions)
   ,(diffmode               , diff)
   ,(filesmode              , files)
@@ -292,7 +289,6 @@ commandsList progversion builtin othercmds cmdaliases =
     -----------------------------------------80-------------------------------------
   ,bold' "HELP"
   ," help                     show documentation"
-  ," demo                     show brief demos in the terminal"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES"

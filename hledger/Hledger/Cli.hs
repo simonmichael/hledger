@@ -421,7 +421,7 @@ main = handleExit $ withGhcDebug' $ do
         | webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" mmodecmdname
 
         -- 6.4.2. builtin command which should not require or read the journal - run it
-        -- (help/setup/demo/test; help's own action dispatches its subtopics)
+        -- (help/setup/test; help's own action dispatches its subtopics)
         | cmdname `elem` journalIgnoringCommandNames ->
           cmdaction opts (ignoredjournal cmdname)
 

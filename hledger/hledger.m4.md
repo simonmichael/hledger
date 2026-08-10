@@ -7725,7 +7725,6 @@ You can list all of a command's options by running `hledger CMD -h`.
 **[Help commands](#help-commands)**
 
 - [help](#help)                                    - show documentation (quickref, commands, usage, manual, examples..)
-- [demo](#demo)                                    - show small hledger demos in the terminal
 
 **[User interface commands](#user-interface-commands)**
 

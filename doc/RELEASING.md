@@ -127,7 +127,6 @@ Last updated: 2025-11
         `./Shake manuals -c`
   - embedded tldr pages synced with upstream (doc/tldr/*)  
         `just tldr-diff`
-  - embedded asciinema demos (hledger/embeddedfiles/*.cast)
   - shell completions (hledger/shell-completion/hledger-completion.bash)  
         `just completions`, commit any changes
   - changelogs x 5 (*/CHANGES.md)  

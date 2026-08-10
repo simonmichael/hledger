@@ -35,10 +35,6 @@ extra-source-files:
     bench/10000x1000x10.journal
     shell-completion/hledger-completion.bash
     test/unittest.hs
-    embeddedfiles/add.cast
-    embeddedfiles/balance.cast
-    embeddedfiles/install.cast
-    embeddedfiles/print.cast
     embeddedfiles/hledger-accounts.md
     embeddedfiles/hledger-add.md
     embeddedfiles/hledger-aregister.md
@@ -71,7 +67,6 @@ extra-source-files:
     Hledger/Cli/Commands/Close.txt
     Hledger/Cli/Commands/Codes.txt
     Hledger/Cli/Commands/Commodities.txt
-    Hledger/Cli/Commands/Demo.txt
     Hledger/Cli/Commands/Descriptions.txt
     Hledger/Cli/Commands/Diff.txt
     Hledger/Cli/Commands/Files.txt
@@ -122,7 +117,6 @@ library
       Hledger.Cli.Commands.Close
       Hledger.Cli.Commands.Codes
       Hledger.Cli.Commands.Commodities
-      Hledger.Cli.Commands.Demo
       Hledger.Cli.Commands.Descriptions
       Hledger.Cli.Commands.Diff
       Hledger.Cli.Commands.Files
