@@ -19,4 +19,4 @@ Query prefixes  acct: amt: code: cur: sym: desc: date: depth: note: payee:
                 real: status: type: tag: not: expr: any: all:
 Basic checks    parseable autobalanced assertions lots
 Strict checks   balanced commodities accounts
-Other checks    basis tags payees ordereddates recentassertions uniqueleafnames
+Other checks    tags payees ordereddates recentassertions uniqueleafnames basis
