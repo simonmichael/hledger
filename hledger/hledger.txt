@@ -196,8 +196,8 @@ Commands
      Some  often-used  commands  are  add, print, register, balancesheet and in-
      comestatement.
 
-     To show a summary of commands, run hledger with no arguments.  You can  see
-     the same commands summary at the start of PART 4: COMMANDS below.
+     To show a summary of commands, run hledger with  no  arguments.   See  also
+     PART 4: COMMANDS below.
 
      To use a particular command, run hledger CMD [CMDOPTS] [CMDARGS],
 
@@ -7580,15 +7580,13 @@ PART 4: COMMANDS
 
      Help commands
 
-     * help - show documentation (quickref, commands, usage, manual, examples..)
-
-     * demo - show small hledger demos in the terminal
+     * help - show documentation
 
      User interface commands
 
-     * repl - run commands from an interactive prompt
+     * repl - run commands efficiently from an interactive prompt
 
-     * run - run commands from a script
+     * run - run commands efficiently from a file or command line
 
      * ui - (if installed) run hledger's terminal UI
 
@@ -7602,19 +7600,19 @@ PART 4: COMMANDS
 
      Basic report commands
 
-     * accounts - show account names
+     * accounts (acc) - show account names
 
      * codes - show transaction codes
 
-     * commodities - show commodity/currency symbols
+     * commodities (comm) - show commodity/currency symbols
 
-     * descriptions - show transaction descriptions
+     * descriptions (desc) - show transaction descriptions
 
-     * files - show input file paths
+     * files - show input files in use
 
-     * notes - show note parts of transaction descriptions
+     * notes - show note part of transaction descriptions
 
-     * payees - show payee parts of transaction descriptions
+     * payees - show payee part of transaction descriptions
 
      * prices - show market prices
 
@@ -7624,11 +7622,11 @@ PART 4: COMMANDS
 
      Standard report commands
 
-     * print - show transactions or export journal data
+     * print - show journal entries, or export journal data
 
-     * aregister (areg) - show transactions in a particular account
+     * aregister (areg) - show transactions & running balance in one account
 
-     * register (reg) - show postings in one or more accounts & running total
+     * register (reg) - show postings & running total across accounts
 
      * balancesheet (bs) - show assets, liabilities and net worth
 
@@ -7640,7 +7638,7 @@ PART 4: COMMANDS
 
      Advanced report commands
 
-     * balance (bal) - show balance changes, end balances, budgets, gains..
+     * balance (bal) - show balance changes, end balances, gains, budgets..
 
      * holdings - show investment holdings
 
@@ -7648,11 +7646,11 @@ PART 4: COMMANDS
 
      Chart commands
 
-     * activity - show bar charts of posting counts per period
+     * activity - show posting counts as a bar chart
 
      Data generation commands
 
-     * close - generate balance-zeroing/restoring transactions
+     * close - generate transactions to zero/restore/assert balances
 
      * get - fetch new transactions and market price data
 
@@ -7662,7 +7660,7 @@ PART 4: COMMANDS
 
      * check - check for various kinds of error in the data
 
-     * diff - compare account transactions in two journal files
+     * diff - compare an account's transactions in two journals
 
      * setup - check and show the status of the hledger installation
 
@@ -7672,10 +7670,9 @@ PART 4: COMMANDS
 
 Help commands
    help
-     Show some part of hledger's documentation.  The first argument selects what
-     to show:
+     Show some part of hledger's documentation, selected by arguments:
 
-     * quickref (or none): a quick reference / overview
+     * quickref (or no args): a quick reference / overview
 
      * commands: all commands, including addons and aliases
 
@@ -7685,7 +7682,7 @@ Help commands
 
      * manual [TOPIC]: view a topic in the manual, or list them all
 
-     * TOPIC view a topic in the manual (like manual TOPIC)
+     * TOPIC: (like manual TOPIC)
 
      * home|install|relnotes|docs|support|sponsor: browse hledger.org pages
 
@@ -7698,14 +7695,12 @@ Help commands
      browser), or you can choose with -i/-m/-p/-w.
 
             Flags:
-              -i                       show the manual with info
-              -m                       show the manual with man
-              -p                       show the manual with $PAGER or less
-                                       (less is always used if TOPIC is specified)
-              -w                       show the manual on the web
+              -i                       use info when showing the manual
+              -m                       use man when showing the manual
+              -p                       use less (or $PAGER) when showing the manual
+              -w                       use a web browser when showing the manual
               -l                       just list the manual topics matching TOPIC
-                 --builtin             with the commands topic, show only built-in
-                                       commands
+                 --builtin             with commands: show only built-in commands
 
      The manual is built in to your hledger executable, so it can be useful when
      offline,  or when you prefer the terminal to a web browser, or when the ap-
@@ -7729,36 +7724,9 @@ Help commands
             $ hledger help -l journal         # list the manual topics matching "journal"
             $ hledger help examples add       # show examples for the add command
 
-   demo
-     Play demos of hledger usage in the terminal, if asciinema is installed.
-
-            Flags:
-              -s --speed=SPEED         playback speed (1 is original speed, .5 is half, 2
-                                       is double, etc (default: 2))
-
-     Run this command with no argument to list the demos.  To play a demo, write
-     its number or a prefix or substring of its title.  Tips:
-
-     Make your terminal window large enough to see the demo clearly.
-
-     Use  the  -s/--speed  SPEED option to set your preferred playback speed, eg
-     -s4 to play at 4x original speed or -s.5 to play at half  speed.   The  de-
-     fault speed is 2x.
-
-     During  playback, several keys are available: SPACE to pause/unpause, .  to
-     step forward (while paused), CTRL-c quit.
-
-     Examples:
-
-            $ hledger demo               # list available demos
-            $ hledger demo 1             # play the first demo at default speed (2x)
-            $ hledger demo install -s4   # play the "install" demo at 4x speed
-
-     This command is experimental: there aren't many useful demos yet.
-
 User interface commands
    repl
-     Start an interactive prompt for running hledger commands.  Input files  are
+     Start  an interactive prompt for running hledger commands.  Input files are
      reloaded only when they change, so commands run faster.
 
             Flags:
@@ -7767,25 +7735,25 @@ User interface commands
 
      This command is experimental and could change in the future.
 
-     hledger  repl starts a read-eval-print loop (REPL) where you can enter com-
+     hledger repl starts a read-eval-print loop (REPL) where you can enter  com-
      mands interactively.  As with the run command, each input file (or each in-
-     put file/input options combination) is parsed just once, so  commands  will
+     put  file/input  options combination) is parsed just once, so commands will
      run more quickly than if you ran them individually at the command line.
 
-     The  input  file(s)  specified for the repl command will be used throughout
+     The input file(s) specified for the repl command will  be  used  throughout
      the session; but you can override this temporarily by specifying new -f op-
      tions for a command.
 
-     Before running a command, any input files which have changed  on  disk  are
-     automatically  reloaded.   Also  command aliases are reloaded if the config
-     file has changed, and addon commands are  re-detected  if  PATH's  contents
+     Before  running  a  command, any input files which have changed on disk are
+     automatically reloaded.  Also command aliases are reloaded  if  the  config
+     file  has  changed,  and  addon commands are re-detected if PATH's contents
      have changed.  The --no-watch flag disables all of this reloading, so as to
      work with a stable snapshot of the data, or to avoid file/directory polling
      on a slow network drive.
 
-     Any  other general flags given to repl - input, reporting, or display flags
-     such as -I, --strict, --alias, -b/-e, --depth, --cost, --value,  --color  -
-     are  also  applied  to every command you run.  A command can still override
+     Any other general flags given to repl - input, reporting, or display  flags
+     such  as  -I, --strict, --alias, -b/-e, --depth, --cost, --value, --color -
+     are also applied to every command you run.  A command  can  still  override
      them by specifying its own flags.
 
      The command syntax is the same as with run:
@@ -7796,15 +7764,15 @@ User interface commands
 
      * enclose arguments in quotes if they contain spaces.
 
-     Use help (or h) to show the quick reference, or help commands to list  com-
-     mands.   Addons  in  PATH  and command aliases defined in a config file can
-     also be used.  Generally repl should feel much like using  hledger  at  the
-     command  line.   But repl requires full command names or official abbrevia-
+     Use  help (or h) to show the quick reference, or help commands to list com-
+     mands.  Addons in PATH and command aliases defined in  a  config  file  can
+     also  be  used.   Generally repl should feel much like using hledger at the
+     command line.  But repl requires full command names or  official  abbrevia-
      tions (it does not recognise ad hoc abbreviations).
 
      To run a single shell command, type ! SHELLCMD (eg ! ls or ! git status).
 
-     While it is running, the REPL remembers your command history, and  you  can
+     While  it  is running, the REPL remembers your command history, and you can
      navigate in the usual ways:
 
      * Keypad or Emacs navigation keys to edit the current command line
@@ -7815,7 +7783,7 @@ User interface commands
 
      * TAB to complete file paths.
 
-     You  can  type  control-C  to cancel a long-running command (but only once;
+     You can type control-C to cancel a long-running  command  (but  only  once;
      typing it a second time will exit the REPL).
 
      In most shells you can type control-Z to temporarily exit to the shell (and
@@ -7862,31 +7830,31 @@ User interface commands
 
      You can use run in three ways:
 
-     * hledger run -- CMD1 -- CMD2 -- CMD3 -  read  commands  from  the  command
+     * hledger  run  --  CMD1  --  CMD2 -- CMD3 - read commands from the command
        line, separated by --
 
-     * hledger  run  SCRIPTFILE1  SCRIPTFILE2  -  read commands from one or more
+     * hledger run SCRIPTFILE1 SCRIPTFILE2 - read  commands  from  one  or  more
        files
 
      * cat SCRIPTFILE1 | hledger run - read commands from standard input.
 
-     run first loads the input file(s) specified by LEDGER_FILE  or  by  -f  op-
+     run  first  loads  the  input file(s) specified by LEDGER_FILE or by -f op-
      tions, in the usual way.  Then it runs each command in turn, each using the
      same input data.  But if you want a particular command to use different in-
-     put,  you can specify an -f option within that command.  This will override
+     put, you can specify an -f option within that command.  This will  override
      (not add to) the default input, just for that command.
 
-     Any other general flags given to run - input, reporting, or  display  flags
-     such  as  -I, --strict, --alias, -b/-e, --depth, --cost, --value, --color -
-     are also applied to every command it runs.  A command  can  still  override
+     Any  other  general flags given to run - input, reporting, or display flags
+     such as -I, --strict, --alias, -b/-e, --depth, --cost, --value,  --color  -
+     are  also  applied  to every command it runs.  A command can still override
      them by specifying its own flags.
 
-     Each  input  file (more precisely, each combination of input file and input
-     options) is parsed only once.  This means that commands will  not  see  any
+     Each input file (more precisely, each combination of input file  and  input
+     options)  is  parsed  only once.  This means that commands will not see any
      changes made to these files, until the next run.  But the commands will run
      more quickly than if run individually (typically about twice as fast).
 
-     Command  scripts,  whether in a file or written on the command line, have a
+     Command scripts, whether in a file or written on the command line,  have  a
      simple syntax:
 
      * each line may contain a single hledger command and its arguments, without
@@ -7899,21 +7867,21 @@ User interface commands
      * you can use single or double quotes to quote arguments when needed, as on
        the command line
 
-     * these extra commands are available: echo TEXT prints some text, and  exit
+     * these  extra commands are available: echo TEXT prints some text, and exit
        or quit ends the run.
 
      On unix systems you can use #!/usr/bin/env hledger run in the first line of
-     a  command  file to make it a runnable script.  If that gives an error, use
+     a command file to make it a runnable script.  If that gives an  error,  use
      #!/usr/bin/env -S hledger run.
 
      It's ok to use the run command recursively within a command script.
 
-     Command aliases defined in a config  file  can  also  be  used  in  command
+     Command  aliases  defined  in  a  config  file  can also be used in command
      scripts.
 
-     You  may  find  some differences in behaviour between run command lines and
-     normal hledger command lines.  run is a little  stricter;  eg  it  requires
-     full  command  names  or  official  abbreviations  (as seen in the commands
+     You may find some differences in behaviour between run  command  lines  and
+     normal  hledger  command  lines.   run is a little stricter; eg it requires
+     full command names or official  abbreviations  (as  seen  in  the  commands
      list), and command options must be written after the command name.
 
    Examples
@@ -7921,8 +7889,8 @@ User interface commands
 
             hledger -f some.journal run -- balance assets --depth 2 -- balance liabilities -f /some/other.journal --depth 3 --transpose -- stats
 
-     This would load some.journal, run balance assets --depth 2 on it, then  run
-     balance  liabilities  --depth 3 --transpose on /some/other.journal, and fi-
+     This  would load some.journal, run balance assets --depth 2 on it, then run
+     balance liabilities --depth 3 --transpose on /some/other.journal,  and  fi-
      nally run stats on some.journal
 
      Run commands from standard input:
@@ -7952,10 +7920,10 @@ User interface commands
             ...
 
    ui
-     Runs hledger-ui (if installed).
+     Runs hledger-ui, a terminal UI (if installed).
 
    web
-     Runs hledger-web (if installed).
+     Runs hledger-web, a web UI (if installed).
 
 Data entry commands
    add
@@ -7969,28 +7937,28 @@ Data entry commands
                                         (default: 53)
 
      Many hledger users edit their journals directly with a text editor, or gen-
-     erate them from CSV.  For more interactive data entry,  there  is  the  add
-     command,  which  prompts interactively on the console for new transactions,
-     and appends them to the main journal file (which should be in journal  for-
-     mat).   Existing  transactions  are  not  changed.   This is one of the few
+     erate  them  from  CSV.   For more interactive data entry, there is the add
+     command, which prompts interactively on the console for  new  transactions,
+     and  appends them to the main journal file (which should be in journal for-
+     mat).  Existing transactions are not changed.   This  is  one  of  the  few
      hledger commands that writes to the journal file (see also import).
 
-     To use it, just run hledger add and follow the prompts.   You  can  add  as
+     To  use  it,  just  run hledger add and follow the prompts.  You can add as
      many transactions as you like; when you are finished, enter . or press con-
      trol-d or control-c to exit.
 
      Features:
 
      * add tries to provide useful defaults, using the most similar (by descrip-
-       tion)  and nearest-dated transaction (filtered by the query, if any) as a
+       tion) and nearest-dated transaction (filtered by the query, if any) as  a
        template.
 
      * You can also set the initial defaults with command line arguments.
 
      * Readline-style edit keys can be used during data entry.
 
-     * The tab key will auto-complete whenever possible -  accounts,  payees/de-
-       scriptions,  dates  (yesterday,  today,  tomorrow).  If the input area is
+     * The  tab  key will auto-complete whenever possible - accounts, payees/de-
+       scriptions, dates (yesterday, today, tomorrow).  If  the  input  area  is
        empty, it will insert the default value.
 
      * A parenthesised transaction code may be entered following a date.
@@ -7999,24 +7967,24 @@ Data entry commands
 
      * If you make a mistake, enter < at any prompt to go one step backward.
 
-     * Input prompts are displayed in a different colour when the terminal  sup-
+     * Input  prompts are displayed in a different colour when the terminal sup-
        ports it.
 
      Notes:
 
-     * If  you  enter a number with no commodity symbol, and you have declared a
-       default commodity with a D directive, you might expect add  to  add  this
+     * If you enter a number with no commodity symbol, and you have  declared  a
+       default  commodity  with  a D directive, you might expect add to add this
        symbol for you.  It does not do this; we assume that if you are using a D
-       directive  you prefer not to see the commodity symbol repeated on amounts
+       directive you prefer not to see the commodity symbol repeated on  amounts
        in the journal.
 
-     * add creates entries in journal format; it won't work  with  timeclock  or
+     * add  creates  entries  in journal format; it won't work with timeclock or
        timedot files.
 
-     * There  is  a known issue on Windows if this hledger version is built from
-       stackage: the prompts will show ANSI junk  instead  of  colours  (#2410).
-       You  can  avoid  this  by  using  official hledger release binaries or by
-       building it with haskeline >=0.8.4; or by running  add  with  --color=no,
+     * There is a known issue on Windows if this hledger version is  built  from
+       stackage:  the  prompts  will  show ANSI junk instead of colours (#2410).
+       You can avoid this by using  official  hledger  release  binaries  or  by
+       building  it  with  haskeline >=0.8.4; or by running add with --color=no,
        perhaps configured in your config file.
 
      Examples:
@@ -8025,7 +7993,7 @@ Data entry commands
 
        hledger add
 
-     * Add  transactions to 2024.journal, but also load 2023.journal for comple-
+     * Add transactions to 2024.journal, but also load 2023.journal for  comple-
        tions:
 
        hledger add --file 2024.journal --file 2023.journal
@@ -8037,29 +8005,29 @@ Data entry commands
      There is a detailed tutorial at https://hledger.org/add.html.
 
    add and balance assertions
-     Since hledger 1.43, you can add a balance assertion  by  writing  AMOUNT  =
+     Since  hledger  1.43,  you  can add a balance assertion by writing AMOUNT =
      BALANCE when asked for an amount.  Eg 100 = 500.
 
-     Also,  each  time you enter a new amount, hledger re-checks all balance as-
-     sertions in the journal and rejects the new amount if it would make any  of
-     them  fail.  You can run add with -I or --ignore-assertions to disable bal-
+     Also, each time you enter a new amount, hledger re-checks all  balance  as-
+     sertions  in the journal and rejects the new amount if it would make any of
+     them fail.  You can run add with -I or --ignore-assertions to disable  bal-
      ance assertion checking.
 
    add and balance assignments
      Adding a new balance assignment
      When entering a posting amount, you can write a = BALANCEAMOUNT balance as-
-     signment (or ==, =*, ==*) instead.  The posting amount required to  produce
+     signment  (or ==, =*, ==*) instead.  The posting amount required to produce
      this balance will be calculated automatically.  (Since 1.51)
 
      Adding a posting dated before an existing balance assignment
-     add  won't let you add a posting dated earlier than an existing balance as-
-     signment in that account.  (Because it calculates balance assignments  only
-     once  at  startup,  converting them to assertions, so adding the new amount
-     causes an assertion failure.)  To work around this, run  add  with  balance
+     add won't let you add a posting dated earlier than an existing balance  as-
+     signment  in that account.  (Because it calculates balance assignments only
+     once at startup, converting them to assertions, so adding  the  new  amount
+     causes  an  assertion  failure.)  To work around this, run add with balance
      assertions ignored: hledger add -I.
 
    import
-     Import  new  transactions  from one or more data files to the main journal.
+     Import new transactions from one or more data files to  the  main  journal.
      Or with no arguments, import from the rules files in rules/.
 
             Flags:
@@ -8071,11 +8039,11 @@ Data entry commands
                                         COL      - align decimal marks at column COL
                                         (default: 53)
 
-     This command detects new transactions in one or more data  files  specified
+     This  command  detects new transactions in one or more data files specified
      as arguments, and appends them to the main journal.
 
      You can import from any input file format hledger supports, but CSV/SSV/TSV
-     files,  downloaded  from financial institutions, are the most common import
+     files, downloaded from financial institutions, are the most  common  import
      source.
 
      The import destination is the default journal file, or another specified in
@@ -8089,11 +8057,11 @@ Data entry commands
             $ hledger import *.csv
 
    Default import sources
-     If import is run with no file arguments, it looks in the  journal's  rules/
-     directory  (next  to  the  main journal file) and imports from every .rules
+     If  import  is run with no file arguments, it looks in the journal's rules/
+     directory (next to the main journal file) and  imports  from  every  .rules
      file found there, in alphabetical order.  Files whose name begins with . or
      _ are skipped: the _ prefix is for rules files that are either disabled, or
-     shared/common rules included by other rules files and not meant to be  read
+     shared/common  rules included by other rules files and not meant to be read
      directly.
 
      So a typical setup might be:
@@ -8106,52 +8074,52 @@ Data entry commands
 
      and hledger import reads bank1-checking.rules then bank1-savings.rules.
 
-     If  the rules/ directory does not exist or contains no usable .rules files,
+     If the rules/ directory does not exist or contains no usable .rules  files,
      import reports an error.
 
    Fetching new data first
      With -g/--get, import runs the get command first, which runs your data/get-
-     data and prices/getprices scripts (if any) to download new transaction  and
-     price  data.   The  import then proceeds normally, with the new transaction
+     data  and prices/getprices scripts (if any) to download new transaction and
+     price data.  The import then proceeds normally, with  the  new  transaction
      data (if any) readable by your rules files' source rules.
 
    Import dry run
-     It's useful to preview the import by running first with --dry-run, to  san-
-     ity  check  the  range  of dates being imported, and to check the effect of
+     It's  useful to preview the import by running first with --dry-run, to san-
+     ity check the range of dates being imported, and to  check  the  effect  of
      your conversion rules if converting from CSV.  Eg:
 
             $ hledger import bank.csv --dry-run
 
      The dry run output is valid journal format, so hledger can re-parse it.  If
-     the output is large, you could show  just  the  uncategorised  transactions
+     the  output  is  large,  you could show just the uncategorised transactions
      like so:
 
             $ hledger import --dry-run bank.csv | hledger -f- -I print unknown
 
-     You  could also run this repeatedly to see the effect of edits to your con-
+     You could also run this repeatedly to see the effect of edits to your  con-
      version rules:
 
             $ watchexec -- "hledger import --dry-run bank.csv | hledger -f- -I print unknown"
 
-     Once the conversion and dates look good enough to import to  your  journal,
+     Once  the  conversion and dates look good enough to import to your journal,
      perhaps with some manual fixups to follow, you would do the actual import:
 
             $ hledger import bank.csv
 
    Overlap detection
-     Reading  CSV  files  is built in to hledger, and not specific to import; so
+     Reading CSV files is built in to hledger, and not specific  to  import;  so
      you could also import by doing hledger -f bank.csv print >>$LEDGER_FILE.
 
      But import is easier and provides some advantages.  The main one is that it
-     avoids re-importing transactions it has seen on previous runs.  This  means
-     you  don't  have to worry about overlapping data in successive downloads of
-     your bank CSV; just download and import as often as you like, and only  the
+     avoids  re-importing transactions it has seen on previous runs.  This means
+     you don't have to worry about overlapping data in successive  downloads  of
+     your  bank CSV; just download and import as often as you like, and only the
      new transactions will be imported each time.
 
      We don't call this "deduplication", as it's generally not possible to reli-
-     ably  detect  duplicates in bank CSV.  Instead, import remembers the latest
-     date processed previously in each CSV file (saving it in  a  hidden  file),
-     and  skips  any  records  prior  to  that  date.   This works well for most
+     ably detect duplicates in bank CSV.  Instead, import remembers  the  latest
+     date  processed  previously  in each CSV file (saving it in a hidden file),
+     and skips any records prior  to  that  date.   This  works  well  for  most
      real-world CSV, where:
 
      1. the data file name is stable (does not change) across imports
@@ -8165,28 +8133,28 @@ Data entry commands
      (Occasional violations of 2-4 are often harmless; you can reduce the chance
      of disruption by downloading and importing more often.)
 
-     Overlap detection is automatic, and shouldn't require much  attention  from
+     Overlap  detection  is automatic, and shouldn't require much attention from
      you, except perhaps at first import (see below).  But here's how it works:
 
      * For each FILE being imported from:
 
        1. hledger reads a file named .latest.FILE file in the same directory, if
-          any.   This  file  contains the latest record date previously imported
-          from FILE, in YYYY-MM-DD format.  If multiple records with  that  date
+          any.  This file contains the latest record  date  previously  imported
+          from  FILE,  in YYYY-MM-DD format.  If multiple records with that date
           were imported, the date is repeated on N lines.
 
-       2. hledger  reads  records from FILE.  If a latest date was found in step
+       2. hledger reads records from FILE.  If a latest date was found  in  step
           1, any records before that date, and the first N records on that date,
           are skipped.
 
-     * After a successful import from  all  FILEs,  without  error  and  without
+     * After  a  successful  import  from  all  FILEs, without error and without
        --dry-run, hledger updates each FILE's .latest.FILE for next time.
 
      If this goes wrong, it's relatively easy to repair:
 
      * You'll notice it before import when you preview with import --dry-run.
 
-     * Or  after  import when you try to reconcile your hledger account balances
+     * Or after import when you try to reconcile your hledger  account  balances
        with your bank.
 
      * hledger print -f FILE.csv will show all recently downloaded transactions.
@@ -8194,27 +8162,27 @@ Data entry commands
 
      * Update your conversion rules and print again, if needed.
 
-     * You can manually update  or  remove  the  .latest  file,  or  use  import
+     * You  can  manually  update  or  remove  the  .latest  file, or use import
        --catchup FILE.
 
-     * Download  and  import more often, eg twice a week, at least while you are
-       learning.  It's easier to review and troubleshoot when  there  are  fewer
+     * Download and import more often, eg twice a week, at least while  you  are
+       learning.   It's  easier  to review and troubleshoot when there are fewer
        transactions.
 
    First import
-     The  first  time you import from a file, when no corresponding .latest file
+     The first time you import from a file, when no corresponding  .latest  file
      has been created yet, all of the records will be imported.
 
-     But perhaps you have been entering the data manually, so you know that  all
-     of  these  transactions  are already recorded in the journal.  In this case
+     But  perhaps you have been entering the data manually, so you know that all
+     of these transactions are already recorded in the journal.   In  this  case
      you can run hledger import --catchup once.  This will create a .latest file
-     containing the latest CSV record date, so that none of those  records  will
+     containing  the  latest CSV record date, so that none of those records will
      be re-imported.
 
-     Or,  if you know that some but not all of the transactions are in the jour-
-     nal, you can create the .latest file yourself.  Eg, let's  say  you  previ-
-     ously  recorded foobank transactions up to 2024-10-31 in the journal.  Then
-     in the directory where you'll be saving foobank.csv,  you  would  create  a
+     Or, if you know that some but not all of the transactions are in the  jour-
+     nal,  you  can  create the .latest file yourself.  Eg, let's say you previ-
+     ously recorded foobank transactions up to 2024-10-31 in the journal.   Then
+     in  the  directory  where  you'll be saving foobank.csv, you would create a
      .latest.foobank.csv file containing
 
             2024-10-31
@@ -8226,109 +8194,109 @@ Data entry commands
             2024-10-31
             2024-10-31
 
-     Then  hledger  import  foobank.csv  [--dry-run]  will import only the newer
+     Then hledger import foobank.csv [--dry-run]  will  import  only  the  newer
      records.
 
    Importing balance assignments
      Journal entries added by import will have all posting amounts made explicit
      (like print -x).
 
-     This means that any balance assignments in the imported entries would  need
+     This  means that any balance assignments in the imported entries would need
      to be evaluated.  But this generally isn't possible, as the main file's ac-
-     count  balances  are not visible during import.  So try to avoid generating
-     balance assignments with your CSV rules, or importing from a  journal  that
-     contains  balance  assignments.  (Balance assignments are best avoided any-
+     count balances are not visible during import.  So try to  avoid  generating
+     balance  assignments  with your CSV rules, or importing from a journal that
+     contains balance assignments.  (Balance assignments are best  avoided  any-
      way.)
 
-     But if you must use them, eg because your CSV includes only  balances:  you
-     can  import with print, which leaves implicit amounts implicit.  (print can
+     But  if  you must use them, eg because your CSV includes only balances: you
+     can import with print, which leaves implicit amounts implicit.  (print  can
      also do overlap detection like import, with the --new flag):
 
             $ hledger print --new -f bank.csv >> $LEDGER_FILE
 
-     (If you think import should preserve implicit balances,  please  test  that
+     (If  you  think  import should preserve implicit balances, please test that
      and send a pull request.)
 
    Import and commodity styles
      Amounts in entries added by import will be formatted according to the jour-
-     nal's  canonical  commodity  styles, as declared by commodity directives or
+     nal's canonical commodity styles, as declared by  commodity  directives  or
      inferred from the journal's amounts.
 
      Related: CSV > Amount decimal places.
 
    Import archiving
-     When importing from a CSV rules file (hledger import bank.rules),  you  can
+     When  importing  from a CSV rules file (hledger import bank.rules), you can
      use the archive rule to enable automatic archiving of the data file.
 
-     After  a successful import, the data file specified by source will be moved
-     (or data generated by a command will be saved)  to  an  archive  directory.
+     After a successful import, the data file specified by source will be  moved
+     (or  data  generated  by  a command will be saved) to an archive directory.
      This can be useful for troubleshooting, detecting variations in your banks'
      CSV data, regenerating entries with improved rules, etc.
 
-     The  archive  directory  is  data/archive/,  next to the main journal file,
-     auto-created.  The archive file name will be similar  to  the  rules  file,
-     with  a  date added: the original data file's modification date, or today's
+     The archive directory is data/archive/, next  to  the  main  journal  file,
+     auto-created.   The  archive  file  name will be similar to the rules file,
+     with a date added: the original data file's modification date,  or  today's
      date if the data was command-generated.
 
-     The archive rule also causes import to handle source glob patterns  differ-
-     ently:  when there are multiple matched files, it will pick the oldest, not
+     The  archive rule also causes import to handle source glob patterns differ-
+     ently: when there are multiple matched files, it will pick the oldest,  not
      the newest.
 
    Import special cases
    Multiple journals in the same directory
-     You might want to keep each journal you are importing to in its own  direc-
-     tory.   That  way,  each will have its own rules/, data/, and data/archive/
+     You  might want to keep each journal you are importing to in its own direc-
+     tory.  That way, each will have its own rules/,  data/,  and  data/archive/
      directories (if those are used).
 
-     Otherwise, imports to the same-directory journals will potentially use  the
+     Otherwise,  imports to the same-directory journals will potentially use the
      same rules/, data/ and data/archive/ directories (depending on commands and
-     rules  configuration).  This is not necessarily a problem; it might even be
+     rules configuration).  This is not necessarily a problem; it might even  be
      desirable in some cases.  But see below:
 
    Import configurations to avoid
      A few unusual workflows which you should generally avoid:
 
-     * Don't import from one input file to  different  journals.   The  imports'
-       overlap  detection would overwrite the same .latest.FILE state file.  (In
+     * Don't  import  from  one  input file to different journals.  The imports'
+       overlap detection would overwrite the same .latest.FILE state file.   (In
        effect, the journals would compete for the new records.)
 
-     * Don't import from multiple data files on the same day, reusing  the  same
-       rules  file  for  all,  with archive enabled.  The archived file names in
+     * Don't  import  from multiple data files on the same day, reusing the same
+       rules file for all, with archive enabled.  The  archived  file  names  in
        data/archive/ would clash, causing some archives to be overwritten.
 
-     * Don't do argument-less hledger import to more than  one  journal  in  the
-       same  directory.   That  would read from the same files in rules/, poten-
+     * Don't  do  argument-less  hledger  import to more than one journal in the
+       same directory.  That would read from the same files  in  rules/,  poten-
        tially disrupting both overlap detection and archiving.
 
    Deduplication
-     Here are two kinds of "deduplication" which import  does  not  handle  (and
+     Here  are  two  kinds  of "deduplication" which import does not handle (and
      should not, because these can happen legitimately in financial data):
 
-     * Two  or more of the new CSV records are identical, and generate identical
+     * Two or more of the new CSV records are identical, and generate  identical
        new journal entries.
 
      * A new CSV record generates a journal entry identical to one(s) already in
        the journal.
 
    Varying file name
-     If you have a download whose file name varies, you could  rename  it  to  a
-     fixed  name after each download.  Or you could use a CSV source rule with a
+     If  you  have  a  download whose file name varies, you could rename it to a
+     fixed name after each download.  Or you could use a CSV source rule with  a
      suitable glob pattern, and import from the .rules file.
 
    Multiple versions
-     Say you download bank.csv, import it, but forget to  delete  it  from  your
-     downloads  folder.   The  next  time you download it, your web browser will
+     Say  you  download  bank.csv,  import it, but forget to delete it from your
+     downloads folder.  The next time you download it,  your  web  browser  will
      save it as (eg) bank (2).csv.  The source rule's glob patterns are for just
-     this situation: instead  of  specifying  source  bank.csv,  specify  source
-     bank*.csv.   Then  hledger  -f  bank.rules CMD or hledger import bank.rules
+     this  situation:  instead  of  specifying  source  bank.csv, specify source
+     bank*.csv.  Then hledger -f bank.rules CMD  or  hledger  import  bank.rules
      will automatically pick the newest matched file (bank (2).csv).
 
-     Alternately, what if you download, but forget to  import  or  delete,  then
-     download  again ?  Now each of bank.csv and bank (2).csv might contain data
-     that's not in the other, and not in your journal.  In this case, it's  best
-     to  import each of them in turn, oldest first (otherwise, overlap detection
-     could cause new records to be skipped).  Enabling import archiving  ensures
-     this.   Then  hledger import bank.rules; hledger import bank.rules will im-
+     Alternately,  what  if  you  download, but forget to import or delete, then
+     download again ?  Now each of bank.csv and bank (2).csv might contain  data
+     that's  not in the other, and not in your journal.  In this case, it's best
+     to import each of them in turn, oldest first (otherwise, overlap  detection
+     could  cause new records to be skipped).  Enabling import archiving ensures
+     this.  Then hledger import bank.rules; hledger import bank.rules  will  im-
      port and archive first bank.csv, then bank (2).csv.
 
 Basic report commands
@@ -8353,27 +8321,27 @@ Basic report commands
                  --drop=N               flat mode: omit N leading account name parts
 
      This command lists account names - all of them by default, or just the ones
-     which have been used in transactions (-u/--used), or declared with  account
+     which  have been used in transactions (-u/--used), or declared with account
      directives (-d/--declared), or used but not declared (--undeclared), or de-
-     clared  but not used (--unused), or just the first one matched by a pattern
+     clared but not used (--unused), or just the first one matched by a  pattern
      (--find, returning a non-zero exit code if it fails).
 
      You can add query arguments to select a subset of transactions or accounts.
 
-     With --directives, it shows valid account directives which could be  pasted
+     With  --directives, it shows valid account directives which could be pasted
      into a journal file.  This is useful together with --undeclared when updat-
      ing your account declarations to satisfy hledger check accounts.
 
-     With  --locations, it also shows the file and line number of each account's
+     With --locations, it also shows the file and line number of each  account's
      declaration, if any, and the account's overall declaration order; these may
      be useful when troubleshooting account display order.
 
-     With --types, it also shows each account's type, if it's known.   (See  De-
+     With  --types,  it also shows each account's type, if it's known.  (See De-
      claring accounts > Account types.)
 
-     It  shows a flat list by default.  With --tree, it uses indentation to show
+     It shows a flat list by default.  With --tree, it uses indentation to  show
      the account hierarchy.  In flat mode you can add --drop N to omit the first
-     few account name components.   Account  names  can  be  depth-clipped  with
+     few  account  name  components.   Account  names  can be depth-clipped with
      depth:N or --depth N or -N.
 
      Examples:
@@ -8397,13 +8365,13 @@ Basic report commands
             Flags:
             no command-specific flags
 
-     This  command prints the value of each transaction's code field, in the or-
-     der transactions were parsed.  The transaction code is  an  optional  value
-     written  in  parentheses  between  the  date and description, often used to
+     This command prints the value of each transaction's code field, in the  or-
+     der  transactions  were  parsed.  The transaction code is an optional value
+     written in parentheses between the date  and  description,  often  used  to
      store a cheque number, order number or similar.
 
-     Transactions aren't required to have a code, and  missing  or  empty  codes
-     will  not  be  shown  by  default.   With the -E/--empty flag, they will be
+     Transactions  aren't  required  to  have a code, and missing or empty codes
+     will not be shown by default.  With  the  -E/--empty  flag,  they  will  be
      printed as blank lines.
 
      You can add a query to select a subset of transactions.
@@ -8454,21 +8422,21 @@ Basic report commands
      Most of these flags can be combined.  Some kinds of query argument are sup-
      ported: cur:, tag:, and date: (also -b/-e/-p report period options).
 
-     Providing a date query will affect which commodities are reported, as  fol-
+     Providing  a date query will affect which commodities are reported, as fol-
      lows:
 
      Flag         No date query                   With a date query
      -----------------------------------------------------------------------------
-     (none)       declared   a   transacted  a    (transacted a  priced)  in  the
+     (none)       declared  a   transacted   a    (transacted  a  priced)  in the
                   priced                          period
      --used       transacted in the journal       transacted in the period
-     --priced     appearing in any P directive    appearing  in  a P directive in
+     --priced     appearing in any P directive    appearing in a P  directive  in
                                                   the period
      --declared   declared  with  a  commodity    same
                   directive
-     --unde-      (transacted  a priced) a de-    (transacted a priced in the pe-
+     --unde-      (transacted a priced) a  de-    (transacted a priced in the pe-
      clared       clared                          riod) a declared
-     --unused     declared  a  (transacted   a    same
+     --unused     declared   a  (transacted  a    same
                   priced)
      --find       the first commodity matching    same
                   the argument
@@ -8481,7 +8449,7 @@ Basic report commands
             Flags:
             no command-specific flags
 
-     This  command lists the unique descriptions that appear in transactions, in
+     This command lists the unique descriptions that appear in transactions,  in
      alphabetic order.  You can add a query to select a subset of transactions.
 
      Example:
@@ -8492,8 +8460,8 @@ Basic report commands
             Person A
 
    files
-     List all files included in the journal.  With a REGEX argument,  only  file
-     names matching the regular expression (case sensitive) are shown.
+     List  all  input files used by the journal(s).  With a REGEX argument, only
+     file names matching the regular expression (case sensitive) are shown.
 
             Flags:
             no command-specific flags
@@ -8504,9 +8472,9 @@ Basic report commands
             Flags:
             no command-specific flags
 
-     This  command lists the unique notes that appear in transactions, in alpha-
-     betic order.  You can add a query to select a subset of transactions.   The
-     note  is the part of the transaction description after a | character (or if
+     This command lists the unique notes that appear in transactions, in  alpha-
+     betic  order.  You can add a query to select a subset of transactions.  The
+     note is the part of the transaction description after a | character (or  if
      there is no |, the whole description).
 
      Example:
@@ -8526,13 +8494,13 @@ Basic report commands
                  --find                 list the first payee matched by the first
                                         argument (a case-insensitive infix regexp)
 
-     This command lists unique payee/payer names - all of them  by  default,  or
+     This  command  lists  unique payee/payer names - all of them by default, or
      just the ones which have been used in transaction descriptions, or declared
-     with  payee directives, or used but not declared, or declared but not used,
-     or just the first one matched  by  a  pattern  (with  --find,  returning  a
+     with payee directives, or used but not declared, or declared but not  used,
+     or  just  the  first  one  matched  by  a pattern (with --find, returning a
      non-zero exit code if it fails).
 
-     The  payee/payer name is the part of the transaction description before a |
+     The payee/payer name is the part of the transaction description before a  |
      character (or if there is no |, the whole description).
 
      You can add query arguments to select a subset of transactions or payees.
@@ -8545,9 +8513,9 @@ Basic report commands
             Person A
 
    prices
-     Print the market prices declared  with  P  directives.   With  --infer-mar-
-     ket-prices,  also  show  any  additional  prices inferred from costs.  With
-     --show-reverse, also show additional prices  inferred  by  reversing  known
+     Print  the  market  prices  declared  with P directives.  With --infer-mar-
+     ket-prices, also show any additional  prices  inferred  from  costs.   With
+     --show-reverse,  also  show  additional  prices inferred by reversing known
      prices.
 
             Flags:
@@ -8557,25 +8525,25 @@ Basic report commands
                                         of listing them
                  --locations            also show where prices where declared
 
-     With  --locations,  each  price  line gets a trailing ; location: FILE:LINE
-     comment showing where it came from.  Declared prices point at their  P  di-
+     With --locations, each price line gets a  trailing  ;  location:  FILE:LINE
+     comment  showing  where it came from.  Declared prices point at their P di-
      rective; prices inferred from costs point at the parent transaction's first
-     line.   Reversed prices keep the source position of the directive they were
+     line.  Reversed prices keep the source position of the directive they  were
      derived from.
 
-     Price amounts are always displayed with their full  precision,  except  for
+     Price  amounts  are  always displayed with their full precision, except for
      reverse prices which are limited to 8 decimal digits.
 
      Prices can be filtered by a date:, cur: or amt: query.
 
-     Generally  if  you  run  this command with --infer-market-prices --show-re-
-     verse, it will show the same prices used internally to calculate value  re-
-     ports.   But  if  in  doubt,  you can inspect those directly by running the
+     Generally if you run this  command  with  --infer-market-prices  --show-re-
+     verse,  it will show the same prices used internally to calculate value re-
+     ports.  But if in doubt, you can inspect  those  directly  by  running  the
      value report with --debug=2.
 
    prices summary
      With --summary, instead of listing individual prices, prices prints one row
-     per commodity used in the journal (other than the base currency), with  the
+     per  commodity used in the journal (other than the base currency), with the
      following columns:
 
      * Commodity -- the commodity, as an ISO 4217 code if possible.
@@ -8586,14 +8554,14 @@ Basic report commands
 
      * Period -- the duration between earliest and latest.
 
-     * Coverage  --  the percentage of weekdays in that period that have a price
+     * Coverage -- the percentage of weekdays in that period that have  a  price
        declared (or blank when fewer than two prices).
 
      Summary mode is a quick way to spot gaps in your price data, and pairs nat-
      urally with getprices.  Only prices declared with P directives are counted;
      prices inferred with --show-reverse or --infer-market-prices are ignored.
 
-     Queries (cur:, date:, amt:) can be used to narrow the prices that are  sum-
+     Queries  (cur:, date:, amt:) can be used to narrow the prices that are sum-
      marised.
 
    stats
@@ -8604,8 +8572,8 @@ Basic report commands
               -v --verbose              show more detailed output
               -o --output-file=FILE     write output to FILE.
 
-     The  stats  command  shows  summary information for the whole journal, or a
-     matched part of it.  With a reporting interval, it shows a report for  each
+     The stats command shows summary information for the  whole  journal,  or  a
+     matched  part of it.  With a reporting interval, it shows a report for each
      report period.
 
      It also shows some performance statistics:
@@ -8618,13 +8586,13 @@ Basic report commands
 
      * the peak allocated memory as seen by the program
 
-     By  default,  the  output  is reasonably discreet; it reveals the main file
+     By default, the output is reasonably discreet; it  reveals  the  main  file
      name, your activity level, and the speed of your machine.
 
      With -v/--verbose, more details are shown: the full paths of all files, and
      the names of the commodities you work with.
 
-     With -1, only one line of output is shown, in a machine-friendly  tab-sepa-
+     With  -1, only one line of output is shown, in a machine-friendly tab-sepa-
      rated format: the program version, the main journal file name, and the per-
      formance stats,
 
@@ -8667,15 +8635,15 @@ Basic report commands
                  --parsed               show them in the order they were parsed (mostly),
                                         including duplicates
 
-     This  command  lists  tag  names - all of them by default, or just the ones
-     which have been used on transactions/postings/accounts,  or  declared  with
+     This command lists tag names - all of them by default,  or  just  the  ones
+     which  have  been  used on transactions/postings/accounts, or declared with
      tag directives, or used but not declared, or declared but not used, or just
-     the  first one matched by a pattern (with --find, returning a non-zero exit
+     the first one matched by a pattern (with --find, returning a non-zero  exit
      code if it fails).
 
-     Note this command's non-standard first argument: it is  a  case-insensitive
-     infix  regular  expression  for  matching  tag names, which limits the tags
-     shown.  Any additional arguments are standard query arguments, which  limit
+     Note  this  command's non-standard first argument: it is a case-insensitive
+     infix regular expression for matching tag  names,  which  limits  the  tags
+     shown.   Any additional arguments are standard query arguments, which limit
      the transactions, postings, or accounts providing tags.
 
      With --values, the tags' unique non-empty values are listed instead.
@@ -8683,16 +8651,17 @@ Basic report commands
      With -E/--empty, blank/empty values are also shown.
 
      With --parsed, tags or values are shown in the order they were parsed, with
-     duplicates  included.   (Except,  tags from account declarations are always
+     duplicates included.  (Except, tags from account  declarations  are  always
      shown first.)
 
-     Remember that accounts also acquire tags from their parents; postings  also
-     acquire  tags from their account and transaction; and transactions also ac-
+     Remember  that accounts also acquire tags from their parents; postings also
+     acquire tags from their account and transaction; and transactions also  ac-
      quire tags from their postings.
 
 Standard report commands
    print
-     Show full journal entries, representing transactions.
+     Show  transactions' journal entries, or export journal data to another for-
+     mat.
 
             Flags:
                  --oneline              show transaction dates and descriptions only
@@ -9070,7 +9039,7 @@ Standard report commands
    register
      (reg)
 
-     Show postings and their running total.
+     Show postings & running total across accounts.
 
             Flags:
                  --cumulative           accumulation mode: show running total from report
@@ -9328,9 +9297,9 @@ Standard report commands
    balancesheetequity
      (bse)
 
-     This command displays a balance sheet, showing historical  ending  balances
-     of  asset,  liability  and  equity accounts.  Amounts are shown with normal
-     positive sign, as in conventional financial statements.
+     Show a balance sheet, with historical ending balances of  asset,  liability
+     and  equity  accounts.   Amounts are shown with normal positive sign, as in
+     conventional financial statements.
 
             Flags:
                  --sum                  calculation mode: show sum of posting amounts
@@ -9428,10 +9397,9 @@ Standard report commands
    cashflow
      (cf)
 
-     This  command  displays  a (simple) cashflow statement, showing the inflows
-     and outflows affecting "cash"  (ie,  liquid,  easily  convertible)  assets.
-     Amounts  are  shown with normal positive sign, as in conventional financial
-     statements.
+     Show a (simple) cashflow statement, with the inflows and outflows affecting
+     "cash"  (ie,  liquid,  easily  convertible) assets.  Amounts are shown with
+     normal positive sign, as in conventional financial statements.
 
             Flags:
                  --sum                  calculation mode: show sum of posting amounts
@@ -9619,9 +9587,9 @@ Advanced report commands
    balance
      (bal)
 
-     A flexible, general purpose "summing" report that shows accounts with  some
-     kind  of  numeric  data.   This can be balance changes per period, end bal-
-     ances, budget performance, capital gains, etc.
+     Show accounts with some kind of summed numeric data:  balance  changes  per
+     period, end balances on period end dates, simple capital gains, budget goal
+     performance, etc.
 
             Flags:
                  --sum                  calculation mode: show sum of posting amounts
@@ -9689,12 +9657,12 @@ Advanced report commands
                                         one of the above formats selects that format.
 
      balance is one of hledger's oldest and most versatile commands, for listing
-     account balances, balance changes, values, value changes and  more,  during
-     one  time period or many.  Generally it shows a table, with rows represent-
+     account  balances,  balance changes, values, value changes and more, during
+     one time period or many.  Generally it shows a table, with rows  represent-
      ing accounts, and columns representing periods.
 
-     Note there are some variants of the balance  command  with  convenient  de-
-     faults,  which  are simpler to use: balancesheet, balancesheetequity, cash-
+     Note  there  are  some  variants of the balance command with convenient de-
+     faults, which are simpler to use: balancesheet,  balancesheetequity,  cash-
      flow and incomestatement.  When you need more control, then use balance.
 
    balance features
@@ -9764,19 +9732,19 @@ Advanced report commands
 
      * commodities displayed on the same line or multiple lines (--layout)
 
-     This command supports the output destination  and  output  format  options,
-     with  output formats txt, csv, tsv (Added in 1.32), json, and (multi-period
-     reports only:) html, fods (Added in 1.40).  In txt output in a  colour-sup-
+     This  command  supports  the  output destination and output format options,
+     with output formats txt, csv, tsv (Added in 1.32), json, and  (multi-period
+     reports  only:) html, fods (Added in 1.40).  In txt output in a colour-sup-
      porting terminal, negative amounts are shown in red.
 
    Simple balance report
      With no arguments, balance shows a list of all accounts and their change of
-     balance  - ie, the sum of posting amounts, both inflows and outflows - dur-
+     balance - ie, the sum of posting amounts, both inflows and outflows -  dur-
      ing the entire period of the journal.  ("Simple" here means just one column
-     of numbers, covering a single period.  You can also have  multi-period  re-
+     of  numbers,  covering a single period.  You can also have multi-period re-
      ports, described later.)
 
-     For  real-world  accounts, these numbers will normally be their end balance
+     For real-world accounts, these numbers will normally be their  end  balance
      at the end of the journal period; more on this below.
 
      Accounts are sorted by declaration order if any, and then alphabetically by
@@ -9793,8 +9761,8 @@ Advanced report commands
             --------------------
                                0
 
-     Accounts with a zero balance (and no non-zero subaccounts, in tree  mode  -
-     see  below)  are hidden by default.  Use -E/--empty to show them (revealing
+     Accounts  with  a zero balance (and no non-zero subaccounts, in tree mode -
+     see below) are hidden by default.  Use -E/--empty to show  them  (revealing
      assets:bank:checking here):
 
             $ hledger -f examples/sample.journal bal  -E
@@ -9809,7 +9777,7 @@ Advanced report commands
             --------------------
                                0
 
-     The total of the amounts displayed  is  shown  as  the  last  line,  unless
+     The  total  of  the  amounts  displayed  is  shown as the last line, unless
      -N/--no-total is used.
 
    Balance report line format
@@ -9842,14 +9810,14 @@ Advanced report commands
 
      * FIELDNAME must be enclosed in parentheses, and can be one of:
 
-       * depth_spacer  -  a number of spaces equal to the account's depth, or if
+       * depth_spacer - a number of spaces equal to the account's depth,  or  if
          MIN is specified, MIN * depth spaces.
 
        * account - the account's name
 
        * total - the account's balance/posted total, right justified
 
-     Also, FMT can begin with an optional prefix to control how  multi-commodity
+     Also,  FMT can begin with an optional prefix to control how multi-commodity
      amounts are rendered:
 
      * %_ - render on multiple lines, bottom-aligned (the default)
@@ -9859,7 +9827,7 @@ Advanced report commands
      * %, - render on one line, comma-separated
 
      There are some quirks.  Eg in one-line mode, %(depth_spacer) has no effect,
-     instead  %(account)  has  indentation  built  in.    Experimentation may be
+     instead %(account) has  indentation  built  in.    Experimentation  may  be
      needed to get pleasing results.
 
      Some example formats:
@@ -9874,12 +9842,12 @@ Advanced report commands
 
      * %20(total)  %2(depth_spacer)%-(account) - the default format for the sin-
        gle-column balance report.  The total field keeps this 20-character width
-       as a minimum, but widens automatically when displayed amounts  need  more
+       as  a  minimum, but widens automatically when displayed amounts need more
        room.
 
    Filtered balance report
-     You  can  show fewer accounts, a different time period, totals from cleared
-     transactions only, etc.  by using query arguments or options to  limit  the
+     You can show fewer accounts, a different time period, totals  from  cleared
+     transactions  only,  etc.  by using query arguments or options to limit the
      postings being matched.  Eg:
 
             $ hledger -f examples/sample.journal bal --cleared assets date:200806
@@ -9891,7 +9859,7 @@ Advanced report commands
      By default, or with -l/--flat, accounts are shown as a flat list with their
      full names visible, as in the examples above.
 
-     With  -t/--tree,  the  account hierarchy is shown, with subaccounts' "leaf"
+     With -t/--tree, the account hierarchy is shown,  with  subaccounts'  "leaf"
      names indented below their parent:
 
             $ hledger -f examples/sample.journal balance
@@ -9910,26 +9878,26 @@ Advanced report commands
 
      Notes:
 
-     * "Boring" accounts are combined with their  subaccount  for  more  compact
-       output,  unless  --no-elide  is used.  Boring accounts have no balance of
+     * "Boring"  accounts  are  combined  with their subaccount for more compact
+       output, unless --no-elide is used.  Boring accounts have  no  balance  of
        their own and just one subaccount (eg assets:bank and liabilities above).
 
-     * All balances shown are "inclusive", ie including the  balances  from  all
-       subaccounts.   Note  this  means some repetition in the output, which re-
-       quires  explanation  when  sharing  reports  with   non-plaintextaccount-
-       ing-users.   A tree mode report's final total is the sum of the top-level
+     * All  balances  shown  are "inclusive", ie including the balances from all
+       subaccounts.  Note this means some repetition in the  output,  which  re-
+       quires   explanation  when  sharing  reports  with  non-plaintextaccount-
+       ing-users.  A tree mode report's final total is the sum of the  top-level
        balances shown, not of all the balances shown.
 
      * Each group of sibling accounts (ie, under a common parent) is sorted sep-
        arately.
 
    Depth limiting
-     With a depth:NUM query, or --depth NUM option, or just -NUM (eg:  -3)  bal-
-     ance  reports  will  show  accounts only to the specified depth, hiding the
+     With  a  depth:NUM query, or --depth NUM option, or just -NUM (eg: -3) bal-
+     ance reports will show accounts only to the  specified  depth,  hiding  the
      deeper subaccounts.  This can be useful for getting an overview without too
      much detail.
 
-     Account balances at the depth limit always include the  balances  from  any
+     Account  balances  at  the depth limit always include the balances from any
      deeper subaccounts (even in list mode).  Eg, limiting to depth 1:
 
             $ hledger -f examples/sample.journal balance -1
@@ -9941,7 +9909,7 @@ Advanced report commands
                                0
 
    Dropping top-level accounts
-     You  can  also  hide one or more top-level account name parts, using --drop
+     You can also hide one or more top-level account name  parts,  using  --drop
      NUM.  This can be useful for hiding repetitive top-level account names:
 
             $ hledger -f examples/sample.journal bal expenses --drop 1
@@ -9951,50 +9919,50 @@ Advanced report commands
                               $2
 
    Showing declared accounts
-     With --declared, accounts which have been declared with an  account  direc-
-     tive  will be included in the balance report, even if they have no transac-
+     With  --declared,  accounts which have been declared with an account direc-
+     tive will be included in the balance report, even if they have no  transac-
      tions.  (Since they will have a zero balance, you will also need -E/--empty
      to see them.)
 
-     More precisely, leaf declared accounts (with no subaccounts)  will  be  in-
+     More  precisely,  leaf  declared accounts (with no subaccounts) will be in-
      cluded, since those are usually the more useful in reports.
 
-     The  idea  of this is to be able to see a useful "complete" balance report,
+     The idea of this is to be able to see a useful "complete"  balance  report,
      even when you don't have transactions in all of your declared accounts yet.
 
    Sorting by amount
-     With -S/--sort-amount, accounts with the largest (most  positive)  balances
+     With  -S/--sort-amount,  accounts with the largest (most positive) balances
      are shown first.  Eg: hledger bal expenses -MAS shows your biggest averaged
      monthly expenses first.  When more than one commodity is present, they will
-     be  sorted by the alphabetically earliest commodity first, and then by sub-
-     sequent commodities (if an amount is missing a commodity, it is treated  as
+     be sorted by the alphabetically earliest commodity first, and then by  sub-
+     sequent  commodities (if an amount is missing a commodity, it is treated as
      0).
 
-     Revenues  and  liability  balances  are  typically negative, however, so -S
+     Revenues and liability balances are  typically  negative,  however,  so  -S
      shows these in reverse order.  To work around this, you can add --invert to
-     flip the signs.  Or you could use one of the higher-level  balance  reports
+     flip  the  signs.  Or you could use one of the higher-level balance reports
      (bs, is..), which flip the sign automatically (eg: hledger is -MAS).
 
    Percentages
      With -%/--percent, balance reports show each account's value expressed as a
      percentage of the (column) total.
 
-     Note  it  is not useful to calculate percentages if the amounts in a column
+     Note it is not useful to calculate percentages if the amounts in  a  column
      have mixed signs.  In this case, make a separate report for each sign, eg:
 
             $ hledger bal -% amt:`>0`
             $ hledger bal -% amt:`<0`
 
-     Similarly, if the amounts in a column have mixed commodities, convert  them
-     to  one commodity with -B, -V, -X or --value, or make a separate report for
+     Similarly,  if the amounts in a column have mixed commodities, convert them
+     to one commodity with -B, -V, -X or --value, or make a separate report  for
      each commodity:
 
             $ hledger bal -% cur:\\$
             $ hledger bal -% cur:a
 
    Multi-period balance report
-     With a report interval (set by the -D/--daily,  -W/--weekly,  -M/--monthly,
-     -Q/--quarterly,  -Y/--yearly, or -p/--period flag), balance shows a tabular
+     With  a  report interval (set by the -D/--daily, -W/--weekly, -M/--monthly,
+     -Q/--quarterly, -Y/--yearly, or -p/--period flag), balance shows a  tabular
      report, with columns representing successive time periods (and a title):
 
             $ hledger -f examples/sample.journal bal --quarterly income expenses -E
@@ -10012,33 +9980,33 @@ Advanced report commands
      Notes:
 
      * The report's start/end dates will be expanded, if necessary, to fully en-
-       compass the displayed subperiods (so that the first and  last  subperiods
+       compass  the  displayed subperiods (so that the first and last subperiods
        have the same duration as the others).
 
-     * Leading  and  trailing  periods  (columns)  containing all zeroes are not
+     * Leading and trailing periods (columns)  containing  all  zeroes  are  not
        shown, unless -E/--empty is used.
 
      * Accounts (rows) containing all zeroes are not shown, unless -E/--empty is
        used.
 
-     * Amounts with many commodities  are  shown  in  abbreviated  form,  unless
+     * Amounts  with  many  commodities  are  shown  in abbreviated form, unless
        --no-elide is used.
 
-     * Average  and/or  total  columns  can  be  added with the -A/--average and
+     * Average and/or total columns can  be  added  with  the  -A/--average  and
        -T/--row-total flags.
 
      * The --transpose flag can be used to exchange rows and columns.  Repeating
-       it reverses its effect (an even number of --transpose flags  has  no  ef-
+       it  reverses  its  effect (an even number of --transpose flags has no ef-
        fect).
 
-     * The  --pivot FIELD option causes a different transaction field to be used
+     * The --pivot FIELD option causes a different transaction field to be  used
        as "account name".  See PIVOTING.
 
-     * The --summary-only flag (--summary also works) hides all  but  the  Total
-       and  Average  columns  (those  should  be  enabled  with  --row-total and
+     * The  --summary-only  flag  (--summary also works) hides all but the Total
+       and Average  columns  (those  should  be  enabled  with  --row-total  and
        -A/--average).
 
-     Multi-period reports with many periods can be too wide for easy viewing  in
+     Multi-period  reports with many periods can be too wide for easy viewing in
      the terminal.  Here are some ways to handle that:
 
      * Hide the totals row with -N/--no-total
@@ -10056,47 +10024,47 @@ Advanced report commands
      * View with a pager like less, eg: hledger bal -D --color=yes | less -RS
 
      * Output as CSV and use a CSV viewer like visidata (hledger bal -D -O csv |
-       vd  -f  csv),  Emacs'  csv-mode (M-x csv-mode, C-c C-a), or a spreadsheet
+       vd -f csv), Emacs' csv-mode (M-x csv-mode, C-c  C-a),  or  a  spreadsheet
        (hledger bal -D -o a.csv && open a.csv)
 
-     * Output as HTML and view with a browser: hledger bal -D -o a.html &&  open
+     * Output  as HTML and view with a browser: hledger bal -D -o a.html && open
        a.html
 
    Balance change, end balance
-     It's  important  to be clear on the meaning of the numbers shown in balance
+     It's important to be clear on the meaning of the numbers shown  in  balance
      reports.  Here is some terminology we use:
 
-     A balance change is the net amount added to, or removed  from,  an  account
+     A  balance  change  is the net amount added to, or removed from, an account
      during some period.
 
      An end balance is the amount accumulated in an account as of some date (and
-     some  time, but hledger doesn't store that; assume end of day in your time-
+     some time, but hledger doesn't store that; assume end of day in your  time-
      zone).  It is the sum of previous balance changes.
 
-     We call it a historical end balance if  it  includes  all  balance  changes
-     since  the  account  was  created.  For a real world account, this means it
-     will match the "historical record", eg the balances reported in  your  bank
+     We  call  it  a  historical  end balance if it includes all balance changes
+     since the account was created.  For a real world  account,  this  means  it
+     will  match  the "historical record", eg the balances reported in your bank
      statements or bank web UI.  (If they are correct!)
 
-     In  general,  balance  changes are what you want to see when reviewing rev-
-     enues and expenses, and historical end balances are what you  want  to  see
+     In general, balance changes are what you want to see  when  reviewing  rev-
+     enues  and  expenses,  and historical end balances are what you want to see
      when reviewing or reconciling asset, liability and equity accounts.
 
-     balance  shows  balance changes by default.  To see accurate historical end
+     balance shows balance changes by default.  To see accurate  historical  end
      balances:
 
      1. Initialise account starting balances with an "opening balances" transac-
-        tion (a transfer from equity to the account), unless the journal  covers
+        tion  (a transfer from equity to the account), unless the journal covers
         the account's full lifetime.
 
-     2. Include  all  of  of  the account's prior postings in the report, by not
-        specifying a report start date, or by using  the  -H/--historical  flag.
+     2. Include all of of the account's prior postings in  the  report,  by  not
+        specifying  a  report  start date, or by using the -H/--historical flag.
         (-H causes report start date to be ignored when summing postings.)
 
    Balance report modes
-     The  balance  command  is quite flexible; here is the full detail on how to
+     The balance command is quite flexible; here is the full detail  on  how  to
      control what it reports.  If the following seems complicated, don't worry -
-     this is for advanced reporting, and it does take time  and  experimentation
+     this  is  for advanced reporting, and it does take time and experimentation
      to get familiar with all the report modes.
 
      There are three important option groups:
@@ -10108,65 +10076,65 @@ Advanced report commands
 
      * --sum : sum the posting amounts (default)
 
-     * --budget  :  sum  the  amounts, but also show the budget goal amount (for
+     * --budget : sum the amounts, but also show the  budget  goal  amount  (for
        each account/period)
 
-     * --valuechange : show the change in period-end historical  balance  values
+     * --valuechange  :  show the change in period-end historical balance values
        (caused by deposits, withdrawals, and/or market price fluctuations)
 
      * --gain : show capital gain/loss for each account: the current valued bal-
        ance minus the net of postings' transacted costs (acquisition costs minus
        disposal proceeds).  For accounts where nothing has been sold this equals
-       the  unrealised  gain;  once disposals exist the figure also includes re-
-       alised gain on the disposed units, so it is  best  read  as  "total  gain
-       since  inception".   To  track realised gain separately, use lot notation
+       the unrealised gain; once disposals exist the figure  also  includes  re-
+       alised  gain  on  the  disposed  units, so it is best read as "total gain
+       since inception".  To track realised gain separately,  use  lot  notation
        (see Lot reporting).
 
      * --count : show the count of postings
 
    Accumulation mode
-     How amounts should accumulate across a  report's  subperiods/columns.   An-
+     How  amounts  should  accumulate across a report's subperiods/columns.  An-
      other way to say it: which time period's postings should contribute to each
      cell's calculation.  It is one of:
 
-     * --change  :  calculate  with postings from column start to column end, ie
-       "just this column".  Typically used to see  revenues/expenses.   (default
+     * --change : calculate with postings from column start to  column  end,  ie
+       "just  this  column".  Typically used to see revenues/expenses.  (default
        for balance, cashflow, incomestatement)
 
-     * --cumulative  :  calculate with postings from report start to column end,
-       ie "previous columns plus this column".  Typically used to  show  changes
+     * --cumulative : calculate with postings from report start to  column  end,
+       ie  "previous  columns plus this column".  Typically used to show changes
        accumulated since the report's start date.  Not often used.
 
-     * --historical/-H  :  calculate  with postings from journal start to column
-       end, ie "all postings from before report start date until  this  column's
-       end".   Typically  used to see historical end balances of assets/liabili-
+     * --historical/-H : calculate with postings from journal  start  to  column
+       end,  ie  "all postings from before report start date until this column's
+       end".  Typically used to see historical end balances  of  assets/liabili-
        ties/equity.  (default for balancesheet, balancesheetequity)
 
    Valuation mode
-     Which kind of value or cost conversion should be applied,  if  any,  before
-     displaying  the  report.   See  Cost reporting and Value reporting for more
+     Which  kind  of  value or cost conversion should be applied, if any, before
+     displaying the report.  See Cost reporting and  Value  reporting  for  more
      about conversions.
 
      A valuation (or cost) mode can be selected with the --value option:
 
      * no conversion : don't convert to cost or value (default)
 
-     * --value=cost[,COMM] : convert amounts to cost (then  optionally  to  some
+     * --value=cost[,COMM]  :  convert  amounts to cost (then optionally to some
        other commodity)
 
-     * --value=then[,COMM]  :  convert  amounts  to  market value on transaction
+     * --value=then[,COMM] : convert amounts  to  market  value  on  transaction
        dates
 
-     * --value=end[,COMM] : convert  amounts  to  market  value  on  period  end
+     * --value=end[,COMM]  :  convert  amounts  to  market  value  on period end
        date(s)
      (default with --valuechange, --gain)
 
      * --value=now[,COMM] : convert amounts to market value on today's date
 
-     * --value=YYYY-MM-DD[,COMM]  :  convert  amounts to market value on another
+     * --value=YYYY-MM-DD[,COMM] : convert amounts to market  value  on  another
        date
 
-     or with the legacy -B/-V/-X options, which are  equivalent  and  easier  to
+     or  with  the  legacy  -B/-V/-X options, which are equivalent and easier to
      type:
 
      * -B/--cost : like --value=cost
@@ -10175,11 +10143,11 @@ Advanced report commands
 
      * -X COMM/--exchange COMM : like --value=end,COMM
 
-     Note  that --value can also convert to cost, as a convenience; but actually
+     Note that --value can also convert to cost, as a convenience; but  actually
      --cost and --value are independent options, and could be used together.
 
    Combining balance report modes
-     Most combinations of these modes should produce reasonable reports, but  if
+     Most  combinations of these modes should produce reasonable reports, but if
      you find any that seem wrong or misleading, let us know.  The following re-
      strictions are applied:
 
@@ -10190,7 +10158,7 @@ Advanced report commands
 
      * --cumulative or --historical disables --row-total/-T
 
-     For reference, here is what the combinations of accumulation and  valuation
+     For  reference, here is what the combinations of accumulation and valuation
      show:
 
      Valua-     no valuation       --value= then       --value= end      --value=
@@ -10198,33 +10166,33 @@ Advanced report commands
      Accumu-                                                             /now
      lation:v
      -----------------------------------------------------------------------------------
-     --change   change in period   sum    of   post-   period-end        DATE-value  of
-                                   ing-date   market   value of change   change in  pe-
+     --change   change in period   sum   of    post-   period-end        DATE-value  of
+                                   ing-date   market   value of change   change  in pe-
                                    values in period    in period         riod
-     --cumu-    change  from re-   sum    of   post-   period-end        DATE-value  of
-     lative     port  start   to   ing-date   market   value of change   change    from
+     --cumu-    change from  re-   sum   of    post-   period-end        DATE-value  of
+     lative     port   start  to   ing-date   market   value of change   change    from
                 period end         values  from  re-   from     report   report   start
                                    port start to pe-   start to period   to period end
                                    riod end            end
-     --his-     change      from   sum    of   post-   period-end        DATE-value  of
+     --his-     change      from   sum   of    post-   period-end        DATE-value  of
      torical    journal start to   ing-date   market   value of change   change    from
      /-H        period end (his-   values from jour-   from    journal   journal  start
-                torical end bal-   nal  start to pe-   start to period   to period end
+                torical end bal-   nal start to  pe-   start to period   to period end
                 ance)              riod end            end
 
    Budget report
-     The balance --budget report is like a regular balance report, but with  two
+     The  balance --budget report is like a regular balance report, but with two
      main differences:
 
      * Budget goals and performance percentages are also shown, in brackets
 
      * Accounts which don't have budget goals are hidden by default.
 
-     This  is useful for comparing planned and actual income, expenses, time us-
+     This is useful for comparing planned and actual income, expenses, time  us-
      age, etc.
 
-     Periodic transaction rules are used to define budget goals.   For  example,
-     here's  a  periodic rule defining monthly goals for bus travel and food ex-
+     Periodic  transaction  rules are used to define budget goals.  For example,
+     here's a periodic rule defining monthly goals for bus travel and  food  ex-
      penses:
 
             ;; Budget
@@ -10265,28 +10233,28 @@ Advanced report commands
             ---------------++--------------------------------------------
                            ||     0 [  0% of $430]      0 [  0% of $430]
 
-     This is "goal-based budgeting"; you define goals for accounts and  periods,
+     This  is "goal-based budgeting"; you define goals for accounts and periods,
      often recurring, and hledger shows performance relative to the goals.  This
-     contrasts  with  "envelope  budgeting", which is more detailed and strict -
-     useful when cash is tight, but also quite a bit more work.   https://plain-
+     contrasts with "envelope budgeting", which is more detailed  and  strict  -
+     useful  when cash is tight, but also quite a bit more work.  https://plain-
      textaccounting.org/Budgeting has more on this topic.
 
    Using the budget report
      Historically this report has been confusing and fragile.  hledger's version
-     should  be  relatively  robust  and  intuitive, but you may still find sur-
+     should be relatively robust and intuitive, but  you  may  still  find  sur-
      prises.  Here are more notes to help with learning and troubleshooting.
 
-     * In the above example, expenses:bus and expenses:food  are  shown  because
+     * In  the  above  example, expenses:bus and expenses:food are shown because
        they have budget goals during the report period.
 
-     * Their  parent  expenses  is also shown, with budget goals aggregated from
+     * Their parent expenses is also shown, with budget  goals  aggregated  from
        the children.
 
-     * The subaccounts expenses:food:groceries and expenses:food:dining are  not
+     * The  subaccounts expenses:food:groceries and expenses:food:dining are not
        shown since they have no budget goal of their own, but they contribute to
        expenses:food's actual amount.
 
-     * Unbudgeted  accounts  expenses:movies  and  expenses:gifts  are  also not
+     * Unbudgeted accounts  expenses:movies  and  expenses:gifts  are  also  not
        shown, but they contribute to expenses's actual amount.
 
      * The other unbudgeted accounts income and assets:bank:checking are grouped
@@ -10298,19 +10266,19 @@ Advanced report commands
      * Amounts are always inclusive of subaccounts (even in -l/--list mode).
 
      * Numbers displayed in a --budget report will not always agree with the to-
-       tals, because of hidden unbudgeted accounts; this is normal.   -E/--empty
+       tals,  because of hidden unbudgeted accounts; this is normal.  -E/--empty
        can be used to reveal the hidden accounts.
 
-     * In  the periodic rules used for setting budget goals, unbalanced postings
+     * In the periodic rules used for setting budget goals, unbalanced  postings
        are convenient.
 
      * You can filter budget reports with the usual queries, eg to focus on par-
-       ticular accounts.  It's common to restrict them to just  expenses.   (The
-       <unbudgeted>  account is occasionally hard to exclude; this is because of
+       ticular  accounts.   It's common to restrict them to just expenses.  (The
+       <unbudgeted> account is occasionally hard to exclude; this is because  of
        date surprises, discussed below.)
 
-     * When you have multiple currencies, you may want to convert  them  to  one
-       (-X   COMM   --infer-market-prices)  and/or  show  just  one  at  a  time
+     * When  you  have  multiple currencies, you may want to convert them to one
+       (-X  COMM  --infer-market-prices)  and/or  show  just  one  at   a   time
        (cur:COMM).  If you do need to show multiple currencies at once, --layout
        bare can be helpful.
 
@@ -10320,10 +10288,10 @@ Advanced report commands
      See also: https://hledger.org/budgeting.html.
 
    Budget date surprises
-     With small data, or when starting out, some of the  generated  budget  goal
-     transaction  dates might fall outside the report periods.  Eg with the fol-
-     lowing journal and  report,  the  first  period  appears  to  have  no  ex-
-     penses:food  budget.   (Also the <unbudgeted> account should be excluded by
+     With  small  data,  or when starting out, some of the generated budget goal
+     transaction dates might fall outside the report periods.  Eg with the  fol-
+     lowing  journal  and  report,  the  first  period  appears  to  have no ex-
+     penses:food budget.  (Also the <unbudgeted> account should be  excluded  by
      the expenses query, but isn't.):
 
             ~ monthly in 2020
@@ -10343,9 +10311,9 @@ Advanced report commands
             ---------------++--------------------
                            || $400 [80% of $500]
 
-     In this case, the budget goal transactions are generated on first  days  of
-     of  month (this can be seen with hledger print --forecast tag:generated ex-
-     penses).  Whereas the report period defaults to just the 15th day of  janu-
+     In  this  case, the budget goal transactions are generated on first days of
+     of month (this can be seen with hledger print --forecast tag:generated  ex-
+     penses).   Whereas the report period defaults to just the 15th day of janu-
      ary (this can be seen from the report table's column headings).
 
      To fix this kind of thing, be more explicit about the report period (and/or
@@ -10353,47 +10321,47 @@ Advanced report commands
 
    Selecting budget goals
      By default, the budget report uses all available periodic transaction rules
-     to  generate  goals.   This includes rules with a different report interval
+     to generate goals.  This includes rules with a  different  report  interval
      from your report.  Eg if you have daily, weekly and monthly periodic rules,
      all of these will contribute to the goals in a monthly budget report.
 
-     You can select a subset of periodic rules by providing an argument  to  the
-     --budget  flag.   --budget=DESCPAT  will match all periodic rules whose de-
+     You  can  select a subset of periodic rules by providing an argument to the
+     --budget flag.  --budget=DESCPAT will match all periodic  rules  whose  de-
      scription contains DESCPAT, a case-insensitive substring (not a regular ex-
-     pression or query).  This means you can give your periodic  rules  descrip-
-     tions  (remember  that  two spaces are needed between period expression and
-     description), and then select from multiple budgets defined in  your  jour-
+     pression  or  query).  This means you can give your periodic rules descrip-
+     tions (remember that two spaces are needed between  period  expression  and
+     description),  and  then select from multiple budgets defined in your jour-
      nal.
 
    Budgeting vs forecasting
-     --forecast  and  --budget  both  use  the periodic transaction rules in the
+     --forecast and --budget both use the  periodic  transaction  rules  in  the
      journal to generate temporary transactions for reporting purposes.  However
-     they are separate features - though you can use both at the  same  time  if
+     they  are  separate  features - though you can use both at the same time if
      you want.  Here are some differences between them:
 
      --forecast                               --budget
      --------------------------------------------------------------------------
-     is  a general option; it enables fore-   is a balance command option;  it
-     casting with all reports                 selects   the  balance  report's
+     is a general option; it enables  fore-   is  a balance command option; it
+     casting with all reports                 selects  the  balance   report's
                                               budget mode
-     generates visible  transactions  which   generates invisible transactions
+     generates  visible  transactions which   generates invisible transactions
      appear in reports                        which produce goal amounts
-     generates  forecast  transactions from   generates budget  goal  transac-
-     after the last regular transaction, to   tions  throughout the report pe-
-     the end of the report period; or  with   riod, optionally  restricted  by
-     an argument --forecast=PERIODEXPR gen-   periods  specified  in the peri-
-     erates  them  throughout the specified   odic transaction rules
-     period, both optionally restricted  by
-     periods   specified  in  the  periodic
+     generates forecast  transactions  from   generates  budget  goal transac-
+     after the last regular transaction, to   tions throughout the report  pe-
+     the  end of the report period; or with   riod,  optionally  restricted by
+     an argument --forecast=PERIODEXPR gen-   periods specified in  the  peri-
+     erates them throughout  the  specified   odic transaction rules
+     period,  both optionally restricted by
+     periods  specified  in  the   periodic
      transaction rules
      uses all periodic rules                  uses all periodic rules; or with
                                               an   argument   --budget=DESCPAT
-                                              uses  just  the rules matched by
+                                              uses just the rules  matched  by
                                               DESCPAT
 
    Balance report layout
      The --layout option affects how balance and the other balance-like commands
-     show multi-commodity amounts and commodity symbols.  It can  improve  read-
+     show  multi-commodity  amounts and commodity symbols.  It can improve read-
      ability, for humans and/or machines (other software).  It has four possible
      values:
 
@@ -10402,11 +10370,11 @@ Advanced report commands
 
      * --layout=tall: each commodity is shown on a separate line
 
-     * --layout=bare:  commodity  symbols  are  in their own column, amounts are
+     * --layout=bare: commodity symbols are in their  own  column,  amounts  are
        bare numbers
 
-     * --layout=tidy: data is normalised to easily-consumed  "tidy"  form,  with
-       one  row  per  data  value.  (This one is currently supported only by the
+     * --layout=tidy:  data  is  normalised to easily-consumed "tidy" form, with
+       one row per data value.  (This one is currently  supported  only  by  the
        balance command.)
 
      Here are the --layout modes supported by each output format Only CSV output
@@ -10445,7 +10413,7 @@ Advanced report commands
                               || 10.00 ITOT, 337.18 USD, 2 more..  70.00 GLD, 18.00 ITOT, 3 more..  -11.00 ITOT, 3 more..  70.00 GLD, 17.00 ITOT, 3 more..
 
    Tall layout
-     Each commodity gets a new line (may be different in each column),  and  ac-
+     Each  commodity  gets a new line (may be different in each column), and ac-
      count names are repeated:
 
             $ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -T -Y --layout=tall
@@ -10466,7 +10434,7 @@ Advanced report commands
                               ||              18.00 VHT                294.00 VHT
 
    Bare layout
-     Commodity  symbols  are kept in one column, each commodity has its own row,
+     Commodity symbols are kept in one column, each commodity has its  own  row,
      amounts are bare numbers, account names are repeated:
 
             $ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -T -Y --layout=bare
@@ -10486,7 +10454,7 @@ Advanced report commands
                               || VEA         12.00   10.00    14.00    36.00
                               || VHT        106.00   18.00   170.00   294.00
 
-     Bare layout also affects CSV output, which is  useful  for  producing  data
+     Bare  layout  also  affects  CSV output, which is useful for producing data
      that is easier to consume, eg for making charts:
 
             $ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -O csv --layout=bare
@@ -10502,16 +10470,16 @@ Advanced report commands
             "Total:","VEA","36.00"
             "Total:","VHT","294.00"
 
-     Bare  layout  will sometimes display an extra row for the no-symbol commod-
+     Bare layout will sometimes display an extra row for the  no-symbol  commod-
      ity, because of zero amounts (hledger treats zeroes as commodity-less, usu-
-     ally).  This can break hledger-bar  confusingly  (workaround:  add  a  cur:
+     ally).   This  can  break  hledger-bar  confusingly (workaround: add a cur:
      query to exclude the no-symbol row).
 
    Tidy layout
-     This        produces        normalised        "tidy        data"       (see
+     This       produces        normalised        "tidy        data"        (see
      https://cran.r-project.org/web/packages/tidyr/vignettes/tidy-data.html)
-     where every variable has its own column and each row  represents  a  single
-     data  point.   This  is the easiest kind of data for other software to con-
+     where  every  variable  has its own column and each row represents a single
+     data point.  This is the easiest kind of data for other  software  to  con-
      sume:
 
             $ hledger -f examples/bcexample.journal bal assets:us:etrade -3 -Y -O csv --layout=tidy
@@ -10533,21 +10501,21 @@ Advanced report commands
             "Assets:US:ETrade","2014","2014-01-01","2014-12-31","VHT","170.00"
 
    Balance report output
-     As noted in Output format, if you choose HTML output (by using -O  html  or
-     -o  somefile.html), you can create a hledger.css file in the same directory
+     As  noted  in Output format, if you choose HTML output (by using -O html or
+     -o somefile.html), you can create a hledger.css file in the same  directory
      to customise the report's appearance.
 
-     The HTML and FODS output formats can generate hyperlinks to  a  hledger-web
-     register  view  for  each  account  and  period.  E.g.  if your hledger-web
+     The  HTML  and FODS output formats can generate hyperlinks to a hledger-web
+     register view for each account  and  period.   E.g.   if  your  hledger-web
      server is reachable at http://localhost:5000 then you might run the balance
-     command with the extra option  --base-url=http://localhost:5000.   You  can
+     command  with  the  extra option --base-url=http://localhost:5000.  You can
      also produce relative links, like --base-url="some/path" or --base-url="".)
 
    Some useful balance reports
      Some frequently used balance options/reports are:
 
      * bal -M revenues expenses
-     Show  revenues/expenses  in each month.  Also available as the incomestate-
+     Show revenues/expenses in each month.  Also available as  the  incomestate-
      ment command.
 
      * bal -M -H assets liabilities
@@ -10555,11 +10523,11 @@ Advanced report commands
      as the balancesheet command.
 
      * bal -M -H assets liabilities equity
-     Show historical asset/liability/equity balances at each  month  end.   Also
+     Show  historical  asset/liability/equity  balances at each month end.  Also
      available as the balancesheetequity command.
 
      * bal -M assets not:receivable
-     Show  changes  to liquid assets in each month.  Also available as the cash-
+     Show changes to liquid assets in each month.  Also available as  the  cash-
      flow command.
 
      Also:
@@ -10573,7 +10541,7 @@ Advanced report commands
      * bal -M --valuechange investments
      Show monthly change in market value of investment assets.
 
-     * bal investments --valuechange -D date:lastweek  amt:'>1000'  -STA  [--in-
+     * bal  investments  --valuechange  -D date:lastweek amt:'>1000' -STA [--in-
        vert]
      Show top gainers [or losers] last week
 
@@ -10605,65 +10573,65 @@ Advanced report commands
 
      This command is a work in progress.
 
-     It  shows  the assets held in lot-tracked accounts (see Lots) as of the re-
-     port end date: one row per account, or one row per lot with  --lots.   With
+     It shows the assets held in lot-tracked accounts (see Lots) as of  the  re-
+     port  end  date: one row per account, or one row per lot with --lots.  With
      --tree, accounts are shown as a tree, with parent rows aggregating the lots
-     beneath  them;  --depth  limits and aggregates the displayed rows as usual.
-     With -S/--sort-amount, rows are sorted by market value (or  by  cost,  when
-     unpriced),  largest  first.   The  report title ("Holdings on DATE") can be
-     customised with --title=TEXT, or suppressed with --title="".  Columns  show
+     beneath them; --depth limits and aggregates the displayed  rows  as  usual.
+     With  -S/--sort-amount,  rows  are sorted by market value (or by cost, when
+     unpriced), largest first.  The report title ("Holdings  on  DATE")  can  be
+     customised  with --title=TEXT, or suppressed with --title="".  Columns show
      each holding's acquisition date and age (when the row's lots share a single
-     date;  ages  are  shown in days, or from one year in years with one decimal
-     digit, eg 44d or 1.1y, approximating years as 365 days),  the  units  held,
-     the  unit  cost  (or  average cost, on rows aggregating multiple lots), the
-     current market price, the total cost basis, the market value, the  percent-
-     age  of  the portfolio's total value (Weight), the unrealised gain and gain
-     percent (UGain, UGain%), the realised gain from disposals so  far  (RGain),
-     and  the  annualised internal rate of return (XIRR, calculated from the ac-
-     count's dated cashflows and current value, like roi's IRR; it includes  re-
-     alised  gains).   In the totals row, RGain and XIRR are account-level: they
-     also include fully disposed lots, which have no row of their own  (eg  with
+     date; ages are shown in days, or from one year in years  with  one  decimal
+     digit,  eg  44d  or 1.1y, approximating years as 365 days), the units held,
+     the unit cost (or average cost, on rows  aggregating  multiple  lots),  the
+     current  market price, the total cost basis, the market value, the percent-
+     age of the portfolio's total value (Weight), the unrealised gain  and  gain
+     percent  (UGain,  UGain%), the realised gain from disposals so far (RGain),
+     and the annualised internal rate of return (XIRR, calculated from  the  ac-
+     count's  dated cashflows and current value, like roi's IRR; it includes re-
+     alised gains).  In the totals row, RGain and XIRR are  account-level:  they
+     also  include  fully disposed lots, which have no row of their own (eg with
      --lots).
 
-     Market  prices at the report date come from P directives, and from transac-
-     tion costs with --infer-market-prices, as usual;  holdings  are  valued  in
-     their  cost  commodity  when possible.  When a holding has no market price,
+     Market prices at the report date come from P directives, and from  transac-
+     tion  costs  with  --infer-market-prices,  as usual; holdings are valued in
+     their cost commodity when possible.  When a holding has  no  market  price,
      its Price, Value and gain columns are left blank.
 
      With -V, -X COMM or --value (Valuation), holdings are valued in the default
-     or given valuation commodity instead, and the cost columns  are  also  con-
-     verted  to  it  (at  the  valuation  date,  so percent gain is unaffected).
-     --value=then is not supported, and -B/--cost has no  effect.   Amounts  are
+     or  given  valuation  commodity instead, and the cost columns are also con-
+     verted to it (at the  valuation  date,  so  percent  gain  is  unaffected).
+     --value=then  is  not  supported, and -B/--cost has no effect.  Amounts are
      displayed with their commodity's display precision (unlike lot names, which
-     can  show  more  precision);  --round can select another rounding strategy.
-     The percent columns (Weight, UGain%,  XIRR)  are  shown  with  one  decimal
-     digit,  or  with the display style configured for the % commodity (eg by -c
+     can show more precision); --round can  select  another  rounding  strategy.
+     The  percent  columns  (Weight,  UGain%,  XIRR)  are shown with one decimal
+     digit, or with the display style configured for the % commodity (eg  by  -c
      '0.00 %').
 
-     With -O csv or -O tsv, machine-readable output  is  produced  instead:  one
-     record  per  row  and commodity, with full account names, age in days, bare
-     units and gain percent numbers, gain and gain percent as  separate  fields,
-     and  no totals records.  Amounts are shown without digit group marks; as in
-     other commands' CSV output, the decimal mark follows the  commodity's  dis-
-     play  style.  (Note in tree mode, parent account records repeat the data of
+     With  -O  csv  or  -O tsv, machine-readable output is produced instead: one
+     record per row and commodity, with full account names, age  in  days,  bare
+     units  and  gain percent numbers, gain and gain percent as separate fields,
+     and no totals records.  Amounts are shown without digit group marks; as  in
+     other  commands'  CSV output, the decimal mark follows the commodity's dis-
+     play style.  (Note in tree mode, parent account records repeat the data  of
      their subaccounts.)
 
      With -O html, an HTML table is produced: like the text table, but with sin-
-     gle-line cells.  For styling, each cell has a css class naming  its  column
-     (account,  date,  age,  units, unitcost, price, cost, value, weight, ugain,
-     ugainpct, rgain, xirr; totals row cells also have coltotal), and each  com-
+     gle-line  cells.   For styling, each cell has a css class naming its column
+     (account, date, age, units, unitcost, price, cost,  value,  weight,  ugain,
+     ugainpct,  rgain, xirr; totals row cells also have coltotal), and each com-
      modity amount is enclosed in a span with class amount (eg allowing wrapping
      within amounts to be prevented).
 
-     With  -O fods, a spreadsheet document readable by LibreOffice etc.  is pro-
+     With -O fods, a spreadsheet document readable by LibreOffice etc.  is  pro-
      duced, with the same single-line cells as the html output.
 
-     With -O json, a JSON array of holding objects is produced,  with  the  same
-     fields  as  the CSV output; units and gain percents are JSON number objects
+     With  -O  json,  a JSON array of holding objects is produced, with the same
+     fields as the CSV output; units and gain percents are JSON  number  objects
      as in other commands' JSON output, and missing values are null.
 
    roi
-     Shows the money-weighted (IRR) and time-weighted (TWR) rate  of  return  on
+     Show  the  money-weighted  (IRR)  and time-weighted (TWR) rate of return on
      your investments.
 
             Flags:
@@ -10673,32 +10641,32 @@ Advanced report commands
                  --profit-loss=QUERY --pnl  query to select profit-and-loss or
                                             appreciation/valuation transactions (optional)
 
-     At  a  minimum,  you need to supply a query (which could be just an account
+     At a minimum, you need to supply a query (which could be  just  an  account
      name) to select your investment(s) with --inv.
 
-     An optional second query to identify  your  profit  and  loss  transactions
+     An  optional  second  query  to  identify your profit and loss transactions
      could be given with --pnl.  If your investment's value changes are captured
-     solely  through  price directives (rather than manual P&L journal entries),
-     or if you do not need TWR, you can simply omit --pnl, and  no  transactions
+     solely through price directives (rather than manual P&L  journal  entries),
+     or  if  you do not need TWR, you can simply omit --pnl, and no transactions
      will be classed as profit and loss in this case.
 
-     This  command  will  compute  and display the internal rate of return (IRR,
-     also known as money-weighted rate of return) and time-weighted rate of  re-
-     turn  (TWR) for your investments for the time period requested.  IRR is al-
-     ways annualized due to the way it is computed, but TWR is reported both  as
+     This command will compute and display the internal  rate  of  return  (IRR,
+     also  known as money-weighted rate of return) and time-weighted rate of re-
+     turn (TWR) for your investments for the time period requested.  IRR is  al-
+     ways  annualized due to the way it is computed, but TWR is reported both as
      a rate over the chosen reporting period and as an annual rate.
 
-     Price  directives  will  be  taken  into  account if you supply appropriate
+     Price directives will be taken  into  account  if  you  supply  appropriate
      --cost or --value flags (see VALUATION).
 
      Note, in some cases this report can fail, for these reasons:
 
-     * Error (NotBracketed): No solution for  Internal  Rate  of  Return  (IRR).
-       Possible  causes:  IRR is huge (>1000000%), balance of investment becomes
+     * Error  (NotBracketed):  No  solution  for  Internal Rate of Return (IRR).
+       Possible causes: IRR is huge (>1000000%), balance of  investment  becomes
        negative at some point in time.
 
      * Error (SearchFailed): Failed to find solution for Internal Rate of Return
-       (IRR).  Either search does not converge to a solution, or  converges  too
+       (IRR).   Either  search does not converge to a solution, or converges too
        slowly.
 
      * Error (NotBracketed): Cannot compute window IRR.  Possible cause: invest-
@@ -10708,38 +10676,38 @@ Advanced report commands
 
      Examples:
 
-     * Using   roi   to   compute   total   return   of  investment  in  stocks:
+     * Using  roi  to  compute   total   return   of   investment   in   stocks:
        https://github.com/simonmichael/hledger/blob/main/examples/invest-
        ing/roi-unrealised.ledger
 
      * Cookbook > Return on Investment: https://hledger.org/roi.html
 
    Spaces and special characters in --inv and --pnl
-     Note that --inv and --pnl's argument is a query,  and  queries  could  have
+     Note  that  --inv  and  --pnl's argument is a query, and queries could have
      several space-separated terms (see QUERIES).
 
-     To  indicate  that  all search terms form single command-line argument, you
+     To indicate that all search terms form single  command-line  argument,  you
      will need to put them in quotes (see Special characters):
 
             $ hledger roi --inv 'term1 term2 term3 ...'
 
-     If any query terms contain spaces themselves, you will need an extra  level
+     If  any query terms contain spaces themselves, you will need an extra level
      of nested quoting, eg:
 
             $ hledger roi --inv="'Assets:Test 1'" --pnl="'Equity:Unrealized Profit and Loss'"
 
    Semantics of --inv and --pnl
-     Query  supplied  to --inv has to match all transactions that are related to
+     Query supplied to --inv has to match all transactions that are  related  to
      your investment.  Transactions not matching --inv will be ignored.
 
-     In these transactions, ROI will consider postings that match  --inv  to  be
-     "investment  postings"  and  other  postings  (not  matching --inv) will be
+     In  these  transactions,  ROI will consider postings that match --inv to be
+     "investment postings" and other  postings  (not  matching  --inv)  will  be
      sorted into two categories: "cash flow" and "profit and loss", as ROI needs
-     to know which part of the investment value is your contributions and  which
+     to  know which part of the investment value is your contributions and which
      is due to the return on investment.
 
      * "Cash flow" is depositing or withdrawing money, buying or selling assets,
-       or  otherwise  converting between your investment commodity and any other
+       or otherwise converting between your investment commodity and  any  other
        commodity.  Example:
 
               2019-01-01 Investing in Snake Oil
@@ -10756,11 +10724,11 @@ Advanced report commands
                 investment:snake oil  = $57
                 equity:unrealized profit or loss
 
-     All non-investment postings are assumed to  be  "cash  flow",  unless  they
-     match  --pnl query.  Changes in value of your investment due to "profit and
+     All  non-investment  postings  are  assumed  to be "cash flow", unless they
+     match --pnl query.  Changes in value of your investment due to "profit  and
      loss" postings will be considered as part of your investment return.
 
-     Example: if you use --inv snake --pnl equity:unrealized, then  postings  in
+     Example:  if  you use --inv snake --pnl equity:unrealized, then postings in
      the example below would be classifed as:
 
             2019-01-01 Snake Oil #1
@@ -10778,57 +10746,57 @@ Advanced report commands
 
    Using roi with lots
      If your journal records lots, each disposal transaction has a balanced pair
-     of  gain  postings, by default to revenues:gain (the realised gain) and eq-
+     of gain postings, by default to revenues:gain (the realised gain)  and  eq-
      uity:unrealised-gain (reclassifying the accumulated unrealised gain).  Make
-     sure --pnl matches  both  accounts,  eg  --pnl  'revenues:gain|equity:unre-
-     alised-gain';  otherwise  the  unrealised-gain postings are counted as cash
+     sure  --pnl  matches  both  accounts,  eg --pnl 'revenues:gain|equity:unre-
+     alised-gain'; otherwise the unrealised-gain postings are  counted  as  cash
      flows in and out of the investment, distorting the report.
 
    IRR and TWR explained
-     "ROI" stands for "return on investment".  Traditionally this  was  computed
-     as  a difference between current value of investment and its initial value,
+     "ROI"  stands  for "return on investment".  Traditionally this was computed
+     as a difference between current value of investment and its initial  value,
      expressed in percentage of the initial value.
 
      However, this approach is only practical in simple cases, where the invest-
-     ment receives no in-flows or out-flows of money and the rate of  growth  is
-     fixed  over  time.   For  more complex scenarios you need different ways to
-     compute rate of return, and this command implements two of  them:  IRR  and
+     ment  receives  no in-flows or out-flows of money and the rate of growth is
+     fixed over time.  For more complex scenarios you  need  different  ways  to
+     compute  rate  of  return, and this command implements two of them: IRR and
      TWR.
 
-     Internal  rate  of return (IRR), also called money-weighted rate of return,
+     Internal rate of return (IRR), also called money-weighted rate  of  return,
      answers the question: what single constant annual interest rate, applied to
      your actual sequence of deposits and withdrawals, would produce exactly the
      ending balance you have?
 
-     IRR is inherently personal.  If you deposited a large sum  right  before  a
-     bad  period,  your  IRR  is  dragged  down - not because the investment was
-     poorly managed, but because your timing  was  bad.   Conversely,  investing
-     heavily  just before a rally makes your IRR look great.  This is what makes
-     IRR "money-weighted": periods when more of your  money  is  at  stake  con-
+     IRR  is  inherently  personal.  If you deposited a large sum right before a
+     bad period, your IRR is dragged down  -  not  because  the  investment  was
+     poorly  managed,  but  because  your timing was bad.  Conversely, investing
+     heavily just before a rally makes your IRR look great.  This is what  makes
+     IRR  "money-weighted":  periods  when  more  of your money is at stake con-
      tribute more to the result.
 
-     In  technical  terms,  IRR  uses  the  same  approach as computation of net
+     In technical terms, IRR uses  the  same  approach  as  computation  of  net
      present value, and tries to find a discount rate that makes the net present
-     value of all the cash flows of your investment add up to zero.  The  imple-
-     mentation  in  hledger produces results that match the =XIRR formula in Ex-
+     value  of all the cash flows of your investment add up to zero.  The imple-
+     mentation in hledger produces results that match the =XIRR formula  in  Ex-
      cel.
 
-     Time-weighted rate of return (TWR) strips out the effect  of  your  deposit
-     and  withdrawal  timing,  measuring the investment's own performance rather
+     Time-weighted  rate  of  return (TWR) strips out the effect of your deposit
+     and withdrawal timing, measuring the investment's  own  performance  rather
      than your experience of it.
 
-     hledger computes TWR using the BAI (Bank Administration  Institute)  Linked
-     IRR  method.   The  reporting  period  is divided into windows at each date
-     where the portfolio has a known, externally-established valuation  -  these
-     are  dates  of  price  directives or of manual balance updates recorded via
+     hledger  computes  TWR using the BAI (Bank Administration Institute) Linked
+     IRR method.  The reporting period is divided  into  windows  at  each  date
+     where  the  portfolio has a known, externally-established valuation - these
+     are dates of price directives or of manual  balance  updates  recorded  via
      --pnl transactions.  Within each window, if no cash flows occurred, the re-
-     turn is simply the ratio of ending to starting value.  If  cash  flows  oc-
-     curred  within  a  window,  the window's return is found by solving for the
-     rate that reconciles the starting value, the ending value, and  the  timing
+     turn  is  simply  the ratio of ending to starting value.  If cash flows oc-
+     curred within a window, the window's return is found  by  solving  for  the
+     rate  that  reconciles the starting value, the ending value, and the timing
      of those flows.  All window returns are then multiplied together (geometri-
      cally chained) to give the TWR for the full period.
 
-     The  accuracy of TWR depends on how many valuation dates you have recorded.
+     The accuracy of TWR depends on how many valuation dates you have  recorded.
      More valuation dates mean finer windows and more precise results.
 
      In short: TWR tells you how good the investment was; IRR tells you how good
@@ -10837,14 +10805,14 @@ Advanced report commands
      When each matters
 
      Use IRR when you want to know your actual personal return - what you earned
-     on your money, accounting for when you chose to move it.  It is  the  right
+     on  your  money, accounting for when you chose to move it.  It is the right
      measure when evaluating your own deposit and withdrawal timing decisions.
 
-     Use  TWR  when you want to evaluate the investment vehicle itself, indepen-
-     dent of your deposit timing.  It is the right measure  when  comparing  two
-     funds  or strategies, or when asking whether you would have been better off
-     elsewhere.  TWR is the standard that professional investment  managers  use
-     to  report  fund  performance,  precisely because it removes the distortion
+     Use TWR when you want to evaluate the investment vehicle  itself,  indepen-
+     dent  of  your  deposit timing.  It is the right measure when comparing two
+     funds or strategies, or when asking whether you would have been better  off
+     elsewhere.   TWR  is the standard that professional investment managers use
+     to report fund performance, precisely because  it  removes  the  distortion
      caused by investor cash flows.
 
      References:
@@ -10857,7 +10825,7 @@ Advanced report commands
 
      * IRR vs TWR
 
-     * Examples of computing IRR and TWR and discussion of  the  limitations  of
+     * Examples  of  computing  IRR and TWR and discussion of the limitations of
        both metrics
 
 Chart commands
@@ -10868,7 +10836,7 @@ Chart commands
             no command-specific flags
 
      The activity command displays an ascii histogram showing transaction counts
-     by  day,  week,  month or other reporting interval (by day is the default).
+     by day, week, month or other reporting interval (by day  is  the  default).
      With query arguments, it counts only matched transactions.
 
      Examples:
@@ -10883,11 +10851,11 @@ Data generation commands
    close
      (equity)
 
-     close prints several kinds of "closing" and/or "opening" transactions, use-
-     ful in various situations: migrating balances to a new  journal  file,  re-
-     taining  earnings  into equity, consolidating balances, viewing lot costs..
-     Like print, it prints valid journal entries.  You can copy these into  your
-     journal file(s) when you are happy with how they look.
+     Print  several  kinds of "closing" and/or "opening" transactions, useful eg
+     when migrating balances to a new journal file, retaining earnings into  eq-
+     uity,  consolidating balances, or viewing lot costs.  Like print, it prints
+     valid journal entries.  You can copy these into your journal  file(s)  when
+     you are happy with how they look.
 
             Flags:
                  --clopen[=TAGVAL]      show closing and opening balances transactions,
@@ -11122,8 +11090,10 @@ Data generation commands
      See examples/multi-year.
 
    get
-     Fetch  data  for  the  journal:  transactions and market prices, by running
-     helper scripts in journal-relative data/ and prices/ directories.
+     Fetch  new  transactions and market prices for the journal, by running get-
+     data and getprices helper scripts.  New prices are merged into prices files
+     automatically; new transaction data is just saved, for later  conversion  &
+     import by import.
 
             Flags:
                  --transactions         fetch transactions only
@@ -11133,70 +11103,70 @@ Data generation commands
      By default, this command fetches both transactions and prices.
 
    Phase 1: transactions data
-     1. Creates a data/ directory next to the main journal file, if it does  not
+     1. Creates  a data/ directory next to the main journal file, if it does not
         exist.
 
      2. If the data/getdata helper script exists, runs it in the data directory,
         so it can save downloaded files (CSV/TSV/JSON/OFX/etc.)  there.
 
    Phase 2: prices
-     1. Creates  a  prices/  directory next to the main journal file, if it does
+     1. Creates a prices/ directory next to the main journal file,  if  it  does
         not exist.
 
-     2. If the prices/getprices helper script exists, hledger first guesses  the
-        journal's  base  currency  (the  commodity  most used as the target in P
-        price directives; or if there are no P directives,  the  commodity  most
-        used  in  postings;  or if there are no postings, "USD").  Then for each
-        other commodity in the journal, it fetches daily market  prices  in  the
-        base  currency,  from that commodity's earliest transaction until today,
-        by running getprices BASECUR COMM START END.   Each  commodity's  prices
+     2. If  the prices/getprices helper script exists, hledger first guesses the
+        journal's base currency (the commodity most used  as  the  target  in  P
+        price  directives;  or  if there are no P directives, the commodity most
+        used in postings; or if there are no postings, "USD").   Then  for  each
+        other  commodity  in  the journal, it fetches daily market prices in the
+        base currency, from that commodity's earliest transaction  until  today,
+        by  running  getprices  BASECUR COMM START END.  Each commodity's prices
         are merged into prices/<COMM>.prices, preserving existing prices.
 
-     Commands  being  run,  and files being updated, are logged to stderr.  With
+     Commands being run, and files being updated, are logged  to  stderr.   With
      --dry-run, you can preview the commands without running them.
 
    Merging new prices
-     Complete historical price data can be hard to get, so the prices  phase  is
+     Complete  historical  price data can be hard to get, so the prices phase is
      careful to preserve older prices.  If prices files already exist, the newly
      fetched prices will be merged as follows:
 
-     * Prices  files  will  be updated only if they contain nothing but P direc-
+     * Prices files will be updated only if they contain nothing  but  P  direc-
        tives (or blank lines).
 
-     * New prices for dates already seen are discarded.  (So if you want to  re-
+     * New  prices for dates already seen are discarded.  (So if you want to re-
        place old prices, you must delete them before running get.)
 
      * If no new prices remain to be added, the prices file is left as-is.
 
-     * Otherwise,  the old prices plus the new prices are saved to the file, or-
+     * Otherwise, the old prices plus the new prices are saved to the file,  or-
        dered by: date, from commodity, to commodity.
 
    get's helper scripts
-     Data downloading varies for everyone, and needs to be easily  customisable,
+     Data  downloading varies for everyone, and needs to be easily customisable,
      so it is done via helper scripts:
 
    getdata
      If you want get to download transaction data for you, make your own getdata
-     shell  script (or executable program), and install it in the data directory
+     shell script (or executable program), and install it in the data  directory
      next to your main journal file.
 
      It should download zero or more transaction data files into its current di-
-     rectory.  These are typically bank/brokerage CSV/TSV/SSV files,  but  could
+     rectory.   These  are typically bank/brokerage CSV/TSV/SSV files, but could
      be anything that your hledger rules files can read.
 
    getprices
-     If  you  want get to download historical market prices (useful for currency
+     If you want get to download historical market prices (useful  for  currency
      conversions, and value or gains reports), install a getprices script in the
      prices directory next to your main journal file.
 
-     You can get one from the hledger repo's bin directory, and customise it  if
-     needed.   This  script  uses  pricehist,  so  you will need to install that
+     You  can get one from the hledger repo's bin directory, and customise it if
+     needed.  This script uses pricehist, so  you  will  need  to  install  that
      python tool also (eg with uv tool install pricehist).  Some price providers
-     limit the commodity pairs, history, or number  of  requests  available  for
-     free;  you can get better data by paying them and setting up their API keys
+     limit  the  commodity  pairs,  history, or number of requests available for
+     free; you can get better data by paying them and setting up their API  keys
      as environment variables.
 
-     Or, you can make your own getprices script.  It  should  accept  3-4  argu-
+     Or,  you  can  make  your own getprices script.  It should accept 3-4 argu-
      ments:
 
      * ISO code for the base currency
@@ -11208,9 +11178,8 @@ Data generation commands
      * optional ISO end date (default: today)
 
    rewrite
-     Print  all  transactions,  rewriting  the postings of matched transactions.
-     For now the only rewrite available  is  adding  new  postings,  like  print
-     --auto.
+     Print all transactions, adding auto postings to some of them.  For now  the
+     only rewrite available is adding new postings, like print --auto.
 
             Flags:
                  --add-posting='ACCT  AMTEXPR'  add a posting to ACCT, which may be
@@ -11417,38 +11386,38 @@ Maintenance commands
    Other checks
      These are not wanted by everyone, but can be run using the check command:
 
+     * tags - all tags used must be declared.   This  prevents  mis-spelled  tag
+       names.  Note hledger fairly often finds unintended tags in comments.
+
+     * payees  -  all  payees  used in transactions must be declared.  This will
+       force you to declare any new payee name before  using  it.   Most  people
+       will probably find this a bit too strict.
+
+     * ordereddates  -  within  each file, transactions must be ordered by date.
+       This is a simple and effective  error  catcher.   It's  not  included  in
+       strict mode, but you can add it by running hledger check -s ordereddates.
+       If enabled, this check is performed before balance assertions.
+
+     * recentassertions  -  all  accounts  with balance assertions must have one
+       that's within the 7 days before their latest posting.  This will  encour-
+       age  adding  balance assertions for your active asset/liability accounts,
+       which in turn should encourage you to reconcile regularly with those real
+       world balances - another strong defense against errors.   (hledger  close
+       --assert  >>$LEDGER_FILE  is  a  convenient way to add new balance asser-
+       tions.  Later these become quite redundant, and you might choose  to  re-
+       move them to reduce clutter.)
+
+     * uniqueleafnames  -  no  two  accounts may have the same last account name
+       part (eg the checking in assets:bank:checking).  This  ensures  each  ac-
+       count  can  be  matched by a unique short name, easier to remember and to
+       type.
+
      * basis - all lot acquisitions set a per-unit basis equal to  the  per-unit
        transacted cost.  This guards against typos in cost basis amounts causing
        wrong  capital  gain  calculation  at  disposal  time.   It also enforces
        hledger's preferred style of "basis cost = transacted cost, with any real
        difference (as in gifts, NSO, RSU, etc) funded by  a  separate  posting",
        rather than expressing the difference as a {B} @ T mismatch.
-
-     * tags  -  all  tags  used must be declared.  This prevents mis-spelled tag
-       names.  Note hledger fairly often finds unintended tags in comments.
-
-     * payees - all payees used in transactions must  be  declared.   This  will
-       force  you  to  declare  any new payee name before using it.  Most people
-       will probably find this a bit too strict.
-
-     * ordereddates - within each file, transactions must be  ordered  by  date.
-       This  is  a  simple  and  effective  error catcher.  It's not included in
-       strict mode, but you can add it by running hledger check -s ordereddates.
-       If enabled, this check is performed before balance assertions.
-
-     * recentassertions - all accounts with balance  assertions  must  have  one
-       that's  within the 7 days before their latest posting.  This will encour-
-       age adding balance assertions for your active  asset/liability  accounts,
-       which in turn should encourage you to reconcile regularly with those real
-       world  balances  - another strong defense against errors.  (hledger close
-       --assert >>$LEDGER_FILE is a convenient way to  add  new  balance  asser-
-       tions.   Later  these become quite redundant, and you might choose to re-
-       move them to reduce clutter.)
-
-     * uniqueleafnames - no two accounts may have the  same  last  account  name
-       part  (eg  the  checking in assets:bank:checking).  This ensures each ac-
-       count can be matched by a unique short name, easier to  remember  and  to
-       type.
 
    Custom checks
      You can build your own custom checks with add-on command scripts.  See also
@@ -11460,7 +11429,7 @@ Maintenance commands
        ing
 
    diff
-     Compares  a particular account's transactions in two input files.  It shows
+     Compare  a  particular account's transactions in two input files.  It shows
      any transactions to this account which are in  one  file  but  not  in  the
      other.
 

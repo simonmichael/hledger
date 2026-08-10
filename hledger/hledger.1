@@ -283,8 +283,7 @@ Some often\-used commands are \f[CR]add\f[R], \f[CR]print\f[R],
 \f[CR]incomestatement\f[R].
 .PP
 To show a summary of commands, run \f[CR]hledger\f[R] with no arguments.
-You can see the same commands summary at the start of PART 4: COMMANDS
-below.
+See also PART 4: COMMANDS below.
 .PP
 To use a particular command, run
 \f[CR]hledger CMD [CMDOPTS] [CMDARGS]\f[R],
@@ -10056,16 +10055,13 @@ You can list all of a command\(aqs options by running
 .PP
 \f[B]Help commands\f[R]
 .IP \(bu 2
-help \- show documentation (quickref, commands, usage, manual,
-examples..)
-.IP \(bu 2
-demo \- show small hledger demos in the terminal
+help \- show documentation
 .PP
 \f[B]User interface commands\f[R]
 .IP \(bu 2
-repl \- run commands from an interactive prompt
+repl \- run commands efficiently from an interactive prompt
 .IP \(bu 2
-run \- run commands from a script
+run \- run commands efficiently from a file or command line
 .IP \(bu 2
 ui \- (if installed) run hledger\(aqs terminal UI
 .IP \(bu 2
@@ -10079,19 +10075,19 @@ import \- add new transactions from other files, eg CSV files
 .PP
 \f[B]Basic report commands\f[R]
 .IP \(bu 2
-accounts \- show account names
+accounts (acc) \- show account names
 .IP \(bu 2
 codes \- show transaction codes
 .IP \(bu 2
-commodities \- show commodity/currency symbols
+commodities (comm) \- show commodity/currency symbols
 .IP \(bu 2
-descriptions \- show transaction descriptions
+descriptions (desc) \- show transaction descriptions
 .IP \(bu 2
-files \- show input file paths
+files \- show input files in use
 .IP \(bu 2
-notes \- show note parts of transaction descriptions
+notes \- show note part of transaction descriptions
 .IP \(bu 2
-payees \- show payee parts of transaction descriptions
+payees \- show payee part of transaction descriptions
 .IP \(bu 2
 prices \- show market prices
 .IP \(bu 2
@@ -10101,11 +10097,11 @@ tags \- show tag names
 .PP
 \f[B]Standard report commands\f[R]
 .IP \(bu 2
-print \- show transactions or export journal data
+print \- show journal entries, or export journal data
 .IP \(bu 2
-aregister (areg) \- show transactions in a particular account
+aregister (areg) \- show transactions & running balance in one account
 .IP \(bu 2
-register (reg) \- show postings in one or more accounts & running total
+register (reg) \- show postings & running total across accounts
 .IP \(bu 2
 balancesheet (bs) \- show assets, liabilities and net worth
 .IP \(bu 2
@@ -10117,7 +10113,7 @@ incomestatement (is) \- show revenues and expenses
 .PP
 \f[B]Advanced report commands\f[R]
 .IP \(bu 2
-balance (bal) \- show balance changes, end balances, budgets, gains..
+balance (bal) \- show balance changes, end balances, gains, budgets..
 .IP \(bu 2
 holdings \- show investment holdings
 .IP \(bu 2
@@ -10125,11 +10121,11 @@ roi \- show return on investments
 .PP
 \f[B]Chart commands\f[R]
 .IP \(bu 2
-activity \- show bar charts of posting counts per period
+activity \- show posting counts as a bar chart
 .PP
 \f[B]Data generation commands\f[R]
 .IP \(bu 2
-close \- generate balance\-zeroing/restoring transactions
+close \- generate transactions to zero/restore/assert balances
 .IP \(bu 2
 get \- fetch new transactions and market price data
 .IP \(bu 2
@@ -10139,7 +10135,7 @@ rewrite \- generate auto postings, like print \-\-auto
 .IP \(bu 2
 check \- check for various kinds of error in the data
 .IP \(bu 2
-diff \- compare account transactions in two journal files
+diff \- compare an account\(aqs transactions in two journals
 .IP \(bu 2
 setup \- check and show the status of the hledger installation
 .IP \(bu 2
@@ -10148,10 +10144,9 @@ test \- run self tests
 Next, these commands are described in detail.
 .SH Help commands
 .SS help
-Show some part of hledger\(aqs documentation.
-The first argument selects what to show:
+Show some part of hledger\(aqs documentation, selected by arguments:
 .IP \(bu 2
-\f[CR]quickref\f[R] (or none): a quick reference / overview
+\f[CR]quickref\f[R] (or no args): a quick reference / overview
 .IP \(bu 2
 \f[CR]commands\f[R]: all commands, including addons and aliases
 .IP \(bu 2
@@ -10161,8 +10156,7 @@ The first argument selects what to show:
 .IP \(bu 2
 \f[CR]manual [TOPIC]\f[R]: view a topic in the manual, or list them all
 .IP \(bu 2
-\f[CR]TOPIC\f[R] view a topic in the manual (like
-\f[CR]manual TOPIC\f[R])
+\f[CR]TOPIC\f[R]: (like \f[CR]manual TOPIC\f[R])
 .IP \(bu 2
 \f[CR]home|install|relnotes|docs|support|sponsor\f[R]: browse
 hledger.org pages
@@ -10178,14 +10172,12 @@ browser), or you can choose with \-i/\-m/\-p/\-w.
 .IP
 .EX
 Flags:
-  \-i                       show the manual with info
-  \-m                       show the manual with man
-  \-p                       show the manual with $PAGER or less
-                           (less is always used if TOPIC is specified)
-  \-w                       show the manual on the web
+  \-i                       use info when showing the manual
+  \-m                       use man when showing the manual
+  \-p                       use less (or $PAGER) when showing the manual
+  \-w                       use a web browser when showing the manual
   \-l                       just list the manual topics matching TOPIC
-     \-\-builtin             with the commands topic, show only built\-in
-                           commands
+     \-\-builtin             with commands: show only built\-in commands
 .EE
 .PP
 The manual is built in to your hledger executable, so it can be useful
@@ -10215,38 +10207,6 @@ $ hledger help \-l                 # list the manual\(aqs topics
 $ hledger help \-l journal         # list the manual topics matching \(dqjournal\(dq
 $ hledger help examples add       # show examples for the add command
 .EE
-.SS demo
-Play demos of hledger usage in the terminal, if asciinema is installed.
-.IP
-.EX
-Flags:
-  \-s \-\-speed=SPEED         playback speed (1 is original speed, .5 is half, 2
-                           is double, etc (default: 2))
-.EE
-.PP
-Run this command with no argument to list the demos.
-To play a demo, write its number or a prefix or substring of its title.
-Tips:
-.PP
-Make your terminal window large enough to see the demo clearly.
-.PP
-Use the \-s/\-\-speed SPEED option to set your preferred playback speed,
-eg \f[CR]\-s4\f[R] to play at 4x original speed or \f[CR]\-s.5\f[R] to
-play at half speed.
-The default speed is 2x.
-.PP
-During playback, several keys are available: SPACE to pause/unpause, .
-to step forward (while paused), CTRL\-c quit.
-.PP
-Examples:
-.IP
-.EX
-$ hledger demo               # list available demos
-$ hledger demo 1             # play the first demo at default speed (2x)
-$ hledger demo install \-s4   # play the \(dqinstall\(dq demo at 4x speed
-.EE
-.PP
-This command is experimental: there aren\(aqt many useful demos yet.
 .SH User interface commands
 .SS repl
 Start an interactive prompt for running hledger commands.
@@ -10478,9 +10438,9 @@ List of accounts in some.journal
 \&...
 .EE
 .SS ui
-Runs hledger\-ui (if installed).
+Runs hledger\-ui, a terminal UI (if installed).
 .SS web
-Runs hledger\-web (if installed).
+Runs hledger\-web, a web UI (if installed).
 .SH Data entry commands
 .SS add
 Add new transactions to a journal file, with interactive prompting.
@@ -11171,7 +11131,7 @@ Gas Station | Petrol
 Person A
 .EE
 .SS files
-List all files included in the journal.
+List all input files used by the journal(s).
 With a REGEX argument, only file names matching the regular expression
 (case sensitive) are shown.
 .IP
@@ -11397,7 +11357,8 @@ also acquire tags from their account and transaction; and transactions
 also acquire tags from their postings.
 .SH Standard report commands
 .SS print
-Show full journal entries, representing transactions.
+Show transactions\(aq journal entries, or export journal data to another
+format.
 .IP
 .EX
 Flags:
@@ -11817,7 +11778,7 @@ This too can cause an inaccurate running balance.
 .SS register
 (reg)
 .PP
-Show postings and their running total.
+Show postings & running total across accounts.
 .IP
 .EX
 Flags:
@@ -12120,8 +12081,8 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 .SS balancesheetequity
 (bse)
 .PP
-This command displays a balance sheet, showing historical ending
-balances of asset, liability and equity accounts.
+Show a balance sheet, with historical ending balances of asset,
+liability and equity accounts.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .IP
@@ -12230,9 +12191,8 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 .SS cashflow
 (cf)
 .PP
-This command displays a (simple) cashflow statement, showing the inflows
-and outflows affecting \(dqcash\(dq (ie, liquid, easily convertible)
-assets.
+Show a (simple) cashflow statement, with the inflows and outflows
+affecting \(dqcash\(dq (ie, liquid, easily convertible) assets.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 .IP
@@ -12439,10 +12399,9 @@ options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 .SS balance
 (bal)
 .PP
-A flexible, general purpose \(dqsumming\(dq report that shows accounts
-with some kind of numeric data.
-This can be balance changes per period, end balances, budget
-performance, capital gains, etc.
+Show accounts with some kind of summed numeric data: balance changes per
+period, end balances on period end dates, simple capital gains, budget
+goal performance, etc.
 .IP
 .EX
 Flags:
@@ -13738,7 +13697,7 @@ with the same fields as the CSV output; units and gain percents are JSON
 number objects as in other commands\(aq JSON output, and missing values
 are null.
 .SS roi
-Shows the money\-weighted (IRR) and time\-weighted (TWR) rate of return
+Show the money\-weighted (IRR) and time\-weighted (TWR) rate of return
 on your investments.
 .IP
 .EX
@@ -13990,10 +13949,10 @@ $ hledger activity \-\-quarterly
 .SS close
 (equity)
 .PP
-\f[CR]close\f[R] prints several kinds of \(dqclosing\(dq and/or
-\(dqopening\(dq transactions, useful in various situations: migrating
-balances to a new journal file, retaining earnings into equity,
-consolidating balances, viewing lot costs..
+Print several kinds of \(dqclosing\(dq and/or \(dqopening\(dq
+transactions, useful eg when migrating balances to a new journal file,
+retaining earnings into equity, consolidating balances, or viewing lot
+costs.
 Like \f[CR]print\f[R], it prints valid journal entries.
 You can copy these into your journal file(s) when you are happy with how
 they look.
@@ -14269,9 +14228,10 @@ $ hledger bs \-Y \-f 2023.j                     # unclosed file, no query needed
 .SS More detailed close examples
 See examples/multi\-year.
 .SS get
-Fetch data for the journal: transactions and market prices, by running
-helper scripts in journal\-relative \f[CR]data/\f[R] and
-\f[CR]prices/\f[R] directories.
+Fetch new transactions and market prices for the journal, by running
+\f[CR]getdata\f[R] and \f[CR]getprices\f[R] helper scripts.
+New prices are merged into prices files automatically; new transaction
+data is just saved, for later conversion & import by \f[CR]import\f[R].
 .IP
 .EX
 Flags:
@@ -14364,7 +14324,7 @@ ISO start date
 .IP \(bu 2
 optional ISO end date (default: today)
 .SS rewrite
-Print all transactions, rewriting the postings of matched transactions.
+Print all transactions, adding auto postings to some of them.
 For now the only rewrite available is adding new postings, like print
 \-\-auto.
 .IP
@@ -14613,15 +14573,6 @@ Also, strict mode ensures that the \f[CR]assertions\f[R] and
 These are not wanted by everyone, but can be run using the
 \f[CR]check\f[R] command:
 .IP \(bu 2
-\f[B]basis\f[R] \- all lot acquisitions set a per\-unit basis equal to
-the per\-unit transacted cost.
-This guards against typos in cost basis amounts causing wrong capital
-gain calculation at disposal time.
-It also enforces hledger\(aqs preferred style of \(dqbasis cost =
-transacted cost, with any real difference (as in gifts, NSO, RSU, etc)
-funded by a separate posting\(dq, rather than expressing the difference
-as a {B} \(at T mismatch.
-.IP \(bu 2
 \f[B]tags\f[R] \- all tags used must be declared.
 This prevents mis\-spelled tag names.
 Note hledger fairly often finds unintended tags in comments.
@@ -14653,6 +14604,15 @@ account name part (eg the \f[CR]checking\f[R] in
 \f[CR]assets:bank:checking\f[R]).
 This ensures each account can be matched by a unique short name, easier
 to remember and to type.
+.IP \(bu 2
+\f[B]basis\f[R] \- all lot acquisitions set a per\-unit basis equal to
+the per\-unit transacted cost.
+This guards against typos in cost basis amounts causing wrong capital
+gain calculation at disposal time.
+It also enforces hledger\(aqs preferred style of \(dqbasis cost =
+transacted cost, with any real difference (as in gifts, NSO, RSU, etc)
+funded by a separate posting\(dq, rather than expressing the difference
+as a {B} \(at T mismatch.
 .SS Custom checks
 You can build your own custom checks with add\-on command scripts.
 See also Cookbook > Scripting.
@@ -14664,7 +14624,7 @@ Here are some examples from hledger/bin/:
 \f[B]hledger\-check\-fancyassertions\f[R] \- more complex balance
 assertions are passing
 .SS diff
-Compares a particular account\(aqs transactions in two input files.
+Compare a particular account\(aqs transactions in two input files.
 It shows any transactions to this account which are in one file but not
 in the other.
 .IP
