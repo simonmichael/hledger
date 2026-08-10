@@ -2,7 +2,7 @@
 
 (reg)
 
-Show postings and their running total.
+Show postings & running total across accounts.
 
 ```flags
 Flags:

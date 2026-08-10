@@ -2,8 +2,8 @@
 
 (bse)
 
-This command displays a [balance sheet](https://en.wikipedia.org/wiki/Balance_sheet), 
-showing historical ending balances of asset, liability and equity accounts.
+Show a [balance sheet](https://en.wikipedia.org/wiki/Balance_sheet), 
+with historical ending balances of asset, liability and equity accounts.
 Amounts are shown with normal positive sign, as in conventional
 financial statements.
 

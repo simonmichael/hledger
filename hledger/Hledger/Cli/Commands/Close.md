@@ -2,8 +2,9 @@
 
 (equity)
 
-`close` prints several kinds of "closing" and/or "opening" transactions, useful in various situations:
-migrating balances to a new journal file, retaining earnings into equity, consolidating balances, viewing lot costs..
+Print several kinds of "closing" and/or "opening" transactions, useful eg when
+migrating balances to a new journal file, retaining earnings into equity, 
+consolidating balances, or viewing lot costs.
 Like `print`, it prints valid journal entries.
 You can copy these into your journal file(s) when you are happy with how they look.
 

@@ -34,11 +34,13 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Balancesheet
   ,module Hledger.Cli.Commands.Balancesheetequity
   ,module Hledger.Cli.Commands.Cashflow
+  ,module Hledger.Cli.Commands.Check
   ,module Hledger.Cli.Commands.Close
   ,module Hledger.Cli.Commands.Codes
   ,module Hledger.Cli.Commands.Commodities
   ,module Hledger.Cli.Commands.Descriptions
   ,module Hledger.Cli.Commands.Diff
+  ,module Hledger.Cli.Commands.Files
   ,module Hledger.Cli.Commands.Get
   ,module Hledger.Cli.Commands.Help
   ,module Hledger.Cli.Commands.Holdings
@@ -50,6 +52,7 @@ module Hledger.Cli.Commands (
   ,module Hledger.Cli.Commands.Print
   ,module Hledger.Cli.Commands.Register
   ,module Hledger.Cli.Commands.Rewrite
+  ,module Hledger.Cli.Commands.Roi
   ,module Hledger.Cli.Commands.Run
   ,module Hledger.Cli.Commands.Setup
   ,module Hledger.Cli.Commands.Stats
@@ -292,14 +295,14 @@ commandsList progversion builtin othercmds cmdaliases =
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "USER INTERFACES"
-  ,"+ui                       run a terminal UI"
-  ,"+web                      run a web UI"
   ," repl                     run commands efficiently from an interactive prompt"
   ," run                      run commands efficiently from a file or command line"
+  ,"+ui                       run a terminal UI"
+  ,"+web                      run a web UI"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "ENTERING DATA"
-  ," add                      add transactions using interactive prompts"
+  ," add                      add transactions using terminal prompts"
   ,"+iadd                     add transactions using a TUI (hledger-iadd)"
   ," import                   add new transactions from other files, eg CSV files"
   ,"+edit                     edit specific transactions with $EDITOR"               -- hledger-utils
@@ -310,19 +313,19 @@ commandsList progversion builtin othercmds cmdaliases =
   ," codes                    show transaction codes"
   ," commodities (comm)       show commodity/currency symbols"
   ," descriptions (desc)      show transaction descriptions"
-  ," files                    show data files in use"
+  ," files                    show input files in use"
   ," notes                    show note part of transaction descriptions"
   ," payees                   show payee part of transaction descriptions"
-  ," prices                   show historical market prices"
+  ," prices                   show market prices"
   ," stats                    show journal statistics"
   ," tags                     show tag names"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "STANDARD REPORTS"
-  ," print                    show full transaction entries, or export journal data"
+  ," print                    show journal entries, or export journal data"
   ," aregister (areg)         show transactions & running balance in one account"
-  ," register (reg)           show postings & running total in one or more accounts"
-  ," balancesheet (bs)        show assets and liabilities"
+  ," register (reg)           show postings & running total across accounts"
+  ," balancesheet (bs)        show assets, liabilities and net worth"
   ," balancesheetequity (bse) show assets, liabilities and equity"
   ," cashflow (cf)            show changes in liquid assets"
   ," incomestatement (is)     show revenues and expenses"
@@ -344,22 +347,22 @@ commandsList progversion builtin othercmds cmdaliases =
   ,bold' "GENERATING DATA"
   ,"+autosync                 download/deduplicate/show OFX data as transactions"    -- ledger-autosync
   ," close                    generate transactions to zero/restore/assert balances"
-  ," get                      fetch transactions then market prices via helper scripts"
+  ," get                      fetch new transactions and market price data"
   ,"+interest                 generate transactions transferring accrued interest"   -- hledger-interest
   ,"+lots sell                generate a lot-selling transaction"                    -- hledger-lots
   ,"+pricehist                download historical market prices"                     -- pricehist
-  ," rewrite                  add postings to transactions, like print --auto"
+  ," rewrite                  generate auto postings, like print --auto"
   ,""
     -----------------------------------------80-------------------------------------
   ,bold' "MAINTENANCE"
-  ," check                    run any of hledger's built-in correctness checks"
+  ," check                    check for various kinds of error in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"                -- hledger-check-fancyassertions
   ,"+check-tagfiles           check that files referenced in tag values exist"       -- hledger-check-tagfiles
   ," diff                     compare an account's transactions in two journals"
   ,"+git                      save or view journal file history simply in git"       -- hledger-git
   ,"+pijul                    save or view journal file history simply in pijul"     -- hledger-pijul
   ," setup                    check and show the status of the hledger installation"
-  ," test                     run some self tests"
+  ," test                     run self tests"
   ,""
     -----------------------------------------80-------------------------------------
   ]

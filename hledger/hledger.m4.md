@@ -195,7 +195,7 @@ A few commands assist with adding data and file management.
 Some often-used commands are `add`, `print`, `register`, `balancesheet` and `incomestatement`.
 
 To show a summary of commands, run `hledger` with no arguments.
-You can see the same commands summary at the start of [PART 4: COMMANDS](#part-4-commands) below.
+See also [PART 4: COMMANDS](#part-4-commands) below.
 
 To use a particular command, run `hledger CMD [CMDOPTS] [CMDARGS]`,
 
@@ -7724,14 +7724,14 @@ You can list all of a command's options by running `hledger CMD -h`.
 
 **[Help commands](#help-commands)**
 
-- [help](#help)                                    - show documentation (quickref, commands, usage, manual, examples..)
+- [help](#help)                                    - show documentation
 
 **[User interface commands](#user-interface-commands)**
 
-- [repl](#repl)                                    - run commands from an interactive prompt
-- [run](#run)                                      - run commands from a script
-- [ui](hledger-ui.html)                            - (if installed) run hledger's terminal UI
-- [web](hledger-web.html)                          - (if installed) run hledger's web UI
+- [repl](#repl)                                    - run commands efficiently from an interactive prompt
+- [run](#run)                                      - run commands efficiently from a file or command line
+- [ui](hledger-ui.md)                              - (if installed) run hledger's terminal UI
+- [web](hledger-web.md)                            - (if installed) run hledger's web UI
 
 **[Data entry commands](#data-entry-commands)**
 
@@ -7740,22 +7740,22 @@ You can list all of a command's options by running `hledger CMD -h`.
 
 **[Basic report commands](#basic-report-commands)**
 
-- [accounts](#accounts)                            - show account names
+- [accounts](#accounts) (acc)                      - show account names
 - [codes](#codes)                                  - show transaction codes
-- [commodities](#commodity-directive)              - show commodity/currency symbols
-- [descriptions](#descriptions)                    - show transaction descriptions
-- [files](#files)                                  - show input file paths
-- [notes](#notes)                                  - show note parts of transaction descriptions
-- [payees](#payees)                                - show payee parts of transaction descriptions
+- [commodities](#commodities) (comm)               - show commodity/currency symbols
+- [descriptions](#descriptions) (desc)             - show transaction descriptions
+- [files](#files)                                  - show input files in use
+- [notes](#notes)                                  - show note part of transaction descriptions
+- [payees](#payees)                                - show payee part of transaction descriptions
 - [prices](#prices)                                - show market prices
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags-1)                                  - show tag names
 
 **[Standard report commands](#standard-report-commands)**
 
-- [print](#print)                                  - show transactions or export journal data
-- [aregister](#aregister) (areg)                   - show transactions in a particular account
-- [register](#register) (reg)                      - show postings in one or more accounts & running total
+- [print](#print)                                  - show journal entries, or export journal data
+- [aregister](#aregister) (areg)                   - show transactions & running balance in one account
+- [register](#register) (reg)                      - show postings & running total across accounts
 - [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
 - [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
 - [cashflow](#cashflow) (cf)                       - show changes in liquid assets
@@ -7763,24 +7763,24 @@ You can list all of a command's options by running `hledger CMD -h`.
 
 **[Advanced report commands](#advanced-report-commands)**
 
-- [balance](#balance) (bal)                        - show balance changes, end balances, budgets, gains..
+- [balance](#balance) (bal)                        - show balance changes, end balances, gains, budgets..
 - [holdings](#holdings)                            - show investment holdings
 - [roi](#roi)                                      - show return on investments
 
 **[Chart commands](#chart-commands)**
 
-- [activity](#activity)                            - show bar charts of posting counts per period
+- [activity](#activity)                            - show posting counts as a bar chart
 
 **[Data generation commands](#data-generation-commands)**
 
-- [close](#close)                                  - generate balance-zeroing/restoring transactions
+- [close](#close)                                  - generate transactions to zero/restore/assert balances
 - [get](#get)                                      - fetch new transactions and market price data
 - [rewrite](#rewrite)                              - generate auto postings, like print --auto
 
 **[Maintenance commands](#maintenance-commands)**
 
 - [check](#check)                                  - check for various kinds of error in the data
-- [diff](#diff)                                    - compare account transactions in two journal files
+- [diff](#diff)                                    - compare an account's transactions in two journals
 - [setup](#setup)                                  - check and show the status of the hledger installation
 - [test](#test)                                    - run self tests
 

@@ -1,6 +1,6 @@
 ## files
 
-List all files included in the journal. With a REGEX argument,
+List all input files used by the journal(s). With a REGEX argument,
 only file names matching the regular expression (case sensitive) are shown.
 
 ```flags

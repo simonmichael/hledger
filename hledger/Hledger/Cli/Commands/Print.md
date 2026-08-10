@@ -1,6 +1,6 @@
 ## print
 
-Show full journal entries, representing transactions.
+Show transactions' journal entries, or export journal data to another format.
 
 ```flags
 Flags:

@@ -1,7 +1,9 @@
 ## get
 
-Fetch data for the journal: transactions and market prices,
-by running helper scripts in journal-relative `data/` and `prices/` directories.
+Fetch new transactions and market prices for the journal,
+by running `getdata` and `getprices` helper scripts.
+New prices are merged into prices files automatically;
+new transaction data is just saved, for later conversion & import by `import`.
 
 ```flags
 Flags:

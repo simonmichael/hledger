@@ -1,7 +1,6 @@
 m4_dnl _commands_
 m4_dnl Used in the hledger manual to include all command docs.
 m4_dnl Keep synced with Hledger.Cli.Commands.commandsList, hledger.m4.md.
-m4_dnl The spaced colons avoid anchor/link collisions with similarly-named sections.
 m4_define({{_commands_}}, 
 {{
 # Help commands
@@ -15,11 +14,11 @@ _command_({{Run}})
 
 ## ui
 
-Runs [hledger-ui](hledger-ui.md) (if installed).
+Runs [hledger-ui](hledger-ui.md), a terminal UI (if installed).
 
 ## web
 
-Runs [hledger-web](hledger-web.md) (if installed).
+Runs [hledger-web](hledger-web.md), a web UI (if installed).
 
 
 # Data entry commands

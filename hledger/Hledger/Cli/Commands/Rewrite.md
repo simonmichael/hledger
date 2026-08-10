@@ -1,6 +1,6 @@
 ## rewrite
 
-Print all transactions, rewriting the postings of matched transactions.
+Print all transactions, adding auto postings to some of them.
 For now the only rewrite available is adding new postings, like print --auto.
 
 ```flags

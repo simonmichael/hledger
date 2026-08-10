@@ -2,8 +2,9 @@
 
 (bal)
 
-A flexible, general purpose "summing" report that shows accounts with some kind of numeric data.
-This can be balance changes per period, end balances, budget performance, capital gains, etc.
+Show accounts with some kind of summed numeric data:
+balance changes per period, end balances on period end dates, simple capital gains,
+budget goal performance, etc.
 
 ```flags
 Flags:
