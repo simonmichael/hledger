@@ -1,6 +1,6 @@
 roi
 
-Shows the money-weighted (IRR) and time-weighted (TWR) rate of return on
+Show the money-weighted (IRR) and time-weighted (TWR) rate of return on
 your investments.
 
 Flags:

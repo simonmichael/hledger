@@ -2,10 +2,10 @@ cashflow
 
 (cf)
 
-This command displays a (simple) cashflow statement, showing the inflows
-and outflows affecting "cash" (ie, liquid, easily convertible) assets.
-Amounts are shown with normal positive sign, as in conventional
-financial statements.
+Show a (simple) cashflow statement, with the inflows and outflows
+affecting "cash" (ie, liquid, easily convertible) assets. Amounts are
+shown with normal positive sign, as in conventional financial
+statements.
 
 Flags:
      --sum                  calculation mode: show sum of posting amounts

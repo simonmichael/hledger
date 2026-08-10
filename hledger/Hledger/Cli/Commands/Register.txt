@@ -2,7 +2,7 @@ register
 
 (reg)
 
-Show postings and their running total.
+Show postings & running total across accounts.
 
 Flags:
      --cumulative           accumulation mode: show running total from report
