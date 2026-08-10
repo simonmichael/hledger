@@ -1,0 +1,24 @@
+; ~/.hledger.journal (or $LEDGER_FILE)
+
+2025-12-01 set up starting balances
+    equity            $-1000     ; $1000 moves from the "equity" account (- means from)
+    assets:checking    $1000     ; to the "assets:checking" account      (+ means to)
+    assets:cash           $0
+
+2025-12-01 cash gift received
+    income:gifts        $-50     ; $50 from the "income:gifts" account
+    assets:wallet        $50     ; to the "assets:wallet" account
+
+2025-12-02 rent paid
+    assets:checking              ; a missing amount is inferred ($-800 here)
+    expenses:rent       $800
+
+2025-12-03 Grocery store
+    assets:checking              ; ($-64.50 here)
+    expenses:groceries   $54.50
+    expenses:home care    $7
+    expenses:snacks       $3
+
+2025-12-04 Client payment received
+    income:consulting
+    assets:checking    $1500
