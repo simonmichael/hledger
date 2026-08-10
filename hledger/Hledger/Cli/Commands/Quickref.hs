@@ -50,7 +50,7 @@ styleQuickref usecolor s = unlines $ case lines s of
     labelwidth = 16
     -- Top-level labels that share their line with content but should still
     -- render as underlined headings (underlining only the text, not the padding).
-    underlinedlabels = ["Input formats"]
+    underlinedlabels = ["Input formats", "Basic checks"]
     styleline l
       | not usecolor      = l
       | all (==' ') label = label <> dimparens content
