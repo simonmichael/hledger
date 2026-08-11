@@ -668,3 +668,47 @@ $ hledger -f- print --lots -x desc:transfer
     equity:unrealised-gain                        $2.50
 
 >=
+
+# ** 31. A transfer whose destination amount is elided classifies as a
+# transfer pair, not as a disposal: the source posting's classification
+# is finalised only after balancing infers the missing amount. #2690
+<
+commodity ABC ; lots:
+
+2021-03-08 stake
+     income:staking      -$10
+     assets:broker1      2.3 ABC
+
+2021-03-09 move
+     assets:broker1      -2.3 ABC = 0 ABC
+     assets:broker2
+$ hledger -f- print --lots
+2021-03-08 stake
+    income:staking                              $-10
+    assets:broker1:{2021-03-08, $4.34782609}       2.3 ABC
+
+2021-03-09 move
+    assets:broker1:{2021-03-08, $4.34782609}      -2.3 ABC
+    assets:broker1                                 0 ABC   =* 0 ABC
+    assets:broker2:{2021-03-08, $4.34782609}
+
+>=
+
+# ** 32. The mirror case: explicit destination amount, source amount
+# inferred from a balance assignment. Also a transfer pair. #2690
+<
+commodity ABC ; lots:
+
+2021-03-08 stake
+     income:staking      -$10
+     assets:broker1      2.3 ABC
+
+2021-03-09 move
+     assets:broker2      2.3 ABC
+     assets:broker1      = 0 ABC
+$ hledger -f- bal --lots
+             2.3 ABC  assets:broker2:{2021-03-08, $4.34782609}
+                $-10  income:staking
+--------------------
+                $-10
+             2.3 ABC  

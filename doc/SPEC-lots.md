@@ -693,8 +693,12 @@ broader pipeline.
    (which infers balance-assignment and elided amounts), a second classification
    pass (auto-split + classify) over transactions still containing an
    unclassified lotful posting, so entries whose lotful amounts were only known
-   after balancing are classified too (#2686). Postings classified by the first
-   pass keep their tags.
+   after balancing are classified too (#2686). In these transactions, first-pass
+   classifications are dropped (`unclassifyPosting`) and the whole transaction is
+   reclassified: they were made with incomplete amounts and may be wrong, eg a
+   bare lotful outflow classified dispose when the inferred destination amount
+   reveals a transfer (#2690). Reclassifying with complete amounts matches what
+   fully explicit amounts would have produced.
 6. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
 7. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare

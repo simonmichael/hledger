@@ -431,8 +431,13 @@ journalClassifyLotPostings verbosetags j =
 -- pass because they were inferred by balancing (from balance assignments or
 -- elided amounts) (#2686).
 -- Only transactions still containing an unclassified lotful posting are
--- touched, and within them, postings classified by the first pass keep their
--- tags; so currently-working journals are unaffected.
+-- touched; currently-working journals are unaffected. Within a touched
+-- transaction, classifications from the first pass are dropped and the
+-- whole transaction is reclassified: they were made with incomplete
+-- amounts and may be wrong (eg a posting classified dispose which the
+-- inferred amounts reveal to be a transfer-from, #2690). Reclassifying
+-- with complete amounts gives the same result as if all amounts had been
+-- written explicitly.
 journalReclassifyLotPostings :: Bool -> Journal -> Journal
 journalReclassifyLotPostings verbosetags j =
   journalMapTransactions reclassify j
@@ -442,8 +447,28 @@ journalReclassifyLotPostings verbosetags j =
     reclassify t
       | any (isUnclassifiedLotfulPosting j) (tpostings t) =
           transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
-        $ transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful t
+        $ transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful
+        $ t{tpostings = map unclassifyPosting (tpostings t)}
       | otherwise = t
+
+-- | Remove any acquire\/dispose\/transfer-from\/transfer-to classification
+-- tags from a posting (and their visible comment form, if --verbose-tags
+-- added one), so it can be classified afresh. Gain-related ptype tags
+-- (gain, rgain, ugain) are kept, as are other lot-related tags
+-- (feesplit, generated, etc).
+unclassifyPosting :: Posting -> Posting
+unclassifyPosting p =
+    p{ptags = filter keep (ptags p), pcomment = foldl' dropVisible (pcomment p) visibleVals}
+  where
+    classVals = ["acquire", "dispose", "transfer-from", "transfer-to"]
+    keep (n, v) = (n /= "_ptype" && n /= "ptype") || v `notElem` classVals
+    -- Values whose visible tag form was added to the comment by the first pass.
+    visibleVals = [v | ("ptype", v) <- ptags p, v `elem` classVals]
+    dropVisible c v
+      | c == t = ""
+      | Just r <- T.stripPrefix (t <> ", ") c = r
+      | otherwise = T.replace (", " <> t) "" c
+      where t = "ptype: " <> v
 
 -- | Detect a lot transfer with a fee - a bare negative lotful asset
 -- posting whose absolute quantity exceeds the positive quantities received by
