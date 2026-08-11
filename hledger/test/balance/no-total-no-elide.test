@@ -115,3 +115,81 @@ Balance changes in 2020:
  a        ||    1 
  a:aa     ||    0 
  a:aa:aaa ||    0 
+
+<
+2024/1/1
+  b:bb       -10
+  a:aa:aaa    10
+
+2024/1/2
+  b:bb        -5
+  c:cc         5
+
+2024/1/3
+  b:bb        -7
+  z:zz         7
+
+2024/1/4
+  z:zz        -7
+  b:bb         7
+
+# ** 14. In flat mode, --no-elide also shows parent accounts, with inclusive
+# balances. Accounts with a zero balance (z) are still hidden.
+$ hledger -f - balance --flat --no-total --no-elide
+                  10  a
+                  10  a:aa
+                  10  a:aa:aaa
+                 -15  b
+                 -15  b:bb
+                   5  c
+                   5  c:cc
+>=0
+
+# ** 15. With --empty, zero-balance accounts with postings are shown, as in flat mode without --no-elide.
+$ hledger -f - balance --flat --no-total --no-elide --empty
+                  10  a
+                  10  a:aa
+                  10  a:aa:aaa
+                 -15  b
+                 -15  b:bb
+                   5  c
+                   5  c:cc
+                   0  z:zz
+>=0
+
+# ** 16. With --drop, parent accounts within the dropped levels are omitted, as in tree mode.
+$ hledger -f - balance --flat --no-total --no-elide --drop 1
+                  10  aa
+                  10  aa:aaa
+                 -15  bb
+                   5  cc
+>=0
+
+# ** 17. CSV output shows full account names with inclusive balances,
+# convenient for lookups in spreadsheets. The total is not the sum of all rows shown.
+$ hledger -f - balance --flat --no-elide -O csv
+"account","balance"
+"a","10"
+"a:aa","10"
+"a:aa:aaa","10"
+"b","-15"
+"b:bb","-15"
+"c","5"
+"c:cc","5"
+"Total:","0"
+>=0
+
+# ** 18. Same as 14 for multiperiod.
+$ hledger -f - balance --flat --no-total --no-elide -Y
+Balance changes in 2024:
+
+          || 2024 
+==========++======
+ a        ||   10 
+ a:aa     ||   10 
+ a:aa:aaa ||   10 
+ b        ||  -15 
+ b:bb     ||  -15 
+ c        ||    5 
+ c:cc     ||    5 
+>=0

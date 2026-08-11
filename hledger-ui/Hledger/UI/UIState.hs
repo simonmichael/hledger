@@ -197,19 +197,20 @@ toggleValue ui = (over conversionop costOff) (over value (valuationToggleValue m
     costOff _ = Just NoConversionOp
 
 -- | Set hierarchic account tree mode.
+-- Also sets no_elide, which hledger-ui wants in tree mode only (see uiInitialState).
 setTree :: UIState -> UIState
-setTree = set accountlistmode ALTree
+setTree = set no_elide True . set accountlistmode ALTree
 
 -- | Set flat account list mode.
+-- Also unsets no_elide, which hledger-ui wants in tree mode only (see uiInitialState).
 setList :: UIState -> UIState
-setList = set accountlistmode ALFlat
+setList = set no_elide False . set accountlistmode ALFlat
 
 -- | Toggle between flat and tree mode. If current mode is unspecified/default, assume it's flat.
 toggleTree :: UIState -> UIState
-toggleTree = over no_elide not . over accountlistmode toggleTreeMode
-  where
-    toggleTreeMode ALTree = ALFlat
-    toggleTreeMode ALFlat = ALTree
+toggleTree ui = case ui ^. accountlistmode of
+    ALTree -> setList ui
+    ALFlat -> setTree ui
 
 -- | Toggle between historical balances and period balances.
 toggleHistorical :: UIState -> UIState

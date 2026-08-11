@@ -307,6 +307,33 @@ sum of the top-level balances shown, not of all the balances shown.
 
 - Each group of sibling accounts (ie, under a common parent) is sorted separately.
 
+In list mode, `--no-elide` shows parent accounts as well, with their
+inclusive balances - combining tree mode's rows with list mode's full
+account names:
+
+```cli
+$ hledger -f examples/sample.journal balance --no-elide
+                 $-1  assets
+                  $1  assets:bank
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $2  expenses
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-2  income
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities
+                  $1  liabilities:debts
+--------------------
+                   0
+```
+
+This can be useful eg when exporting to a spreadsheet which will look
+up balances by account name. Note that, as in tree mode, parent and
+subaccount balances overlap, so the report's rows sum to more than the
+final total.
+
 ### Depth limiting
 
 With a `depth:NUM` query, or `--depth NUM` option, or just `-NUM` (eg: `-3`)
