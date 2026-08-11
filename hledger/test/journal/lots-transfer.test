@@ -618,3 +618,27 @@ $ hledger -f- print --lots -x desc:transfer
     equity:unrealised-gain                        $2.50
 
 >=
+
+# ** 29. A transfer+fee entry using a balance assignment and an elided
+# amount is classified in a second pass after balancing, once the
+# inferred amounts are known; the fee is auto-split and disposed (#2686).
+<
+commodity ABC ; lots:
+
+2026-01-01 buy
+    equity:open-close   -$10
+    assets:broker1      2.3 ABC
+
+2026-02-01 transfer with fee
+    assets:broker1      = 0 ABC
+    assets:broker2      2 ABC
+    expenses:fees
+
+$ hledger -f- print -a date:2026-02
+2026-02-01 transfer with fee
+    assets:broker1:{2026-01-01, $4.34782609}      -2 ABC {2026-01-01, $4.34782609}  ; ptype: transfer-from
+    assets:broker1:{2026-01-01, $4.34782609}      -0.3 ABC {2026-01-01, $4.34782609} = 0 ABC  ; ptype: dispose, generated-posting:, feesplit-posting:
+    assets:broker2:{2026-01-01, $4.34782609}       2 ABC {2026-01-01, $4.34782609}  ; ptype: transfer-to
+    expenses:fees                                  0.3 ABC
+
+>=

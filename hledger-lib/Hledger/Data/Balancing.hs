@@ -28,6 +28,7 @@ module Hledger.Data.Balancing
 )
 where
 
+import Control.Applicative ((<|>))
 import Control.Monad (forM, forM_, when, unless)
 import Control.Monad.Except (ExceptT(..), runExceptT, throwError)
 import "extra" Control.Monad.Extra (whenM)
@@ -69,6 +70,7 @@ data BalancingOpts = BalancingOpts
   , commodity_styles_      :: Maybe (M.Map CommoditySymbol AmountStyle)  -- ^ commodity display styles
   , txn_balancing_         :: TransactionBalancingPrecision
   , account_types_         :: M.Map AccountName AccountType  -- ^ account type map, passed through for any balancing helpers that need it
+  , lotful_commodities_    :: S.Set CommoditySymbol  -- ^ commodities declared lotful, used to guide balancing cost inference (when lots are enabled)
   } deriving (Eq, Ord, Show)
 
 defbalancingopts :: BalancingOpts
@@ -78,6 +80,7 @@ defbalancingopts = BalancingOpts
   , commodity_styles_      = Nothing
   , txn_balancing_         = TBPExact
   , account_types_         = M.empty
+  , lotful_commodities_    = S.empty
   }
 
 -- | Check that this transaction would appear balanced to a human when displayed.
@@ -198,7 +201,7 @@ balanceTransactionHelper :: BalancingOpts -> Transaction -> Either String (Trans
 balanceTransactionHelper bopts t = do
   let lbl = lbl_ "balanceTransactionHelper"
   (t', inferredamtsandaccts) <- t
-    & (if infer_balancing_costs_ bopts then transactionInferBalancingCosts (account_types_ bopts) else id)
+    & (if infer_balancing_costs_ bopts then transactionInferBalancingCosts (lotful_commodities_ bopts) else id)
     & dbg9With (lbl "amounts after balancing-cost-inferring".show.map showMixedAmountOneLine.transactionAmounts)
     & transactionInferBalancingAmount (fromMaybe M.empty $ commodity_styles_ bopts) (account_types_ bopts)
     <&> dbg9With (lbl "balancing amounts inferred".show.map (second showMixedAmountOneLine).snd)
@@ -340,17 +343,17 @@ transactionInferBalancingAmount styles _atypes t@Transaction{tpostings=ps}
 -- use any decimal places. The minimum of 2 helps make the costs shown by the
 -- print command a bit less surprising in this case. Could do better.)
 --
-transactionInferBalancingCosts :: M.Map AccountName AccountType -> Transaction -> Transaction
-transactionInferBalancingCosts atypes t@Transaction{tpostings=ps} = t{tpostings=ps'}
+transactionInferBalancingCosts :: S.Set CommoditySymbol -> Transaction -> Transaction
+transactionInferBalancingCosts lotfulcomms t@Transaction{tpostings=ps} = t{tpostings=ps'}
   where
-    ps' = map (costInferrerFor atypes t BalancedVirtualPosting . costInferrerFor atypes t RealPosting) ps
+    ps' = map (costInferrerFor lotfulcomms t BalancedVirtualPosting . costInferrerFor lotfulcomms t RealPosting) ps
 
 -- | Generate a posting update function which assigns a suitable cost to
 -- balance the posting, if and as appropriate for the given transaction and
 -- posting realness (real or balanced virtual) (or if we cannot or should not infer
 -- costs, leaves the posting unchanged).
-costInferrerFor :: M.Map AccountName AccountType -> Transaction -> PostingRealness -> (Posting -> Posting)
-costInferrerFor _atypes t pt = maybe id infercost inferFromAndTo
+costInferrerFor :: S.Set CommoditySymbol -> Transaction -> PostingRealness -> (Posting -> Posting)
+costInferrerFor lotfulcomms t pt = maybe id infercost inferFromAndTo
   where
     lbl = lbl_ "costInferrerFor"
     postings     = filter (\p -> preal p == pt) $ tpostings t
@@ -361,19 +364,22 @@ costInferrerFor _atypes t pt = maybe id infercost inferFromAndTo
     -- sum of postings in this transaction, and these two have opposite signs. The amount we are
     -- converting from is normally the first commodity to appear in the ordered list of postings;
     -- but if exactly one of the two commodities has been classified as a lot posting (has a _ptype
-    -- tag from journalClassifyLotPostings), prefer that one, so the inferred cost is attached to
-    -- the posting that needs it for lot tracking. If we cannot infer prices, return Nothing.
+    -- tag from journalClassifyLotPostings), or failing that, is declared lotful (eg when its
+    -- posting's amount was not yet known at classification time, #2686), prefer that one, so the
+    -- inferred cost is attached to the posting that needs it for lot tracking.
+    -- If we cannot infer prices, return Nothing.
     hasLotPosting comm = any (\p ->
         any ((== comm) . acommodity) (amountsRaw $ pamount p)
         && any (\(k,_) -> k == "_ptype") (ptags p)
       ) postings
     inferFromAndTo = case sumamounts of
       [a,b] | noprices, oppositesigns ->
-        case (hasLotPosting (acommodity a), hasLotPosting (acommodity b)) of
-          (True, False) -> Just (a, b)
-          (False, True) -> Just (b, a)
-          _             -> asum $ map orderIfMatches pcommodities
+        prefer hasLotPosting <|> prefer (`S.member` lotfulcomms) <|> asum (map orderIfMatches pcommodities)
         where
+          prefer hasquality = case (hasquality (acommodity a), hasquality (acommodity b)) of
+            (True, False) -> Just (a, b)
+            (False, True) -> Just (b, a)
+            _             -> Nothing
           noprices      = all (isNothing . acost) sumamounts
           oppositesigns = signum (aquantity a) /= signum (aquantity b)
           orderIfMatches x | x == acommodity a = Just (a,b)
@@ -441,6 +447,7 @@ data BalancingState s = BalancingState {
   ,bsUnassignable :: S.Set AccountName                          -- ^ accounts where balance assignments may not be used (because of auto posting rules)
   ,bsAssrt        :: Bool                                       -- ^ whether to check balance assertions
   ,bsAccountTypes :: M.Map AccountName AccountType              -- ^ account type map (for excluding Gain postings from balancing)
+  ,bsLotfulCommodities :: S.Set CommoditySymbol                 -- ^ commodities declared lotful (for guiding balancing cost inference)
    -- mutable
   ,bsBalances     :: H.HashTable s AccountName MixedAmount      -- ^ running account balances, initially empty
   ,bsTransactions :: STArray s Integer Transaction              -- ^ a mutable array of the transactions being balanced
@@ -547,7 +554,7 @@ journalBalanceTransactions bopts' j' =
         -- 2. Step through these items in date order (and preserved same-day order),
         -- keeping running balances for all accounts.
         runningbals <- lift $ H.newSized (length $ journalAccountNamesUsed j)
-        flip runReaderT (BalancingState styles autopostingaccts (not $ ignore_assertions_ bopts) (account_types_ bopts) runningbals balancedtxns) $ do
+        flip runReaderT (BalancingState styles autopostingaccts (not $ ignore_assertions_ bopts) (account_types_ bopts) (lotful_commodities_ bopts) runningbals balancedtxns) $ do
           -- On encountering any not-yet-balanced transaction with a balance assignment,
           -- enact the balance assignment then finish balancing the transaction.
           -- And, check any balance assertions encountered along the way.
@@ -589,7 +596,8 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   -- infer any remaining missing amounts, and make sure the transaction is now fully balanced
   styles <- R.reader bsStyles
   atypes <- R.reader bsAccountTypes
-  case balanceTransactionHelper defbalancingopts{commodity_styles_=styles, account_types_=atypes} t{tpostings=ps'} of
+  lotfulcomms <- R.reader bsLotfulCommodities
+  case balanceTransactionHelper defbalancingopts{commodity_styles_=styles, account_types_=atypes, lotful_commodities_=lotfulcomms} t{tpostings=ps'} of
     Left err -> throwError err
     Right (t', inferredacctsandamts) -> do
       -- for each amount just inferred, update the running balance

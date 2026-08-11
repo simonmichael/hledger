@@ -677,3 +677,27 @@ $ hledger -f- bal --lots -e 2026-01-03 assets cur:AAAA
           60.00 AAAA  assets:{2026-01-01, 2.50 €}
 --------------------
           60.00 AAAA  
+
+# ** 37. A dispose posting whose amount is inferred from a balance
+# assignment (eg selling all) is classified in a second pass after
+# balancing, and the balancing cost (the sale proceeds) is attached to
+# the lotful commodity, so the gain is calculated (#2686).
+<
+commodity ABC ; lots:
+
+2026-01-01 buy
+    equity:open-close   -$10
+    assets:broker1      2.3 ABC
+
+2026-02-01 sell all
+    assets:broker1      = 0 ABC
+    assets:cash         $25
+
+$ hledger -f- print -a date:2026-02
+2026-02-01 sell all
+    assets:broker1:{2026-01-01, $4.34782609}      -2.3 ABC {2026-01-01, $4.34782609} @@ $25 = 0 ABC  ; ptype: dispose
+    assets:cash                                  $25
+    revenues:gain                               $-15  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                       $15  ; ptype: ugain, generated-posting:
+
+>=

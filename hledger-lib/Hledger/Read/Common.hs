@@ -367,7 +367,8 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
 
       -- Auto postings
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
-            then journalAddAutoPostings verbose_tags_ _ioDay balancingopts_       -- add auto postings if enabled; does preliminary transaction balancing
+            then journalAddAutoPostings verbose_tags_ _ioDay                      -- add auto postings if enabled; does preliminary transaction balancing
+                  balancingopts_{lotful_commodities_ = if checklots then journalLotfulCommodities pj else mempty}
             else pure)
 
       -- Lot classification and transacted cost inference
@@ -380,7 +381,9 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       -- Transaction balancing
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)     -- maybe check that journal entries are in date order
       >>= (\j -> journalBalanceTransactions                                                  -- infer balance assignments/amounts, maybe check balance assertions
-            (balancingopts_{ignore_assertions_=not checkassertions, account_types_ = jaccounttypes j}) j)
+            (balancingopts_{ignore_assertions_=not checkassertions, account_types_ = jaccounttypes j
+                           ,lotful_commodities_ = if checklots then journalLotfulCommodities j else mempty}) j)
+      <&> (if checklots then journalReclassifyLotPostings verbose_tags_ else id)  -- classify lot postings whose amounts were only known after balancing (#2686)
 
       -- Post-balancing enrichment
       >>= journalInferCommodityStyles                                             -- infer commodity styles once more now that all posting amounts are present

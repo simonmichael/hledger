@@ -46,6 +46,7 @@ module Hledger.Data.Journal (
   journalPostingsAddCommodityTags,
   journalInferPostingsTransactedCost,
   journalCommodityUsesLots,
+  journalLotfulCommodities,
   journalCommodityLotsMethod,
   postingLotsMethod,
   parseReductionMethod,
@@ -725,6 +726,11 @@ journalCommodityTags Journal{jdeclaredcommoditytags} c =
 -- | Does this commodity have a 'lots:' tag declared ?
 journalCommodityUsesLots :: Journal -> CommoditySymbol -> Bool
 journalCommodityUsesLots j c = any ((== "lots") . T.toLower . fst) (journalCommodityTags j c)
+
+-- | All commodities with a 'lots:' tag declared.
+journalLotfulCommodities :: Journal -> S.Set CommoditySymbol
+journalLotfulCommodities j@Journal{jdeclaredcommoditytags} =
+  S.filter (journalCommodityUsesLots j) (M.keysSet jdeclaredcommoditytags)
 
 -- | Get the reduction method from a commodity's lots: tag value, if any.
 journalCommodityLotsMethod :: Journal -> CommoditySymbol -> Maybe ReductionMethod

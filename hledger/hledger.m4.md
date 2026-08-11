@@ -7356,11 +7356,12 @@ A matching pair of negative/positive lotful postings moves one or more existing 
 Transfer postings should not have a transacted price.
 If the destination receives less than the source sends (eg due to a fee deducted by an exchange),
 the fee portion of lots is consumed from the source without being recreated at the destination.
-If that fee also appears as a priced non-asset posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`),
-hledger automatically splits the source posting into a transfer portion and a priced disposal portion,
+If that fee also appears as a non-asset posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`),
+hledger automatically splits the source posting into a transfer portion and a disposal portion,
 so that the disposal is detected correctly.
-Plain `print` shows the user's original entry; `print --lots` (or `print -a`) shows the split form
-explicitly, so the output round-trips correctly.
+If the fee posting has a transacted price, the disposal portion carries it and a gain is calculated;
+otherwise the disposal is priceless and no gain is calculated.
+`print --lots` (or `print -a`) shows the split form explicitly, so the output round-trips correctly.
 
 ### Dispose
 

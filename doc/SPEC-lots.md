@@ -446,6 +446,13 @@ All transactions, including disposals, are balanced by the ordinary
 transaction-balancing rule — sum postings at transacted cost (ignoring cost
 basis), sum must be zero, infer at most one missing amount per commodity.
 
+When the balancer infers a conversion cost between two commodities, and
+exactly one of them has classified lot postings — or, failing that, is
+declared lotful (eg when its posting's amount comes from a balance
+assignment and so was unknown at classification time) — the cost is
+attached to that side, so lot postings get the transacted cost they need
+for lot tracking (`costInferrerFor` in Balancing.hs).
+
 ## Disposal transactions
 
 The realised gain/loss from a disposal is calculated as follows:
@@ -622,15 +629,21 @@ broader pipeline.
 4. **journalAddGainOrUGainPosting** — if the user has written an explicit rgain or ugain
    posting without its counterpart, add the matching balancing posting (pre-balancer,
    so the ordinary balancer accepts the paired transaction).
-5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
-6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
+5. **journalReclassifyLotPostings** — immediately after transaction balancing
+   (which infers balance-assignment and elided amounts), a second classification
+   pass (auto-split + classify) over transactions still containing an
+   unclassified lotful posting, so entries whose lotful amounts were only known
+   after balancing are classified too (#2686). Postings classified by the first
+   pass keep their tags.
+6. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
+7. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
    disposals, normalise transacted cost.
-7. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
+8. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
    not on `checklots`. Errors if any acquire posting has cost basis differing
    from its transacted cost (per-unit). Default mode skips this check; see
    [DECISIONS.md](DECISIONS.md) for the rationale.
-8. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
+9. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
    the rgain + ugain pair sized at the disposal gain. Also validates that any
    user-written gain amount matches the disposal gain.
 
@@ -669,6 +682,12 @@ matches that excess, the negative posting is split into two:
 Any balance assertion on the original posting is kept only on the dispose
 portion, which is posted last, so it is still checked after the full original
 quantity.
+
+Auto-splitting also runs in the post-balancing reclassification pass (see
+Processing pipeline above), so it works when the outflow amount is inferred
+by balancing - except with a priced fee, whose split shifts transaction value
+and so must happen before balancing; such entries need explicit amounts, and
+otherwise fail with an unbalanced-transaction error.
 
 This lets natural journal entries like:
 

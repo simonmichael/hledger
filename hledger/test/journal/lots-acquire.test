@@ -493,3 +493,21 @@ $ hledger -f- print -a
     cash                                        -250 €
 
 >=
+
+# *** 36. An acquire posting whose amount is inferred from a balance
+# assignment is classified in a second pass after balancing, and the
+# balancing cost is attached to the lotful commodity, so the lot is
+# created as if the amount had been written explicitly (#2686).
+<
+commodity ABC ; lots:
+
+2026-01-01 buy
+    equity:open-close   -$10
+    assets:broker1      = 2.3 ABC
+
+$ hledger -f- print -a
+2026-01-01 buy
+    equity:open-close                           $-10
+    assets:broker1:{2026-01-01, $4.34782609}       2.3 ABC {$4.34782609} @@ $10 = 2.3 ABC  ; ptype: acquire
+
+>=

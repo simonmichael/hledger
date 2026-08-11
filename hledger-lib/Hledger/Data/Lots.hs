@@ -90,6 +90,7 @@ journalCalculateLots:
 
 module Hledger.Data.Lots (
   journalClassifyLotPostings,
+  journalReclassifyLotPostings,
   journalCalculateLots,
   journalCheckAcquireBasis,
   journalCollapseLotDetail,
@@ -410,6 +411,25 @@ journalClassifyLotPostings verbosetags j =
     lookupType = journalAccountType j
     commodityIsLotful = journalCommodityUsesLots j
 
+-- | A second lot classification pass, run after transaction balancing:
+-- classify lotful postings whose amounts were not yet known during the first
+-- pass because they were inferred by balancing (from balance assignments or
+-- elided amounts) (#2686).
+-- Only transactions still containing an unclassified lotful posting are
+-- touched, and within them, postings classified by the first pass keep their
+-- tags; so currently-working journals are unaffected.
+journalReclassifyLotPostings :: Bool -> Journal -> Journal
+journalReclassifyLotPostings verbosetags j =
+  journalMapTransactions reclassify j
+  where
+    lookupType = journalAccountType j
+    commodityIsLotful = journalCommodityUsesLots j
+    reclassify t
+      | any (isUnclassifiedLotfulPosting j) (tpostings t) =
+          transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
+        $ transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful t
+      | otherwise = t
+
 -- | Detect a lot transfer with a fee - a bare negative lotful asset
 -- posting whose absolute quantity exceeds the positive quantities received by
 -- asset accounts, where the excess matches a non-asset posting (typically a
@@ -444,7 +464,9 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
     -- Try to split posting p into [transferPortion, disposePortion].
     -- Requires: single bare negative lotful asset amount, with a matching
     -- non-asset counterpart. Positive postings naturally exclude p itself.
+    -- Postings already classified (by an earlier pass) are left alone.
     trySplit p = do
+      guard $ not (isClassifiedPosting p)
       guard $ isAsset (paccount p)
       [a] <- Just $ amountsRaw (pamount p)
       guard $ aquantity a < 0
@@ -615,6 +637,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     classifyAt :: Int -> Posting -> Posting
     classifyAt i p
       | not (isReal p) = p  -- skip virtual (parenthesised) postings
+      | isClassifiedPosting p = p  -- skip postings already classified (eg by an earlier pass)
       | i `S.member` sameAcctTransferSet =
           let amts = amountsRaw (pamount p)
               cls = if any isNegativeAmount amts then "transfer-from" else "transfer-to"
@@ -1205,6 +1228,11 @@ isLotPosting :: Posting -> Bool
 isLotPosting p = isAcquirePosting p || isDisposePosting p
              || isTransferFromPosting p || isTransferToPosting p
              || isGainPosting p
+
+-- | True if this posting has any _ptype tag (was classified by lot classification,
+-- or is a generated gain posting).
+isClassifiedPosting :: Posting -> Bool
+isClassifiedPosting p = any ((== "_ptype") . fst) (ptags p)
 
 -- | Check if a posting is an acquire posting (has _ptype:acquire tag).
 isAcquirePosting :: Posting -> Bool
