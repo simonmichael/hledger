@@ -112,3 +112,34 @@ $ hledger -f- close --clopen --lots -e 2026-07-13
     equity:opening/closing balances
 
 >=
+
+# ** 6. Lot subaccounts emptied by transfers are excluded from close's output.
+# Without this, close --open --lots would emit spurious 0-amount postings for
+# the emptied source accounts, whose lot names duplicate the ids of the lots
+# now living at the destination, making the output unparseable. #2689
+<
+commodity ABC ; lots:
+
+2021-03-08 buy
+     equity:open-close   -$10
+     assets:broker1      2 ABC
+
+2021-03-08 buy
+     equity:open-close   -$10
+     assets:broker1      3 ABC
+
+2021-03-09 move
+     assets:broker1      -5 ABC
+     assets:broker2      5 ABC
+
+2021-03-10 move
+     assets:broker2      -5 ABC
+     assets:broker3      5 ABC
+
+$ hledger -f- close --open --lots -e 2022
+2022-01-01 opening balances  ; clopen:
+    assets:broker3:{2021-03-08, "0001", $5}           2 ABC
+    assets:broker3:{2021-03-08, "0002", $3.33333333}  3 ABC
+    equity:opening/closing balances
+
+>=

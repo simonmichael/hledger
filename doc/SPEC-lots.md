@@ -608,6 +608,12 @@ would be invalid when the output is re-read: balance assertions run before lot c
 so the lot subaccounts would not yet have their expected balances. Non-lot-subaccount
 postings (e.g. `assets:cash`) and opening transaction postings retain their assertions.
 
+Also, `close` excludes accounts whose balance is zero once costs are stripped
+(its normal non-`--show-costs` treatment), such as lot subaccounts emptied by
+transfers. Without this it would emit spurious zero postings for them, whose lot
+names duplicate the ids of the lots now held at the transfer destination,
+making the output unparseable (#2689).
+
 ## Processing pipeline
 
 Lot-related processing runs during journal finalising as a sequence of

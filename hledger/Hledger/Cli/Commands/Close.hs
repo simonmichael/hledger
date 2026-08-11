@@ -128,7 +128,16 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- the balances to close
     rspec3 = rspec1{_rsQuery=q3}
     (acctbals',_) = balanceReport rspec3 j
-    acctbals = map (\(a,_,_,b) -> (a, if show_costs_ ropts then b else mixedAmountStripCosts b)) acctbals'
+    showcosts = show_costs_ ropts
+    -- Strip costs unless --show-costs is used, and drop any accounts whose
+    -- balance thereby becomes zero (unless -E). These are accounts which were
+    -- emptied by postings with mismatched costs; without this they would
+    -- generate zero postings, and with --lots, duplicate lot ids (#2689).
+    acctbals = [ (a, b')
+               | (a,_,_,b) <- acctbals'
+               , let b' = if showcosts then b else mixedAmountStripCosts b
+               , showcosts || empty_ ropts || not (mixedAmountLooksZero b')
+               ]
     totalamt = maSum $ map snd acctbals
 
     -- since balance assertion amounts are required to be exact, the
