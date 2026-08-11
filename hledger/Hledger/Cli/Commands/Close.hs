@@ -133,10 +133,14 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
     -- balance thereby becomes zero (unless -E). These are accounts which were
     -- emptied by postings with mismatched costs; without this they would
     -- generate zero postings, and with --lots, duplicate lot ids (#2689).
+    -- Lot subaccounts are stripped even with --show-costs: their cost info
+    -- lives in the lot name, and transacted prices on their postings would
+    -- make the output unparseable (lot transfers may not have one).
     acctbals = [ (a, b')
                | (a,_,_,b) <- acctbals'
-               , let b' = if showcosts then b else mixedAmountStripCosts b
-               , showcosts || empty_ ropts || not (mixedAmountLooksZero b')
+               , let keepcosts = showcosts && not (isLotSubaccount a)
+               , let b' = if keepcosts then b else mixedAmountStripCosts b
+               , keepcosts || empty_ ropts || not (mixedAmountLooksZero b')
                ]
     totalamt = maSum $ map snd acctbals
 
