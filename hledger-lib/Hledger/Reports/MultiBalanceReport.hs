@@ -333,20 +333,14 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
 
         qdepth = fromMaybe maxBound . getAccountNameClippedDepth depthspec $ aname acct
         balance = maybeStripPrices . case accountlistmode_ ropts of
-            ALTree ->
-                if d == qdepth
-                  then bdincludingsubs
-                  else bdexcludingsubs
-            ALFlat ->
-                if no_elide_ ropts
-                  then bdincludingsubs
-                  else bdexcludingsubs
+            ALTree | d == qdepth -> bdincludingsubs
+            _                    -> bdexcludingsubs
 
     -- Accounts which don't have enough interesting subaccounts
     isBoringParent :: Account a -> Bool
     isBoringParent acct = case accountlistmode_ ropts of
         ALTree -> notEnoughSubs || droppedAccount
-        ALFlat -> not $ no_elide_ ropts
+        ALFlat -> True
       where
         notEnoughSubs = length interestingSubs < minimumSubs
         droppedAccount = accountNameLevel (aname acct) <= drop_ ropts
@@ -354,9 +348,12 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
         minimumSubs = if no_elide_ ropts then 1 else 2
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
-    keepWhenEmpty = case accountlistmode_ ropts of
-        ALFlat -> any ((0<) . bdnumpostings) . pdperiods . adata  -- Keep all accounts that have postings in flat mode
-        ALTree -> null . asubs                                    -- Keep only empty leaves in tree mode
+    keepWhenEmpty acct = case accountlistmode_ ropts of
+        ALTree -> null $ asubs acct     -- In tree mode, keep only empty leaves
+        ALFlat -> hasPostings acct      -- In list mode, keep all accounts that have postings;
+          || no_elide_ ropts && accountNameLevel (aname acct) > drop_ ropts && anyAccounts hasPostings acct
+                                        -- or with --no-elide, also (undropped) parents of such accounts
+      where hasPostings = any ((0<) . bdnumpostings) . pdperiods . adata
     maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripCosts
 
     qdepthIsZero = depthspec == DepthSpec (Just 0) []
@@ -437,7 +434,7 @@ buildReportRows makeRow ropts = mkRows True (-drop_ ropts) 0
     allBoring a = aboring a && all allBoring (asubs a)
     balance = case accountlistmode_ ropts of
         ALTree -> bdincludingsubs
-        ALFlat -> if no_elide_ ropts then bdincludingsubs else bdexcludingsubs
+        ALFlat -> bdexcludingsubs
 
     displayedName d boringParents name
         | d == 0 && name == "root" = DisplayName "..." "..." 0

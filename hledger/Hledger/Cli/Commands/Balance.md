@@ -307,6 +307,35 @@ sum of the top-level balances shown, not of all the balances shown.
 
 - Each group of sibling accounts (ie, under a common parent) is sorted separately.
 
+In list mode, `--no-elide` combined with `-E/--empty` shows parent
+accounts as well, with their exclusive balances (zero, unless they
+have postings of their own). This guarantees a complete table of all
+posted-to accounts and their parents, with full names:
+
+```cli
+$ hledger -f examples/sample.journal balance --no-elide -E
+                   0  assets
+                   0  assets:bank
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                   0  expenses
+                  $1  expenses:food
+                  $1  expenses:supplies
+                   0  income
+                 $-1  income:gifts
+                 $-1  income:salary
+                   0  liabilities
+                  $1  liabilities:debts
+--------------------
+                   0
+```
+
+This can be useful eg when exporting to a spreadsheet which will look
+up balances by account name. For the same complete table with
+*inclusive* balances (each account including its subaccounts'
+balances), use tree mode with `--full-path`, described below.
+
 ### Depth limiting
 
 With a `depth:NUM` query, or `--depth NUM` option, or just `-NUM` (eg: `-3`)
