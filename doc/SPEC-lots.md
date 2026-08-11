@@ -613,6 +613,11 @@ postings (e.g. `assets:cash`) and opening transaction postings retain their asse
 Lot-related processing runs during journal finalising as a sequence of
 stages. Errors (missing lot cost, ambiguous selectors, dispose before
 acquire, invalid `lots:` tag values, etc.) are reported at load time.
+Their excerpts show the entry as the user wrote it - postings reverted to
+their original parse-time form, generated postings omitted - rather than
+the processed in-memory entry, mentioning the problem posting's inferred
+amount when it is not visible in the excerpt
+(`transactionAsWritten` in Lots.hs, #2686).
 See [SPEC-finalising.md](SPEC-finalising.md) for how this sits in the
 broader pipeline.
 

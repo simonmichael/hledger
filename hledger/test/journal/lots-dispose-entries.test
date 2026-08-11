@@ -400,10 +400,9 @@ $ hledger -f- print --lots
 >2
 hledger: Error: -:7:
 7 | 2019-07-10 sell
-  |     assets:savings                              Rs19403.24
-  |     assets:fund:{2017-04-09, Rs1801.215277778}       -9.216 FUND {2017-04-09, Rs1801.215277778} @@ Rs19403.24
-  |     income:capital                              Rs-2803.30
-  |     equity:unrealised-gain                       Rs2803.30
+  |     assets:savings                           Rs19403.24
+  |     assets:fund                                   -9.216 FUND {Rs1801.215277778} @@ Rs19403.24
+  |     income:capital                           Rs-2803.30
 
 This disposal's realised gain amount is wrong.
   written:    Rs-2803.30

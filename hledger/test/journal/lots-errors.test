@@ -24,7 +24,7 @@ $ hledger -f- bal assets --lots 2>&1
 hledger: Error: -:4:
   | 2026-01-15 mysterious
 4 |     assets:broker                                 10 AAPL
-  |     income:mystery                               -10 AAPL
+  |     income:mystery
 
 AAPL is declared lotful (commodity lots: tag) but this posting was not classified as
 acquire, dispose, or transfer. Lot state will not be updated.
@@ -105,8 +105,7 @@ hledger: Error: -:3:
 3 | 2026-01-17 buy
   |     assets:wj                                    -52 A
   |     assets:broker                               2220 T  ; @ $0.01
-  |     equity:conversion                             52 A
-  |     equity:conversion                          -2220 T
+  |     equity:conversion
 
 T is lotful but this acquire posting has no cost basis or price.
 No lot will be created.
@@ -156,3 +155,26 @@ $ hledger -f- -I check lots
 $ hledger -f - print
 >2 /lot subaccount name must contain a date and cost/
 >= 1
+
+# ** 12. The unclassified-posting error shows the entry as written in the
+# journal (balance assignments and elided amounts are not filled in), and
+# mentions the problem posting's inferred amount, which is not visible in
+# the excerpt (#2686).
+<
+commodity ABC ; lots:
+
+2021-03-08 gift received
+     revenues:gifts
+     assets:broker1    = 2.3 ABC
+
+$ hledger -f- bal assets --lots 2>&1
+hledger: Error: -:5:
+  | 2021-03-08 gift received
+  |     revenues:gifts
+5 |     assets:broker1                                   = 2.3 ABC
+
+ABC is declared lotful (commodity lots: tag) but this posting (with inferred amount 2.3 ABC) was not classified as
+acquire, dispose, or transfer. Lot state will not be updated.
+Possible fixes: add a cost basis ({$X}), a price (@ $X),
+or check the account type declaration.
+>=1
