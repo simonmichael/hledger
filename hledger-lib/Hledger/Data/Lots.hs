@@ -398,24 +398,27 @@ mergeCostBasis a b = do
 -- | Classify lot-related postings by adding ptype tags.
 -- Must be called after journalAddAccountTypes so account types are available.
 -- The verbosetags parameter controls whether the ptype tags will be made visible in comments.
--- Before classification, try to auto-split lot transfers with priced fees
+-- Before classification, try to auto-split lot transfers with fees
 -- into a transfer portion and a dispose portion, so both get classified correctly.
 journalClassifyLotPostings :: Bool -> Journal -> Journal
 journalClassifyLotPostings verbosetags j =
   journalMapTransactions
     ( transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
-    . transactionAutoSplitPricedFeeOutflows verbosetags lookupType commodityIsLotful
+    . transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful
     ) j
   where
     lookupType = journalAccountType j
     commodityIsLotful = journalCommodityUsesLots j
 
--- | Detect a lot transfer with a priced fee — a bare negative lotful asset
--- posting whose absolute quantity exceeds its positive counterparts, where the
--- excess matches a priced non-asset posting (typically a fee paid in the base
--- commodity) — and split it into a transfer portion (matching the positive
--- sum) and a dispose portion (carrying the counterpart's transacted price),
--- so classification can correctly tag the two roles.
+-- | Detect a lot transfer with a fee - a bare negative lotful asset
+-- posting whose absolute quantity exceeds the positive quantities received by
+-- asset accounts, where the excess matches a non-asset posting (typically a
+-- fee paid in the lotful commodity) - and split it into a transfer portion
+-- (matching the positive sum) and a dispose portion, so classification can
+-- correctly tag the two roles. When the fee counterpart has a transacted
+-- price, the dispose portion carries it (and a gain will be calculated);
+-- otherwise the dispose portion is priceless (lots are still reduced, but
+-- no gain is calculated).
 --
 -- If no such pattern is found, the transaction is returned unchanged.
 -- The transfer portion inherits the original's identity (poriginal preserves
@@ -423,12 +426,15 @@ journalClassifyLotPostings verbosetags j =
 -- The dispose portion is tagged `_feesplit-posting` so plain print hides it,
 -- and `_generated-posting` to mark its provenance; -x or --verbose-tags
 -- reveals it.
-transactionAutoSplitPricedFeeOutflows
+-- The original posting's balance assertion is kept only on the dispose
+-- portion (the last of the two), so it is still checked after the full
+-- original quantity has been posted.
+transactionAutoSplitFeeOutflows
   :: Bool
   -> (AccountName -> Maybe AccountType)
   -> (CommoditySymbol -> Bool)
   -> Transaction -> Transaction
-transactionAutoSplitPricedFeeOutflows verbosetags lookupAccountType commodityIsLotful t =
+transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful t =
     t{tpostings = concatMap (\p -> fromMaybe [p] (trySplit p)) (tpostings t)}
   where
     ps = tpostings t
@@ -437,7 +443,7 @@ transactionAutoSplitPricedFeeOutflows verbosetags lookupAccountType commodityIsL
 
     -- Try to split posting p into [transferPortion, disposePortion].
     -- Requires: single bare negative lotful asset amount, with a matching
-    -- priced non-asset counterpart. Positive postings naturally exclude p itself.
+    -- non-asset counterpart. Positive postings naturally exclude p itself.
     trySplit p = do
       guard $ isAsset (paccount p)
       [a] <- Just $ amountsRaw (pamount p)
@@ -449,6 +455,7 @@ transactionAutoSplitPricedFeeOutflows verbosetags lookupAccountType commodityIsL
           fromQty = negate (aquantity a)
           toQty   = sum [ aquantity pa
                         | q  <- ps
+                        , isAsset (paccount q)
                         , pa <- amountsRaw (pamount q)
                         , acommodity pa == comm
                         , aquantity pa > 0
@@ -457,26 +464,26 @@ transactionAutoSplitPricedFeeOutflows verbosetags lookupAccountType commodityIsL
                         ]
           feeQty  = fromQty - toQty
       guard $ toQty > 0 && feeQty > 0
-      feeAcost <- findPricedCounterpart comm feeQty
+      feeMAcost <- findFeeCounterpart comm feeQty
       let origP = originalPosting p
           p1    = p{ pamount = mixedAmount (amountSetQuantity (negate toQty)  a)
-                   , poriginal = Just origP }
+                   , poriginal = Just origP
+                   , pbalanceassertion = Nothing }
           p2    = addTag feesplitPostingTagName
                 $ addTag generatedPostingTagName
-                $ p{ pamount = mixedAmount (amountSetQuantity (negate feeQty) a){ acost = Just feeAcost }
+                $ p{ pamount = mixedAmount (amountSetQuantity (negate feeQty) a){ acost = feeMAcost }
                    , poriginal = Just origP }
       Just [p1, p2]
 
     addTag name = postingAddHiddenAndMaybeVisibleTag False verbosetags (name, "")
 
-    -- Find the transacted cost of the first priced non-asset counterpart
-    -- with the given commodity and quantity.
-    findPricedCounterpart comm qty = listToMaybe
-      [ c
+    -- Find the first non-asset counterpart posting with the given commodity
+    -- and quantity, and return its transacted cost if it has one.
+    findFeeCounterpart comm qty = listToMaybe
+      [ acost pa
       | q  <- ps, isNonAsset (paccount q)
       , pa <- amountsRaw (pamount q)
       , acommodity pa == comm, aquantity pa == qty
-      , Just c <- [acost pa]
       ]
 
 -- | Classify lot-related postings by adding a ptype tag.

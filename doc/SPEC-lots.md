@@ -369,6 +369,11 @@ we infer a transacted cost from the cost basis.
   recreated at the destination, and the fee portion's lots are consumed from source only
   (generating from-postings on lot subaccounts with no corresponding to-postings, like a
   silent disposal with no gain).
+  (The common case, where a single non-asset posting matches the fee quantity exactly,
+  is normally handled before classification by fee outflow auto-splitting - see
+  "Auto-splitting lot transfer fees" below - which produces an explicit dispose portion
+  instead. This path remains for patterns auto-split doesn't detect, eg a fee split
+  across multiple postings.)
 
 - An equity transfer is a variant of a lot transfer that happens in two parts across
   separate transactions (e.g. a closing transaction transfers lots into equity, and an
@@ -647,16 +652,23 @@ See SPEC-finalising for more details of the implementation.
 
 ### Auto-splitting lot transfer fees
 
-Before classification, hledger detects a common "transfer with priced fee"
+Before classification, hledger detects a common "transfer with fee"
 pattern and rewrites it into explicit transfer + disposal postings.
 
 If a transaction has a bare negative lotful asset posting whose absolute
-quantity exceeds the matching positive quantity by some amount, and a priced
-non-asset posting (typically an expense with `@` price) in the same commodity
+quantity exceeds the positive quantity received by asset accounts by some
+amount, and a non-asset posting (typically an expense) in the same commodity
 matches that excess, the negative posting is split into two:
 
 - a transfer portion with the matching positive quantity, and
-- a dispose portion with the excess quantity and the counterpart's transacted price.
+- a dispose portion with the excess quantity. If the fee counterpart has a
+  transacted price (`@`/`@@`), the dispose portion carries it and a gain is
+  calculated; otherwise the dispose portion is priceless - lots are still
+  reduced, but no gain is calculated (as with any priceless bare disposal).
+
+Any balance assertion on the original posting is kept only on the dispose
+portion, which is posted last, so it is still checked after the full original
+quantity.
 
 This lets natural journal entries like:
 
@@ -682,9 +694,12 @@ classify and balance as if the user had written:
 The original user posting is preserved via `poriginal` on the transfer portion
 (p1), and the dispose portion (p2) is tagged `_feesplit-posting`. As a result:
 
-- Plain `print` shows the user's original entry (the `_feesplit-posting`-tagged
-  portion is hidden, and the remaining portion displays at the original
-  quantity via `poriginal`).
+- With an unpriced fee, plain `print` shows the user's original entry (the
+  `_feesplit-posting`-tagged portion is hidden, and the remaining portion
+  displays at the original quantity via `poriginal`).
+- With a priced fee, plain `print` shows the split form: reverting would drop
+  the priced dispose portion while keeping its generated gain postings,
+  leaving an unbalanced entry.
 - `print -x` shows the split form explicitly (both portions visible at their
   post-split quantities).
 - `print --lots` also shows the split form for auto-split transactions, so

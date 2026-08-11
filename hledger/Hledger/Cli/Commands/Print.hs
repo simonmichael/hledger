@@ -199,15 +199,21 @@ printEntries opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j =
           | opts ^. infer_costs = id
           -- with -B/-V/-X/--value ("because of #551, and because of print -V valuing only one posting when there's an implicit txn price.")
           | has (value . _Just) opts = id
-          -- For transactions containing auto-split postings (eg from lot transfer auto-split),
-          -- keep the explicit form. Reverting to the original would drop the split fragments
-          -- and leave an unbalanced entry.
+          -- For transactions containing priced auto-split postings (from lot transfer
+          -- auto-split), keep the explicit form: reverting to the original would drop
+          -- the priced dispose fragment while keeping its generated gain postings,
+          -- leaving an unbalanced entry. (Priceless fee fragments generate no gain
+          -- postings, so those transactions can safely revert to the user's original
+          -- entry - except with --lots, where fragments must be kept to round-trip.)
           -- Otherwise, keep the transaction's amounts close to how they were written in the journal.
           | otherwise = \t ->
-              if any (hasTag feesplitPostingTagName) (tpostings t)
+              if any keptFeesplit (tpostings t)
               then t
               else transactionWithMostlyOriginalPostings t
-          where hasTag name p = name `elem` map fst (ptags p)
+          where
+            hasTag name p = name `elem` map fst (ptags p)
+            keptFeesplit p = hasTag feesplitPostingTagName p
+              && (boolopt "lots" (rawopts_ opts) || any (isJust . acost) (amountsRaw (pamount p)))
 
         -- Like maybeoriginalamounts, but also keeps the inferred amount for
         -- balance assignment postings (which had no explicit amount).

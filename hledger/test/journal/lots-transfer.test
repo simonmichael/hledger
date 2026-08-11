@@ -548,3 +548,73 @@ $ hledger -f- print -x --lots desc:transfer
     equity:unrealised-gain                        $2.50
 
 >=
+
+# ** 26. Transfer+fee with unpriced expense: also auto-split, into a
+# transfer portion and a priceless dispose portion. Lots are reduced
+# correctly, but no gain is calculated (no selling price is known).
+<
+commodity A  ; lots:
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with fee
+    assets:x1     -1 A
+    expenses:fees  0.05 A
+    assets:x2      0.95 A
+
+$ hledger -f- print --lots -x desc:transfer
+2026-02-17 transfer with fee
+    assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100}
+    expenses:fees                                  0.05 A
+    assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
+
+>=
+
+# ** 27. Same entry: unlike the priced case (test 23), plain print shows
+# the user's original entry. There are no generated gain postings, so
+# reverting the auto-split leaves a balanced entry.
+<
+commodity A  ; lots:
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with fee
+    assets:x1     -1 A
+    expenses:fees  0.05 A
+    assets:x2      0.95 A
+
+$ hledger -f- print desc:transfer
+2026-02-17 transfer with fee
+    assets:x1                                     -1 A
+    expenses:fees                                  0.05 A
+    assets:x2                                      0.95 A
+
+>=
+
+# ** 28. A balance assertion on the auto-split outflow posting is kept on
+# the dispose portion (posted last), so it is checked after the full
+# original quantity, and passes.
+<
+commodity A  ; lots:
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with priced fee
+    assets:x1     -1 A = 0 A
+    expenses:fees  0.05 A @ $150
+    assets:x2      0.95 A
+
+$ hledger -f- print --lots -x desc:transfer
+2026-02-17 transfer with priced fee
+    assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150 = 0 A
+    expenses:fees                                  0.05 A @ $150
+    assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
+    revenues:gain                                $-2.50
+    equity:unrealised-gain                        $2.50
+
+>=
