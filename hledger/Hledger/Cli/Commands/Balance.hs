@@ -673,7 +673,9 @@ balanceReportAsSpreadsheet fmt opts (items, total) =
               setAccountAnchor
                   (guard (rc==Value) >> balance_base_url_ opts)
                   (querystring_ opts) name $
-              cell $ renderBalanceAcct opts nbsp (name, dispName, dep) in
+              cell $ case rc of
+                Total -> dispName  -- show the total row heading as is; --drop etc. don't apply (#2688)
+                Value -> renderBalanceAcct opts nbsp (name, dispName, dep) in
       addRowSpanHeader accountCell $
       case layout_ opts of
       LayoutBare ->
