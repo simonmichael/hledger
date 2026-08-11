@@ -930,11 +930,14 @@ journalAddGainOrUGainPosting verbosetags j = do
           Nothing -> True
         notLotClassified q = not $ any (\(k,v) -> k == "_ptype" && v `elem` ["acquire","dispose","transfer-from","transfer-to"]) (ptags q)
 
-    amountlessErr t =
-      txnErrPrefix t
-      ++ "This disposal has an amountless gain or unrealised-gain posting.\n"
-      ++ "Write the amount explicitly, or omit the posting entirely\n"
-      ++ "(hledger will then infer both rgain and ugain from the cost basis)."
+-- | Error for a disposal transaction containing a gain or unrealised-gain
+-- posting with no (or no longer any) amount.
+amountlessErr :: Transaction -> String
+amountlessErr t =
+  txnErrPrefix t
+  ++ "This disposal has an amountless gain or unrealised-gain posting.\n"
+  ++ "Write the amount explicitly, or omit the posting entirely\n"
+  ++ "(hledger will then infer both rgain and ugain from the cost basis)."
 
 -- | Check that no acquire posting has a disagreement between its cost basis and transacted cost.
 --
@@ -1021,10 +1024,18 @@ journalAddOrCheckGainPostings verbosetags j = do
     addPair t
       | not (any isDisposePosting (tpostings t))  = Right t
       | not (any disposeHasPrice  (tpostings t))  = Right t
+      | any isAmountlessGain ps                   = Left (amountlessErr t)
       | any isRgain ps || any isUgain ps          = validatePair t  -- already paired
       | otherwise                                  = Right (addNewPair t)
       where
         ps = tpostings t
+        -- A gain posting the user left amountless. Usually rejected before
+        -- balancing (journalAddGainOrUGainPosting), but when the disposal was
+        -- only detectable after balancing (eg its amounts came from a balance
+        -- assignment), the elided posting has an inferred amount by now, so
+        -- check the original posting (#2686).
+        isAmountlessGain p = (isRgain p || isUgain p)
+          && not (hasAmount (originalPosting p))
 
     addNewPair t
       | mixedAmountIsZero gain = t

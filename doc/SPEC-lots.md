@@ -689,13 +689,13 @@ portion, which is posted last, so it is still checked after the full original
 quantity.
 
 Auto-splitting also works when the outflow amount is inferred by balancing
-(eg from a balance assignment): the unpriced case is handled by the
-post-balancing reclassification pass (see Processing pipeline above), and
-the priced case by the balancer itself - a priced fee's split changes the
-transaction's at-cost value sum (the dispose portion's cost is what makes
-the entry balance), so when a balance-assignment transaction fails its
-balancedness check, the balancer retries once with the fee auto-split
-applied before rejecting it (`retryWithFeeSplit` in Balancing.hs, #2686).
+(eg from a balance assignment): after resolving a transaction's balance
+assignments, the balancer applies the fee auto-split before checking
+balancedness - a priced fee's split changes the transaction's at-cost value
+sum (the dispose portion's cost is what makes the entry balance), and any
+elided posting must infer the post-split residual. If the split form does
+not balance, the unsplit form is used as before
+(`balanceTransactionAndCheckAssertionsB` in Balancing.hs, #2686).
 
 This lets natural journal entries like:
 
@@ -704,7 +704,6 @@ This lets natural journal entries like:
     assets:custodial        -1 ETH
     assets:cold wallet   0.999601 ETH
     expenses:fees       0.000399 ETH @ $1,992.36
-    income:gains
 ```
 
 classify and balance as if the user had written:
@@ -715,8 +714,12 @@ classify and balance as if the user had written:
     assets:custodial  -0.000399 ETH @ $1,992.36
     assets:cold wallet                0.999601 ETH
     expenses:fees     0.000399 ETH @ $1,992.36
-    income:gains
 ```
+
+(with the rgain and ugain postings then generated as usual; note an
+elided gain posting must not be written - disposals reject amountless
+gain postings with an error, whether their amounts are explicit or
+inferred by balancing).
 
 The original user posting is preserved via `poriginal` on the transfer portion
 (p1), and the dispose portion (p2) is tagged `_feesplit-posting`. As a result:

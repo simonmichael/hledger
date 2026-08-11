@@ -178,3 +178,31 @@ acquire, dispose, or transfer. Lot state will not be updated.
 Possible fixes: add a cost basis ({$X}), a price (@ $X),
 or check the account type declaration.
 >=1
+
+# ** 13. An amountless gain posting in a disposal is rejected with the same
+# clear error when the disposal's amounts are inferred by balancing (eg from
+# a balance assignment) as when they are explicit (#2686).
+<
+commodity A  ; lots:
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with priced fee
+    assets:x1     = 0 A
+    assets:x2      0.95 A
+    expenses:fees  0.05 A @ $150
+    income:gains
+
+$ hledger -f- bal assets --lots 2>&1
+hledger: Error: -:6:
+6 | 2026-02-17 transfer with priced fee
+  |     assets:x1                                                    = 0 A
+  |     assets:x2                                      0.95 A
+  |     expenses:fees                                  0.05 A @ $150
+  |     income:gains
+
+This disposal has an amountless gain or unrealised-gain posting.
+Write the amount explicitly, or omit the posting entirely
+(hledger will then infer both rgain and ugain from the cost basis).
+>=1
