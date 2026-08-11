@@ -348,9 +348,12 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
         minimumSubs = if no_elide_ ropts then 1 else 2
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
-    keepWhenEmpty = case accountlistmode_ ropts of
-        ALFlat -> any ((0<) . bdnumpostings) . pdperiods . adata  -- Keep all accounts that have postings in flat mode
-        ALTree -> null . asubs                                    -- Keep only empty leaves in tree mode
+    keepWhenEmpty acct = case accountlistmode_ ropts of
+        ALTree -> null $ asubs acct     -- In tree mode, keep only empty leaves
+        ALFlat -> hasPostings acct      -- In list mode, keep all accounts that have postings;
+          || no_elide_ ropts && accountNameLevel (aname acct) > drop_ ropts && anyAccounts hasPostings acct
+                                        -- or with --no-elide, also (undropped) parents of such accounts
+      where hasPostings = any ((0<) . bdnumpostings) . pdperiods . adata
     maybeStripPrices = if conversionop_ ropts == Just NoConversionOp then id else mixedAmountStripCosts
 
     qdepthIsZero = depthspec == DepthSpec (Just 0) []

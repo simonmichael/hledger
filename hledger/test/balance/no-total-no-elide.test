@@ -115,3 +115,84 @@ Balance changes in 2020:
  a        ||    1 
  a:aa     ||    0 
  a:aa:aaa ||    0 
+
+<
+2024/1/1
+  b:bb       -10
+  a:aa:aaa    10
+
+2024/1/2
+  b:bb        -5
+  c:cc         5
+
+2024/1/3
+  b:bb        -7
+  z:zz         7
+
+2024/1/4
+  z:zz        -7
+  b:bb         7
+
+# ** 14. In list mode, --no-elide by itself has no effect: only posted-to
+# accounts are shown, with exclusive balances, as usual.
+$ hledger -f - balance --flat --no-total --no-elide
+                  10  a:aa:aaa
+                 -15  b:bb
+                   5  c:cc
+>=0
+
+# ** 15. With --empty also, parent accounts are shown too, with their exclusive
+# balances (zero unless they have postings of their own), guaranteeing a complete
+# table of all posted-to accounts and their parents, with full names.
+$ hledger -f - balance --flat --no-total --no-elide --empty
+                   0  a
+                   0  a:aa
+                  10  a:aa:aaa
+                   0  b
+                 -15  b:bb
+                   0  c
+                   5  c:cc
+                   0  z
+                   0  z:zz
+>=0
+
+# ** 16. With --drop, parent accounts within the dropped levels are omitted, as in tree mode.
+$ hledger -f - balance --flat --no-total --no-elide --empty --drop 1
+                   0  aa
+                  10  aa:aaa
+                 -15  bb
+                   5  cc
+                   0  zz
+>=0
+
+# ** 17. The same, as CSV: full account names, convenient for lookups in spreadsheets.
+$ hledger -f - balance --flat --no-elide --empty -O csv
+"account","balance"
+"a","0"
+"a:aa","0"
+"a:aa:aaa","10"
+"b","0"
+"b:bb","-15"
+"c","0"
+"c:cc","5"
+"z","0"
+"z:zz","0"
+"Total:","0"
+>=0
+
+# ** 18. Same as 15 for multiperiod.
+$ hledger -f - balance --flat --no-total --no-elide --empty -Y
+Balance changes in 2024:
+
+          || 2024 
+==========++======
+ a        ||    0 
+ a:aa     ||    0 
+ a:aa:aaa ||   10 
+ b        ||    0 
+ b:bb     ||  -15 
+ c        ||    0 
+ c:cc     ||    5 
+ z        ||    0 
+ z:zz     ||    0 
+>=0

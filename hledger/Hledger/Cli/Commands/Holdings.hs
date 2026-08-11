@@ -35,7 +35,7 @@ import Text.Printf (printf)
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Commands.Balance (addTotalBorders)
+import Hledger.Cli.Commands.Balance (addTotalBorders, renderPeriodicAcct)
 import Hledger.Cli.Commands.Print (roundFromRawOpts)
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
@@ -52,7 +52,8 @@ import Text.Tabular.AsciiWide
 holdingsmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Holdings.txt")
   (flattreeflags True ++
-   [flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts"
+   [flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts; in list mode, also show parent accounts (usually zero, hidden without -E)"
+   ,flagNone ["full-names"] (setboolopt "full-names") "in tree mode, show full account names instead of indented leaf names"
    ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in list mode, omit N leading account name parts"
    ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by value (or cost) instead of account name, largest first"
    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
@@ -471,7 +472,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
           Table (Group NoLine [Header ""]) (Header []) [totalrow]
     colheadings = ["Date", "Age", "Units", if showlots then "Unit cost" else "Avg cost", "Price", "Cost", "Value", "Weight", "UGain", "UGain%", "RGain", "XIRR"]
-    renderacct r = T.replicate (prrIndent r * 2) " " <> prrDisplayName r
+    renderacct r = renderPeriodicAcct ropts " " r
 
     rowLotCosts r = [rowCostValuer r $ multiplyAmount (aquantity a) c
                     | (a, mcb) <- lotsUnder $ prrFullName r, Just c <- [cbCost =<< mcb]]
