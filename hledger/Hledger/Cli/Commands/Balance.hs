@@ -263,6 +263,7 @@ module Hledger.Cli.Commands.Balance (
  ,multiBalanceReportAsSpreadsheet
  ,multiBalanceReportAsSpreadsheetParts
  ,multiBalanceHasTotalsColumn
+ ,renderPeriodicAcct
  ,addTotalBorders
  ,simpleDateSpanCell
  ,tidyColumnLabels
@@ -350,8 +351,8 @@ balancemode = hledgerCommandMode
     ,flagNone ["row-total","T"] (setboolopt "row-total") "show a row total column (in multicolumn reports)"
     ,flagNone ["summary-only"] (setboolopt "summary-only") "display only row summaries (e.g. row total, average) (in multicolumn reports)"
     ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
-    ,flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts; in list mode with -E, also show parent accounts"
-    ,flagNone ["full-path"] (setboolopt "full-path") "show full account path in tree mode instead of indentation"
+    ,flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts; in list mode, also show parent accounts (usually zero, hidden without -E)"
+    ,flagNone ["full-names"] (setboolopt "full-names") "in tree mode, show full account names instead of indented leaf names"
     ,flagReq  ["format"] (\s opts -> Right $ setopt "format" s opts) "FORMATSTR" "use this custom line format (in simple reports)"
     ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by amount instead of account code/name (in flat mode). With multiple columns, sorts by the row total, or by row average if that is displayed."
     ,flagNone ["percent", "%"] (setboolopt "percent") "express values in percentage of each column's total"
@@ -582,8 +583,11 @@ This implementation turned out to be a bit convoluted but implements the followi
 -- differently-priced quantities of the same commodity will appear merged.
 -- The output will be one or more lines depending on the format and number of commodities.
 balanceReportItemAsText :: ReportOpts -> BalanceReportItem -> (TB.Builder, [Int])
-balanceReportItemAsText opts (_, accountName, dep, amt) =
-  renderBalanceReportItem opts (accountName, dep, amt)
+balanceReportItemAsText opts (fullName, displayName, dep, amt)
+  | accountlistmode_ opts == ALTree && full_names_ opts =
+      renderBalanceReportItem opts (accountNameDrop (drop_ opts) fullName, 0, amt)
+  | otherwise =
+      renderBalanceReportItem opts (displayName, dep, amt)
 
 -- | Render a balance report item, using the StringFormat specified by --format.
 --
@@ -842,7 +846,7 @@ multiBalanceReportAsTable opts@ReportOpts{summary_only_, average_, balanceaccum_
         fullRowAsTexts row = (replicate (length rs) (renderacct row), rs)
           where
             rs = multiBalanceRowAsText opts row
-            renderacct row' = T.replicate (prrIndent row' * 2) " " <> prrDisplayName row'
+            renderacct row' = renderPeriodicAcct opts " " row'
     addtotalrow
       | no_total_ opts = id
       | otherwise =
@@ -1251,7 +1255,7 @@ nbsp = "\160"
 renderBalanceAcct ::
     ReportOpts -> Text -> (AccountName, AccountName, Int) -> Text
 renderBalanceAcct opts space (fullName, displayName, dep) =
-  if accountlistmode_ opts == ALTree && not (full_path_ opts)
+  if accountlistmode_ opts == ALTree && not (full_names_ opts)
     then T.replicate (dep*2) space <> displayName
     else accountNameDrop (drop_ opts) fullName
 

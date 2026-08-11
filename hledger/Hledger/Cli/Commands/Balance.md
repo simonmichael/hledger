@@ -307,10 +307,11 @@ sum of the top-level balances shown, not of all the balances shown.
 
 - Each group of sibling accounts (ie, under a common parent) is sorted separately.
 
-In list mode, `--no-elide` combined with `-E/--empty` shows parent
-accounts as well, with their exclusive balances (zero, unless they
-have postings of their own). This guarantees a complete table of all
-posted-to accounts and their parents, with full names:
+In list mode, `--no-elide` shows parent accounts as well, with their
+exclusive balances. These are zero unless the parent has postings of
+its own, so `-E/--empty` is usually also needed to make them visible.
+Together, these flags guarantee a complete table of all posted-to
+accounts and their parents, with full names:
 
 ```cli
 $ hledger -f examples/sample.journal balance --no-elide -E
@@ -332,9 +333,34 @@ $ hledger -f examples/sample.journal balance --no-elide -E
 ```
 
 This can be useful eg when exporting to a spreadsheet which will look
-up balances by account name. For the same complete table with
-*inclusive* balances (each account including its subaccounts'
-balances), use tree mode with `--full-path`, described below.
+up balances by account name.
+
+In tree mode, `--full-names` writes each account's full name instead of
+indenting leaf names, while keeping tree mode's inclusive balances.
+So `--tree --no-elide --full-names -E` shows the same complete table as
+above, but with inclusive balances:
+
+```cli
+$ hledger -f examples/sample.journal balance --tree --no-elide --full-names -E
+                 $-1  assets
+                  $1  assets:bank
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $2  expenses
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-2  income
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities
+                  $1  liabilities:debts
+--------------------
+                   0
+```
+
+Note that in this variant, parent and subaccount balances overlap, so
+(as in any tree mode report) the rows sum to more than the final total.
 
 ### Depth limiting
 
