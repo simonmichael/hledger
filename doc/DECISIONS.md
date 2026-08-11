@@ -30,7 +30,7 @@ Yes we should support declaring aliases with alias: tags on account directives.
 
 ## 2026
 
-### Release hledger 2.0 this year, with two main themes: lots and AI
+### Release hledger 2.0 this year, with two main themes: lots and AI-assisted development
 
 hledger 2 will explore ethical AI-assisted development, 
 and will leverage that to ship automated lots and gains tracking.
@@ -39,16 +39,6 @@ There will be a substantial period for preview releases, discussion and testing 
 ### Shift "cost" terminology to "transacted cost" or "transacted price"
 
 To distinguish transacted costs (@) from cost basis ({}).
-
-### Don't auto-recognise gain accounts by name
-
-For lot tracking, hledger identifies realised gain (rgain) and unrealised gain
-(ugain) postings by account types `G` and `U`.
-Unlike other account types, these two are not automatically inferred from english account names
-(even though the names `revenues:gain` and `equity:unrealised-gain` are built in for use as defaults).
-Reasons: (a) to avoid breaking hledger 1 journals which happen to use those names
-and (b) to avoid inconsistent UX for english/non-english-language users,
-especially as these types can determine whether a journal entry is accepted or not.
 
 ### Compute realised gain from the disposal postings only
 
@@ -66,25 +56,85 @@ Docs recommend users to always keep `B = T`, and to use the `basis` check to che
 with reasons provided (prevent wrong gain caused by basis typos).
 The new check might be moved into strict mode some day, but not yet.
 
-### Don't require Gain/UnrealisedGain account declarations to balance disposals
+### hledger-web is read only by default on a public address
 
-Originally, writing an explicit gain posting in a disposal entry required
-declaring its account with `type: G` (and the inferred unrealised-gain
-posting required `type: U`), so hledger could recognise it pre-balance and
-insert the matching balancing posting. This coupled balancing to journal
-metadata, which is painful for tools that generate journals from CSV
-(they'd have to emit the declarations too) and surprising to users who
-expect balancing to be purely arithmetic.
+When listening on a non-local address, hledger-web now defaults to read-only;
+allowing writes requires saying so explicitly.
+The safe default matters more than the convenience of the permissive one.
 
-Now, hledger detects the user's rgain by either of two paths:
-1. **Account-type detection** — postings to accounts declared with `type: G`.
-2. **Heuristic detection** — when there are no type:G postings, hledger looks
-   for postings that are neither Asset/Liability/Equity nor classified as
-   acquire/dispose/transfer-from/transfer-to, and assumes these are gain postings -
-   provided the rest of the entry balances, so a non-gain typo isn't silently absorbed.
+### Journal-adjacent data directories
 
-The heuristic path lets users write `revenues:gain  $-10`, or any other
-account name, without a `type: G` declaration, and have hledger balance
-the entry. The gain amount is still validated against the calculated
-disposal gain after lot matching.
+CSV `source` and `archive` rules, and `import`, now work relative to the journal's data directory
+rather than the rules file's directory, establishing a convention of journal-adjacent
+`data/`, `data/archive/`, `rules/` and `prices/` directories.
+Rationale: a journal plus its inputs, rules and fetched data should be one relocatable unit.
 
+### Config files can no longer specify which command to run
+
+Config files can no longer provide the first argument to specify which command to run -
+that was confusing and made the CLI's argument parsing hard to reason about.
+For similar reasons, `--conf`/`--no-conf` written inside a config file are also ignored.
+
+### Consolidate documentation under the `help` command
+
+`help` becomes the single entry point for hledger's docs:
+it shows an overview by default,
+the `commands` command is replaced by `help commands`,
+--help is available via `help usage`,
+it can open key website pages, etc.
+
+### Detach from the tldr-pages project
+
+Letting the tldr-pages project control part of our docs, and keeping in sync,
+limited our content quite a lot (commands only, specific formatting rules)
+and added lots of overhead. We'll leave the existing hledger docs in the tldr-pages repo,
+for others to maintain. It's not essential that they be there, as having docs built in
+to the program itself is more useful and efficient. But we'll keep using the format
+for inspiration.
+`--tldr` is renamed `--examples` and `help examples`.
+Our local copy of the tldr pages, in `doc/tldr/`, will be moved under `examples/`,
+which will become more integrated with `help examples`.
+
+### Drop the `demo` command
+
+The demos were too few, too costly to create and update,
+and won't provide enough benefit over docs and examples.
+
+### Syntax and parsing relaxations
+
+### A single tab is accepted as the "two space delimiter"
+
+For Ledger compatibility.
+
+### Apostrophe and underscore are accepted as digit group marks.
+
+For Switzerland and for programmers.
+
+### Inferred amounts no longer affect a commodity's display precision.
+
+Amounts inferred to balance an entry no longer influence global display precisions,
+or the entry's local balancing precision. Only explicitly-written amounts
+(and those inferred from balance assignments) do.
+This changes behaviour for the better, avoiding unexpected/unwanted increases in display precision.
+
+### Autodetect the base currency
+
+hledger guesses a journal's base currency, eg for fetching prices, and shows it in `stats`.
+
+### Policies for AI usage
+
+These are tracked in AI.md. Eg,
+
+- Significant AI usage must be disclosed
+- AI assistance is not allowed in PRs from first-time contributors.
+- AI assistance using OpenAI tools is not allowed.
+- Significant AI usage must be tracked, approximately, one way or another.
+  Eg logged in commit messages, or when that's not appropriate, logged in `doc/ai/ai.journal`.
+
+### RULES.md
+
+Repo policies in general, including AI policies, are gathered in doc/RULES.md.
+
+### Discontinue the regression bounties
+
+They are now a magnet for AI slop.
