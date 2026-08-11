@@ -52,13 +52,13 @@ msDraw sst UIState{aopts=_uopts@UIOpts{uoCliOpts=copts@CliOpts{reportspec_=_rspe
       render $ defaultLayout toplabel bottomlabel $ renderList msDrawItem True (sst ^. mssList)
       where
         toplabel =
-              withAttr (attrName "border" <> attrName "filename") files
+              withAttr (attrName "border" <> attrName "filename") fs
           <+> borderPeriodStr "" (period_ ropts)
           <+> (if ignore_assertions_ . balancingopts_ $ inputopts_ copts
                then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
                else str "")
           where
-            files = case journalFilePaths j of
+            fs = case journalFilePaths j of
                            [] -> str ""
                            f:_ -> str $ takeFileName f
                            -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"

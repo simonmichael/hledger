@@ -320,9 +320,9 @@ runBrickUi uopts0 j =
       -- with Debounce at the default 1ms it clears transient errors itself
       -- but gets tied up for ages
       withManager $ \mgr -> do
-        files <- mapM (canonicalizePath . fst) $ jfiles j
-        let directories = nubSort $ map takeDirectory files
-        dbg1IO "files" files
+        fs <- mapM (canonicalizePath . fst) $ jfiles j
+        let directories = nubSort $ map takeDirectory fs
+        dbg1IO "files" fs
         dbg1IO "directories to watch" directories
 
         forM_ directories $ \d -> watchDir
@@ -330,8 +330,8 @@ runBrickUi uopts0 j =
           d
           -- predicate: ignore changes not involving our files
           (\case
-            Added f _ IsFile -> f `elem` files -- for editors which write the whole file from scratch on saves
-            Modified f _ IsFile -> f `elem` files -- for editors which modify existing files in place
+            Added f _ IsFile -> f `elem` fs -- for editors which write the whole file from scratch on saves
+            Modified f _ IsFile -> f `elem` fs -- for editors which modify existing files in place
             -- we don't handle adding/removing journal files right now
             -- and there might be some of those events from tmp files
             -- clogging things up so let's ignore them

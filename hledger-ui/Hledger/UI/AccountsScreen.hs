@@ -113,7 +113,7 @@ asDrawHelper ass UIState{aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
             ishistorical = balanceaccum_ ropts == Historical
 
             toplabel =
-                  withAttr (attrName "border" <> attrName "filename") files
+                  withAttr (attrName "border" <> attrName "filename") fs
               <+> toggles
               <+> str (" " ++ scrname)
               <+> borderPeriodStr (if ishistorical then "at end of" else "in") (period_ ropts)
@@ -124,7 +124,7 @@ asDrawHelper ass UIState{aopts=uopts, ajournal=j, aMode=mode} ropts scrname =
                   then withAttr (attrName "border" <> attrName "query") (str " ignoring balance assertions")
                   else str "")
               where
-                files = case journalFilePaths j of
+                fs = case journalFilePaths j of
                               [] -> str ""
                               f:_ -> str $ takeFileName f
                               -- [f,_:[]] -> (withAttr ("border" <> "bold") $ str $ takeFileName f) <+> str " (& 1 included file)"
