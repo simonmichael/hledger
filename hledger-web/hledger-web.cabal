@@ -97,10 +97,12 @@ extra-source-files:
     static/js/typeahead.bundle.min.js
     templates/add-form.hamlet
     templates/balance-report.hamlet
+    templates/balance.hamlet
     templates/chart.hamlet
     templates/default-layout-wrapper.hamlet
     templates/default-layout.hamlet
     templates/edit-form.hamlet
+    templates/journal-plain.hamlet
     templates/journal.hamlet
     templates/manage.hamlet
     templates/register.hamlet
