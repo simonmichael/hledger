@@ -91,6 +91,7 @@ journalCalculateLots:
 module Hledger.Data.Lots (
   journalClassifyLotPostings,
   journalReclassifyLotPostings,
+  transactionAutoSplitFeeOutflows,
   journalCalculateLots,
   journalCheckAcquireBasis,
   journalCollapseLotDetail,

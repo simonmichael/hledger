@@ -688,11 +688,14 @@ Any balance assertion on the original posting is kept only on the dispose
 portion, which is posted last, so it is still checked after the full original
 quantity.
 
-Auto-splitting also runs in the post-balancing reclassification pass (see
-Processing pipeline above), so it works when the outflow amount is inferred
-by balancing - except with a priced fee, whose split shifts transaction value
-and so must happen before balancing; such entries need explicit amounts, and
-otherwise fail with an unbalanced-transaction error.
+Auto-splitting also works when the outflow amount is inferred by balancing
+(eg from a balance assignment): the unpriced case is handled by the
+post-balancing reclassification pass (see Processing pipeline above), and
+the priced case by the balancer itself - a priced fee's split changes the
+transaction's at-cost value sum (the dispose portion's cost is what makes
+the entry balance), so when a balance-assignment transaction fails its
+balancedness check, the balancer retries once with the fee auto-split
+applied before rejecting it (`retryWithFeeSplit` in Balancing.hs, #2686).
 
 This lets natural journal entries like:
 

@@ -642,3 +642,29 @@ $ hledger -f- print -a date:2026-02
     expenses:fees                                  0.3 ABC
 
 >=
+
+# ** 30. A transfer with a priced fee also works when the outflow amount is
+# inferred from a balance assignment: balancing retries with the fee
+# auto-split applied (which is what makes the entry balance), and the gain
+# is calculated (#2686).
+<
+commodity A  ; lots:
+2026-01-15 buy
+    assets:x1    1 A {$100}
+    assets:cash
+
+2026-02-17 transfer with priced fee
+    assets:x1     = 0 A
+    assets:x2      0.95 A
+    expenses:fees  0.05 A @ $150
+
+$ hledger -f- print --lots -x desc:transfer
+2026-02-17 transfer with priced fee
+    assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150 = 0 A
+    assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
+    expenses:fees                                  0.05 A @ $150
+    revenues:gain                                $-2.50
+    equity:unrealised-gain                        $2.50
+
+>=

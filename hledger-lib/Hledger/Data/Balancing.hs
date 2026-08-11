@@ -53,10 +53,10 @@ import Safe (headErr)
 import Text.Printf (printf)
 
 import Hledger.Data.Types
-import Hledger.Data.AccountName (isAccountNamePrefixOf)
+import Hledger.Data.AccountName (accountNameType, isAccountNamePrefixOf)
 import Hledger.Data.Amount
 import Hledger.Data.Journal
-import Hledger.Data.Lots (lotBaseAccount)
+import Hledger.Data.Lots (lotBaseAccount, transactionAutoSplitFeeOutflows)
 import Hledger.Data.Posting
 import Hledger.Data.Transaction
 import Hledger.Data.Errors
@@ -597,7 +597,23 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   styles <- R.reader bsStyles
   atypes <- R.reader bsAccountTypes
   lotfulcomms <- R.reader bsLotfulCommodities
-  case balanceTransactionHelper defbalancingopts{commodity_styles_=styles, account_types_=atypes, lotful_commodities_=lotfulcomms} t{tpostings=ps'} of
+  let bopts1 = defbalancingopts{commodity_styles_=styles, account_types_=atypes, lotful_commodities_=lotfulcomms}
+      t1 = t{tpostings=ps'}
+      -- When balancing fails, the transaction may be a lot transfer with a priced
+      -- fee whose outflow amount was only just inferred (eg from a balance
+      -- assignment) - too late for the usual pre-balancing fee auto-split, which
+      -- is what makes such entries balance. Try once more with the split applied;
+      -- if that also fails, report the original error. This runs only for
+      -- transactions that were about to be rejected, so currently-balancing
+      -- entries are unaffected. Tags are added hidden-only here; lot
+      -- classification happens later in journalReclassifyLotPostings. (#2686)
+      retryWithFeeSplit err
+        | length (tpostings t2) == length (tpostings t1) = Left err  -- no split applied
+        | otherwise = case balanceTransactionHelper bopts1 t2 of
+            Left _ -> Left err
+            right  -> right
+        where t2 = transactionAutoSplitFeeOutflows False (accountNameType atypes) (`S.member` lotfulcomms) t1
+  case either retryWithFeeSplit Right $ balanceTransactionHelper bopts1 t1 of
     Left err -> throwError err
     Right (t', inferredacctsandamts) -> do
       -- for each amount just inferred, update the running balance
