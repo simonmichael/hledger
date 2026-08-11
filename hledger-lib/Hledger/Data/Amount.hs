@@ -151,6 +151,7 @@ module Hledger.Data.Amount (
   sumAndAverageMixedAmounts,
   isNegativeAmount,
   isNegativeMixedAmount,
+  amountRoundedQuantity,
   mixedAmountIsZero,
   maIsZero,
   maIsNonZero,

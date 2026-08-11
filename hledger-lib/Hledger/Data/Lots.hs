@@ -67,6 +67,7 @@ journalCalculateLots:
 * selectLots:
   "SPECID requires an explicit lot selector",
   "no lots available for commodity X in account Y",
+  "no lots matching {...} for commodity X in account Y",
   "lot selector is ambiguous, matches N lots in account Y",
   "insufficient lots for commodity X in account Y"
 
@@ -124,7 +125,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountOneLine, showMixedAmountsDistinctly)
+import Hledger.Data.Amount (AmountFormat(..), amountRoundedQuantity, amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountOneLine, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt, transactionFindPostingIndex)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
@@ -366,6 +367,19 @@ parseLotName parseAmt t = do
            Just (',', s2) -> T.stripStart s2
            _              -> s1
 
+-- | Do two lot cost amounts refer to the same cost, for lot identification ?
+-- True if their commodities match and their quantities are equal exactly,
+-- or one equals the other's display-rounded value. The latter lets a
+-- displayed lot name (eg an inferred $10/3 cost rendered as $3.33333333)
+-- be written back in a journal and still identify the lot, while stored
+-- lot costs keep full precision for exact gain arithmetic (#2689).
+lotCostsMatch :: Amount -> Amount -> Bool
+lotCostsMatch x y =
+  acommodity x == acommodity y &&
+  (aquantity x == aquantity y
+   || aquantity x == amountRoundedQuantity y
+   || amountRoundedQuantity x == aquantity y)
+
 -- | Merge two 'CostBasis' values. For each field, if both are @Just@, they
 -- must agree (returns error if not); otherwise takes whichever is @Just@.
 -- The first argument is typically the account-name basis (more complete),
@@ -390,7 +404,7 @@ mergeCostBasis a b = do
     mergeCostField Nothing  y       = Right y
     mergeCostField x       Nothing  = Right x
     mergeCostField (Just x) (Just y)
-      | acommodity x == acommodity y && aquantity x == aquantity y = Right (Just x)
+      | lotCostsMatch x y = Right (Just x)
       | otherwise = Left $ "conflicting cost basis cost"
                       ++ ": account name has " ++ showAmountWith noCostFmt x
                       ++ " but amount has " ++ showAmountWith noCostFmt y
@@ -2009,7 +2023,7 @@ processTransferPair styles verbosetags j t lotState fromP toP = do
           Just l  -> cbLabel lotCb /= Just l
           Nothing -> False
         costMismatch  = case (cbCost toCb', cbCost lotCb) of
-          (Just c, Just lc) -> acommodity c /= acommodity lc || aquantity c /= aquantity lc
+          (Just c, Just lc) -> not (lotCostsMatch c lc)
           _                 -> False
 
     -- Re-add a transferred lot to LotState under the destination account.
@@ -2058,9 +2072,15 @@ selectLots method posStr account commodity qty selector lotState = do
         flatLots = M.mapMaybe (M.lookup account) allLots
         matchingLots = M.filter (lotMatchesSelector selector) flatLots
     when (M.null matchingLots) $
-      Left $ posStr ++ "no lots available for commodity " ++ T.unpack commodity
+      Left $ posStr ++
+        if M.null flatLots
+        then "no lots available for commodity " ++ T.unpack commodity
               ++ " in account " ++ T.unpack account
               ++ showOtherAccountLots allLots
+        else "no lots matching " ++ T.unpack (showLotName selector)
+              ++ " for commodity " ++ T.unpack commodity
+              ++ " in account " ++ T.unpack account
+              ++ "\nAvailable lots in this account:" ++ showLotList flatLots
     when (method == SPECID && M.size matchingLots > 1) $
       Left $ posStr ++ "lot selector is ambiguous, matches " ++ show (M.size matchingLots)
               ++ " lots in account " ++ T.unpack account ++ ":"
@@ -2274,12 +2294,12 @@ lotMatchesSelector selector a =
     matchField f sel lot = case f sel of
       Nothing -> True   -- selector doesn't constrain this field
       Just v  -> f lot == Just v
-    -- Compare costs by commodity and quantity, ignoring style differences.
+    -- Compare costs by commodity and quantity, ignoring style differences
+    -- (but accepting a display-rounded rendering, see 'lotCostsMatch').
     matchCost :: Maybe Amount -> Maybe Amount -> Bool
     matchCost Nothing    _          = True
     matchCost (Just _)   Nothing    = False
-    matchCost (Just sel) (Just lot) = acommodity sel == acommodity lot
-                                   && aquantity sel == aquantity lot
+    matchCost (Just sel) (Just lot) = lotCostsMatch sel lot
 
 -- | Subtract consumed quantities from LotState for a specific account.
 -- Removes lot-account entries whose balance reaches zero.

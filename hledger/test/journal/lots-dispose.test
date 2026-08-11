@@ -653,7 +653,7 @@ account income:capital  ; type:G
     income:capital                                     Rs-2803.24
 
 $ hledger -f- print --lots
->2 /no lots available for commodity FUND in account assets:fund/
+>2 /no lots matching .* for commodity FUND in account assets:fund/
 >=1
 
 
@@ -699,5 +699,33 @@ $ hledger -f- print -a date:2026-02
     assets:cash                                  $25
     revenues:gain                               $-15  ; ptype: rgain, generated-posting:
     equity:unrealised-gain                       $15  ; ptype: ugain, generated-posting:
+
+>=
+
+# ** 38. A lot's displayed name can be used to select the lot, even when it
+# rounds an inferred cost with more digits than displayed (eg $10/3 shown as
+# $3.33333333); gains are still computed from the full-precision stored cost,
+# so the gain here is exactly $2, not $2.00000001. #2689
+<
+commodity ABC ; lots:
+
+2021-03-08 buy
+     equity:open-close   -$10
+     assets:broker1      3 ABC
+
+2021-04-01 sell
+     assets:broker1     -3 ABC {2021-03-08, $3.33333333} @ $4
+     assets:cash        $12
+
+$ hledger -f- print --lots -x
+2021-03-08 buy
+    equity:open-close                           $-10
+    assets:broker1:{2021-03-08, $3.33333333}       3 ABC {$3.33333333} @@ $10
+
+2021-04-01 sell
+    assets:broker1:{2021-03-08, $3.33333333}      -3 ABC {2021-03-08, $3.33333333} @ $4
+    assets:cash                                  $12
+    revenues:gain                                $-2
+    equity:unrealised-gain                        $2
 
 >=

@@ -7305,6 +7305,35 @@ and fund any difference via a separate income, equity, or asset posting -
 rather than expressing the difference as `{B} @ T` with `B ≠ T` on the asset itself.
 The [Acquire](#acquire) section below shows an example.
 
+### Cost basis precision
+
+An inferred cost basis can be a non-terminating decimal (eg `3 ABC @@ $10`
+gives a $10/3 unit cost). Internally hledger keeps such costs at high
+precision, and calculates gains from the unrounded value; but in lot names it
+displays at most 8 decimal digits (eg `{2021-03-08, $3.33333333}`), or more if
+the commodity's declared display style has more (eg `commodity $0.0000000000`).
+A lot's displayed name always works as a selector, even when it is a rounded
+display of a longer inferred cost.
+
+Two precision-related cautions:
+
+- When lots migrate to a new journal file as text (eg with `close --lots`),
+  only the displayed digits survive: the new file's cost basis is exactly the
+  displayed value, so subsequent gains can differ from the old file's by a tiny
+  amount (up to half of the last displayed digit, per unit, once). If you track
+  commodities needing finer cost precision (eg micro-priced tokens, or costs
+  denominated in a cryptocurrency), declare a wider display style for the cost
+  commodity up front.
+
+- Changing a commodity's declared display precision can change how inferred
+  costs render in lot names. Any lot names or selectors recorded in the journal
+  with the old rendering will then stop matching: hledger reports "no lots
+  matching ...", listing the account's actual lots. Recovery is simple but
+  manual: update the recorded names/selectors to the new rendering, which is
+  shown in the error message (or by `print --lots`). Selectors using just the
+  date (and label) don't embed a cost and are unaffected - one more reason to
+  prefer them.
+
 ## Lot movements
 
 hledger understands three kinds of event involving lots.
@@ -7418,6 +7447,12 @@ These methods are supported:
 **SPECID** (specific identification) is what you're using when the journal entry contains 
 explicit lot selectors like `{2026-01-15, $50}` or `{$50}`,
 or an explicit lot subaccount like `assets:broker:{2026-01-15, $50}`.
+Selecting by date (and label, if any) is recommended.
+Cost-only selectors like `{$50}` are less robust: since costs displayed in lot
+names may be rounded (see [Cost basis precision](#cost-basis-precision)),
+distinct lots can display the same cost, and a cost-only selector could then
+match more lots than intended. (With SPECID this is reported as an ambiguity
+error; with other methods the lots are consumed in the method's order.)
 
 **FIFO** (first in first out). Dispose of the oldest lot first.
 

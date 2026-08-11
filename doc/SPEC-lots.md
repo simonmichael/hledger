@@ -176,6 +176,55 @@ So in this case we call it a "lot selector".
 The terms "hledger lot syntax", "cost basis", "lot name", "lot selector" can sometimes be a bit interchangeable;
 they all involve the same notation, which has different meanings depending on context.
 
+A selector's cost is compared with a lot's stored cost by commodity and quantity,
+accepting either an exact match or the stored cost's display-rounded value
+(`lotCostsMatch` in Lots.hs). The latter is needed because an inferred cost can
+have more decimal digits than are displayed (eg $10/3 renders as $3.33333333 in
+the lot name): displayed lot names can thus always be written back in a journal
+and still identify their lot, while stored costs keep full internal precision
+for gain calculation (#2689). The same comparison is used when checking a
+written lot subaccount or transfer destination annotation against the resolved
+lot.
+
+Because of the rounded-value acceptance, a cost-only selector (eg `{$3.33333333}`)
+can in principle match two distinct lots whose costs differ only beyond the
+displayed digits (they render identically). Date and label selectors remain
+unambiguous - same-date lots always get distinct labels - so cost-only selectors
+are the least robust form, and the manual recommends selecting by date (and
+label) instead. Under SPECID a multi-match is an explicit ambiguity error;
+under FIFO/LIFO/HIFO it silently consumes from the matching lots in method order.
+
+## Cost basis precision
+
+An inferred unit cost (eg from `3 ABC @@ $10`) is computed by Decimal division
+and can carry up to 255 internal decimal places; the lot name displays at most
+`defaultMaxDisplayPrecision` (8) digits, or more if the commodity's declared
+style is wider (`widenLotCbCost`). Consequences:
+
+- Within one journal, gains are computed from the full-precision stored cost:
+  buy 3 ABC for $10, sell all at $4/unit, gain is $2 (to internal precision).
+
+- Across a file boundary, only the displayed digits survive: `close --lots`
+  (or copying `print --lots` output) serializes the basis as its rendered lot
+  name, so re-reading creates a lot whose basis is exactly the displayed value.
+  A 10/3 basis becomes exactly $3.33333333, and the same sale in the new file
+  yields $2.00000001. This quantization is bounded (at most half an ULP of the
+  displayed precision, per unit) and one-time: the requantized basis is a
+  finite decimal and round-trips losslessly thereafter. Carrying the basis as
+  an exact total cost (`{{...}}`) could avoid this for intact lots, but the
+  `{{...}}` form currently has known bugs (see lots-dispose.test test 35) and
+  cannot help partially-consumed lots (a slice of a repeating basis is again
+  non-terminating).
+
+- Changing a commodity's declared display precision changes how inferred costs
+  render in lot names (widening beyond, or narrowing back across, the digits
+  previously rendered). Since matching accepts only the exact stored value or
+  the *current* rendering, lot names and selectors recorded under the old
+  precision stop matching, producing "no lots matching" errors that list the
+  account's actual lots. Recovery is mechanical: update the recorded names and
+  selectors to the new rendering, taken from the error message or `print
+  --lots`. Date/label selectors don't embed a cost and are unaffected.
+
 ## Data types
 
 All fields are Maybe, so the same types serve for both definite and partial values:

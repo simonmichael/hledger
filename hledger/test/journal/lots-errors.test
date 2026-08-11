@@ -206,3 +206,29 @@ This disposal has an amountless gain or unrealised-gain posting.
 Write the amount explicitly, or omit the posting entirely
 (hledger will then infer both rgain and ugain from the cost basis).
 >=1
+
+# ** 14. Referencing a lot that doesn't exist (here, a label the lot doesn't
+# have) reports the non-matching selector and lists the account's available
+# lots. #2689
+<
+commodity ABC ; lots:
+
+2021-03-08 buy
+     equity:open-close   -$10
+     assets:broker1      2 ABC
+
+2026-08-10 closing balances
+    assets:broker1:{2021-03-08, "0001", $5}  -2 ABC
+    equity:opening/closing balances
+
+$ hledger -f- bal --lots 2>&1
+hledger: Error: -:7:
+7 | 2026-08-10 closing balances
+  |     assets:broker1:{2021-03-08, "0001", $5}       -2 ABC {2021-03-08, "0001", $5}
+  |     equity:opening/closing balances
+
+no lots matching {2021-03-08, "0001", $5} for commodity ABC in account assets:broker1
+Available lots in this account:
+  {2021-03-08, $5}  2
+Using FIFO (default).
+>=1

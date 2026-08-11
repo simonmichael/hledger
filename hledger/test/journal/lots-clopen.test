@@ -143,3 +143,49 @@ $ hledger -f- close --open --lots -e 2022
     equity:opening/closing balances
 
 >=
+
+# ** 7. close --clopen --lots output round-trips even when the lot names
+# contain generated labels and display-rounded inferred costs (eg $10/3
+# shown as $3.33333333): the displayed cost still matches the stored lot,
+# and re-acquiring the consumed lot ids is not a duplicate. #2689
+<
+commodity ABC ; lots:
+
+2021-03-08 buy
+     equity:open-close   -$10
+     assets:broker1      2 ABC
+
+2021-03-08 buy
+     equity:open-close   -$10
+     assets:broker1      3 ABC
+
+2026-08-10 closing balances  ; clopen:
+    assets:broker1:{2021-03-08, "0001", $5}           -2 ABC
+    assets:broker1:{2021-03-08, "0002", $3.33333333}  -3 ABC
+    equity:opening/closing balances
+
+2026-08-11 opening balances  ; clopen:
+    assets:broker1:{2021-03-08, "0001", $5}           2 ABC
+    assets:broker1:{2021-03-08, "0002", $3.33333333}  3 ABC
+    equity:opening/closing balances
+
+$ hledger -f- check --lots
+
+# ** 8. close --lots with --show-costs: lot subaccount balances are still
+# shown without costs (their cost info is in the lot name; transacted costs
+# on lot postings would make the output unreadable); non-lot balances keep
+# --show-costs behaviour. #2689
+<
+commodity ABC ; lots:
+
+2021-03-08 buy
+     assets:cash    -$10
+     assets:broker1   3 ABC
+
+$ hledger -f- close --open --lots --show-costs -e 2022
+2022-01-01 opening balances  ; clopen:
+    assets:broker1:{2021-03-08, $3.33333333}       3 ABC
+    assets:cash                                 $-10     = $-10
+    equity:opening/closing balances
+
+>=
