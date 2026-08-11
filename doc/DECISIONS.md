@@ -121,6 +121,22 @@ This changes behaviour for the better, avoiding unexpected/unwanted increases in
 
 hledger guesses a journal's base currency, eg for fetching prices, and shows it in `stats`.
 
+### Keep Open Collective, but steer small donations elsewhere
+
+([#2660](https://github.com/simonmichael/hledger/issues/2660))
+Open Source Collective, our fiscal host, charges 10% on every donation, holds the funds
+(they are legally owned by OSC, not by the project or by Simon), pays no interest,
+and can add friction to routine reimbursements.
+Now,
+
+- Small donors are steered towards Github Sponsors / Liberapay / Paypal, avoiding the 10% fee.
+- OC/OSC is kept for larger donors,
+  where the 10% and the friction are the price of receiving funds via a 501(c)(6) nonprofit
+  with corporate-friendly procedures and oversight.
+- Docs and bookkeeping now make clear that funds in the hledger open collective are owned and disbursed by OSC.
+- The balance held with OSC will be reduced and kept low (eg 1-2k), limiting investment losses
+  and exposure to host wind-down, policy changes or disputes.
+
 ### Policies for AI usage
 
 These are tracked in AI.md. Eg,
@@ -138,3 +154,19 @@ Repo policies in general, including AI policies, are gathered in doc/RULES.md.
 ### Discontinue the regression bounties
 
 They are now a magnet for AI slop.
+
+### Formalise core developers
+
+Core developers will be nominated and documented, and the higher levels of repo access will be restricted to them.
+
+### Pay for review work
+
+PR review work, especially now with AI, is costly and unrewarding. 
+We will start paying a small reviewer stipend ($50/hr initially, via opencollective) to any core developer who does it.
+Core developers can also nominate other contributors on a PR for the reviewer stipend.
+
+### Move the repos to a Github organisation
+
+To get more fine-grained access control, supporting more governance and funding structure in the project.
+And for more future-proofing.
+It seems likely we'll use `hledgerorg`, because the `hledger` username is taken and unreachable.
