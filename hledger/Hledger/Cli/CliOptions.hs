@@ -18,6 +18,7 @@ related utilities used by hledger commands.
 module Hledger.Cli.CliOptions (
   progname,
   prognameandversion,
+  prognameandversionnoarch,
   binaryinfo,
 
   -- * cmdargs flags & modes
@@ -147,6 +148,10 @@ prognameandversion =
 #endif
   progname
   packageversion
+
+-- | Just the program name and version, without the machine architecture.
+prognameandversionnoarch :: String
+prognameandversionnoarch = takeWhile (/= ',') prognameandversion
 
 binaryinfo :: HledgerBinaryInfo
 Right binaryinfo = parseHledgerVersion prognameandversion

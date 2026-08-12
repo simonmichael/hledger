@@ -110,6 +110,8 @@ module Hledger.Utils.IO (
   sgrresetall,
   accent,
   gradientStr,
+  titleLine,
+  titleAndVersionLine,
 
   -- ** Generic
 
@@ -1040,6 +1042,22 @@ gradientStr intensity h w row col0 s
             where t     = fromIntegral (row + c) / fullspan  -- 0 at top-left, 1 at bottom-right
                   mix a b = a + (b - a) * t
       in intensity $ concat $ zipWith paint [col0..] s
+
+-- | Render a title heading coloured with hledger's blue-to-green bold gradient,
+-- when colour is enabled.
+titleLine :: String -> String
+titleLine title = gradientStr bold' 1 (length title) 0 0 title
+
+-- | Render a one-line heading with a title at the left and a version (or other
+-- short annotation) right-aligned to the given width, both coloured with
+-- hledger's blue-to-green gradient (bold title, faint version) when colour is
+-- enabled.
+titleAndVersionLine :: Int -> String -> String -> String
+titleAndVersionLine width title version = styledtitle <> pad <> styledversion
+  where
+    styledtitle   = gradientStr bold'  1 (length title)   0 0 title
+    styledversion = gradientStr faint' 1 (length version) 0 0 version
+    pad = replicate (max 1 $ width - length title - length version) ' '
 
 -- Generic:
 

@@ -30,7 +30,7 @@ import Hledger.Cli.DocFiles
 import Hledger.Cli.Utils (openBrowserOn)
 import Hledger.Cli.Version (webManualUrl)
 import Hledger.Data.RawOptions
-import Hledger.Utils (embedFileRelative, runPager)
+import Hledger.Utils (embedFileRelative, runPager, titleLine)
 --import Hledger.Utils.Debug
 
 helpmode = hledgerCommandMode
@@ -85,10 +85,10 @@ manual opts mtopic
       "\"" <> topic <> "\" does not match any manual section heading.\n"
       <> "Run `hledger help manual` to list all topics, or `hledger help` for the quick reference."
     ambiguousHeading
-      | null topic = "manual topics:"
+      | null topic = titleLine "HLEDGER MANUAL TOPICS"
       | otherwise  = "\"" <> topic <> "\" matches several manual sections; please be more specific:"
     matchingHeading
-      | null topic = "manual topics:"
+      | null topic = titleLine "HLEDGER MANUAL TOPICS"
       | otherwise  = "manual topics matching \"" <> topic <> "\":"
     -- Show the given tool's manual, positioned at the given heading if any, in the best viewer.
     showManualAt tool mtopic' = do

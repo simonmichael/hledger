@@ -253,7 +253,6 @@ _banner_speed = drop 1 [""
 -- | The commands list, showing command names, standard aliases,
 -- and short descriptions. This is modified at runtime, as follows:
 --
--- progversion is the program name and version.
 -- builtin is True when showing only built-in commands.
 --
 -- Lines beginning with a space represent builtin commands, with format:
@@ -273,8 +272,7 @@ _banner_speed = drop 1 [""
 -- TODO: generate more of this automatically.
 --
 commandsList :: String -> Bool -> [String] -> [(CommandAlias,CommandLine)] -> [String]
-commandsList progversion builtin othercmds cmdaliases =
-  bannerWithVersion ++   -- XXX not showing bold, why ?
+commandsList _progversion builtin othercmds cmdaliases =
   -- Keep the following synced with:
   --  commands.m4
   --  hledger.m4.md -> Commands
@@ -282,33 +280,25 @@ commandsList progversion builtin othercmds cmdaliases =
   -- IN PARTICULAR KEEP SYNCED WITH commandsListExtractCommands,
   -- it needs checking/updating after any wording/layout changes here
   [
-  separator
-  ,""
-  ,"Usage: hledger [COMMAND] [OPTIONS] [ARGS]"
-  ,""
-  -- ,"Commands (builtins + addons):"  -- XXX adapt for commands --builtin
-  ,"Commands (" <> (if builtin then "showing built-in only" else "including installed addons") <> "):"
-  ,""
+  titleline
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "HELP"
+  ,section "USER INTERFACES"
   ," help                     show documentation"
-  ,""
-    -----------------------------------------80-------------------------------------
-  ,bold' "USER INTERFACES"
   ," repl                     run commands efficiently from an interactive prompt"
   ," run                      run commands efficiently from a file or command line"
   ,"+ui                       run a terminal UI"
   ,"+web                      run a web UI"
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "ENTERING DATA"
+  ,section "ENTERING DATA"
   ," add                      add transactions using terminal prompts"
   ,"+iadd                     add transactions using a TUI (hledger-iadd)"
   ," import                   add new transactions from other files, eg CSV files"
   ,"+edit                     edit specific transactions with $EDITOR"               -- hledger-utils
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "BASIC REPORTS"
+  ,section "BASIC REPORTS"
   ," accounts (acc)           show account names"
   ," codes                    show transaction codes"
   ," commodities (comm)       show commodity/currency symbols"
@@ -319,9 +309,9 @@ commandsList progversion builtin othercmds cmdaliases =
   ," prices                   show market prices"
   ," stats                    show journal statistics"
   ," tags                     show tag names"
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "STANDARD REPORTS"
+  ,section "STANDARD REPORTS"
   ," print                    show journal entries, or export journal data"
   ," aregister (areg)         show transactions & running balance in one account"
   ," register (reg)           show postings & running total across accounts"
@@ -329,22 +319,22 @@ commandsList progversion builtin othercmds cmdaliases =
   ," balancesheetequity (bse) show assets, liabilities and equity"
   ," cashflow (cf)            show changes in liquid assets"
   ," incomestatement (is)     show revenues and expenses"
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "ADVANCED REPORTS"
+  ,section "ADVANCED REPORTS"
   ," balance (bal)            show balance changes, end balances, gains, budgets.."
   ," holdings                 show investment holdings"
   ,"+lots                     show a commodity's lots"                               -- hledger-lots
   ," roi                      show return on investments"
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "CHARTS"
+  ,section "CHARTS"
   ," activity                 show posting counts as a bar chart"
   ,"+bar                      show balances or changes as a bar chart"               -- hledger-bar
   ,"+plot                     show advanced matplotlib charts as gui/svg/png/pdf.."  -- hledger-utils
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "GENERATING DATA"
+  ,section "GENERATING DATA"
   ,"+autosync                 download/deduplicate/show OFX data as transactions"    -- ledger-autosync
   ," close                    generate transactions to zero/restore/assert balances"
   ," get                      fetch new transactions and market price data"
@@ -352,9 +342,9 @@ commandsList progversion builtin othercmds cmdaliases =
   ,"+lots sell                generate a lot-selling transaction"                    -- hledger-lots
   ,"+pricehist                download historical market prices"                     -- pricehist
   ," rewrite                  generate auto postings, like print --auto"
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
-  ,bold' "MAINTENANCE"
+  ,section "MAINTENANCE"
   ," check                    check for various kinds of error in the data"
   ,"+check-fancyassertions    check more powerful balance assertions"                -- hledger-check-fancyassertions
   ,"+check-tagfiles           check that files referenced in tag values exist"       -- hledger-check-tagfiles
@@ -363,42 +353,30 @@ commandsList progversion builtin othercmds cmdaliases =
   ,"+pijul                    save or view journal file history simply in pijul"     -- hledger-pijul
   ," setup                    check and show the status of the hledger installation"
   ," test                     run self tests"
-  ,""
+  -- ,""
     -----------------------------------------80-------------------------------------
   ]
-  ++ [bold' "OTHER ADDONS" | not builtin]
+  ++ [section "OTHER ADDONS" | not builtin]
   ++ map (' ':) (lines $ multicol 79 othercmds)
   ++ (if null cmdaliases then [] else
       let aliasw = maximum (map (length.fst) cmdaliases)
-      in  "" :
-          bold' "ALIASES" :
+      in  -- "" :
+          section "ALIASES" :
           [" " <> padright aliasw a <> " = " <> def | (a,def) <- cmdaliases])
-  ++ [""]
+  -- ++ [""]
   where
+    section = bold'
     padright w s = s <> replicate (w - length s) ' '
-    version = unwords $ drop 1 $ words progversion
-    rightmargin = 79  -- the width of the separator line / the right margin
-    -- The diagonal gradient spans a grid of the banner rows plus the separator
-    -- row below them, reaching from column 0 to the right margin.
-    gradh = length _banner_smslant + 1
-    grad intensity = gradientStr intensity gradh rightmargin
-    -- The ascii banner (bold), with the version and website url (dimmed)
-    -- right-aligned to the right margin, all sharing the one diagonal gradient.
-    bannerWithVersion = zipWith3 annotate [0..] _banner_smslant (["", version, "https://hledger.org"] ++ repeat "")
-      where
-        annotate i b ""  = grad bold' i 0 b
-        annotate i b ann = grad bold' i 0 (formatString True (Just col0) Nothing b) <> grad faint' i col0 ann
-          where col0 = rightmargin - length ann
-    -- The separator line, continuing the gradient on the row below the banner.
-    separator = grad id (length _banner_smslant) 0 (replicate rightmargin '-')
+    -- A one-line title heading, in the quickref style.
+    titleline = titleLine "HLEDGER COMMANDS"
 
 -- | Extract just the command names from the default commands list above,
--- (the first word of lines between "Usage:" and "OTHER" beginning with a space or plus sign),
+-- (the first word of lines before "OTHER" beginning with a space or plus sign),
 -- in the order they occur. With a true first argument, extracts only the addon command names.
 commandsListExtractCommands :: Bool -> [String] -> [String]
 commandsListExtractCommands addonsonly l =
-  [ cmdname | prefixchar:line@(firstchar:_) <- 
-      takeWhile (not . isInfixOf "OTHER") $ dropWhile (not . isInfixOf "Usage:") l
+  [ cmdname | prefixchar:line@(firstchar:_) <-
+      takeWhile (not . isInfixOf "OTHER") l
   , prefixchar `elem` '+':[' '|not addonsonly]
   , isAlphaNum firstchar
   , not $ "https://" `isInfixOf` line

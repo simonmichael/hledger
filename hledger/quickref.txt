@@ -1,4 +1,5 @@
 HLEDGER QUICK REFERENCE
+Usage           hledger [COMMAND] [OPTIONS] [ARGS]
 Common commands
  UIs            help ui web repl run
  Data           add get import close

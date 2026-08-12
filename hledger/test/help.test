@@ -5,9 +5,9 @@
 $ hledger help
 > /HLEDGER QUICK REFERENCE/
 
-# ** 2. help commands shows the commands list.
+# ** 2. help commands shows the commands list (with addons).
 $ hledger help commands
-> /Commands \(including installed/
+> /OTHER ADDONS/
 
 # ** 3. help usage shows general command-line usage.
 $ hledger help usage
@@ -47,11 +47,11 @@ $ hledger help 'time periods'
 
 # ** 12. The empty topic lists all manual topics.
 $ hledger help ''
-> /^manual topics:/
+> /^HLEDGER MANUAL TOPICS/
 
 # ** 13. help manual with no topic lists all manual topics.
 $ hledger help manual
-> /^manual topics:/
+> /^HLEDGER MANUAL TOPICS/
 
 # ** 14. The manual title (HLEDGER, with the (1) stripped) can be matched.
 $ hledger help hledger
@@ -73,9 +73,9 @@ $ hledger help examples nosuchcommand
 $ hledger help quickref
 > /HLEDGER QUICK REFERENCE/
 
-# ** 18. help commands --builtin shows only built-in commands.
+# ** 18. help commands --builtin shows only built-in commands (no addons).
 $ hledger help commands --builtin
-> /Commands \(showing built-in/
+> !/OTHER ADDONS/
 
 # ** 19. The hledger-ui manual's title opens that manual.
 $ hledger help hledger-ui
