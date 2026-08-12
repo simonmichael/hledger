@@ -8965,6 +8965,7 @@ File: hledger.info,  Node: Lot concepts,  Next: Lot movements,  Prev: First lots
 * Lot subaccounts::
 * Lot ids::
 * Cost basis vs transacted cost::
+* Cost basis precision::
 
 
 File: hledger.info,  Node: Cost basis annotations,  Next: Lotful commodities and accounts,  Up: Lot concepts
@@ -9090,7 +9091,7 @@ lot ids:
 {2026-01-03, $50}           ; → "2026-01-04 0002"
 
 
-File: hledger.info,  Node: Cost basis vs transacted cost,  Prev: Lot ids,  Up: Lot concepts
+File: hledger.info,  Node: Cost basis vs transacted cost,  Next: Cost basis precision,  Prev: Lot ids,  Up: Lot concepts
 
 25.3.5 Cost basis vs transacted cost
 ------------------------------------
@@ -9122,6 +9123,42 @@ https://en.wikipedia.org/wiki/Cost_basis.
 income, equity, or asset posting - rather than expressing the difference
 as '{B} @ T' with 'B ≠ T' on the asset itself.  The Acquire section
 below shows an example.
+
+
+File: hledger.info,  Node: Cost basis precision,  Prev: Cost basis vs transacted cost,  Up: Lot concepts
+
+25.3.6 Cost basis precision
+---------------------------
+
+An inferred cost basis can be a non-terminating decimal (eg '3 ABC @@
+$10' gives a $10/3 unit cost).  Internally hledger keeps such costs at
+high precision, and calculates gains from the unrounded value; but in
+lot names it displays at most 8 decimal digits (eg '{2021-03-08,
+$3.33333333}'), or more if the commodity's declared display style has
+more (eg 'commodity $0.0000000000').  A lot's displayed name always
+works as a selector, even when it is a rounded display of a longer
+inferred cost.
+
+   Two precision-related cautions:
+
+   * When lots migrate to a new journal file as text (eg with 'close
+     --lots'), only the displayed digits survive: the new file's cost
+     basis is exactly the displayed value, so subsequent gains can
+     differ from the old file's by a tiny amount (up to half of the last
+     displayed digit, per unit, once).  If you track commodities needing
+     finer cost precision (eg micro-priced tokens, or costs denominated
+     in a cryptocurrency), declare a wider display style for the cost
+     commodity up front.
+
+   * Changing a commodity's declared display precision can change how
+     inferred costs render in lot names.  Any lot names or selectors
+     recorded in the journal with the old rendering will then stop
+     matching: hledger reports "no lots matching ...", listing the
+     account's actual lots.  Recovery is simple but manual: update the
+     recorded names/selectors to the new rendering, which is shown in
+     the error message (or by 'print --lots').  Selectors using just the
+     date (and label) don't embed a cost and are unaffected - one more
+     reason to prefer them.
 
 
 File: hledger.info,  Node: Lot movements,  Next: Gain postings,  Prev: Lot concepts,  Up: Lot reporting
@@ -9195,12 +9232,14 @@ existing lots between accounts, preserving their cost basis.
 destination receives less than the source sends (eg due to a fee
 deducted by an exchange), the fee portion of lots is consumed from the
 source without being recreated at the destination.  If that fee also
-appears as a priced non-asset posting in the same commodity (eg
-'expenses:fees 0.001 ETH @ $3000'), hledger automatically splits the
-source posting into a transfer portion and a priced disposal portion, so
-that the disposal is detected correctly.  Plain 'print' shows the user's
-original entry; 'print --lots' (or 'print -a') shows the split form
-explicitly, so the output round-trips correctly.
+appears as a non-asset posting in the same commodity (eg 'expenses:fees
+0.001 ETH @ $3000'), hledger automatically splits the source posting
+into a transfer portion and a disposal portion, so that the disposal is
+detected correctly.  If the fee posting has a transacted price, the
+disposal portion carries it and a gain is calculated; otherwise the
+disposal is priceless and no gain is calculated.  'print --lots' (or
+'print -a') shows the split form explicitly, so the output round-trips
+correctly.
 
 
 File: hledger.info,  Node: Dispose,  Next: Cost basis methods,  Prev: Transfer,  Up: Lot movements
@@ -9274,7 +9313,13 @@ Method    Lots           Disposal     Error checking
    *SPECID* (specific identification) is what you're using when the
 journal entry contains explicit lot selectors like '{2026-01-15, $50}'
 or '{$50}', or an explicit lot subaccount like
-'assets:broker:{2026-01-15, $50}'.
+'assets:broker:{2026-01-15, $50}'.  Selecting by date (and label, if
+any) is recommended.  Cost-only selectors like '{$50}' are less robust:
+since costs displayed in lot names may be rounded (see Cost basis
+precision), distinct lots can display the same cost, and a cost-only
+selector could then match more lots than intended.  (With SPECID this is
+reported as an ambiguity error; with other methods the lots are consumed
+in the method's order.)
 
    *FIFO* (first in first out).  Dispose of the oldest lot first.
 
@@ -9637,8 +9682,8 @@ can list all of a command's options by running 'hledger CMD -h'.
 
    *User interface commands*
 
-   * repl - run commands efficiently from an interactive prompt
-   * run - run commands efficiently from a file or command line
+   * repl - run multiple commands from an interactive prompt
+   * run - run multiple commands from a file or command line
    * ui - (if installed) run hledger's terminal UI
    * web - (if installed) run hledger's web UI
 
@@ -11613,7 +11658,11 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             in tree mode, don't squash boring parent accounts
+     --no-elide             in tree mode, don't squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without -E)
+     --full-names           in tree mode, show full account names instead of
+                            indented leaf names
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -11714,7 +11763,11 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             in tree mode, don't squash boring parent accounts
+     --no-elide             in tree mode, don't squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without -E)
+     --full-names           in tree mode, show full account names instead of
+                            indented leaf names
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -11824,7 +11877,11 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             in tree mode, don't squash boring parent accounts
+     --no-elide             in tree mode, don't squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without -E)
+     --full-names           in tree mode, show full account names instead of
+                            indented leaf names
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -11923,7 +11980,11 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             in tree mode, don't squash boring parent accounts
+     --no-elide             in tree mode, don't squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without -E)
+     --full-names           in tree mode, show full account names instead of
+                            indented leaf names
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name
   -% --percent              express values in percentage of each column's
@@ -12045,7 +12106,11 @@ Flags:
      --summary-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   -N --no-total             omit the final total row
-     --no-elide             in tree mode, don't squash boring parent accounts
+     --no-elide             in tree mode, don't squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without -E)
+     --full-names           in tree mode, show full account names instead of
+                            indented leaf names
      --format=FORMATSTR     use this custom line format (in simple reports)
   -S --sort-amount          sort by amount instead of account code/name (in
                             flat mode). With multiple columns, sorts by the row
@@ -12333,6 +12398,57 @@ $ hledger -f examples/sample.journal balance
 
    * Each group of sibling accounts (ie, under a common parent) is
      sorted separately.
+
+   In list mode, '--no-elide' shows parent accounts as well, with their
+exclusive balances.  These are zero unless the parent has postings of
+its own, so '-E/--empty' is usually also needed to make them visible.
+Together, these flags guarantee a complete table of all posted-to
+accounts and their parents, with full names:
+
+$ hledger -f examples/sample.journal balance --no-elide -E
+                   0  assets
+                   0  assets:bank
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                   0  expenses
+                  $1  expenses:food
+                  $1  expenses:supplies
+                   0  income
+                 $-1  income:gifts
+                 $-1  income:salary
+                   0  liabilities
+                  $1  liabilities:debts
+--------------------
+                   0
+
+   This can be useful eg when exporting to a spreadsheet which will look
+up balances by account name.
+
+   In tree mode, '--full-names' writes each account's full name instead
+of indenting leaf names, while keeping tree mode's inclusive balances.
+So '--tree --no-elide --full-names -E' shows the same complete table as
+above, but with inclusive balances:
+
+$ hledger -f examples/sample.journal balance --tree --no-elide --full-names -E
+                 $-1  assets
+                  $1  assets:bank
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $-2  assets:cash
+                  $2  expenses
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $-2  income
+                 $-1  income:gifts
+                 $-1  income:salary
+                  $1  liabilities
+                  $1  liabilities:debts
+--------------------
+                   0
+
+   Note that in this variant, parent and subaccount balances overlap, so
+(as in any tree mode report) the rows sum to more than the final total.
 
 
 File: hledger.info,  Node: Depth limiting,  Next: Dropping top-level accounts,  Prev: List or tree mode,  Up: balance
@@ -13137,7 +13253,11 @@ Flags:
                             except where the account is depth-clipped.
   -t --tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
-     --no-elide             in tree mode, don't squash boring parent accounts
+     --no-elide             in tree mode, don't squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without -E)
+     --full-names           in tree mode, show full account names instead of
+                            indented leaf names
      --drop=N               in list mode, omit N leading account name parts
   -S --sort-amount          sort by value (or cost) instead of account name,
                             largest first
@@ -13707,7 +13827,10 @@ costs kept separate.  This may generate very large journal entries, if
 you have many currency conversions or investment transactions.  'close
 --show-costs' is currently the best way to view investment lots with
 hledger.  (To move or dispose of lots, see the more capable
-'hledger-move' script.)
+'hledger-move' script.)  With '--lots', lot subaccount balances are
+always shown without costs, even under '--show-costs': their cost
+information is carried by the lot name itself, and transacted costs on
+lot postings would prevent the output from being read back.
 
 
 File: hledger.info,  Node: close and balance assertions,  Next: close examples,  Prev: close customisation,  Up: close
@@ -15297,171 +15420,172 @@ Node: Lot reporting323190
 Node: How to enable or disable lot tracking325115
 Node: First lots example325882
 Node: Lot concepts329430
-Node: Cost basis annotations329718
-Node: Lotful commodities and accounts330629
-Node: Lot subaccounts331263
-Node: Lot ids333220
-Node: Cost basis vs transacted cost334147
-Node: Lot movements335840
-Node: Acquire336196
-Node: Transfer337604
-Node: Dispose338629
-Node: Cost basis methods339527
-Node: Gain postings343401
-Node: Gain and UnrealisedGain accounts344726
-Node: Recording gains346061
-Node: Style 1 No gain postings347254
-Node: Style 2 rgain posting non-G account347523
-Node: Style 3 rgain posting G account349096
-Node: Style 4 rgain and ugain postings G and U accounts349507
-Node: Gain postings and the roi command350058
-Node: Lot postings and balance assertions350634
-Node: Lot reporting example351641
-Node: PART 4 COMMANDS355444
-Node: Help commands358261
-Node: help358425
-Node: User interface commands360969
-Node: repl361180
-Node: Examples364136
-Node: run364768
-Node: Examples 2367545
-Node: ui368569
-Node: web368721
-Node: Data entry commands368859
-Node: add369120
-Node: add and balance assertions372324
-Node: add and balance assignments372901
-Node: import373759
-Node: Default import sources375291
-Node: Fetching new data first376291
-Node: Import dry run376768
-Node: Overlap detection377748
-Node: First import380634
-Node: Importing balance assignments381829
-Node: Import and commodity styles382884
-Node: Import archiving383318
-Node: Import special cases384358
-Node: Multiple journals in the same directory384655
-Node: Import configurations to avoid385353
-Node: Deduplication386329
-Node: Varying file name386859
-Node: Multiple versions387243
-Node: Basic report commands388350
-Node: accounts388651
-Node: codes391173
-Node: commodities392195
-Node: descriptions393986
-Node: files394457
-Node: notes394759
-Node: payees395271
-Node: prices396428
-Node: prices summary397852
-Node: stats398858
-Node: tags400942
-Node: Standard report commands402766
-Node: print403071
-Node: print explicitness406370
-Node: print layout407524
-Node: print amount style408572
-Node: print parseability409799
-Node: print other features411495
-Node: print output format412666
-Node: aregister416154
-Node: aregister and posting dates420681
-Node: register421582
-Node: Custom register output429311
-Node: balancesheet430496
-Node: balancesheetequity435461
-Node: cashflow440776
-Node: incomestatement445569
-Node: Advanced report commands450418
-Node: balance450639
-Node: balance features456175
-Node: Simple balance report458267
-Node: Balance report line format460077
-Node: Filtered balance report462573
-Node: List or tree mode463092
-Node: Depth limiting464605
-Node: Dropping top-level accounts465372
-Node: Showing declared accounts465882
-Node: Sorting by amount466612
-Node: Percentages467466
-Node: Multi-period balance report468173
-Node: Balance change end balance471023
-Node: Balance report modes472660
-Node: Calculation mode473339
-Node: Accumulation mode474411
-Node: Valuation mode475512
-Node: Combining balance report modes476856
-Node: Budget report478886
-Node: Using the budget report481194
-Node: Budget date surprises483470
-Node: Selecting budget goals484834
-Node: Budgeting vs forecasting485782
-Node: Balance report layout487459
-Node: Wide layout488664
-Node: Tall layout491069
-Node: Bare layout492375
-Node: Tidy layout494439
-Node: Balance report output495983
-Node: Some useful balance reports496757
-Node: holdings498017
-Node: roi503174
-Node: Spaces and special characters in --inv and --pnl505673
-Node: Semantics of --inv and --pnl506399
-Node: Using roi with lots508485
-Node: IRR and TWR explained509101
-Node: Chart commands512720
-Node: activity512901
-Node: Data generation commands513398
-Node: close513612
-Node: close --clopen516909
-Node: close --close518805
-Node: close --open519329
-Node: close --assert519579
-Node: close --assign519906
-Node: close --retain520585
-Node: close customisation521442
-Node: close and balance assertions523120
-Node: close examples524840
-Node: Retain earnings525077
-Node: Migrate balances to a new file525580
-Node: More detailed close examples526942
-Node: get527164
-Node: Phase 1 transactions data527875
-Node: Phase 2 prices528278
-Node: Merging new prices529282
-Node: get's helper scripts530086
-Node: getdata530377
-Node: getprices530889
-Node: rewrite531846
-Node: Re-write rules in a file534838
-Node: Diff output format536139
-Node: rewrite vs print --auto537409
-Node: Maintenance commands538123
-Node: check538342
-Node: Basic checks539425
-Node: Strict checks540893
-Node: Other checks541990
-Node: Custom checks544148
-Node: diff544587
-Node: setup545794
-Node: test548661
-Node: PART 5 COMMON TASKS549564
-Node: Getting help549797
-Node: Constructing command lines550924
-Node: Starting a journal file551769
-Node: Setting LEDGER_FILE553153
-Node: Set LEDGER_FILE on unix553421
-Node: Set LEDGER_FILE on mac553936
-Node: Set LEDGER_FILE on Windows554662
-Node: Setting opening balances556563
-Node: Recording transactions559885
-Node: Reconciling560610
-Node: Reporting562999
-Node: Migrating to a new file567113
-Node: BUGS567562
-Node: Troubleshooting568392
+Node: Cost basis annotations329743
+Node: Lotful commodities and accounts330654
+Node: Lot subaccounts331288
+Node: Lot ids333245
+Node: Cost basis vs transacted cost334172
+Node: Cost basis precision335894
+Node: Lot movements337699
+Node: Acquire338055
+Node: Transfer339463
+Node: Dispose340592
+Node: Cost basis methods341490
+Node: Gain postings345775
+Node: Gain and UnrealisedGain accounts347100
+Node: Recording gains348435
+Node: Style 1 No gain postings349628
+Node: Style 2 rgain posting non-G account349897
+Node: Style 3 rgain posting G account351470
+Node: Style 4 rgain and ugain postings G and U accounts351881
+Node: Gain postings and the roi command352432
+Node: Lot postings and balance assertions353008
+Node: Lot reporting example354015
+Node: PART 4 COMMANDS357818
+Node: Help commands360629
+Node: help360793
+Node: User interface commands363337
+Node: repl363548
+Node: Examples366504
+Node: run367136
+Node: Examples 2369913
+Node: ui370937
+Node: web371089
+Node: Data entry commands371227
+Node: add371488
+Node: add and balance assertions374692
+Node: add and balance assignments375269
+Node: import376127
+Node: Default import sources377659
+Node: Fetching new data first378659
+Node: Import dry run379136
+Node: Overlap detection380116
+Node: First import383002
+Node: Importing balance assignments384197
+Node: Import and commodity styles385252
+Node: Import archiving385686
+Node: Import special cases386726
+Node: Multiple journals in the same directory387023
+Node: Import configurations to avoid387721
+Node: Deduplication388697
+Node: Varying file name389227
+Node: Multiple versions389611
+Node: Basic report commands390718
+Node: accounts391019
+Node: codes393541
+Node: commodities394563
+Node: descriptions396354
+Node: files396825
+Node: notes397127
+Node: payees397639
+Node: prices398796
+Node: prices summary400220
+Node: stats401226
+Node: tags403310
+Node: Standard report commands405134
+Node: print405439
+Node: print explicitness408738
+Node: print layout409892
+Node: print amount style410940
+Node: print parseability412167
+Node: print other features413863
+Node: print output format415034
+Node: aregister418522
+Node: aregister and posting dates423049
+Node: register423950
+Node: Custom register output431679
+Node: balancesheet432864
+Node: balancesheetequity438085
+Node: cashflow443656
+Node: incomestatement448705
+Node: Advanced report commands453810
+Node: balance454031
+Node: balance features459823
+Node: Simple balance report461915
+Node: Balance report line format463725
+Node: Filtered balance report466221
+Node: List or tree mode466740
+Node: Depth limiting470226
+Node: Dropping top-level accounts470993
+Node: Showing declared accounts471503
+Node: Sorting by amount472233
+Node: Percentages473087
+Node: Multi-period balance report473794
+Node: Balance change end balance476644
+Node: Balance report modes478281
+Node: Calculation mode478960
+Node: Accumulation mode480032
+Node: Valuation mode481133
+Node: Combining balance report modes482477
+Node: Budget report484507
+Node: Using the budget report486815
+Node: Budget date surprises489091
+Node: Selecting budget goals490455
+Node: Budgeting vs forecasting491403
+Node: Balance report layout493080
+Node: Wide layout494285
+Node: Tall layout496690
+Node: Bare layout497996
+Node: Tidy layout500060
+Node: Balance report output501604
+Node: Some useful balance reports502378
+Node: holdings503638
+Node: roi509051
+Node: Spaces and special characters in --inv and --pnl511550
+Node: Semantics of --inv and --pnl512276
+Node: Using roi with lots514362
+Node: IRR and TWR explained514978
+Node: Chart commands518597
+Node: activity518778
+Node: Data generation commands519275
+Node: close519489
+Node: close --clopen522786
+Node: close --close524682
+Node: close --open525206
+Node: close --assert525456
+Node: close --assign525783
+Node: close --retain526462
+Node: close customisation527319
+Node: close and balance assertions529238
+Node: close examples530958
+Node: Retain earnings531195
+Node: Migrate balances to a new file531698
+Node: More detailed close examples533060
+Node: get533282
+Node: Phase 1 transactions data533993
+Node: Phase 2 prices534396
+Node: Merging new prices535400
+Node: get's helper scripts536204
+Node: getdata536495
+Node: getprices537007
+Node: rewrite537964
+Node: Re-write rules in a file540956
+Node: Diff output format542257
+Node: rewrite vs print --auto543527
+Node: Maintenance commands544241
+Node: check544460
+Node: Basic checks545543
+Node: Strict checks547011
+Node: Other checks548108
+Node: Custom checks550266
+Node: diff550705
+Node: setup551912
+Node: test554779
+Node: PART 5 COMMON TASKS555682
+Node: Getting help555915
+Node: Constructing command lines557042
+Node: Starting a journal file557887
+Node: Setting LEDGER_FILE559271
+Node: Set LEDGER_FILE on unix559539
+Node: Set LEDGER_FILE on mac560054
+Node: Set LEDGER_FILE on Windows560780
+Node: Setting opening balances562681
+Node: Recording transactions566003
+Node: Reconciling566728
+Node: Reporting569117
+Node: Migrating to a new file573231
+Node: BUGS573680
+Node: Troubleshooting574510
 
 End Tag Table
 

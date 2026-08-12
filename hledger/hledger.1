@@ -9508,6 +9508,38 @@ separate income, equity, or asset posting \- rather than expressing the
 difference as \f[CR]{B} \(at T\f[R] with \f[CR]B ≠ T\f[R] on the asset
 itself.
 The Acquire section below shows an example.
+.SS Cost basis precision
+An inferred cost basis can be a non\-terminating decimal (eg
+\f[CR]3 ABC \(at\(at $10\f[R] gives a $10/3 unit cost).
+Internally hledger keeps such costs at high precision, and calculates
+gains from the unrounded value; but in lot names it displays at most 8
+decimal digits (eg \f[CR]{2021\-03\-08, $3.33333333}\f[R]), or more if
+the commodity\(aqs declared display style has more (eg
+\f[CR]commodity $0.0000000000\f[R]).
+A lot\(aqs displayed name always works as a selector, even when it is a
+rounded display of a longer inferred cost.
+.PP
+Two precision\-related cautions:
+.IP \(bu 2
+When lots migrate to a new journal file as text (eg with
+\f[CR]close \-\-lots\f[R]), only the displayed digits survive: the new
+file\(aqs cost basis is exactly the displayed value, so subsequent gains
+can differ from the old file\(aqs by a tiny amount (up to half of the
+last displayed digit, per unit, once).
+If you track commodities needing finer cost precision (eg micro\-priced
+tokens, or costs denominated in a cryptocurrency), declare a wider
+display style for the cost commodity up front.
+.IP \(bu 2
+Changing a commodity\(aqs declared display precision can change how
+inferred costs render in lot names.
+Any lot names or selectors recorded in the journal with the old
+rendering will then stop matching: hledger reports \(dqno lots matching
+\&...\(dq, listing the account\(aqs actual lots.
+Recovery is simple but manual: update the recorded names/selectors to
+the new rendering, which is shown in the error message (or by
+\f[CR]print \-\-lots\f[R]).
+Selectors using just the date (and label) don\(aqt embed a cost and are
+unaffected \- one more reason to prefer them.
 .SS Lot movements
 hledger understands three kinds of event involving lots.
 Other real\-world lot events can usually be modelled using combinations
@@ -9564,11 +9596,13 @@ Transfer postings should not have a transacted price.
 If the destination receives less than the source sends (eg due to a fee
 deducted by an exchange), the fee portion of lots is consumed from the
 source without being recreated at the destination.
-If that fee also appears as a priced non\-asset posting in the same
-commodity (eg \f[CR]expenses:fees 0.001 ETH \(at $3000\f[R]), hledger
+If that fee also appears as a non\-asset posting in the same commodity
+(eg \f[CR]expenses:fees 0.001 ETH \(at $3000\f[R]), hledger
 automatically splits the source posting into a transfer portion and a
-priced disposal portion, so that the disposal is detected correctly.
-Plain \f[CR]print\f[R] shows the user\(aqs original entry;
+disposal portion, so that the disposal is detected correctly.
+If the fee posting has a transacted price, the disposal portion carries
+it and a gain is calculated; otherwise the disposal is priceless and no
+gain is calculated.
 \f[CR]print \-\-lots\f[R] (or \f[CR]print \-a\f[R]) shows the split form
 explicitly, so the output round\-trips correctly.
 .SS Dispose
@@ -9710,6 +9744,13 @@ T}
 the journal entry contains explicit lot selectors like
 \f[CR]{2026\-01\-15, $50}\f[R] or \f[CR]{$50}\f[R], or an explicit lot
 subaccount like \f[CR]assets:broker:{2026\-01\-15, $50}\f[R].
+Selecting by date (and label, if any) is recommended.
+Cost\-only selectors like \f[CR]{$50}\f[R] are less robust: since costs
+displayed in lot names may be rounded (see Cost basis precision),
+distinct lots can display the same cost, and a cost\-only selector could
+then match more lots than intended.
+(With SPECID this is reported as an ambiguity error; with other methods
+the lots are consumed in the method\(aqs order.)
 .PP
 \f[B]FIFO\f[R] (first in first out).
 Dispose of the oldest lot first.
@@ -10059,9 +10100,9 @@ help \- show documentation
 .PP
 \f[B]User interface commands\f[R]
 .IP \(bu 2
-repl \- run commands efficiently from an interactive prompt
+repl \- run multiple commands from an interactive prompt
 .IP \(bu 2
-run \- run commands efficiently from a file or command line
+run \- run multiple commands from a file or command line
 .IP \(bu 2
 ui \- (if installed) run hledger\(aqs terminal UI
 .IP \(bu 2
@@ -12015,7 +12056,11 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             in tree mode, don\(aqt squash boring parent accounts
+     \-\-no\-elide             in tree mode, don\(aqt squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without \-E)
+     \-\-full\-names           in tree mode, show full account names instead of
+                            indented leaf names
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\(aqs
@@ -12118,7 +12163,11 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             in tree mode, don\(aqt squash boring parent accounts
+     \-\-no\-elide             in tree mode, don\(aqt squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without \-E)
+     \-\-full\-names           in tree mode, show full account names instead of
+                            indented leaf names
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\(aqs
@@ -12229,7 +12278,11 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             in tree mode, don\(aqt squash boring parent accounts
+     \-\-no\-elide             in tree mode, don\(aqt squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without \-E)
+     \-\-full\-names           in tree mode, show full account names instead of
+                            indented leaf names
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\(aqs
@@ -12331,7 +12384,11 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             in tree mode, don\(aqt squash boring parent accounts
+     \-\-no\-elide             in tree mode, don\(aqt squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without \-E)
+     \-\-full\-names           in tree mode, show full account names instead of
+                            indented leaf names
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name
   \-% \-\-percent              express values in percentage of each column\(aqs
@@ -12444,7 +12501,11 @@ Flags:
      \-\-summary\-only         display only row summaries (e.g. row total,
                             average) (in multicolumn reports)
   \-N \-\-no\-total             omit the final total row
-     \-\-no\-elide             in tree mode, don\(aqt squash boring parent accounts
+     \-\-no\-elide             in tree mode, don\(aqt squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without \-E)
+     \-\-full\-names           in tree mode, show full account names instead of
+                            indented leaf names
      \-\-format=FORMATSTR     use this custom line format (in simple reports)
   \-S \-\-sort\-amount          sort by amount instead of account code/name (in
                             flat mode). With multiple columns, sorts by the row
@@ -12735,6 +12796,63 @@ balances shown, not of all the balances shown.
 .IP \(bu 2
 Each group of sibling accounts (ie, under a common parent) is sorted
 separately.
+.PP
+In list mode, \f[CR]\-\-no\-elide\f[R] shows parent accounts as well,
+with their exclusive balances.
+These are zero unless the parent has postings of its own, so
+\f[CR]\-E/\-\-empty\f[R] is usually also needed to make them visible.
+Together, these flags guarantee a complete table of all posted\-to
+accounts and their parents, with full names:
+.IP
+.EX
+$ hledger \-f examples/sample.journal balance \-\-no\-elide \-E
+                   0  assets
+                   0  assets:bank
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $\-2  assets:cash
+                   0  expenses
+                  $1  expenses:food
+                  $1  expenses:supplies
+                   0  income
+                 $\-1  income:gifts
+                 $\-1  income:salary
+                   0  liabilities
+                  $1  liabilities:debts
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+                   0
+.EE
+.PP
+This can be useful eg when exporting to a spreadsheet which will look up
+balances by account name.
+.PP
+In tree mode, \f[CR]\-\-full\-names\f[R] writes each account\(aqs full
+name instead of indenting leaf names, while keeping tree mode\(aqs
+inclusive balances.
+So \f[CR]\-\-tree \-\-no\-elide \-\-full\-names \-E\f[R] shows the same
+complete table as above, but with inclusive balances:
+.IP
+.EX
+$ hledger \-f examples/sample.journal balance \-\-tree \-\-no\-elide \-\-full\-names \-E
+                 $\-1  assets
+                  $1  assets:bank
+                   0  assets:bank:checking
+                  $1  assets:bank:saving
+                 $\-2  assets:cash
+                  $2  expenses
+                  $1  expenses:food
+                  $1  expenses:supplies
+                 $\-2  income
+                 $\-1  income:gifts
+                 $\-1  income:salary
+                  $1  liabilities
+                  $1  liabilities:debts
+\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-\-
+                   0
+.EE
+.PP
+Note that in this variant, parent and subaccount balances overlap, so
+(as in any tree mode report) the rows sum to more than the final total.
 .SS Depth limiting
 With a \f[CR]depth:NUM\f[R] query, or \f[CR]\-\-depth NUM\f[R] option,
 or just \f[CR]\-NUM\f[R] (eg: \f[CR]\-3\f[R]) balance reports will show
@@ -13603,7 +13721,11 @@ Flags:
                             except where the account is depth\-clipped.
   \-t \-\-tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
-     \-\-no\-elide             in tree mode, don\(aqt squash boring parent accounts
+     \-\-no\-elide             in tree mode, don\(aqt squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without \-E)
+     \-\-full\-names           in tree mode, show full account names instead of
+                            indented leaf names
      \-\-drop=N               in list mode, omit N leading account name parts
   \-S \-\-sort\-amount          sort by value (or cost) instead of account name,
                             largest first
@@ -14136,6 +14258,10 @@ conversions or investment transactions.
 investment lots with hledger.
 (To move or dispose of lots, see the more capable
 \f[CR]hledger\-move\f[R] script.)
+With \f[CR]\-\-lots\f[R], lot subaccount balances are always shown
+without costs, even under \f[CR]\-\-show\-costs\f[R]: their cost
+information is carried by the lot name itself, and transacted costs on
+lot postings would prevent the output from being read back.
 .SS close and balance assertions
 \f[CR]close\f[R] adds balance assertions verifying that the accounts
 have been reset to zero in a closing transaction or restored to their
