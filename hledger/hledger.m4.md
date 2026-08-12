@@ -7764,8 +7764,8 @@ You can list all of a command's options by running `hledger CMD -h`.
 
 **[User interface commands](#user-interface-commands)**
 
-- [repl](#repl)                                    - run commands efficiently from an interactive prompt
-- [run](#run)                                      - run commands efficiently from a file or command line
+- [repl](#repl)                                    - run multiple commands from an interactive prompt
+- [run](#run)                                      - run multiple commands from a file or command line
 - [ui](hledger-ui.md)                              - (if installed) run hledger's terminal UI
 - [web](hledger-web.md)                            - (if installed) run hledger's web UI
 

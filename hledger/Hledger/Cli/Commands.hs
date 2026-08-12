@@ -285,8 +285,8 @@ commandsList _progversion builtin othercmds cmdaliases =
     -----------------------------------------80-------------------------------------
   ,section "USER INTERFACES"
   ," help                     show documentation"
-  ," repl                     run commands efficiently from an interactive prompt"
-  ," run                      run commands efficiently from a file or command line"
+  ," repl                     run multiple commands from an interactive prompt"
+  ," run                      run multiple commands from a file or command line"
   ,"+ui                       run a terminal UI"
   ,"+web                      run a web UI"
   -- ,""
