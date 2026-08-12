@@ -8,7 +8,11 @@ Flags:
                             except where the account is depth-clipped.
   -t --tree                 list/tree mode: show accounts as a tree. Amounts
                             include subaccount amounts.
-     --no-elide             in tree mode, don't squash boring parent accounts
+     --no-elide             in tree mode, don't squash boring parent
+                            accounts; in list mode, also show parent accounts
+                            (usually zero, hidden without -E)
+     --full-names           in tree mode, show full account names instead of
+                            indented leaf names
      --drop=N               in list mode, omit N leading account name parts
   -S --sort-amount          sort by value (or cost) instead of account name,
                             largest first
