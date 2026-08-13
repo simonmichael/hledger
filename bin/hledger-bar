@@ -95,10 +95,11 @@ unquote() { s="${1%\"}"; echo "${s#\"}"; }
 shownum=0
 verbose=0
 scale=${defscale}
-if [[ $# -eq 0 || $1 == --help || $1 == -h ]]; then usage; exit; fi
+if [[ $# -eq 0 ]]; then usage; exit; fi
 args=()
 for arg in "$@"; do
     case ${arg} in
+        -h|--help) usage; exit ;;
         -v)  shownum=1 ;;
         -vv) shownum=1; verbose=1 ;;
         -s*)
