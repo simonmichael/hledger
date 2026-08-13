@@ -188,3 +188,9 @@ $  d=$(mktemp -d); mkdir $d/work; printf '[alias]\nevil = !echo pwned\n' >$d/wor
 # indented alias definition (including the [alias NAME] multi-line form) still work.
 $  printf '  [alias hi]\n  files\n' >$$.conf; hledger --conf $$.conf -f /dev/null hi; rm -f $$.conf
 /dev/null
+
+# ** 29. A # inside quotes in a config line is literal, not a comment, so an alias's
+# command line can contain a quoted #. (The regex ignores the general options that an
+# aliased "run --" echoes back after the text.)
+$  printf "[alias]\nhashfoo = run -- echo '# foo'\n" >$$.conf; hledger --conf $$.conf -f /dev/null hashfoo; rm -f $$.conf
+> /# foo/

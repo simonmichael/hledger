@@ -269,10 +269,10 @@ expecting '\]'/
 >= 1
 
 # ** 48. A config file line which can't be parsed as command line arguments
-# (eg because of an unclosed quote, possibly caused by a # comment cutting the line short)
-# is reported with a pretty error message showing the position and problem line.
-$  echo '--alias "x # y"' >$$.conf; hledger --conf $$.conf -f /dev/null files; s=$?; rm -f $$.conf; exit $s
+# (eg because of an unclosed quote) is reported with a pretty error message
+# showing the position and problem line.
+$  echo '--alias "unclosed' >$$.conf; hledger --conf $$.conf -f /dev/null files; s=$?; rm -f $$.conf; exit $s
 >2 /\.conf:1:
-1 \| --alias "x # y"
+1 \| --alias "unclosed
 this config file line could not be parsed as command line arguments/
 >= 1

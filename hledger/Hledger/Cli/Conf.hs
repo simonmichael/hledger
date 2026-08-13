@@ -148,7 +148,7 @@ confArgsE conf@Conf{confSections} =
       Just _  -> Right ()
       Nothing -> Left $ confErrorAt conf lnum l $
         "this config file line could not be parsed as command line arguments.\n"
-        <> "Is there an unclosed quote? Note # always starts a comment, even inside quotes."
+        <> "Is there an unclosed quote? (A # outside quotes starts a comment.)"
 
 -- | Make a pretty, multiline error message about a problem on the given line
 -- of this config file: file path and line number, an excerpt showing the line
@@ -374,13 +374,25 @@ sectionstartp = do
   whitespacep
   -- dp "sectionstartp3"
   lnum <- sourceLineNumberp
-  ma <- fmap (fmap strip) $ optional $ some $ noneOf "#\n"
+  ma <- fmap (fmap strip) $ optional argtextp
   -- dp "sectionstartp4"
   restoflinep
   -- dp "sectionstartp5"
   commentlinesp
   -- dp "sectionstartp6"
   return (n, (lnum,) <$> ma)
+
+-- | Parse config argument-line text up to an unquoted '#' (which starts a comment) or end of line,
+-- keeping any '#' that appears inside single or double quotes (so quoted arguments can contain '#').
+argtextp :: TextParser Identity String
+argtextp = fmap concat $ some $
+      quotedspanp '\'' <|> quotedspanp '"' <|> some (noneOf "'\"#\n")
+  where
+    quotedspanp q = do
+      _  <- char q
+      s  <- many (noneOf [q,'\n'])
+      qc <- optional (char q)
+      return $ q : s ++ maybe "" pure qc
 
 -- Uses try so that an indented section header ([..]) is left for sectionstartp
 -- rather than failing here after consuming its leading whitespace.
@@ -392,7 +404,7 @@ arglinep = try $ do
   notFollowedBy $ char '['  -- an indented section header is not an argument line
   -- dp "arglinep3"
   lnum <- sourceLineNumberp
-  a <- some $ noneOf "#\n"
+  a <- argtextp
   -- dp "arglinep4"
   restoflinep <|> whitespacep  -- whitespace / same-line comment, possibly with no newline
   commentlinesp
