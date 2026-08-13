@@ -363,3 +363,13 @@ tabTend
 crRend
 back\slash
 keep\qme
+
+# ** 29. A successful addon command does not end a run sequence; later commands still run.
+$ mkdir -p $$d; printf '#!/bin/sh\necho ADDON RAN\n' >$$d/hledger-zzzz; chmod +x $$d/hledger-zzzz; PATH=$$d:$PATH hledger run -f /dev/null -- zzzz -- echo after; rm -rf $$d
+ADDON RAN
+after
+
+# ** 30. A failing addon command ends the run sequence, propagating its exit code.
+$ mkdir -p $$d; printf '#!/bin/sh\nexit 3\n' >$$d/hledger-zzzz; chmod +x $$d/hledger-zzzz; PATH=$$d:$PATH hledger run -f /dev/null -- echo one -- zzzz -- echo two; s=$?; rm -rf $$d; exit $s
+one
+>= 3

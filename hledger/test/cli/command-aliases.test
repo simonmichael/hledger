@@ -205,3 +205,13 @@ b
 $  printf '[alias foo] run\n-- echo hi\n' >$$.conf; hledger --conf $$.conf foo; s=$?; rm -f $$.conf; exit $s
 >2 /the \[alias NAME\] section form has been removed/
 >= 1
+
+# ** 32. A successful shell alias does not end a run sequence; later commands still run.
+$  printf '[alias]\nhi = !echo hello\n' >$$.conf; hledger --conf $$.conf run -f /dev/null -- hi -- echo after; rm -f $$.conf
+hello
+after
+
+# ** 33. A failing shell alias ends the run sequence, propagating its exit code.
+$  printf '[alias]\nbad = !exit 3\n' >$$.conf; hledger --conf $$.conf run -f /dev/null -- echo one -- bad -- echo two; s=$?; rm -f $$.conf; exit $s
+one
+>= 3

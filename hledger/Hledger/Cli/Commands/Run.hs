@@ -35,9 +35,9 @@ import Control.Monad.Extra (concatMapM, anyM)
 import Data.IORef (IORef, newIORef, readIORef, writeIORef)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 
-import System.Exit (ExitCode, exitWith)
+import System.Exit (ExitCode(..), exitWith)
 import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames, flagNone)
-import System.IO (stdin, stderr, hIsTerminalDevice, hIsOpen, hPutStrLn, hFlush)
+import System.IO (stdin, stderr, stdout, hIsTerminalDevice, hIsOpen, hPutStrLn, hFlush)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
@@ -159,6 +159,15 @@ unescape ('\\':c:cs) = case c of
 unescape (c:cs)      = c : unescape cs
 unescape []          = []
 
+-- | Run a shell command, and if it fails, exit with its exit code; on success just return,
+-- so a sequence of run/repl commands can continue. Flushes stdout first, so that our own
+-- buffered output (eg echo's) appears before the subprocess's output.
+runShellCommandOrExit :: String -> IO ()
+runShellCommandOrExit shcmd = do
+  hFlush stdout
+  ec <- system shcmd
+  when (ec /= ExitSuccess) $ exitWith ec
+
 -- | Take a single command line (from file, or REPL, or "--"-surrounded block of the args), and run it.
 -- addonfileargs are -f options (the session's explicit input files) to pass through to addon commands.
 runCommand :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
@@ -171,7 +180,7 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
       case expandCommandAlias (isJust . findBuiltinCommand) cmdaliases cmdname0 of
        -- A !-prefixed shell command alias: run it (if allowed), with any arguments appended.
        ShellCommand shcmd
-         | shellaliasesallowed -> system (unwords $ shcmd : map quoteForCommandLine args0) >>= exitWith
+         | shellaliasesallowed -> runShellCommandOrExit (unwords $ shcmd : map quoteForCommandLine args0)
          | otherwise -> error' $ "the command alias '" ++ cmdname0
              ++ "' runs a shell command, which is only allowed from your user config file or a --conf file"
        -- Otherwise an hledger command, with the alias's arguments preceding this line's own arguments.
@@ -217,7 +226,7 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
         Nothing | cmdname `elem` addons ->
           -- Pass the session's explicit input files to the addon, so it uses the same journal
           -- (as the CLI does by forwarding its -f options to addons).
-          system (printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine $ addonfileargs <> args)) >>= exitWith
+          runShellCommandOrExit (printf "%s-%s %s" progname cmdname (unwords $ map quoteForCommandLine $ addonfileargs <> args))
         Nothing ->
           error' $ "Unrecognized command" ++ aliasnote ++ ": " ++ unwords (cmdname:args)
     [] -> return ()
@@ -283,7 +292,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
               (_, addons')     <- readIORef addonsRef
               case strip input of
                 "!"       -> return ()           -- a bare !, do nothing
-                '!':shcmd -> void $ system shcmd  -- !SHELLCMD, run the rest as a shell command
+                '!':shcmd -> hFlush stdout >> void (system shcmd)  -- !SHELLCMD, run the rest as a shell command
                 -- h is a short alias for the help command.
                 _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $
                              case parseCommand input of
