@@ -347,3 +347,19 @@ $ hledger repl -f sample.journal
 balance -h
 $ hledger repl -f sample.journal
 > /General input flags:/
+
+# ** 28. run/repl's echo interprets the backslash escapes \n, \t, \r and \\
+# (unrecognised escapes like \q are kept as written). Tab and CR are mapped to
+# T and R by tr, so the expected output needs no literal control characters.
+<
+2017-01-01
+  a  1
+  b
+$ hledger run -f- -- echo 'one\ntwo' -- echo 'tab\tend' -- echo 'cr\rend' -- echo 'back\\slash' -- echo 'keep\qme' | tr '\t\r' 'TR'
+>
+one
+two
+tabTend
+crRend
+back\slash
+keep\qme

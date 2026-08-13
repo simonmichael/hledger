@@ -36,7 +36,7 @@ Command scripts, whether in a file or written on the command line, have a simple
 - empty lines are ignored
 - text from `#` to end of line is a comment, and ignored
 - you can use single or double quotes to quote arguments when needed, as on the command line
-- these extra commands are available: `echo TEXT` prints some text, and `exit` or `quit` ends the run.
+- these extra commands are available: `echo TEXT` prints some text (interpreting the backslash escapes `\n`, `\t`, `\r`, `\\`), and `exit` or `quit` ends the run.
 
 On unix systems you can use `#!/usr/bin/env hledger run` in the first line of a command file to make it a runnable script.
 If that gives an error, use `#!/usr/bin/env -S hledger run`.

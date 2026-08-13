@@ -146,13 +146,26 @@ parseCommand line =
   -- # begins a comment, ignore everything after #
   takeWhile (not. ((Just '#')==) . headMay) $  words' (strip line)
 
+-- | Interpret the common backslash escape sequences \n, \t, \r and \\ in a string,
+-- so the run/repl echo command can print newlines, tabs etc. An unrecognised escape
+-- is left as written (its backslash is kept).
+unescape :: String -> String
+unescape ('\\':c:cs) = case c of
+  'n'  -> '\n' : unescape cs
+  't'  -> '\t' : unescape cs
+  'r'  -> '\r' : unescape cs
+  '\\' -> '\\' : unescape cs
+  _    -> '\\' : c : unescape cs
+unescape (c:cs)      = c : unescape cs
+unescape []          = []
+
 -- | Take a single command line (from file, or REPL, or "--"-surrounded block of the args), and run it.
 -- addonfileargs are -f options (the session's explicit input files) to pass through to addon commands.
 runCommand :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
 runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed cmdline = do
   dbg1IO "runCommand for" cmdline
   case cmdline of
-    "echo":args -> putStrLn $ unwords $ args
+    "echo":args -> putStrLn $ unescape $ unwords args
     cmdname0:args0 ->
       -- The command may be a command alias defined in the config file; expand it.
       case expandCommandAlias (isJust . findBuiltinCommand) cmdaliases cmdname0 of
