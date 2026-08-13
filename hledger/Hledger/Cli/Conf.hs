@@ -121,7 +121,7 @@ confAliases :: Conf -> [(CommandAlias, CommandLine)]
 confAliases Conf{confFile, confSections} = concatMap sectionaliases confSections
   where
     sectionaliases ConfSection{csName, csArgs}
-      | csName == "alias" = map aliasline csArgs
+      | csName `elem`["alias", "aliases"] = map aliasline csArgs
       | Just name <- stripPrefix "alias " csName = [(strip name, unwords csArgs)]
       | otherwise = []
     aliasline l = case break (=='=') l of
