@@ -16,6 +16,7 @@ module Hledger.Utils.String (
  -- quotechars,
  -- whitespacechars,
  words',
+ wordsmay,
  stripAnsi,
  -- * single-line layout
  strip,
@@ -199,13 +200,23 @@ redirectchars   = "<>"
 shellchars      = "<>(){}[]$&?#!~`*+\\"
 
 -- | Quote-aware version of words - don't split on spaces which are inside quotes.
--- NB correctly handles "a'b" but not "''a''". Can raise an error if parsing fails.
+-- NB correctly handles "a'b" but not "''a''".
+-- Can raise an error if parsing fails (eg if there's an unclosed quote);
+-- wordsmay is a total version.
 words' :: String -> [String]
 words' "" = []
-words' s  = map stripquotes $ fromparse $ parsewithString p s  -- PARTIAL
+words' s  = map stripquotes $ fromparse $ parsewithString wordsp s  -- PARTIAL
+
+-- | Like words', but return Nothing if parsing fails
+-- (eg because of an unclosed quote), rather than raising an error.
+wordsmay :: String -> Maybe [String]
+wordsmay "" = Just []
+wordsmay s = either (const Nothing) (Just . map stripquotes) $ parsewithString wordsp s
+
+wordsp :: SimpleStringParser [String]
+wordsp = (singleQuotedPattern <|> doubleQuotedPattern <|> patterns) `sepBy` skipNonNewlineSpaces1
+    -- eof
     where
-      p = (singleQuotedPattern <|> doubleQuotedPattern <|> patterns) `sepBy` skipNonNewlineSpaces1
-          -- eof
       patterns = many (noneOf whitespacechars)
       singleQuotedPattern = between (char '\'') (char '\'') (many $ noneOf "'")
       doubleQuotedPattern = between (char '"') (char '"') (many $ noneOf "\"")

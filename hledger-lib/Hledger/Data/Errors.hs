@@ -6,6 +6,7 @@ Helpers for making error messages.
 {-# LANGUAGE RecordWildCards #-}
 
 module Hledger.Data.Errors (
+  decorateExcerpt,
   makeAccountTagErrorExcerpt,
   makeCommodityTagErrorExcerpt,
   makePriceDirectiveErrorExcerpt,

@@ -76,9 +76,12 @@ $  printf '[alias]\nbadalias = nosuchcmd --foo\n' >$$.conf; hledger --conf $$.co
 >2 /command nosuchcmd \(expanded from the badalias command alias\) is not recognised/
 >= 1
 
-# ** 11. An [alias] section line without an equals sign gives a helpful error.
+# ** 11. An [alias] section line without an equals sign gives a helpful error,
+# showing the file position and problem line.
 $  printf '[alias]\nbadline\n' >$$.conf; hledger --conf $$.conf -f /dev/null files; s=$?; rm -f $$.conf; exit $s
->2 /an \[alias\] section line should look like/
+>2 /\.conf:2:
+2 \| badline
+an \[alias\] section line should look like/
 >= 1
 
 # ** 12. Command aliases are shown in the commands list.
