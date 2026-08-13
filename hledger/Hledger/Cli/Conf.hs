@@ -30,10 +30,10 @@ module Hledger.Cli.Conf (
 where
 
 import Control.Exception (handle)
-import Control.Monad (void, forM)
+import Control.Monad (void, forM, guard)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
-import Data.List (stripPrefix)
+import Data.List (isPrefixOf)
 import Data.Map qualified as M
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
@@ -115,11 +115,10 @@ confLookup cmd Conf{confSections} =
   M.fromList [(csName,csArgs) | ConfSection{csName,csArgs} <- confSections]
 
 -- | Get the command aliases (custom commands) defined in this config file,
--- in order of definition. They are defined git-style by lines in an @[alias]@
--- section, like @NAME = CMDLINE@; or by @[alias NAME]@ sections, whose lines
--- are joined to form the command line. If a name is defined more than once,
--- the last definition should win (callers can rely on the ordering here).
--- An [alias] section line without an @=@ raises a usage error.
+-- in order of definition. They are defined git-style in an @[alias]@ (or @[aliases]@)
+-- section, like @NAME = CMDLINE@; a value may continue on following, more-indented lines.
+-- If a name is defined more than once, the last definition should win (callers can rely
+-- on the ordering here). An [alias] section line without an @=@ raises a usage error.
 -- (In practice it won't, since readConfFile validates with confAliasesE first.)
 confAliases :: Conf -> [(CommandAlias, CommandLine)]
 confAliases = either error' id . confAliasesE
@@ -131,7 +130,12 @@ confAliasesE conf@Conf{confSections} = concat <$> mapM sectionaliases confSectio
   where
     sectionaliases ConfSection{csName, csArgs}
       | csName `elem`["alias", "aliases"] = mapM aliasline csArgs
-      | Just name <- stripPrefix "alias " csName = Right [(strip name, unwords $ map snd csArgs)]
+      -- The old [alias NAME] section form has been removed; point the user to the new form.
+      | "alias " `isPrefixOf` csName, (lnum,l):_ <- csArgs =
+          Left $ confErrorAt conf lnum l
+            "the [alias NAME] section form has been removed;\n\
+            \define aliases in an [alias] section as: NAME = COMMAND [ARGS...]\n\
+            \(a value may continue on the following, more-indented lines)"
       | otherwise = Right []
     aliasline (lnum, l) = case break (=='=') l of
       (name, '=':cmdline) | not $ null $ strip name -> Right (strip name, strip cmdline)
@@ -356,7 +360,9 @@ confp = do
   let s = ConfSection "general" genas
   ss <- many $ do
     (n, ma) <- sectionstartp
-    as <- many arglinep
+    -- In an [alias]/[aliases] section, a NAME = ... value can span more-indented lines; parse each
+    -- alias as one logical (joined) line. Other sections keep one argument per line.
+    as <- if n `elem` ["alias","aliases"] then many aliasdefp else many arglinep
     return $ ConfSection n (maybe as (:as) ma)
   whitespacep  -- tolerate trailing whitespace with no final newline (a blank last line)
   eof
@@ -409,6 +415,38 @@ arglinep = try $ do
   restoflinep <|> whitespacep  -- whitespace / same-line comment, possibly with no newline
   commentlinesp
   return (lnum, strip a)
+
+-- | Parse one alias definition in an [alias]/[aliases] section: a "NAME = ..." line, plus any
+-- following lines indented more than it, joined (whitespace-normalised) into one logical line.
+-- Blank and comment lines are skipped; a line indented no more than the NAME line, a section
+-- header, or end of file ends the definition. This is what lets an alias's command line span
+-- several indented lines.
+aliasdefp :: TextParser Identity (Int, Arg)
+aliasdefp = try $ do
+  whitespacep  -- ignore any leading whitespace
+  notFollowedBy $ char '['  -- an indented section header is not an alias definition
+  lnum <- sourceLineNumberp
+  ref  <- indentcolp  -- the column of this alias's NAME
+  first <- argtextp
+  restoflinep <|> whitespacep
+  conts <- many (continuationp ref)
+  commentlinesp  -- consume trailing blank/comment lines before the next definition or header
+  return (lnum, strip $ unwords $ strip first : conts)
+  where
+    -- a line indented more than ref (the NAME column), continuing the alias's command line
+    continuationp ref = try $ do
+      commentlinesp  -- skip any blank/comment lines within the indented block
+      whitespacep
+      col <- indentcolp
+      guard $ col > ref
+      notFollowedBy $ char '['  -- a section header ends the definition even if indented
+      s <- argtextp
+      restoflinep <|> whitespacep
+      return $ strip s
+
+-- the column (1-based) at the current parse position, used to compare indentation
+indentcolp :: TextParser Identity Int
+indentcolp = unPos . sourceColumn <$> getSourcePos
 
 
 -- initialiseAndParseJournal :: ErroringJournalParser IO ParsedJournal -> InputOpts

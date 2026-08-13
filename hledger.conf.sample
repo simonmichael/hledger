@@ -94,16 +94,14 @@
 # commit = ! jj commit `hledger files` -m
 # gitcommit = ! git commit -p -- `hledger files`
 
-# Or you can define an alias in its own section, using multiple lines:
+# A command line can continue on following, more-indented lines:
 
-# [alias forecast]
-# aregister --forecast -E
-# -p today..3months
+# forecast = aregister --forecast -E
+#     -p today..3months
 
 # With the run command you can build multi-command scripts:
 
-# [alias forecasts]
-# run
-# -- echo bchecking: -- forecast bchecking #-e 2months
-# -- echo pchecking: -- forecast pchecking #-e 2months
-# -- echo ichecking: -- forecast ichecking #-e 2months
+# forecasts = run
+#     -- echo bchecking: -- forecast bchecking #-e 2months
+#     -- echo pchecking: -- forecast pchecking #-e 2months
+#     -- echo ichecking: -- forecast ichecking #-e 2months

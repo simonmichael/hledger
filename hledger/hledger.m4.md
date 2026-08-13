@@ -598,18 +598,18 @@ eg `hledger rev10 -X €` will convert to `€` instead of `$`.
 Command aliases can also be used in `run` command scripts and at the `repl` prompt.
 
 Each line in an `[alias]` section should look like `NAME = COMMAND [ARGS..]`.
-Or, you can define a single alias with an `[alias NAME]` section,
-writing its command line below it, on one or more lines.
-This form can be easier to read, and lets you comment out individual lines. Eg:
+A command line can be continued on following lines by indenting them more than the `NAME`;
+the indented lines are joined to the command line. Blank lines and comment lines within it are
+ignored, so you can space it out or comment out individual lines. Eg:
 
 ```conf
-[alias rev10]
-balance
-type:R
--2
--X$
--p 'every 10 years from 2000'
-# --drop 1
+[alias]
+rev10 = balance
+    type:R
+    -2
+    -X$
+    -p 'every 10 years from 2000'
+    # --drop 1
 ```
 
 Command aliases override addon commands with the same name,
