@@ -815,8 +815,10 @@ journalPostingsAddCommodityTags j = journalMapPostings addtags j
 -- happened yet; transfer destinations - which must not get a transacted
 -- cost - are recognised by shape: a positive cost-basis posting is skipped
 -- when the transaction has an explicit negative amount of the same commodity
--- and quantity in another account (a transfer-from counterpart), or an
--- equity posting with no cost-basis amounts (an equity transfer, eg
+-- and quantity in another account (a transfer-from counterpart), or the
+-- commodity's unpriced negative and positive quantities sum to matching
+-- totals (a split or consolidating transfer group, possibly minus a fee),
+-- or an equity posting with no cost-basis amounts (an equity transfer, eg
 -- close --clopen --lots style opening balances).
 journalInferPostingsTransactedCost :: Journal -> Journal
 journalInferPostingsTransactedCost j = journalMapTransactions inferTxn j
@@ -831,6 +833,7 @@ journalInferPostingsTransactedCost j = journalMapTransactions inferTxn j
         p' = p{pamount = mapMixedAmount amountInferTransactedCost $ pamount p}
         needsInference a = aquantity a > 0 && isNothing (acost a) && hasCostBasisCost a
                         && not (hasTransferFromCounterpart t p a)
+                        && not (hasTransferGroupShape t p (acommodity a))
         amountInferTransactedCost a
           | needsInference a, Just CostBasis{cbCost=Just c} <- acostbasis a = a{acost = Just (UnitCost c)}
           | otherwise = a
@@ -845,6 +848,22 @@ journalInferPostingsTransactedCost j = journalMapTransactions inferTxn j
               && any (\qa -> acommodity qa == acommodity a && aquantity qa == negate (aquantity a))
                      (amountsRaw (pamount q)))
           (tpostings t)
+
+    -- Do the transaction's unpriced amounts in this commodity look like a
+    -- split or consolidating transfer group (#2692) ? True when the total
+    -- unpriced negative quantity equals the total unpriced positive quantity,
+    -- is nonzero, and at least one negative is in a different account.
+    -- Priced amounts are excluded on both sides: a priced posting (eg a fee
+    -- disposal -0.02 A {$100} @ $100) is a deliberate trade, not part of the
+    -- transfer.
+    hasTransferGroupShape t p c =
+      negTotal > 0 && negTotal == posTotal && any (/= paccount p) negAccts
+      where
+        unpricedAmts q = [a | a <- amountsRaw (pamount q), acommodity a == c, isNothing (acost a)]
+        negs = [(paccount q, negate (aquantity a)) | q <- tpostings t, a <- unpricedAmts q, aquantity a < 0]
+        posTotal = sum [aquantity a | q <- tpostings t, a <- unpricedAmts q, aquantity a > 0]
+        negTotal = sum (map snd negs)
+        negAccts = map fst negs
 
     -- Does the transaction have an equity posting with no cost-basis amounts ?
     -- (Mirrors the lot classifier's equity-transfer detection.)

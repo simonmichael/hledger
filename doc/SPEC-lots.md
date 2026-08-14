@@ -298,8 +298,17 @@ unmatched and classified by the rules below.
 These are classified regardless of account type:
 
 - **Negative** → `dispose`, or `transfer-from` if a counterpart posting
-  (same commodity and quantity, different account) exists.
-- **Positive** → `acquire`, or `transfer-to` if a counterpart exists.
+  (same commodity and quantity, different account) exists, or if the
+  commodity's unpriced quantities sum-match (see below).
+- **Positive** → `acquire`, or `transfer-to` if a counterpart exists or
+  the commodity's unpriced quantities sum-match.
+- **Sum matching**: when transfer postings don't pair one to one (a split
+  or consolidating transfer, eg `-10` vs `+5`/`+5`), a counterpart is
+  recognised if the commodity's total unpriced outflow equals its total
+  unpriced inflow, with the opposite side in some other account (#2692).
+  This fallback applies only to unpriced postings (a priced posting is a
+  deliberate trade) and not to auto-split fee fragments (which must remain
+  disposals).
 - **Equity transfer override**: if the posting has no transacted price
   (`@ ...`) and an equity counterpart posting (no cost basis) exists in
   the transaction, it is classified as transfer-from/to instead of
@@ -376,6 +385,19 @@ ignoring quantity. This is used by `shouldClassifyLotful` and
 transfer+fee patterns where the destination receives less than the source
 sends.
 
+A sum-based fallback (`negSums`/`posSums`, `hasSumCounterpart`) handles
+transfers whose postings don't pair one to one (#2692): per commodity, the
+total unpriced negative quantity and total unpriced positive quantity are
+accumulated (with the contributing accounts), using the same side criteria
+as the maps above; a counterpart exists when the totals are equal and the
+opposite side includes another account. Priced amounts are excluded (a
+priced posting, eg a fee disposal `-0.02 A {$100} @ $100`, is a deliberate
+trade), and so are auto-split fee dispose fragments (feesplit tag), which
+would otherwise inflate the outflow total and defeat the match. This
+fallback is used by `shouldClassifyWithCostBasis` only, for unpriced
+non-feesplit postings; the bare paths already have the commodity-only
+fallback.
+
 ### Main functions
 
 - `journalClassifyLotPostings`: entry point, maps over transactions.
@@ -390,11 +412,23 @@ sends.
 
 ## Inferring transacted cost from cost basis
 
-After classifying lot postings,
-in acquire postings which have no transacted cost annotation,
-we infer a transacted cost from the cost basis.
+In positive cost-basis postings which have no transacted cost annotation,
+we infer a transacted cost from the cost basis (letting an acquire entry
+with an elided cash amount balance at cost). This runs before transaction
+balancing, so classification hasn't happened yet; transfer destinations -
+which must not get a transacted cost - are recognised by shape. Inference
+is skipped when:
 
-(journalInferPostingsTransactedCost)
+- another account has an explicit negative amount of the same commodity
+  and quantity (an exact transfer-from counterpart), or
+- the commodity's unpriced negative and positive quantities sum to matching
+  totals, with a negative in another account (a split or consolidating
+  transfer group, possibly minus a fee; priced amounts are excluded on both
+  sides) (#2692), or
+- the transaction has an equity posting with no cost-basis amounts (an
+  equity transfer, eg close --clopen --lots style opening balances).
+
+(journalInferPostingsTransactedCost in Journal.hs)
 
 ## Lot posting effects
 
@@ -759,10 +793,11 @@ See SPEC-finalising for more details of the implementation.
 Before classification, hledger detects a common "transfer with fee"
 pattern and rewrites it into explicit transfer + disposal postings.
 
-If a transaction has a bare negative lotful asset posting whose absolute
-quantity exceeds the positive quantity received by asset accounts by some
-amount, and a non-asset posting (typically an expense) in the same commodity
-matches that excess, the negative posting is split into two:
+If a transaction has an unpriced negative lotful asset posting (bare in a
+lotful commodity, or carrying a cost basis annotation) whose absolute
+quantity exceeds the unpriced positive quantity received by asset accounts
+by some amount, and a non-asset posting (typically an expense) in the same
+commodity matches that excess, the negative posting is split into two:
 
 - a transfer portion with the matching positive quantity, and
 - a dispose portion with the excess quantity. If the fee counterpart has a

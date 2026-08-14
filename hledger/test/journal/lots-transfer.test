@@ -155,9 +155,8 @@ $ hledger -f- bal assets:broker --lots
 >2 /no lots available/
 >=1
 
-# ** 10. Split transfers (1 from at qty 10, 2 to at qty 5) are not detected as transfers
-# because transfer detection requires exact quantity matching. The postings are classified
-# as dispose + acquire + acquire, and the transaction is unbalanced.
+# ** 10. Split transfers with cost basis notation (1 from at qty 10, 2 to at qty 5)
+# are detected as transfers by commodity-sum matching, and preserve lot identity. #2692
 <
 2026-01-15 buy
     assets:broker1    10 AAPL {$50}
@@ -168,9 +167,13 @@ $ hledger -f- bal assets:broker --lots
     assets:broker2     5 AAPL {$50}
     assets:broker3     5 AAPL {$50}
 
-$ hledger -f- bal assets:broker --lots
->2 /unbalanced/
->=1
+$ hledger -f- print --lots -x date:2026-02
+2026-02-01 split transfer
+    assets:broker1:{2026-01-15, $50}             -10 AAPL {2026-01-15, $50}
+    assets:broker2:{2026-01-15, $50}               5 AAPL {2026-01-15, $50}
+    assets:broker3:{2026-01-15, $50}               5 AAPL {2026-01-15, $50}
+
+>=
 
 # ** 11. Cross-account transfer with fee: only matching-quantity postings are transfers.
 <
@@ -938,3 +941,75 @@ $ hledger -f- bal --lots -N
              3.0 ABC  assets:broker2:{2020-03-08, "0002", $3.33333333}
                 $-20  assets:cash
              0.1 ABC  expenses:fees
+
+# ** 41. A transfer+fee written with cost basis notation also auto-splits,
+# like the bare form: the fee dispose fragment carries the lot basis and no
+# price, lots are reduced, and no gain is calculated. #2692
+<
+2020-03-08 buy
+     assets:cash        -$10
+     assets:broker1      5 ABC {$2}
+
+2020-04-04 transfer with fee
+     assets:broker1     -5 ABC {$2}
+     assets:broker2      4.9 ABC {$2}
+     expenses:fees       0.1 ABC
+$ hledger -f- print --lots -x date:2020-04
+2020-04-04 transfer with fee
+    assets:broker1:{2020-03-08, $2}               -4.9 ABC {2020-03-08, $2}
+    assets:broker1:{2020-03-08, $2}               -0.1 ABC {2020-03-08, $2}
+    assets:broker2:{2020-03-08, $2}                4.9 ABC {2020-03-08, $2}
+    expenses:fees                                  0.1 ABC
+
+>=
+
+# ** 42. A consolidating transfer with cost basis notation: sources with
+# different lot bases feed one bare destination posting, preserving each
+# lot's identity. #2692
+<
+2026-01-15 buy at 50
+    assets:checking
+    assets:broker1     5 AAPL {$50}
+
+2026-01-20 buy at 60
+    assets:checking
+    assets:broker2     5 AAPL {$60}
+
+2026-02-01 consolidate
+    assets:broker1    -5 AAPL {$50}
+    assets:broker2    -5 AAPL {$60}
+    assets:broker3    10 AAPL
+$ hledger -f- print --lots -x date:2026-02
+2026-02-01 consolidate
+    assets:broker1:{2026-01-15, $50}              -5 AAPL {2026-01-15, $50}
+    assets:broker2:{2026-01-20, $60}              -5 AAPL {2026-01-20, $60}
+    assets:broker3:{2026-01-15, $50}               5 AAPL {2026-01-15, $50}
+    assets:broker3:{2026-01-20, $60}               5 AAPL {2026-01-20, $60}
+
+>=
+
+# ** 43. A split-destination transfer with a priced fee posting: sum-based
+# transfer detection ignores priced amounts, so the transfer postings are
+# detected and the priced fee portion still disposes. #2692
+<
+commodity A  ; lots:
+
+2026-01-15 buy
+    assets:a    1.02 A {$100} @ $100
+    assets:cash
+
+2026-02-17 transfer with fee, split destinations
+    assets:a       -1 A {$100}
+    assets:b      0.6 A {$100}
+    assets:c      0.4 A {$100}
+    assets:a    -0.02 A {$100} @ $100
+    expenses:fees   $2
+$ hledger -f- print --verbose-tags date:2026-02
+2026-02-17 transfer with fee, split destinations
+    assets:a                                      -1 A {$100}  ; ptype: transfer-from
+    assets:b                                       0.6 A {$100}  ; ptype: transfer-to
+    assets:c                                       0.4 A {$100}  ; ptype: transfer-to
+    assets:a                                      -0.02 A {$100} @ $100  ; ptype: dispose
+    expenses:fees                                 $2
+
+>=

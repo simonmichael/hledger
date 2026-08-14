@@ -433,8 +433,9 @@ journalClassifyLotPostings verbosetags j =
     lookupType = journalAccountType j
     commodityIsLotful = journalCommodityUsesLots j
 
--- | Detect a lot transfer with a fee - a bare negative lotful asset
--- posting whose absolute quantity exceeds the positive quantities received by
+-- | Detect a lot transfer with a fee - an unpriced negative lotful asset
+-- posting (bare in a lotful commodity, or carrying a cost basis annotation)
+-- whose absolute quantity exceeds the positive quantities received by
 -- asset accounts, where the excess matches a non-asset posting (typically a
 -- fee paid in the lotful commodity) - and split it into a transfer portion
 -- (matching the positive sum) and a dispose portion, so classification can
@@ -465,7 +466,8 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
     isNonAsset acct = not (isAsset acct)
 
     -- Try to split posting p into [transferPortion, disposePortion].
-    -- Requires: single bare negative lotful asset amount, with a matching
+    -- Requires: a single unpriced negative asset amount, either bare in a
+    -- lotful commodity or carrying a cost basis annotation, with a matching
     -- non-asset counterpart. Positive postings naturally exclude p itself.
     -- Fee fragments from an earlier split (during balancing) are left alone.
     trySplit p = do
@@ -473,9 +475,8 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
       guard $ isAsset (paccount p)
       [a] <- Just $ amountsRaw (pamount p)
       guard $ aquantity a < 0
-           && commodityIsLotful (acommodity a)
+           && (commodityIsLotful (acommodity a) || isJust (acostbasis a))
            && isNothing (acost a)
-           && isNothing (acostbasis a)
       let comm    = acommodity a
           fromQty = negate (aquantity a)
           toQty   = sum [ aquantity pa
@@ -485,7 +486,6 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
                         , acommodity pa == comm
                         , aquantity pa > 0
                         , isNothing (acost pa)
-                        , isNothing (acostbasis pa)
                         ]
           feeQty  = fromQty - toQty
       guard $ toQty > 0 && feeQty > 0
@@ -579,7 +579,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
           in take n negs ++ take n poss
 
     -- Precompute per-commodity, per-quantity transfer counterpart info (O(n)).
-    -- Keyed by (commodity, |quantity|) so that transfer detection requires exact quantity matching.
+    -- Keyed by (commodity, |quantity|) for exact quantity matching, the primary
+    -- transfer detection; see negSums/posSums below for the sum-based fallback.
     -- For each key, which accounts have:
     --   negative postings with cost basis  (transfer-from candidates; any account type)
     --   positive postings with cost basis  (transfer-to candidates, standard path; any account type)
@@ -635,6 +636,54 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     hasTransferFromCommodityMatch acct c =
       any (\((c', _), accts) -> c' == c && any (/= acct) accts)
           (M.toList negCBAccts)
+
+    -- Per-commodity totals of unpriced transfer-candidate amounts, with their
+    -- accounts. Used for sum-based transfer detection when quantities don't
+    -- pair one to one (a split or consolidating transfer, #2692).
+    -- Priced amounts are excluded (a priced posting is a deliberate trade,
+    -- eg a fee disposal), as are auto-split fee dispose fragments (feesplit
+    -- tag), which would otherwise inflate the outflow total.
+    -- Side criteria mirror the counterpart maps above: negatives need cost
+    -- basis (any account type) or bare lotful in an asset account; positives
+    -- need cost basis (any account type) or an asset account.
+    negSums, posSums :: M.Map CommoditySymbol (Quantity, [AccountName])
+    (negSums, posSums) = foldl' collectSums (M.empty, M.empty) (zip [0..] ps)
+      where
+        collectSums (!neg, !pos) (i, p)
+          | not (isReal p) = (neg, pos)
+          | hasBalancerCopiedBasis p = (neg, pos)
+          | i `S.member` sameAcctTransferSet = (neg, pos)
+          | postingHasTag feesplitPostingTagName p = (neg, pos)
+          | otherwise = foldl' addAmt (neg, pos) amts
+          where
+            acct = lotBaseAccount (paccount p)
+            isAsset = maybe False isAssetType (lookupAccountType acct)
+            isLotful = postingIsLotful p amts
+            amts = amountsRaw (pamount p)
+            addAmt (!neg', !pos') a
+              | isJust (acost a) = (neg', pos')
+              | q < 0, hasCB || (isLotful && isAsset) = (addTo neg' (negate q), pos')
+              | q > 0, hasCB || isAsset               = (neg', addTo pos' q)
+              | otherwise = (neg', pos')
+              where
+                q = aquantity a
+                hasCB = isJust (acostbasis a)
+                addTo m qty = M.insertWith merge (acommodity a) (qty, [acct]) m
+                merge (newq, newaccts) (oldq, oldaccts) =
+                  (newq + oldq, foldr insertAcct oldaccts newaccts)
+                insertAcct x xs = if x `elem` xs then xs else x : xs
+
+    -- Is there a sum-matched transfer counterpart for this commodity ?
+    -- True when the commodity's total unpriced outflow equals its total
+    -- unpriced inflow (per the sum maps above), and the opposite side
+    -- includes an account other than this posting's. Detects transfers
+    -- whose postings don't pair one to one (#2692).
+    hasSumCounterpart :: AccountName -> Bool -> CommoditySymbol -> Bool
+    hasSumCounterpart acct isNeg c =
+      case (M.lookup c negSums, M.lookup c posSums) of
+        (Just (nq, naccts), Just (pq, paccts)) ->
+          nq == pq && any (/= acct) (if isNeg then paccts else naccts)
+        _ -> False
 
     isGainAcct :: Posting -> Bool
     isGainAcct p = lookupAccountType (paccount p) == Just Gain
@@ -696,7 +745,15 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
         isNeg = any isNegativeAmount amts
         primaryType = if isNeg then "dispose" else "acquire"
         cbAmts = [(acommodity a, aquantity a) | a <- amts, isJust (acostbasis a)]
+        -- A transfer counterpart can match by exact quantity, or by commodity
+        -- sums when postings don't pair one to one (#2692). The sum fallback
+        -- is only for unpriced postings (a priced posting is a deliberate
+        -- trade) and not for auto-split fee fragments (which must remain
+        -- disposals even though the remaining transfer sums match).
         isTransfer = any (\(c, q) -> hasCounterpart baseAcct isNeg c q) cbAmts
+          || (not (any (isJust . acost) amts)
+              && not (postingHasTag feesplitPostingTagName p)
+              && any (hasSumCounterpart baseAcct isNeg . fst) cbAmts)
         -- Also treat as equity transfer when: no transacted price written,
         -- and an equity counterpart posting is present. This handles lots moving
         -- to/from equity (e.g. close --clopen --lots generates a closing txn with
