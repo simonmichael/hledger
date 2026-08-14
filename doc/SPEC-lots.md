@@ -676,38 +676,61 @@ amount when it is not visible in the excerpt
 See [SPEC-finalising.md](SPEC-finalising.md) for how this sits in the
 broader pipeline.
 
-**Always-on** (independent of `--ignore-lots`):
+All stages below are **gated by `checklots`** — they run when none of
+`--ignore-lots` or `-I` is set, or when `--strict`/`-s` or `hledger check lots`
+overrides them.
+
+Lot classification runs **once, after transaction balancing**, when every
+posting amount (including ones inferred from elided amounts or balance
+assignments) is known: every entry shape then classifies identically to its
+fully-explicit form (#2686, #2690, #2692). The few lot-related steps that must
+run before balancing use *shape* checks (cost basis annotations, lotful
+commodities, `lots:` account tags, amount signs and prices) rather than
+classification tags.
+
+Pre-balancing:
 
 1. **journalInferBasisFromAccountNames** — parse cost basis from any lot subaccount
    names (`{...}` components) in posting account names.
-2. **journalClassifyLotPostings** — tag postings as acquire/dispose/transfer-from/transfer-to/gain.
-3. **journalInferPostingsTransactedCost** — infer `@` from `{}` on acquires (before balancing).
-
-**Gated by `checklots`** — runs when none of `--ignore-lots` or `-I` is set, or when
-`--strict`/`-s` or `hledger check lots` overrides them:
-
-4. **journalAddGainOrUGainPosting** — if the user has written an explicit rgain or ugain
+2. **journalInferPostingsTransactedCost** — infer `@` from `{}` on acquire-shaped
+   postings (positive, cost basis with a cost, no `@`), so eg an acquire with an
+   elided cash amount balances at cost. Transfer destinations are recognised by
+   shape and skipped: an explicit negative same-commodity same-quantity
+   counterpart, or an equity posting with no cost-basis amounts (equity transfer).
+3. **journalAddGainOrUGainPosting** — if the user has written an explicit rgain or ugain
    posting without its counterpart, add the matching balancing posting (pre-balancer,
-   so the ordinary balancer accepts the paired transaction).
-5. **journalReclassifyLotPostings** — immediately after transaction balancing
-   (which infers balance-assignment and elided amounts), a second classification
-   pass (auto-split + classify) over transactions still containing an
-   unclassified lotful posting, so entries whose lotful amounts were only known
-   after balancing are classified too (#2686). In these transactions, first-pass
-   classifications are dropped (`unclassifyPosting`) and the whole transaction is
-   reclassified: they were made with incomplete amounts and may be wrong, eg a
-   bare lotful outflow classified dispose when the inferred destination amount
-   reveals a transfer (#2690). Reclassifying with complete amounts matches what
-   fully explicit amounts would have produced.
-6. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
-7. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
+   so the ordinary balancer accepts the paired transaction). Disposal transactions
+   are recognised by shape: a negative lotful or cost-basis amount.
+
+Balancing (`journalBalanceTransactions`): infers balance-assignment and elided
+amounts. For lots journals it uses `balanceTransactionHelperMaybeSplittingLotFees`:
+a transfer with a priced fee only balances at cost in split form, so the fee
+auto-split is tried first, falling back to the unsplit form. Note the balancer
+mechanically copies amounts (annotations included) into elided postings; a
+posting whose amount was wholly inferred yet carries a cost basis annotation
+has a *balancer-copied basis* — not user intent, so classification skips such
+postings and they don't act as transfer counterparts; but the copied
+annotation is deliberately kept until then, as the evidence distinguishing an
+artifact pairing (eg a sale missing its price) from a genuine elided transfer
+counterpart (`hasBalancerCopiedBasis` in Lots.hs). After lot processing,
+`journalStripBalancerCopiedBases` removes these annotations, so downstream
+code sees only user-written or lot-machinery-derived cost bases. Bare
+inferred amounts classify normally (eg an elided transfer destination).
+
+Post-balancing:
+
+4. **journalClassifyLotPostings** — auto-split remaining (unpriced) transfer fees
+   (`transactionAutoSplitFeeOutflows`), then tag postings as
+   acquire/dispose/transfer-from/transfer-to/gain.
+5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
+6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
    disposals, normalise transacted cost.
-8. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
+7. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
    not on `checklots`. Errors if any acquire posting has cost basis differing
    from its transacted cost (per-unit). Default mode skips this check; see
    [DECISIONS.md](DECISIONS.md) for the rationale.
-9. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
+8. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
    the rgain + ugain pair sized at the disposal gain. Also validates that any
    user-written gain amount matches the disposal gain.
 

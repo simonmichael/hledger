@@ -368,22 +368,28 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       -- Auto postings
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay                      -- add auto postings if enabled; does preliminary transaction balancing
-                  balancingopts_{lotful_commodities_ = if checklots then journalLotfulCommodities pj else mempty}
+                  balancingopts_{lotful_commodities_ = if checklots then journalLotfulCommodities pj else mempty
+                                ,verbose_balancing_tags_ = verbose_tags_}
             else pure)
 
-      -- Lot classification and transacted cost inference
+      -- Lot cost basis and transacted cost inference
       -- (skipped by --ignore-lots or -I; forced back on by --strict or `hledger check lots`)
       >>= (if checklots then journalInferBasisFromAccountNames           else pure)  -- infer cost basis from lot subaccount names (validates them)
-      <&> (if checklots then journalClassifyLotPostings verbose_tags_    else id  )  -- detect and classify lot postings (acquire/dispose/transfer..), maybe with visible tags
-      <&> (if checklots then journalInferPostingsTransactedCost          else id  )  -- in acquire postings, infer a transacted cost from cost basis
+      <&> (if checklots then journalInferPostingsTransactedCost          else id  )  -- in acquire-shaped postings, infer a transacted cost from cost basis
       >>= (if checklots then journalAddGainOrUGainPosting verbose_tags_  else pure)  -- if user wrote an explicit rgain or ugain posting alone, add its counter
 
       -- Transaction balancing
       >>= (\j -> if checkordereddates then journalCheckOrdereddates j $> j else Right j)     -- maybe check that journal entries are in date order
       >>= (\j -> journalBalanceTransactions                                                  -- infer balance assignments/amounts, maybe check balance assertions
             (balancingopts_{ignore_assertions_=not checkassertions, account_types_ = jaccounttypes j
-                           ,lotful_commodities_ = if checklots then journalLotfulCommodities j else mempty}) j)
-      <&> (if checklots then journalReclassifyLotPostings verbose_tags_ else id)  -- classify lot postings whose amounts were only known after balancing (#2686)
+                           ,lotful_commodities_ = if checklots then journalLotfulCommodities j else mempty
+                           ,verbose_balancing_tags_ = verbose_tags_}) j)
+
+      -- Lot classification
+      -- Runs after balancing, when all posting amounts are known (inferred
+      -- amounts included), so every entry shape classifies the same way as
+      -- if its amounts had been written explicitly (#2686, #2690, #2692).
+      <&> (if checklots then journalClassifyLotPostings verbose_tags_ else id)  -- detect and classify lot postings (acquire/dispose/transfer..), maybe with visible tags
 
       -- Post-balancing enrichment
       >>= journalInferCommodityStyles                                             -- infer commodity styles once more now that all posting amounts are present
@@ -404,6 +410,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       >>= (if checklots then journalCalculateLots verbose_tags_          else pure)  -- evaluate lot selectors, calculate lot balances, add lot subaccounts
       >>= (if checkbasis then journalCheckAcquireBasis                   else pure)  -- if `hledger check basis`, error on any acquire with cost basis ≠ transacted cost
       >>= (if checklots then journalAddOrCheckGainPostings verbose_tags_ else pure)  -- in disposal transactions, add the realised-gain + unrealised-gain posting pair
+      <&> (if checklots then journalStripBalancerCopiedBases             else id  )  -- remove balancer-copied basis annotations, kept until now as classification evidence
 
 -- | Apply any auto posting rules to generate extra postings on this journal's transactions.
 -- With a true first argument, adds visible tags to generated postings and modified transactions.

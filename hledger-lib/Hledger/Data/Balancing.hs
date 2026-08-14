@@ -71,6 +71,7 @@ data BalancingOpts = BalancingOpts
   , txn_balancing_         :: TransactionBalancingPrecision
   , account_types_         :: M.Map AccountName AccountType  -- ^ account type map, passed through for any balancing helpers that need it
   , lotful_commodities_    :: S.Set CommoditySymbol  -- ^ commodities declared lotful, used to guide balancing cost inference (when lots are enabled)
+  , verbose_balancing_tags_        :: Bool  -- ^ should tags added by balancing helpers (eg lot fee splits) also be made visible in comments ?
   } deriving (Eq, Ord, Show)
 
 defbalancingopts :: BalancingOpts
@@ -81,6 +82,7 @@ defbalancingopts = BalancingOpts
   , txn_balancing_         = TBPExact
   , account_types_         = M.empty
   , lotful_commodities_    = S.empty
+  , verbose_balancing_tags_        = False
   }
 
 -- | Check that this transaction would appear balanced to a human when displayed.
@@ -193,6 +195,24 @@ transactionCheckAssertions bopts j t =
 -- which considers the whole journal when calculating balance assignments and balance assertions.
 balanceSingleTransaction :: BalancingOpts -> Transaction -> Either String Transaction
 balanceSingleTransaction bopts = fmap fst . balanceTransactionHelper bopts
+
+-- | Like 'balanceTransactionHelper', but in a lots journal, first try
+-- balancing the transaction with its lot fee outflows auto-split
+-- ('transactionAutoSplitFeeOutflows'): a lot transfer with a priced fee
+-- only balances at cost in split form. If no split applies or the split
+-- form doesn't balance, balance the unsplit form as usual (preserving its
+-- error message if both fail). Lot classification runs after balancing and
+-- will classify the split postings (#2686, #2692).
+balanceTransactionHelperMaybeSplittingLotFees :: BalancingOpts -> Transaction -> Either String (Transaction, [(AccountName, MixedAmount)])
+balanceTransactionHelperMaybeSplittingLotFees bopts t
+  | S.null lotfulcomms = balanceTransactionHelper bopts t  -- not a lots journal
+  | length (tpostings t2) == length (tpostings t) = balanceTransactionHelper bopts t  -- no split applied
+  | otherwise = case balanceTransactionHelper bopts t2 of
+      r@(Right _) -> r
+      Left _      -> balanceTransactionHelper bopts t
+  where
+    lotfulcomms = lotful_commodities_ bopts
+    t2 = transactionAutoSplitFeeOutflows (verbose_balancing_tags_ bopts) (accountNameType (account_types_ bopts)) (`S.member` lotfulcomms) t
 
 -- | Helper used by balanceSingleTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
 -- use one of those instead.
@@ -363,14 +383,16 @@ costInferrerFor lotfulcomms t pt = maybe id infercost inferFromAndTo
     -- We can infer prices if there are no prices given, exactly two commodities in the normalised
     -- sum of postings in this transaction, and these two have opposite signs. The amount we are
     -- converting from is normally the first commodity to appear in the ordered list of postings;
-    -- but if exactly one of the two commodities has been classified as a lot posting (has a _ptype
-    -- tag from journalClassifyLotPostings), or failing that, is declared lotful (eg when its
-    -- posting's amount was not yet known at classification time, #2686), prefer that one, so the
-    -- inferred cost is attached to the posting that needs it for lot tracking.
+    -- but if exactly one of the two commodities looks lot-related (its posting has a cost basis
+    -- annotation or an inherited lots: account tag), or failing that, is a declared lotful
+    -- commodity (#2686), prefer that one, so the inferred cost is attached to the posting that
+    -- needs it for lot tracking. (Lot classification runs after balancing, so tags can't be
+    -- used here; these are shape checks.)
     -- If we cannot infer prices, return Nothing.
     hasLotPosting comm = any (\p ->
-        any ((== comm) . acommodity) (amountsRaw $ pamount p)
-        && any (\(k,_) -> k == "_ptype") (ptags p)
+        any (\a -> acommodity a == comm && isJust (acostbasis a)) (amountsRaw $ pamount p)
+        || (  any ((== comm) . acommodity) (amountsRaw $ pamount p)
+           && any ((== "lots") . T.toLower . fst) (ptags p))
       ) postings
     inferFromAndTo = case sumamounts of
       [a,b] | noprices, oppositesigns ->
@@ -448,6 +470,7 @@ data BalancingState s = BalancingState {
   ,bsAssrt        :: Bool                                       -- ^ whether to check balance assertions
   ,bsAccountTypes :: M.Map AccountName AccountType              -- ^ account type map (for excluding Gain postings from balancing)
   ,bsLotfulCommodities :: S.Set CommoditySymbol                 -- ^ commodities declared lotful (for guiding balancing cost inference)
+  ,bsVerboseTags  :: Bool                                       -- ^ make tags added by balancing helpers (eg lot fee splits) visible in comments ?
    -- mutable
   ,bsBalances     :: H.HashTable s AccountName MixedAmount      -- ^ running account balances, initially empty
   ,bsTransactions :: STArray s Integer Transaction              -- ^ a mutable array of the transactions being balanced
@@ -544,7 +567,7 @@ journalBalanceTransactions bopts' j' =
         -- postponing those which do until later. The balanced ones are split into their postings,
         -- keeping these and the not-yet-balanced transactions in the same relative order.
         psandts :: [Either Posting Transaction] <- fmap concat $ forM ts $ \case
-          t | null $ assignmentPostings t -> case balanceSingleTransaction bopts t of
+          t | null $ assignmentPostings t -> case fst <$> balanceTransactionHelperMaybeSplittingLotFees bopts t of
               Left  e  -> throwError e
               Right t' -> do
                 lift $ writeArray balancedtxns (tindex t') t'
@@ -554,7 +577,7 @@ journalBalanceTransactions bopts' j' =
         -- 2. Step through these items in date order (and preserved same-day order),
         -- keeping running balances for all accounts.
         runningbals <- lift $ H.newSized (length $ journalAccountNamesUsed j)
-        flip runReaderT (BalancingState styles autopostingaccts (not $ ignore_assertions_ bopts) (account_types_ bopts) (lotful_commodities_ bopts) runningbals balancedtxns) $ do
+        flip runReaderT (BalancingState styles autopostingaccts (not $ ignore_assertions_ bopts) (account_types_ bopts) (lotful_commodities_ bopts) (verbose_balancing_tags_ bopts) runningbals balancedtxns) $ do
           -- On encountering any not-yet-balanced transaction with a balance assignment,
           -- enact the balance assignment then finish balancing the transaction.
           -- And, check any balance assertions encountered along the way.
@@ -597,24 +620,15 @@ balanceTransactionAndCheckAssertionsB (Right t@Transaction{tpostings=ps}) = do
   styles <- R.reader bsStyles
   atypes <- R.reader bsAccountTypes
   lotfulcomms <- R.reader bsLotfulCommodities
-  let bopts1 = defbalancingopts{commodity_styles_=styles, account_types_=atypes, lotful_commodities_=lotfulcomms}
+  verbosetags <- R.reader bsVerboseTags
+  let bopts1 = defbalancingopts{commodity_styles_=styles, account_types_=atypes, lotful_commodities_=lotfulcomms, verbose_balancing_tags_=verbosetags}
       t1 = t{tpostings=ps'}
-      -- The transaction may be a lot transfer with a fee whose outflow amount was
-      -- only just inferred (eg from a balance assignment) - too late for the
-      -- usual pre-balancing fee auto-split. Apply the split now, before checking
-      -- balancedness: a priced fee's entry only balances in split form, and any
-      -- elided posting must infer the post-split residual (rather than wrongly
-      -- absorbing the fee's cost value). If the split form doesn't balance, fall
-      -- back to the unsplit form, preserving previous behavior (and the unsplit
-      -- error message if both fail). Tags are added hidden-only here; lot
-      -- classification happens later in journalReclassifyLotPostings. (#2686)
-      t2 = transactionAutoSplitFeeOutflows False (accountNameType atypes) (`S.member` lotfulcomms) t1
-      balanceres
-        | S.null lotfulcomms = balanceTransactionHelper bopts1 t1  -- not a lots journal
-        | length (tpostings t2) == length (tpostings t1) = balanceTransactionHelper bopts1 t1  -- no split applied
-        | otherwise = case balanceTransactionHelper bopts1 t2 of
-            r@(Right _) -> r
-            Left _      -> balanceTransactionHelper bopts1 t1
+      -- The transaction may be a lot transfer with a fee (whose outflow amount
+      -- possibly was only just inferred from a balance assignment): a priced
+      -- fee's entry only balances in split form, and any elided posting must
+      -- infer the post-split residual (rather than wrongly absorbing the fee's
+      -- cost value). (#2686)
+      balanceres = balanceTransactionHelperMaybeSplittingLotFees bopts1 t1
   case balanceres of
     Left err -> throwError err
     Right (t', inferredacctsandamts) -> do

@@ -91,7 +91,7 @@ journalCalculateLots:
 
 module Hledger.Data.Lots (
   journalClassifyLotPostings,
-  journalReclassifyLotPostings,
+  journalStripBalancerCopiedBases,
   transactionAutoSplitFeeOutflows,
   journalCalculateLots,
   journalCheckAcquireBasis,
@@ -127,7 +127,7 @@ import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
 import Hledger.Data.Amount (AmountFormat(..), amountRoundedQuantity, amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountOneLine, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt, transactionFindPostingIndex)
-import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapTransactions, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapPostings, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
 import Hledger.Data.Transaction (transactionCommodityStyles, txnTieKnot)
 import Hledger.Data.Types
@@ -412,63 +412,24 @@ mergeCostBasis a b = do
 -- Classification (pipeline stage 1)
 
 -- | Classify lot-related postings by adding ptype tags.
--- Must be called after journalAddAccountTypes so account types are available.
+-- Must be called after journalAddAccountTypes so account types are available,
+-- and after transaction balancing, so that all posting amounts (including
+-- ones inferred from elided amounts or balance assignments) are known:
+-- classification then gives the same result for every entry shape as if all
+-- amounts had been written explicitly (#2686, #2690, #2692).
 -- The verbosetags parameter controls whether the ptype tags will be made visible in comments.
 -- Before classification, try to auto-split lot transfers with fees
 -- into a transfer portion and a dispose portion, so both get classified correctly.
 journalClassifyLotPostings :: Bool -> Journal -> Journal
 journalClassifyLotPostings verbosetags j =
   journalMapTransactions
-    ( transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
+    ( txnTieKnot  -- retie the postings' transaction pointers (nothing else does after this)
+    . transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
     . transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful
     ) j
   where
     lookupType = journalAccountType j
     commodityIsLotful = journalCommodityUsesLots j
-
--- | A second lot classification pass, run after transaction balancing:
--- classify lotful postings whose amounts were not yet known during the first
--- pass because they were inferred by balancing (from balance assignments or
--- elided amounts) (#2686).
--- Only transactions still containing an unclassified lotful posting are
--- touched; currently-working journals are unaffected. Within a touched
--- transaction, classifications from the first pass are dropped and the
--- whole transaction is reclassified: they were made with incomplete
--- amounts and may be wrong (eg a posting classified dispose which the
--- inferred amounts reveal to be a transfer-from, #2690). Reclassifying
--- with complete amounts gives the same result as if all amounts had been
--- written explicitly.
-journalReclassifyLotPostings :: Bool -> Journal -> Journal
-journalReclassifyLotPostings verbosetags j =
-  journalMapTransactions reclassify j
-  where
-    lookupType = journalAccountType j
-    commodityIsLotful = journalCommodityUsesLots j
-    reclassify t
-      | any (isUnclassifiedLotfulPosting j) (tpostings t) =
-          transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
-        $ transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful
-        $ t{tpostings = map unclassifyPosting (tpostings t)}
-      | otherwise = t
-
--- | Remove any acquire\/dispose\/transfer-from\/transfer-to classification
--- tags from a posting (and their visible comment form, if --verbose-tags
--- added one), so it can be classified afresh. Gain-related ptype tags
--- (gain, rgain, ugain) are kept, as are other lot-related tags
--- (feesplit, generated, etc).
-unclassifyPosting :: Posting -> Posting
-unclassifyPosting p =
-    p{ptags = filter keep (ptags p), pcomment = foldl' dropVisible (pcomment p) visibleVals}
-  where
-    classVals = ["acquire", "dispose", "transfer-from", "transfer-to"]
-    keep (n, v) = (n /= "_ptype" && n /= "ptype") || v `notElem` classVals
-    -- Values whose visible tag form was added to the comment by the first pass.
-    visibleVals = [v | ("ptype", v) <- ptags p, v `elem` classVals]
-    dropVisible c v
-      | c == t = ""
-      | Just r <- T.stripPrefix (t <> ", ") c = r
-      | otherwise = T.replace (", " <> t) "" c
-      where t = "ptype: " <> v
 
 -- | Detect a lot transfer with a fee - a bare negative lotful asset
 -- posting whose absolute quantity exceeds the positive quantities received by
@@ -504,9 +465,9 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
     -- Try to split posting p into [transferPortion, disposePortion].
     -- Requires: single bare negative lotful asset amount, with a matching
     -- non-asset counterpart. Positive postings naturally exclude p itself.
-    -- Postings already classified (by an earlier pass) are left alone.
+    -- Fee fragments from an earlier split (during balancing) are left alone.
     trySplit p = do
-      guard $ not (isClassifiedPosting p)
+      guard $ not (postingHasTag feesplitPostingTagName p)
       guard $ isAsset (paccount p)
       [a] <- Just $ amountsRaw (pamount p)
       guard $ aquantity a < 0
@@ -574,7 +535,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                      in dbg5 ("classifyLotPostings: hasCostBasis " ++ show (paccount p) ++ " amts=" ++ show (length amts)) result
 
     hasLotRelevantAmount :: Posting -> Bool
-    hasLotRelevantAmount p = isReal p && (hasCostBasis p || hasNegativeLotfulAmount p || hasPositiveLotfulAmount p)
+    hasLotRelevantAmount p = isReal p && not (hasBalancerCopiedBasis p)
+      && (hasCostBasis p || hasNegativeLotfulAmount p || hasPositiveLotfulAmount p)
 
     hasNegativeLotfulAmount :: Posting -> Bool
     hasNegativeLotfulAmount p =
@@ -626,6 +588,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       where
         collect (!neg, !pos, !noCB) (i, p)
               | not (isReal p) = (neg, pos, noCB)  -- skip virtual postings
+              | hasBalancerCopiedBasis p = (neg, pos, noCB)  -- skip balancer-copied basis annotations
               | i `S.member` sameAcctTransferSet = (neg, pos, noCB)  -- skip same-account transfer pairs
               | otherwise =
               let baseAcct = lotBaseAccount (paccount p)
@@ -677,7 +640,8 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     classifyAt :: Int -> Posting -> Posting
     classifyAt i p
       | not (isReal p) = p  -- skip virtual (parenthesised) postings
-      | isClassifiedPosting p = p  -- skip postings already classified (eg by an earlier pass)
+      | isClassifiedPosting p = p  -- skip postings already carrying a ptype tag (eg rgain/ugain postings added by journalAddGainOrUGainPosting)
+      | hasBalancerCopiedBasis p = p  -- skip balancer-copied basis annotations (see hasBalancerCopiedBasis)
       | i `S.member` sameAcctTransferSet =
           let amts = amountsRaw (pamount p)
               cls = if any isNegativeAmount amts then "transfer-from" else "transfer-to"
@@ -718,7 +682,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       where
         isEquityNonLotPosting q =
           maybe False isEquityType (lookupAccountType (lotBaseAccount (paccount q)))
-          && not (any (isJust . acostbasis) (amountsRaw (pamount q)))
+          -- A balancer-copied basis annotation is not user-written
+          -- (an elided equity posting still counts as an equity counterpart).
+          && (hasBalancerCopiedBasis q || not (any (isJust . acostbasis) (amountsRaw (pamount q))))
 
     -- Classify a posting that has cost basis: acquire, dispose, transfer-from, or transfer-to.
     shouldClassifyWithCostBasis :: Posting -> [Amount] -> Maybe Text
@@ -908,13 +874,26 @@ journalAddGainOrUGainPosting verbosetags j = do
     isRgain p = accountNameType atypes (paccount p) == Just Gain
     isUgain p = accountNameType atypes (paccount p) == Just UnrealisedGain
 
+    -- This runs before transaction balancing, so lot classification hasn't
+    -- happened yet; disposal transactions are recognised by shape instead of
+    -- by ptype tags: any posting with a negative lotful or cost-basis amount.
+    -- (This is broader than "classified dispose" - it also matches transfer
+    -- sources - but the case analysis below is a no-op for those.)
+    hasDisposeShape p =
+      any (\a -> isNegativeAmount a && amountIsLotfulOrHasBasis p a) (amountsRaw (pamount p))
+    amountIsLotfulOrHasBasis p a =
+         isJust (acostbasis a)
+      || journalCommodityUsesLots j (acommodity a)
+      || any ((== "lots") . T.toLower . fst) (ptags p)
+    postingHasLotfulOrBasisAmount p = any (amountIsLotfulOrHasBasis p) (amountsRaw (pamount p))
+
     -- Match the four cases in SPEC-lots.md "Gain inference":
     -- 1. rgain on type:G + ugain on type:U → no inference
     -- 2. no rgain or ugain → defer to journalAddOrCheckGainPostings
     -- 3. rgain on type:G alone → infer balancing ugain posting
     -- 4. rgain on no type:G account → detect rgain postings heuristically and infer ugain posting
     infer t
-      | not (any isDisposePosting (tpostings t)) = Right t
+      | not (any hasDisposeShape (tpostings t))  = Right t
       | any isRgain ps && any isUgain ps         = Right t                  -- 1
       | any isRgain ps                           = addCounter t (filter isRgain ps) ugainAccount "ugain"  -- 3
       | otherwise                                = tryResidual t            -- 2 or 4
@@ -959,15 +938,15 @@ journalAddGainOrUGainPosting verbosetags j = do
 
     -- An rgain candidate is a posting whose account type is not Asset,
     -- Liability, or Equity (or any subtype thereof — Cash, Conversion,
-    -- UnrealisedGain) and which carries no _ptype tag from the lot
-    -- classifier other than "gain".
-    isRgainCandidate p = hasAmount p && (hasGainPtype p || (notALE p && notLotClassified p))
+    -- UnrealisedGain) and which is not itself a lot movement - recognised by
+    -- shape (no lotful or cost-basis amounts), since classification hasn't
+    -- run yet. (Gain-typed accounts need no special case here: any of those
+    -- would have been handled as case 3 before reaching this.)
+    isRgainCandidate p = hasAmount p && notALE p && not (postingHasLotfulOrBasisAmount p)
       where
-        hasGainPtype q = ("_ptype", "gain") `elem` ptags q
         notALE q = case accountNameType atypes (paccount q) of
           Just t  -> not (isAssetType t || isLiabilityType t || isEquityType t)
           Nothing -> True
-        notLotClassified q = not $ any (\(k,v) -> k == "_ptype" && v `elem` ["acquire","dispose","transfer-from","transfer-to"]) (ptags q)
 
 -- | Error for a disposal transaction containing a gain or unrealised-gain
 -- posting with no (or no longer any) amount.
@@ -1305,6 +1284,42 @@ isTransferToPosting p = ("_ptype", "transfer-to") `elem` ptags p
 isGainPosting :: Posting -> Bool
 isGainPosting p = ("_ptype", "gain") `elem` ptags p
 
+-- | Does this posting carry a cost basis annotation that was copied into it
+-- by the transaction balancer, rather than written by the user ?
+-- True when the posting's amount was wholly inferred (its original had no
+-- amount) yet carries a cost basis annotation: the balancer fills elided
+-- postings with the negated sum of the other postings' amounts, and any
+-- basis annotation rides along incidentally.
+--
+-- Such an annotation is not a lot selector - a cost basis annotation is
+-- posting-specific user intent - but we deliberately keep it until lot
+-- classification has run: its presence is the evidence that distinguishes
+-- an artifact pairing (eg @stocks -5 AAPL {$50} / cash@, a sale missing its
+-- price, whose mirrored @+5 AAPL {$50}@ must not read as a transfer
+-- destination) from a genuine elided transfer counterpart (a bare inferred
+-- amount, eg #2690's elided destination). Classification skips these
+-- postings and doesn't count them as transfer counterparts; afterwards
+-- 'journalStripBalancerCopiedBases' removes the annotations, so downstream
+-- code and reports only ever see user-written or lot-machinery-derived
+-- cost bases.
+hasBalancerCopiedBasis :: Posting -> Bool
+hasBalancerCopiedBasis p =
+  not (hasAmount (originalPosting p)) && any (isJust . acostbasis) (amountsRaw (pamount p))
+
+-- | Remove balancer-copied cost basis annotations (see
+-- 'hasBalancerCopiedBasis') from postings that lot classification left
+-- unclassified, now that lot processing has used them as evidence.
+-- Lot-processed (classified) postings are left alone: lot calculation
+-- legitimately gives machinery-derived cost bases to postings whose amounts
+-- were inferred, eg the per-lot fragments of an elided transfer source.
+journalStripBalancerCopiedBases :: Journal -> Journal
+journalStripBalancerCopiedBases = journalMapPostings strip
+  where
+    strip p
+      | hasBalancerCopiedBasis p && not (isClassifiedPosting p) =
+          p{pamount = mapMixedAmount (\a -> a{acostbasis = Nothing}) (pamount p)}
+      | otherwise = p
+
 -- | True if this posting involves a lotful commodity/account in an asset account
 -- but has no _ptype tag (wasn't classified as acquire/dispose/transfer/gain).
 -- Postings with zero amount in the lotful commodity are exempt (no lot tracking needed).
@@ -1315,6 +1330,10 @@ isUnclassifiedLotfulPosting j p =
   && not (isLotPosting p)
   && maybe False isAssetType (journalAccountType j (lotBaseAccount (paccount p)))
   && hasNonzeroLotfulAmount
+  -- Postings with balancer-copied basis annotations are deliberately left
+  -- unclassified (see 'hasBalancerCopiedBasis'); the posting they mirror
+  -- produces the relevant error.
+  && not (hasBalancerCopiedBasis p)
   where
     amts = amountsRaw (pamount p)
     lotfulAmts = filter (journalCommodityUsesLots j . acommodity) amts

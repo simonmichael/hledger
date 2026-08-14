@@ -243,6 +243,12 @@ transactionWithMostlyOriginalPostings t =
     postingMostlyOriginal p = orig
         { paccount = paccount p
         , pamount = newAmt
+        -- Keep the current comment and tags: journal processing only appends
+        -- to these (eg visible ptype tags added by lot classification, which
+        -- runs after the original was snapshotted), never rewrites the
+        -- user's text.
+        , pcomment = pcomment p
+        , ptags = ptags p
         -- When paccount equals the original (no collapse), trust the
         -- original's assertion. When paccount has been changed (eg a lot
         -- subaccount was collapsed away), use the current state's
