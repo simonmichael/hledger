@@ -125,7 +125,7 @@ import Text.Printf (printf)
 
 import Hledger.Data.AccountName (accountNameType)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
-import Hledger.Data.Amount (AmountFormat(..), amountRoundedQuantity, amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountOneLine, showMixedAmountsDistinctly)
+import Hledger.Data.Amount (AmountFormat(..), amountRoundedQuantity, amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, maSum, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountOneLine, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt, transactionFindPostingIndex)
 import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapPostings, journalMapTransactions, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
@@ -1222,8 +1222,15 @@ journalCollapseLotDetail j
         go (p:ps)
           | postingHasTag lotsplitPostingTagName p =
               let sameRun q = postingHasTag lotsplitPostingTagName q && poriginal q == poriginal p
-                  (_run, rest) = span sameRun ps
-                  survivor    = (untagLotsplit p){pamount = pamount (originalPosting p)}
+                  (run, rest) = span sameRun ps
+                  -- The merged posting's amount is the sum of the run's
+                  -- (already-collapsed) fragment amounts. This equals the
+                  -- original's amount, except when the original had no amount
+                  -- (elided or a balance assignment - using the original would
+                  -- lose the amount entirely) or when a fee portion was split
+                  -- off (using the original would double-count the retained
+                  -- feesplit posting's amount). (#2692)
+                  survivor = (untagLotsplit p){pamount = maSum (map pamount (p:run))}
               in survivor : go rest
           | otherwise = p : go ps
         untagLotsplit p = p{ptags = filter ((/= lotsplitPostingTagName) . fst) (ptags p)}

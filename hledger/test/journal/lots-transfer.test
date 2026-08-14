@@ -712,3 +712,105 @@ $ hledger -f- bal --lots
 --------------------
                 $-10
              2.3 ABC  
+
+# ** 33. Transfers whose amounts come from balance assignments still show
+# correct balances in the collapsed (non---lots) view: the merged postings
+# keep their inferred amounts, and the fee portion is not double-counted.
+# This matches the same journal's balances with lots disabled. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 one
+     assets:cash         -$10
+     assets:broker1      2 ABC
+
+2020-03-08 two
+     assets:cash         -$10
+     assets:broker1      3 ABC
+
+2020-04-04 three
+     assets:broker1      = 0 ABC
+     assets:transfers      5 ABC
+
+2020-04-05 four
+     assets:transfers    = 0 ABC
+     assets:broker2      4.9 ABC
+     expenses:fees
+$ hledger -f- bal
+             4.9 ABC  assets:broker2
+                $-20  assets:cash
+             0.1 ABC  expenses:fees
+--------------------
+                $-20
+               5 ABC  
+
+# ** 34. The same journal with explicit amounts gives identical balances
+# (entry shapes converge). #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 one
+     assets:cash         -$10
+     assets:broker1      2 ABC
+
+2020-03-08 two
+     assets:cash         -$10
+     assets:broker1      3 ABC
+
+2020-04-04 three
+     assets:broker1       -5 ABC = 0 ABC
+     assets:transfers      5 ABC
+
+2020-04-05 four
+     assets:transfers   -5 ABC = 0 ABC
+     assets:broker2      4.9 ABC
+     expenses:fees
+$ hledger -f- bal
+             4.9 ABC  assets:broker2
+                $-20  assets:cash
+             0.1 ABC  expenses:fees
+--------------------
+                $-20
+               5 ABC  
+
+# ** 35. print -x on the balance-assignment version shows all amounts
+# explicitly, including the inferred transfer amounts and the fee split. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 one
+     assets:cash         -$10
+     assets:broker1      2 ABC
+
+2020-03-08 two
+     assets:cash         -$10
+     assets:broker1      3 ABC
+
+2020-04-04 three
+     assets:broker1      = 0 ABC
+     assets:transfers      5 ABC
+
+2020-04-05 four
+     assets:transfers    = 0 ABC
+     assets:broker2      4.9 ABC
+     expenses:fees
+$ hledger -f- print -x
+2020-03-08 one
+    assets:cash                                 $-10
+    assets:broker1                                 2 ABC @@ $10
+
+2020-03-08 two
+    assets:cash                                 $-10
+    assets:broker1                                 3 ABC @@ $10
+
+2020-04-04 three
+    assets:broker1                                -5 ABC
+    assets:transfers                               5 ABC
+
+2020-04-05 four
+    assets:transfers                              -4.9 ABC
+    assets:transfers                              -0.1 ABC
+    assets:broker2                                 4.9 ABC
+    expenses:fees                                  0.1 ABC
+
+>=

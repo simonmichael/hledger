@@ -265,7 +265,11 @@ transactionWithMostlyOriginalPostings t =
           -- For per-lot dispose/transfer fragments, use the user's original
           -- amount but with the fragment's quantity (so 'print --lots' shows
           -- e.g. "-1 A {} @ $60" rather than the full inferred form).
-          | hasTag lotsplitPostingTagName p  = scaleToFragment (pamount orig) (pamount p)
+          -- When the original was elided or a balance assignment (no amount),
+          -- show the fragment's current amount: several sibling fragments
+          -- can't re-infer their amounts on re-reading (#2692).
+          | hasTag lotsplitPostingTagName p  =
+              if hasAmount orig then scaleToFragment (pamount orig) (pamount p) else pamount p
           | otherwise                        = pamount orig
     scaleToFragment origAmt curAmt = case (amountsRaw origAmt, amountsRaw curAmt) of
       ([oa], [ca]) -> mixedAmount oa{aquantity = aquantity ca}
