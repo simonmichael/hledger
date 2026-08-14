@@ -7398,6 +7398,32 @@ The fee's disposal selects lots before the transfer does, using the
 method, the fee consumes the oldest lots and the transfer carries the rest.
 `print --lots` (or `print -a`) shows the split form explicitly, so the output round-trips correctly.
 
+hledger does not automatically capitalise fees into cost basis
+(as some tax treatments allow, for purchase or transfer fees).
+To capitalise an acquisition fee, fold it into the acquisition cost:
+
+```journal
+2026-01-15 buy 10 AAPL at $50, plus a $10 commission, capitalised
+    assets:stocks     10 AAPL @@ $510
+    assets:cash      -$510
+```
+
+This lot's cost basis is $51 per share.
+(Recording the commission as a separate expense posting would instead keep it out of the basis.)
+Capitalising an in-kind transfer fee - keeping the remaining units' total basis unchanged -
+requires disposing of the position at its basis price (producing no gain)
+and re-acquiring the remainder with the combined basis, eg:
+
+```journal
+; earlier: bought 5 ABC for $20 ($4 each); now 0.1 ABC is deducted in transit:
+2020-04-05 transfer with 0.1 ABC fee, capitalised
+    assets:broker1     -5 ABC {} @ $4
+    assets:broker2      4.9 ABC {$4.08163265} @@ $20
+```
+
+Note this re-acquisition starts a new lot, with a new date unless you write
+the original date in its basis annotation; usually fees are simply expensed instead.
+
 ### Dispose
 
 A negative lot posting sells from one or more existing lots.
@@ -7410,13 +7436,15 @@ A negative lot posting sells from one or more existing lots.
 ```
 
 The disposal posting must have a transacted price (the selling price), either explicit or inferred: $90 here.
-(Exception: a priceless disposal is allowed when it is a fee deduction -
-when a non-asset posting receives the same commodity and quantity.
-This is a simple way to record such fees when you don't need a gain calculated:
-the fee units leave their lot(s) carrying their own cost basis,
+(Exception: a priceless disposal is allowed when it is an in-kind outflow -
+when the entry's non-asset postings receive the disposed units:
+the same commodity, in the same total quantity. Eg a transfer fee deducted
+in the commodity, or an in-kind donation, possibly split across postings.
+This is a simple way to record such outflows when you don't need a gain calculated:
+the disposed units leave their lot(s) carrying their own cost basis,
 so the remaining units' basis is unchanged, but no gain or loss is recognised
-and the expense is recorded in commodity units, not priced.
-To have the gain calculated, record the fee posting with a transacted price.)
+and the receiving posting holds commodity units, not priced.
+To have the gain calculated, record the receiving posting with a transacted price.)
 
 When the gain postings are inferred (not written explicitly),
 hledger sizes them from the disposal side only:

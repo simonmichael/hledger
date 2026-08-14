@@ -729,3 +729,43 @@ $ hledger -f- print --lots -x
     equity:unrealised-gain                        $2
 
 >=
+
+# ** 39. A priceless disposal is allowed when it is an in-kind outflow:
+# non-asset postings receive the disposed units (same commodity, same total
+# quantity, possibly split across postings). No gain is calculated; the
+# units leave their lots at cost basis. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy
+    assets:cash        -$20
+    assets:broker1      5 ABC
+
+2020-06-01 donate from two programs
+    assets:broker1       -5 ABC {}
+    expenses:charity:a    3 ABC
+    expenses:charity:b    2 ABC
+$ hledger -f- bal --lots -N
+                $-20  assets:cash
+               3 ABC  expenses:charity:a
+               2 ABC  expenses:charity:b
+
+# ** 40. Also with several priceless disposals feeding one receiving posting. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy1
+    assets:cash        -$12
+    assets:broker1      3 ABC
+
+2020-03-09 buy2
+    assets:cash        -$10
+    assets:broker1      2 ABC
+
+2020-06-01 donate two lots
+    assets:broker1       -3 ABC {2020-03-08}
+    assets:broker1       -2 ABC {2020-03-09}
+    expenses:charity      5 ABC
+$ hledger -f- bal --lots -N
+                $-22  assets:cash
+               5 ABC  expenses:charity

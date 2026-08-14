@@ -831,9 +831,12 @@ The original user posting is preserved via `poriginal` on the transfer portion
   transactions still display in their mostly-original form.
   For an *unpriced* fee, the printed dispose fragment carries an explicit lot
   reference and no price; on re-read, `processDisposePosting` accepts such a
-  priceless disposal when a non-asset posting receives the same commodity and
-  quantity (a fee counterpart, mirroring the classification rule), so this
-  form round-trips too (#2692).
+  priceless disposal when the entry's non-asset postings receive the same
+  commodity in the same total quantity as its priceless disposals (an in-kind
+  outflow: a fee, a donation, etc - possibly split across several postings),
+  so this form round-trips too (#2692). Priceless disposals whose units are
+  not received by non-asset postings (eg a sale missing its price) are still
+  errors.
 
 ### Per-lot disposal/transfer splits
 
