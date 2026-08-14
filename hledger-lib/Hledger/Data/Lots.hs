@@ -1833,10 +1833,22 @@ processDisposePosting styles verbosetags j t lotState p = do
     let commodity = acommodity lotAmt
         disposeQty = aquantity lotAmt
 
-    -- Non-bare dispose (explicit {}) without price is an error.
+    -- Non-bare dispose (explicit {}) without price is an error - unless a
+    -- non-asset posting receives the same commodity and quantity (a fee
+    -- counterpart, as in classification): then this is a fee deduction and
+    -- proceeds as a priceless disposal, like a bare one. This lets print
+    -- --lots output of unpriced-fee transfers (whose fee dispose fragment
+    -- carries an explicit lot reference) round-trip (#2692).
     -- Bare dispose without price proceeds to lot matching (but skips gain generation).
+    let isAsset acct = maybe False isAssetType (journalAccountType j (lotBaseAccount acct))
+        hasFeeCounterpart = any feeCounterpart (tpostings t)
+        feeCounterpart q =
+          not (isAsset (paccount q))
+          && any (\a -> acommodity a == commodity && aquantity a == negate disposeQty)
+                 (amountsRaw (pamount q))
     case acost lotAmt of
-      Nothing | not isBare -> Left $ showPos ++ "dispose posting has no transacted price (selling price) for " ++ T.unpack commodity
+      Nothing | not isBare && not hasFeeCounterpart ->
+        Left $ showPos ++ "dispose posting has no transacted price (selling price) for " ++ T.unpack commodity
       _ -> do
 
         when (disposeQty >= 0) $

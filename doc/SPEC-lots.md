@@ -829,6 +829,11 @@ The original user posting is preserved via `poriginal` on the transfer portion
   that the output round-trips correctly (preserving the capital gain that
   would otherwise be lost if the dispose portion were hidden). Other
   transactions still display in their mostly-original form.
+  For an *unpriced* fee, the printed dispose fragment carries an explicit lot
+  reference and no price; on re-read, `processDisposePosting` accepts such a
+  priceless disposal when a non-asset posting receives the same commodity and
+  quantity (a fee counterpart, mirroring the classification rule), so this
+  form round-trips too (#2692).
 
 ### Per-lot disposal/transfer splits
 

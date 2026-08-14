@@ -7410,6 +7410,13 @@ A negative lot posting sells from one or more existing lots.
 ```
 
 The disposal posting must have a transacted price (the selling price), either explicit or inferred: $90 here.
+(Exception: a priceless disposal is allowed when it is a fee deduction -
+when a non-asset posting receives the same commodity and quantity.
+This is a simple way to record such fees when you don't need a gain calculated:
+the fee units leave their lot(s) carrying their own cost basis,
+so the remaining units' basis is unchanged, but no gain or loss is recognised
+and the expense is recorded in commodity units, not priced.
+To have the gain calculated, record the fee posting with a transacted price.)
 
 When the gain postings are inferred (not written explicitly),
 hledger sizes them from the disposal side only:

@@ -909,3 +909,32 @@ $ hledger -f- bal --lots -N
                2 ABC  assets:broker3:{2020-03-08, $5}
                3 ABC  assets:broker3:{2020-03-09, $3.33333333}
                 $-20  assets:cash
+
+# ** 40. print --lots output of an unpriced-fee transfer round-trips: the fee
+# dispose fragment carries an explicit lot reference and no price, which is
+# accepted (as a priceless fee disposal) because a non-asset posting receives
+# the same commodity and quantity. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 one
+    assets:cash                                 $-10
+    assets:broker1:{2020-03-08, "0001", $5}        2 ABC
+
+2020-03-08 two
+    assets:cash                                       $-10
+    assets:broker1:{2020-03-08, "0002", $3.33333333}     3 ABC
+
+2020-04-05 transfer with fee
+    assets:broker1:{2020-03-08, "0001", $5}           -1.9 ABC {2020-03-08, "0001", $5}
+    assets:broker1:{2020-03-08, "0002", $3.33333333}  -3 ABC {2020-03-08, "0002", $3.33333333}
+    assets:broker1:{2020-03-08, "0001", $5}           -0.1 ABC {2020-03-08, "0001", $5}
+    assets:broker1                                     0 ABC                                   =* 0 ABC
+    assets:broker2:{2020-03-08, "0001", $5}            1.9 ABC {2020-03-08, "0001", $5}
+    assets:broker2:{2020-03-08, "0002", $3.33333333}   3 ABC {2020-03-08, "0002", $3.33333333}
+    expenses:fees                                      0.1 ABC
+$ hledger -f- bal --lots -N
+             1.9 ABC  assets:broker2:{2020-03-08, "0001", $5}
+             3.0 ABC  assets:broker2:{2020-03-08, "0002", $3.33333333}
+                $-20  assets:cash
+             0.1 ABC  expenses:fees
