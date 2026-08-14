@@ -100,10 +100,10 @@ paths:
                         - pdate
                         - pdate2
                         - poriginal
+                        - preal
                         - pstatus
                         - ptags
                         - ptransaction_
-                        - ptype
                         properties:
                           paccount: {}
                           pamount:
@@ -189,10 +189,10 @@ paths:
                           pdate: {}
                           pdate2: {}
                           poriginal: {}
+                          preal: {}
                           pstatus: {}
                           ptags: {}
                           ptransaction_: {}
-                          ptype: {}
                     tprecedingcomment: {}
                     tsourcepos:
                       items:
@@ -556,10 +556,10 @@ paths:
                             - pdate
                             - pdate2
                             - poriginal
+                            - preal
                             - pstatus
                             - ptags
                             - ptransaction_
-                            - ptype
                             properties:
                               paccount: {}
                               pamount:
@@ -603,10 +603,10 @@ paths:
                               pdate: {}
                               pdate2: {}
                               poriginal: {}
+                              preal: {}
                               pstatus: {}
                               ptags: {}
                               ptransaction_: {}
-                              ptype: {}
                         tprecedingcomment: {}
                         tsourcepos:
                           items:
