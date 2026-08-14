@@ -1532,14 +1532,29 @@ processTransaction styles verbosetags j needsLabels (ls, acc) t = do
     else do
         let indexedFroms = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferFromPosting p]
             indexedTos   = [(i, p) | (i, p) <- zip [0..] (tpostings t), isTransferToPosting p]
+            -- Fee-split dispose postings, which are by construction in the
+            -- transfer source account (where the lots already exist).
+            indexedFeeDisposes =
+              [(i, p) | (i, p) <- zip [0..] (tpostings t)
+                      , isDisposePosting p, postingHasTag feesplitPostingTagName p]
+        -- Process fee-split disposes before the transfer pairs, so the
+        -- disposal method in effect (FIFO, LIFO, ...) selects from the full
+        -- pre-transfer lot set - eg under FIFO a transfer fee consumes the
+        -- oldest lot - and the transfer carries the remainder. (#2692)
+        (ls0, disposeMap) <- foldM processOneFeeDispose (ls, M.empty) indexedFeeDisposes
         pairs <- pairIndexedTransferPostings t indexedFroms indexedTos
-        -- Process transfer pairs first, building an IntMap from original index to expanded postings.
-        (ls', transferMap) <- foldM processOnePair (ls, M.empty) pairs
+        -- Then transfer pairs, building an IntMap from original index to expanded postings.
+        (ls', transferMap) <- foldM processOnePair (ls0, M.empty) pairs
         -- Walk all postings in original order, substituting expanded results.
-        (ls'', allPs) <- foldMPostings ls' [] (zip [0..] (tpostings t)) transferMap
+        (ls'', allPs) <- foldMPostings ls' [] (zip [0..] (tpostings t)) (M.union transferMap disposeMap)
         return (ls'', t{tpostings = reverse allPs} : acc)
   where
     txnDate = tdate t
+
+    -- Process a fee-split dispose posting; record expanded postings keyed by original index.
+    processOneFeeDispose (st, m) (i, p) = do
+      (st', newPs) <- processDisposePosting styles verbosetags j t st p
+      return (st', M.insert i newPs m)
 
     -- Process a transfer pair; record expanded postings keyed by original index.
     processOnePair (st, m) (fromIdx, fromP, toIdx, toP) = do

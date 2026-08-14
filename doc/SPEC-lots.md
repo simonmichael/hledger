@@ -770,6 +770,13 @@ Any balance assertion on the original posting is kept only on the dispose
 portion, which is posted last, so it is still checked after the full original
 quantity.
 
+During lot calculation, the fee's dispose portion selects lots *before* the
+transfer pair does (`processTransaction` handles fee-split disposes first):
+the disposal method in effect thus applies to the full pre-transfer lot set -
+under default FIFO the fee consumes the oldest lot - and the transfer carries
+the remainder (#2692). Other disposes still run after transfers, so a lot
+transferred in can be disposed in the same transaction.
+
 Auto-splitting also works when the outflow amount is inferred by balancing
 (eg from a balance assignment): after resolving a transaction's balance
 assignments, the balancer applies the fee auto-split before checking

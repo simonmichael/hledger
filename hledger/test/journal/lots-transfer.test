@@ -594,9 +594,9 @@ $ hledger -f- print desc:transfer
 
 >=
 
-# ** 28. A balance assertion on the auto-split outflow posting is kept on
-# the dispose portion (posted last), so it is checked after the full
-# original quantity, and passes.
+# ** 28. A balance assertion on the auto-split outflow posting is checked
+# after the full original quantity, via the generated =* parent assertion,
+# and passes.
 <
 commodity A  ; lots:
 2026-01-15 buy
@@ -611,7 +611,8 @@ commodity A  ; lots:
 $ hledger -f- print --lots -x desc:transfer
 2026-02-17 transfer with priced fee
     assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
-    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150 = 0 A
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
+    assets:x1                                      0 A                              =* 0 A
     expenses:fees                                  0.05 A @ $150
     assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
     revenues:gain                                $-2.50
@@ -636,9 +637,10 @@ commodity ABC ; lots:
 
 $ hledger -f- print -a date:2026-02
 2026-02-01 transfer with fee
-    assets:broker1:{2026-01-01, $4.34782609}      -2 ABC {2026-01-01, $4.34782609}  ; ptype: transfer-from
-    assets:broker1:{2026-01-01, $4.34782609}      -0.3 ABC {2026-01-01, $4.34782609} = 0 ABC  ; ptype: dispose, generated-posting:, feesplit-posting:
-    assets:broker2:{2026-01-01, $4.34782609}       2 ABC {2026-01-01, $4.34782609}  ; ptype: transfer-to
+    assets:broker1:{2026-01-01, $4.34782609}      -2.0 ABC {2026-01-01, $4.34782609}  ; ptype: transfer-from
+    assets:broker1:{2026-01-01, $4.34782609}      -0.3 ABC {2026-01-01, $4.34782609}  ; ptype: dispose, generated-posting:, feesplit-posting:
+    assets:broker1                                 0 ABC                             =* 0 ABC  ; generated-posting:, lot-parent-assertion:
+    assets:broker2:{2026-01-01, $4.34782609}       2.0 ABC {2026-01-01, $4.34782609}  ; ptype: transfer-to
     expenses:fees                                  0.3 ABC
 
 >=
@@ -661,7 +663,8 @@ commodity A  ; lots:
 $ hledger -f- print --lots -x desc:transfer
 2026-02-17 transfer with priced fee
     assets:x1:{2026-01-15, $100}                  -0.95 A {2026-01-15, $100}
-    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150 = 0 A
+    assets:x1:{2026-01-15, $100}                  -0.05 A {2026-01-15, $100} @ $150
+    assets:x1                                      0 A                              =* 0 A
     assets:x2:{2026-01-15, $100}                   0.95 A {2026-01-15, $100}
     expenses:fees                                  0.05 A @ $150
     revenues:gain                                $-2.50
@@ -812,5 +815,35 @@ $ hledger -f- print -x
     assets:transfers                              -0.1 ABC
     assets:broker2                                 4.9 ABC
     expenses:fees                                  0.1 ABC
+
+>=
+
+# ** 36. A transfer fee's dispose portion selects lots before the transfer
+# does, using the disposal method in effect: under default FIFO the fee
+# consumes the oldest lot, and the transfer carries the remainder. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 one
+     assets:cash         -$10
+     assets:broker1      2 ABC
+
+2020-03-08 two
+     assets:cash         -$10
+     assets:broker1      3 ABC
+
+2020-04-05 transfer with fee
+     assets:broker1     -5 ABC = 0 ABC
+     assets:broker2      4.9 ABC
+     expenses:fees
+$ hledger -f- print --lots -x date:2020-04
+2020-04-05 transfer with fee
+    assets:broker1:{2020-03-08, "0001", $5}           -1.9 ABC {2020-03-08, "0001", $5}
+    assets:broker1:{2020-03-08, "0002", $3.33333333}  -3 ABC {2020-03-08, "0002", $3.33333333}
+    assets:broker1:{2020-03-08, "0001", $5}           -0.1 ABC {2020-03-08, "0001", $5}
+    assets:broker1                                     0 ABC                                   =* 0 ABC
+    assets:broker2:{2020-03-08, "0001", $5}            1.9 ABC {2020-03-08, "0001", $5}
+    assets:broker2:{2020-03-08, "0002", $3.33333333}   3 ABC {2020-03-08, "0002", $3.33333333}
+    expenses:fees                                      0.1 ABC
 
 >=

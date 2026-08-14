@@ -7390,6 +7390,9 @@ hledger automatically splits the source posting into a transfer portion and a di
 so that the disposal is detected correctly.
 If the fee posting has a transacted price, the disposal portion carries it and a gain is calculated;
 otherwise the disposal is priceless and no gain is calculated.
+The fee's disposal selects lots before the transfer does, using the
+[cost basis method](#cost-basis-methods) in effect - so under the default FIFO
+method, the fee consumes the oldest lots and the transfer carries the rest.
 `print --lots` (or `print -a`) shows the split form explicitly, so the output round-trips correctly.
 
 ### Dispose
