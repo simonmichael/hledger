@@ -7382,12 +7382,15 @@ A matching pair of negative/positive lotful postings moves one or more existing 
     assets:broker2     10 ETSY
 ```
 
-Transfer postings should not have a transacted price.
+Transfer postings should not have a transacted price,
+and the total quantities sent and received must match: transferred lots keep their identity.
+Within that, source and destination postings need not pair up one to one -
+one source posting can feed several destination accounts, or several sources one destination.
 If the destination receives less than the source sends (eg due to a fee deducted by an exchange),
-the fee portion of lots is consumed from the source without being recreated at the destination.
-If that fee also appears as a non-asset posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`),
-hledger automatically splits the source posting into a transfer portion and a disposal portion,
-so that the disposal is detected correctly.
+record the fee as its own posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`, or without the price);
+hledger then automatically splits the source posting into a transfer portion and a disposal portion,
+so that the fee disposal is detected correctly.
+Otherwise, mismatched sent/received totals are an error.
 If the fee posting has a transacted price, the disposal portion carries it and a gain is calculated;
 otherwise the disposal is priceless and no gain is calculated.
 The fee's disposal selects lots before the transfer does, using the

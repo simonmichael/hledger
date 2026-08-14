@@ -413,16 +413,20 @@ we infer a transacted cost from the cost basis.
   (date, label, cost) must match the source lot.
   (Transfers must preserve the source lot's identity, and can't rename a lot.)
   Transfer postings (both from and to) must not have explicit transacted cost (@ or @@); this is an error.
-  When the transfer-to quantity is less than the transfer-from quantity (a transfer+fee pattern),
-  lots are selected for the full source quantity, then split: the transfer portion's lots are
-  recreated at the destination, and the fee portion's lots are consumed from source only
-  (generating from-postings on lot subaccounts with no corresponding to-postings, like a
-  silent disposal with no gain).
-  (The common case, where a single non-asset posting matches the fee quantity exactly,
-  is normally handled before classification by fee outflow auto-splitting - see
-  "Auto-splitting lot transfer fees" below - which produces an explicit dispose portion
-  instead. This path remains for patterns auto-split doesn't detect, eg a fee split
-  across multiple postings.)
+  Transfer-from and transfer-to postings need not pair one to one: per commodity,
+  one source posting can feed several destinations or several sources one
+  destination, as long as the total from/to quantities are equal - a quantity
+  mismatch is a load-time error (#2692). Each source posting selects its lots
+  (from its own account, with its own selector), and the selected lots are
+  distributed across the destination postings in sorted group order, splitting
+  lots at destination boundaries; lot identity is preserved
+  (`processTransferGroup` in Lots.hs).
+  Formerly, a from>to quantity difference was consumed from the source silently (an
+  implicit fee disposal); that is now handled only by the explicit fee auto-split -
+  see "Auto-splitting lot transfer fees" below - which requires the fee recorded as
+  its own posting with the exact fee quantity, and produces an explicit dispose
+  portion. Patterns auto-split doesn't detect (eg a fee split across multiple
+  postings) are errors suggesting that form.
 
 - An equity transfer is a variant of a lot transfer that happens in two parts across
   separate transactions (e.g. a closing transaction transfers lots into equity, and an
@@ -829,7 +833,7 @@ The original user posting is preserved via `poriginal` on the transfer portion
 ### Per-lot disposal/transfer splits
 
 A separate internal split happens when a single dispose or transfer posting
-spans multiple lots: `processDisposePosting` / `processTransferPair` emit one
+spans multiple lots: `processDisposePosting` / `processTransferGroup` emit one
 fragment per matched lot, each carrying its lot subaccount. Multi-fragment
 results are tagged `_lotsplit-posting` (single-lot results need no tag), and
 each fragment's `poriginal` points at the user's unmodified original posting.

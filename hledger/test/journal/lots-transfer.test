@@ -847,3 +847,65 @@ $ hledger -f- print --lots -x date:2020-04
     expenses:fees                                      0.1 ABC
 
 >=
+
+# ** 37. Transfer postings need not pair one to one: one source posting can
+# feed several destinations (and vice versa), as long as the total from/to
+# quantities match. Lot identity is preserved across the split. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy
+     assets:cash        -$10
+     assets:broker1      5 ABC
+
+2020-04-04 split transfer
+     assets:broker1     -5 ABC
+     assets:broker2      2 ABC
+     assets:broker3      3 ABC
+$ hledger -f- print --lots -x date:2020-04
+2020-04-04 split transfer
+    assets:broker1:{2020-03-08, $2}               -5 ABC {2020-03-08, $2}
+    assets:broker2:{2020-03-08, $2}                2 ABC {2020-03-08, $2}
+    assets:broker3:{2020-03-08, $2}                3 ABC {2020-03-08, $2}
+
+>=
+
+# ** 38. Mismatched transfer quantities (eg a fee not recorded as a single
+# matching posting) are an error. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy
+     assets:cash        -$10
+     assets:broker1      5 ABC
+
+2020-04-05 transfer, fee recorded unmatchably
+     assets:broker1     -5 ABC
+     assets:broker2      4.9 ABC
+     expenses:fees       0.05 ABC
+     expenses:fees2      0.05 ABC
+$ hledger -f- bal --lots
+>2 /mismatched transfer quantities for commodity ABC: 5 transferred out but 4.9 received/
+>=1
+
+# ** 39. Several source postings can also feed one destination posting
+# (consolidation), preserving each lot's identity. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy1
+     assets:cash        -$10
+     assets:broker1      2 ABC
+
+2020-03-09 buy2
+     assets:cash        -$10
+     assets:broker2      3 ABC
+
+2020-04-04 consolidate
+     assets:broker1     -2 ABC
+     assets:broker2     -3 ABC
+     assets:broker3      5 ABC
+$ hledger -f- bal --lots -N
+               2 ABC  assets:broker3:{2020-03-08, $5}
+               3 ABC  assets:broker3:{2020-03-09, $3.33333333}
+                $-20  assets:cash
