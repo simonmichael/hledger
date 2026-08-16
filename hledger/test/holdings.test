@@ -481,8 +481,9 @@ Holdings on 2026-03-31
 
 # ** 29. An account holding several commodities gets one line per commodity,
 # each with its own attributes (avg cost, cost, value, weight, gains, xirr).
-# A commodity fully disposed from the account (here DEF) gets a zero-units
-# line, keeping its realised gain visible. #2693
+# A commodity fully disposed from the account (here DEF) is hidden by
+# default, but its realised gain still appears in the totals row, which
+# aggregates the displayed accounts. #2693
 <
 commodity ABC ; lots:
 commodity DEF ; lots:
@@ -520,6 +521,18 @@ P 2020-05-05 GHI $40
 $ hledger -f- holdings -e 2026-07-01
 Holdings on 2026-06-30
 
+                ||       Date   Age  Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain   XIRR 
+================++============================================================================================
+ assets:broker1 ||                   3 ABC    $13.33    $15   $40    $45   52.9%     $5   12.5%          1.9% 
+ assets:broker1 || 2020-01-01  6.5y  1 GHI       $10    $40   $10    $40   47.1%    $30  300.0%         23.8% 
+----------------++--------------------------------------------------------------------------------------------
+                ||                                            $50    $85  100.0%    $35   70.0%    $20  17.4% 
+
+# ** 30. -E/--empty also shows zero-units lines for fully disposed
+# commodities, keeping their realised gain and realised XIRR visible. #2693
+$ hledger -f- holdings -e 2026-07-01 -E
+Holdings on 2026-06-30
+
                 ||       Date   Age  Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain     XIRR 
 ================++==============================================================================================
  assets:broker1 ||                   3 ABC    $13.33    $15   $40    $45   52.9%     $5   12.5%            1.9% 
@@ -528,24 +541,65 @@ Holdings on 2026-06-30
 ----------------++----------------------------------------------------------------------------------------------
                 ||                                            $50    $85  100.0%    $35   70.0%    $20    17.4% 
 
-# ** 30. Same with --lots: lots of different commodities can share a
-# subaccount name (same date and cost); each still gets its own line. #2693
+# ** 31. With --lots, lots of different commodities can share a subaccount
+# name (same date and cost); each still gets its own line. #2693
 $ hledger -f- holdings -e 2026-07-01 --lots
 Holdings on 2026-06-30
 
-                                  ||       Date   Age  Units  Unit cost  Price  Cost  Value  Weight  UGain  UGain%  RGain     XIRR 
-==================================++===============================================================================================
- assets:broker1:{2020-01-01, $10} || 2020-01-01  6.5y  1 ABC        $10    $15   $10    $15   17.6%     $5   50.0%            6.4% 
- assets:broker1:{2020-01-01, $10} || 2020-01-01  6.5y  1 GHI        $10    $40   $10    $40   47.1%    $30  300.0%           23.8% 
- assets:broker1:{2020-01-01, $10} ||                   0 DEF               $30           $0    0.0%                   $20  1209.5% 
- assets:broker1:{2020-06-06, $15} || 2020-06-06  6.1y  2 ABC        $15    $15   $30    $30   35.3%     $0    0.0%            0.0% 
-----------------------------------++-----------------------------------------------------------------------------------------------
-                                  ||                                             $50    $85  100.0%    $35   70.0%    $20    17.4% 
+                                  ||       Date   Age  Units  Unit cost  Price  Cost  Value  Weight  UGain  UGain%  RGain   XIRR 
+==================================++=============================================================================================
+ assets:broker1:{2020-01-01, $10} || 2020-01-01  6.5y  1 ABC        $10    $15   $10    $15   17.6%     $5   50.0%          6.4% 
+ assets:broker1:{2020-01-01, $10} || 2020-01-01  6.5y  1 GHI        $10    $40   $10    $40   47.1%    $30  300.0%         23.8% 
+ assets:broker1:{2020-06-06, $15} || 2020-06-06  6.1y  2 ABC        $15    $15   $30    $30   35.3%     $0    0.0%          0.0% 
+----------------------------------++---------------------------------------------------------------------------------------------
+                                  ||                                             $50    $85  100.0%    $35   70.0%    $20  17.4% 
 
-# ** 31. CSV output also includes the zero-units record, so the disposed
-# commodity's realised gain is not lost. #2693
-$ hledger -f- holdings -e 2026-07-01 -O csv
+# ** 32. The csv/tsv/json outputs likewise include zero-units records
+# for fully disposed commodities only with -E. #2693
+$ hledger -f- holdings -e 2026-07-01 -O csv -E
 "account","commodity","date","age","units","unitcost","price","cost","value","weight","ugain","ugainpct","rgain","xirr"
 "assets:broker1","ABC","","","3","$13.33","$15","$40","$45","52.9","$5","12.5","","1.9"
 "assets:broker1","GHI","2020-01-01","2372","1","$10","$40","$10","$40","47.1","$30","300.0","","23.8"
 "assets:broker1","DEF","","","0","","$30","0","0","0.0","","","$20","1209.5"
+
+# ** 33. A fully disposed account is hidden by default, and its realised
+# gain is then also excluded from the totals row, which corresponds to the
+# displayed rows. #2693
+<
+commodity ABC ; lots:
+commodity DEF ; lots:
+
+2020-01-01 buy ABC in broker1
+     assets:cash         -$10
+     assets:broker1      1 ABC
+
+2020-01-01 buy DEF in broker2
+     assets:cash         -$10
+     assets:broker2      1 DEF
+
+P 2020-05-05 ABC $15
+P 2020-05-05 DEF $30
+
+2020-06-05 sell all of broker2s DEF
+     assets:broker2       -1 DEF
+     assets:cash          $30
+$ hledger -f- holdings -e 2026-07-01
+Holdings on 2026-06-30
+
+                ||       Date   Age  Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain  XIRR 
+================++===========================================================================================
+ assets:broker1 || 2020-01-01  6.5y  1 ABC       $10    $15   $10    $15  100.0%     $5   50.0%         6.4% 
+----------------++-------------------------------------------------------------------------------------------
+                ||                                            $10    $15  100.0%     $5   50.0%         6.4% 
+
+# ** 34. -E shows the fully disposed account as a zero-units row, and the
+# totals then include its realised gain and cashflows. #2693
+$ hledger -f- holdings -e 2026-07-01 -E
+Holdings on 2026-06-30
+
+                ||       Date   Age  Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain     XIRR 
+================++==============================================================================================
+ assets:broker1 || 2020-01-01  6.5y  1 ABC       $10    $15   $10    $15  100.0%     $5   50.0%            6.4% 
+ assets:broker2 ||                   0 DEF              $30           $0    0.0%                   $20  1209.5% 
+----------------++----------------------------------------------------------------------------------------------
+                ||                                            $10    $15  100.0%     $5   50.0%    $20   159.3% 

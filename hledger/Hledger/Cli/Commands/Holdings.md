@@ -37,8 +37,9 @@ It shows the assets held in lot-tracked accounts (see [Lots](#lots))
 as of the report end date: one row per account and held commodity
 (an account holding several commodities gets several rows, repeating
 its name), or per lot and commodity with `--lots`.
-A commodity that has been fully disposed from a displayed account gets
-a row with zero units, keeping its realised gain visible.
+Fully disposed commodities and accounts are not shown by default;
+with `-E/--empty`, they are shown as zero-units rows, keeping their
+realised gains and realised XIRR visible.
 With `--tree`, accounts are shown as a tree, with
 parent rows aggregating the lots beneath them; `--depth` limits and
 aggregates the displayed rows as usual.
@@ -59,8 +60,10 @@ the realised gain from disposals so far (RGain),
 and the annualised internal rate of return (XIRR, calculated from the
 holding's dated cashflows and current value, like roi's IRR;
 it includes realised gains).
-In the totals row, RGain and XIRR are account-level: they also include
-fully disposed lots, which have no row of their own (eg with `--lots`).
+In the totals row, RGain and XIRR are account-level, for the displayed
+accounts: they also include those accounts' fully disposed lots and
+commodities, which may have no row of their own. Fully disposed
+accounts are included only when `-E` displays them.
 
 Market prices at the report date come from
 [P directives](#p-directives), and from transaction costs with

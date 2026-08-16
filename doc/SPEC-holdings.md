@@ -31,8 +31,9 @@ json...).
   commodities gets several rows, repeating its name (#2693).
   (Lots of different commodities can even share one lot subaccount name -
   same date and cost - and still get separate rows.)
-- A commodity fully disposed from a displayed account gets a zero-units
-  row, keeping its realised gain (and realised XIRR) visible (#2693).
+- Fully disposed commodities and accounts are hidden by default; with
+  `-E/--empty` they are shown as zero-units rows, keeping their realised
+  gain (and realised XIRR) visible (#2693).
 - Lot subaccounts follow the standard `--lots` display toggle:
   hidden (aggregated into their base account) by default,
   shown as rows with `--lots`.
@@ -71,13 +72,14 @@ Notes:
   value; blank unless all displayed holdings are priced in one commodity.
 - RGain sums each dispose posting's proceeds minus the cost basis of the
   disposed units, for the row's commodity's lots at or under the row's
-  account. A commodity fully disposed from a displayed account keeps its
-  realised gain visible via a zero-units row. Fully disposed lots have no
-  row of their own (eg with --lots), but their realised gains are included
-  in the totals row, which computes RGain and XIRR from the displayed
-  rows' base accounts - consistent across display modes. Fully disposed
-  accounts don't appear in the report at all, so neither do their
-  realised gains.
+  account. Fully disposed lots and commodities have no row of their own
+  by default (`-E` shows zero-units rows for disposed commodities), but
+  their realised gains are included in the totals row, which computes
+  RGain and XIRR from the displayed rows' base accounts - consistent
+  across display modes. Fully disposed accounts don't appear in the
+  report by default, and neither do their realised gains (the totals
+  correspond to the displayed rows); `-E` shows them, and the totals
+  then include them.
 - XIRR solves for the annualised rate of return implied by the holding's
   dated cashflows (acquisitions at transacted or basis cost, disposals at
   proceeds) plus its current value, like roi's IRR (using ridders,
@@ -209,8 +211,8 @@ Holdings on 2026-03-31
   Each lot's cost basis is parsed back from the lot subaccount name, which by
   construction contains the acquisition date and unit cost.
 - Each report row expands to one Holding record per commodity (rowHoldings
-  in Holdings.hs), including zero-units records for commodities with
-  realised gains but no units; all output formats (text table, csv/tsv,
+  in Holdings.hs); with -E, also zero-units records for commodities with
+  realised gains but no units. All output formats (text table, csv/tsv,
   html, fods, json) render these same records, so they always agree (#2693).
 - Rendering via Text.Tabular.AsciiWide as in Balance.hs.
 

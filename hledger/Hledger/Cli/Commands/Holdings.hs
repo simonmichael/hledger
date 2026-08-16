@@ -367,6 +367,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     -- contained in another). Account-level totals (RGain, XIRR) are
     -- computed from these, so that they include fully disposed lots,
     -- which have no displayed row of their own (eg with --lots).
+    -- (Fully disposed accounts are included only when -E displays them.)
     topbases :: [AccountName]
     topbases = [ b | b <- bases, not $ any (`isAccountNamePrefixOf` b) bases ]
       where bases = nubSort $ map (lotBaseAccount . prrFullName) toprows
@@ -442,15 +443,24 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                                           ,conversionop_=Just NoConversionOp, value_=Nothing
                                           ,sort_amount_=False}}  -- -S sorts by value/cost below, not by units
         j' = if showlots then j else journalCollapseLotDetail j
-    -- Rows to display: those with lots at or beneath them. In list mode,
+    -- Rows to display: those with lots at or beneath them; with -E/--empty,
+    -- also those with realised gains at or beneath them (fully disposed
+    -- accounts/lots, normally hidden). In list mode,
     -- also drop rows whose lots all appear in a deeper displayed row
     -- (eg a base account posted to directly, when its lot subaccounts
     -- are shown); in tree mode such parent rows are wanted.
     rows = filter keeprow candidates
       where
-        candidates = filter (not . null . lotsUnder . prrFullName) $ prRows mbr
+        candidates = filter isholdingrow $ prRows mbr
+        isholdingrow r = not (null (lotsUnder acct))
+                      || (empty_ ropts && hasRgainsUnder acct)
+          where acct = prrFullName r
         keeprow r = tree ||
           not (any (\r2 -> prrFullName r `isAccountNamePrefixOf` prrFullName r2) candidates)
+
+    -- Are there nonzero realised gains at or under this account ?
+    hasRgainsUnder :: AccountName -> Bool
+    hasRgainsUnder acct = any (not . amountLooksZero) $ rgainsUnder acct Nothing
 
     -- The topmost displayed rows: those not contained in another displayed
     -- row. Totals are computed from these, to avoid double counting.
@@ -566,21 +576,25 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     sumAmounts as = amounts $ mixed as
 
     -- A report row's holdings, one per commodity, in the same order as its
-    -- unit amounts; after those, a zero-units holding for each commodity no
-    -- longer held at or under the row's account but with realised gains,
-    -- so those stay visible (eg a commodity fully sold off).
+    -- unit amounts. With -E/--empty, these are followed by a zero-units
+    -- holding for each commodity no longer held at or under the row's
+    -- account but with realised gains, keeping those visible (eg a
+    -- commodity fully sold off); without -E such rows are hidden (their
+    -- gains still count in the totals row).
     rowHoldings :: PeriodicReportRow DisplayName MixedAmount -> [Holding]
     rowHoldings r = map rec $ heldamts ++ rgainonlyamts
       where
         acct = prrFullName r
         heldamts = rowUnitAmounts r
-        rgainonlyamts =
-          [ nullamt{acommodity=c}
-          | c <- nubSort [ c2 | ((sub, c2), g) <- M.toAscList rgainmap
-                              , acct == sub || acct `isAccountNamePrefixOf` sub
-                              , not $ amountLooksZero g ]
-          , c `notElem` map acommodity heldamts
-          ]
+        rgainonlyamts
+          | not $ empty_ ropts = []
+          | otherwise =
+              [ nullamt{acommodity=c}
+              | c <- nubSort [ c2 | ((sub, c2), g) <- M.toAscList rgainmap
+                                  , acct == sub || acct `isAccountNamePrefixOf` sub
+                                  , not $ amountLooksZero g ]
+              , c `notElem` map acommodity heldamts
+              ]
         rec qa = Holding
           { hAccount   = acct
           , hCommodity = c
