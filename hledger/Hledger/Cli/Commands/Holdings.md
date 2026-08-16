@@ -34,8 +34,12 @@ Flags:
 This command is a work in progress.
 
 It shows the assets held in lot-tracked accounts (see [Lots](#lots))
-as of the report end date: one row per account, or one row per lot
-with `--lots`. With `--tree`, accounts are shown as a tree, with
+as of the report end date: one row per account and held commodity
+(an account holding several commodities gets several rows, repeating
+its name), or per lot and commodity with `--lots`.
+A commodity that has been fully disposed from a displayed account gets
+a row with zero units, keeping its realised gain visible.
+With `--tree`, accounts are shown as a tree, with
 parent rows aggregating the lots beneath them; `--depth` limits and
 aggregates the displayed rows as usual.
 With `-S/--sort-amount`, rows are sorted by market value (or by cost,
@@ -43,7 +47,7 @@ when unpriced), largest first.
 The report title ("Holdings on DATE") can be customised with
 `--title=TEXT`, or suppressed with `--title=""`.
 Columns show each holding's acquisition date and age
-(when the row's lots share a single date; ages are shown in days, or
+(when its lots share a single date; ages are shown in days, or
 from one year in years with one decimal digit, eg `44d` or `1.1y`,
 approximating years as 365 days),
 the units held,
@@ -53,7 +57,7 @@ the percentage of the portfolio's total value (Weight),
 the unrealised gain and gain percent (UGain, UGain%),
 the realised gain from disposals so far (RGain),
 and the annualised internal rate of return (XIRR, calculated from the
-account's dated cashflows and current value, like roi's IRR;
+holding's dated cashflows and current value, like roi's IRR;
 it includes realised gains).
 In the totals row, RGain and XIRR are account-level: they also include
 fully disposed lots, which have no row of their own (eg with `--lots`).
@@ -77,7 +81,7 @@ digit, or with the display style configured for the `%` commodity
 (eg by `-c '0.00 %'`).
 
 With `-O csv` or `-O tsv`, machine-readable output is produced instead:
-one record per row and commodity, with full account names, age in days,
+one record per displayed row, with full account names, age in days,
 bare units and gain percent numbers, gain and gain percent as
 separate fields, and no totals records.
 Amounts are shown without digit group marks; as in other commands'

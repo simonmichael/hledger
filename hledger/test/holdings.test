@@ -61,17 +61,17 @@ Holdings on 2026-03-31
 ----------------------++--------------------------------------------------------------------------------------
                       ||                                      $850                                 $100       
 
-# ** 4. Tree mode: parent account rows aggregate the lots beneath them
-# (and show only lot-tracked commodities, not eg cash). Lot subaccounts
-# appear as leaves with --lots. No totals row when there is a single
-# top-level row.
+# ** 4. Tree mode: parent account rows aggregate the lots beneath them,
+# one line per commodity with per-commodity attributes (and show only
+# lot-tracked commodities, not eg cash). Lot subaccounts appear as leaves
+# with --lots. No totals row when there is a single top-level row.
 $ hledger -f- holdings -e 2026-04-01 --lots --tree
 Holdings on 2026-03-31
 
                             ||       Date  Age    Units  Unit cost  Price   Cost  Value  Weight  UGain  UGain%  RGain  XIRR 
 ============================++==============================================================================================
- assets:broker              ||                  15 AAPL                    $2850                                 $100       
-                            ||                   5 MSFT                                                                     
+ assets:broker              ||                  15 AAPL     $56.67          $850                                 $100       
+ assets:broker              || 2026-02-15  44d   5 MSFT       $400         $2000                                            
    funds:{2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400         $2000                                            
    stocks                   ||                  15 AAPL     $56.67          $850                                 $100       
      {2026-01-15, $50}      || 2026-01-15  75d   5 AAPL        $50          $250                                 $100       
@@ -86,10 +86,10 @@ Holdings on 2026-03-31
 
                           ||       Date  Age    Units  Unit cost  Price   Cost  Value  Weight  UGain  UGain%  RGain  XIRR 
 ==========================++==============================================================================================
- assets                   ||                  15 AAPL                    $2850                                 $100       
-                          ||                   5 MSFT                                                                     
-   broker                 ||                  15 AAPL                    $2850                                 $100       
-                          ||                   5 MSFT                                                                     
+ assets                   ||                  15 AAPL     $56.67          $850                                 $100       
+ assets                   || 2026-02-15  44d   5 MSFT       $400         $2000                                            
+   broker                 ||                  15 AAPL     $56.67          $850                                 $100       
+   broker                 || 2026-02-15  44d   5 MSFT       $400         $2000                                            
      funds                || 2026-02-15  44d   5 MSFT       $400         $2000                                            
        {2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400         $2000                                            
      stocks               ||                  15 AAPL     $56.67          $850                                 $100       
@@ -98,17 +98,17 @@ Holdings on 2026-03-31
 --------------------------++----------------------------------------------------------------------------------------------
                           ||                                             $2850                                 $100       
 
-# ** 6. --depth clips and aggregates the displayed rows; the lots
-# beneath still count.
+# ** 6. --depth clips and aggregates the displayed rows, one line per
+# commodity; the lots beneath still count.
 $ hledger -f- holdings -e 2026-04-01 --depth 2
 Holdings on 2026-03-31
 
-               || Date  Age    Units  Avg cost  Price   Cost  Value  Weight  UGain  UGain%  RGain  XIRR 
-===============++=======================================================================================
- assets:broker ||            15 AAPL                   $2850                                 $100       
-               ||             5 MSFT                                                                    
----------------++---------------------------------------------------------------------------------------
-               ||                                      $2850                                 $100       
+               ||       Date  Age    Units  Avg cost  Price   Cost  Value  Weight  UGain  UGain%  RGain  XIRR 
+===============++=============================================================================================
+ assets:broker ||                  15 AAPL    $56.67          $850                                 $100       
+ assets:broker || 2026-02-15  44d   5 MSFT      $400         $2000                                            
+---------------++---------------------------------------------------------------------------------------------
+               ||                                            $2850                                 $100       
 
 # ** 7. A journal with no lots reports no holdings.
 <
@@ -478,3 +478,74 @@ Holdings on 2026-03-31
  assets || 2026-01-15  75d  10 AAPL       $50    $72  $500   $720  100.0 %   $220  44.0 %         490.5 % 
 --------++------------------------------------------------------------------------------------------------
         ||                                            $500   $720  100.0 %   $220  44.0 %         490.5 % 
+
+# ** 29. An account holding several commodities gets one line per commodity,
+# each with its own attributes (avg cost, cost, value, weight, gains, xirr).
+# A commodity fully disposed from the account (here DEF) gets a zero-units
+# line, keeping its realised gain visible. #2693
+<
+commodity ABC ; lots:
+commodity DEF ; lots:
+commodity GHI ; lots:
+
+;; acquire
+2020-01-01 test
+     assets:cash         -$10
+     assets:broker1      1 ABC
+
+;; acquire
+2020-01-01 test
+     assets:cash         -$10
+     assets:broker1      1 DEF
+
+;; acquire
+2020-01-01 test
+     assets:cash         -$10
+     assets:broker1      1 GHI
+
+;; price rises
+P 2020-05-05 ABC $15
+P 2020-05-05 DEF $30
+P 2020-05-05 GHI $40
+
+;; sell DEF, buy ABC
+
+2020-06-05 sell DEF
+     assets:broker1       -1 DEF
+     assets:broker1:cash  $30
+
+2020-06-06 buy ABC
+     assets:broker1:cash   = $0
+     assets:broker1        2 ABC @ $15
+$ hledger -f- holdings -e 2026-07-01
+Holdings on 2026-06-30
+
+                ||       Date   Age  Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain     XIRR 
+================++==============================================================================================
+ assets:broker1 ||                   3 ABC    $13.33    $15   $40    $45   52.9%     $5   12.5%            1.9% 
+ assets:broker1 || 2020-01-01  6.5y  1 GHI       $10    $40   $10    $40   47.1%    $30  300.0%           23.8% 
+ assets:broker1 ||                   0 DEF              $30           $0    0.0%                   $20  1209.5% 
+----------------++----------------------------------------------------------------------------------------------
+                ||                                            $50    $85  100.0%    $35   70.0%    $20    17.4% 
+
+# ** 30. Same with --lots: lots of different commodities can share a
+# subaccount name (same date and cost); each still gets its own line. #2693
+$ hledger -f- holdings -e 2026-07-01 --lots
+Holdings on 2026-06-30
+
+                                  ||       Date   Age  Units  Unit cost  Price  Cost  Value  Weight  UGain  UGain%  RGain     XIRR 
+==================================++===============================================================================================
+ assets:broker1:{2020-01-01, $10} || 2020-01-01  6.5y  1 ABC        $10    $15   $10    $15   17.6%     $5   50.0%            6.4% 
+ assets:broker1:{2020-01-01, $10} || 2020-01-01  6.5y  1 GHI        $10    $40   $10    $40   47.1%    $30  300.0%           23.8% 
+ assets:broker1:{2020-01-01, $10} ||                   0 DEF               $30           $0    0.0%                   $20  1209.5% 
+ assets:broker1:{2020-06-06, $15} || 2020-06-06  6.1y  2 ABC        $15    $15   $30    $30   35.3%     $0    0.0%            0.0% 
+----------------------------------++-----------------------------------------------------------------------------------------------
+                                  ||                                             $50    $85  100.0%    $35   70.0%    $20    17.4% 
+
+# ** 31. CSV output also includes the zero-units record, so the disposed
+# commodity's realised gain is not lost. #2693
+$ hledger -f- holdings -e 2026-07-01 -O csv
+"account","commodity","date","age","units","unitcost","price","cost","value","weight","ugain","ugainpct","rgain","xirr"
+"assets:broker1","ABC","","","3","$13.33","$15","$40","$45","52.9","$5","12.5","","1.9"
+"assets:broker1","GHI","2020-01-01","2372","1","$10","$40","$10","$40","47.1","$30","300.0","","23.8"
+"assets:broker1","DEF","","","0","","$30","0","0","0.0","","","$20","1209.5"
