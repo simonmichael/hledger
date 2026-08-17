@@ -543,6 +543,16 @@ assignment and so was unknown at classification time) — the cost is
 attached to that side, so lot postings get the transacted cost they need
 for lot tracking (`costInferrerFor` in Balancing.hs).
 
+However, when a lot-related commodity appears with both signs among the
+postings (a transfer-like shape) and its residual is not exactly one
+posting's amount, no cost is inferred: such a residual indicates a
+quantity mismatch (eg a fee deducted in kind but not recorded), and
+inferring a cost would attach it to both sides, mask the imbalance, and
+surface later as a confusing lot error. The entry instead fails the more
+fundamental balancedness check, which shows the residual along with a
+note explaining why no cost was inferred (since a user unaware of lot
+processing might expect this entry to balance).
+
 ## Disposal transactions
 
 The realised gain/loss from a disposal is calculated as follows:

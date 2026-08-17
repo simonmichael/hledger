@@ -232,3 +232,39 @@ Available lots in this account:
   {2021-03-08, $5}  2
 Using FIFO (default).
 >=1
+
+# ** 15. A transfer-like entry whose lotful-commodity quantities don't add
+# up (eg a fee deducted in kind but recorded in cash) fails the balancedness
+# check: no cost is inferred for the mismatched residual, which would mask
+# the imbalance and surface as a confusing lot error instead. The error
+# explains why no cost was inferred. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy
+     assets:cash        -$10
+     assets:broker1      5 ABC
+
+2020-04-05 transfer, quantities mismatched
+     assets:broker1     -5 ABC
+     assets:broker2      4.9 ABC
+     expenses:fees       $1
+
+$ hledger -f- bal --lots 2>&1
+hledger: Error: -:7-10:
+7 | 2020-04-05 transfer, quantities mismatched
+  |     assets:broker1                                -5 ABC
+  |     assets:broker2                                 4.9 ABC
+  |     expenses:fees                                 $1
+
+This multi-commodity transaction is unbalanced.
+The real postings' sum should be 0 but is $1, -0.1 ABC
+  -5 ABC  +  4.9 ABC  +  $1  =  $1, -0.1 ABC
+Note, ABC is a lot-tracked commodity being transferred between accounts,
+so no balancing conversion cost was inferred; its quantities are expected
+to add up. If the difference is a fee, you can either
+- split the sending posting into a transfer part and a fee part
+  matching the fee expense
+- or record the fee expense in the lot-tracked commodity.
+(Lot processing can be disabled with --ignore-lots.)
+>=1
