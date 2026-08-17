@@ -184,6 +184,7 @@ inputflags = [
     , "Auto posting rules will also be applied to these transactions."
     , "In hledger-ui, also make future-dated transactions visible at startup."
     ])
+  ,flagReq ["latest-if-none-defined"] (\s opts -> Right $ setopt "latest-if-none-defined" s opts) "DATE" "a fallback date to use when no latest date has yet been recorded in the rules file."
   ,flagNone ["ignore-assertions"] (setboolopt "ignore-assertions") "don't check balance assertions by default"
   ,flagNone ["ignore-lots"]       (setboolopt "ignore-lots")       "don't check lot entries by default"
   ,flagNone ["I"]                 (setboolopt "ignore-assertions" . setboolopt "ignore-lots")

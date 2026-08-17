@@ -1,0 +1,44 @@
+# * %l in source rule commands
+# All of these need their own temporary directory because
+# .latest.lsrc.rules state is shared between them.
+
+# ** 1. %l in a source command is replaced with the latest date recorded
+# in the rules file's .latest file.
+$ d=$(mktemp -d); cp lsrc.rules $d; (cd $d; echo '2022-03-04' > .latest.lsrc.rules; hledger -f lsrc.rules print); errcode=$?; rm -rf $d; exit $errcode
+2022-03-04 latest test
+    assets:bank                                   10
+    income:unknown                               -10
+
+>2
+running: echo 2022-03-04,latest test,10
+>=
+
+# ** 2. Without a recorded latest date, %l is an error.
+$ d=$(mktemp -d); cp lsrc.rules $d; (cd $d; hledger -f lsrc.rules print); errcode=$?; rm -rf $d; exit $errcode
+>2 /no latest date is recorded/
+>= !0
+
+# ** 3. --latest-if-none-defined provides a fallback date.
+$ d=$(mktemp -d); cp lsrc.rules $d; (cd $d; hledger -f lsrc.rules print --latest-if-none-defined=2000-01-01); errcode=$?; rm -rf $d; exit $errcode
+2000-01-01 latest test
+    assets:bank                                   10
+    income:unknown                               -10
+
+>2
+running: echo 2000-01-01,latest test,10
+>=
+
+# ** 4. A recorded latest date takes precedence over --latest-if-none-defined.
+$ d=$(mktemp -d); cp lsrc.rules $d; (cd $d; echo '2022-03-04' > .latest.lsrc.rules; hledger -f lsrc.rules print --latest-if-none-defined=2019-05-06); errcode=$?; rm -rf $d; exit $errcode
+2022-03-04 latest test
+    assets:bank                                   10
+    income:unknown                               -10
+
+>2
+running: echo 2022-03-04,latest test,10
+>=
+
+# ** 5. An unparseable --latest-if-none-defined date is an error.
+$ d=$(mktemp -d); cp lsrc.rules $d; (cd $d; hledger -f lsrc.rules print --latest-if-none-defined=notadate); errcode=$?; rm -rf $d; exit $errcode
+>2 /could not parse --latest-if-none-defined date/
+>= !0
