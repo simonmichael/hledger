@@ -7572,6 +7572,37 @@ accounts holding the commodity, so the running cost is a single global value
 and an acquisition in one account updates the cost basis on lots in every
 other account too.
 
+#### Changing the cost basis method
+
+hledger recalculates all lots on each run, using the currently declared methods.
+So changing a declared method also reinterprets past history under the new method.
+Sometimes that's fine; but usually you'll want past disposals to keep their
+original lot selections and gains
+(tax authorities generally expect a method change to apply only going forward).
+Things to know:
+
+- Disposals recorded without explicit lot selectors or gain amounts will
+  select different lots under the new method, changing their cost bases and
+  realised gains.
+
+- Disposals which do record the old method's selections - as explicit gain
+  amounts, lot selectors, lot subaccount names, or balance assertions - will
+  be checked against the new method's selections, and any differences will
+  be reported as errors.
+
+hledger doesn't yet support declaring different methods for different time
+periods, but you can make a method change apply only to the future, in
+either of two ways:
+
+1. Make past disposals fully explicit, with lot selectors and gain amounts,
+   so they no longer depend on the declared method
+   (`print -x` and `print --lots` can help with this).
+   Then change the method.
+
+2. Or, start a new journal file at the changeover date, using
+   [`close --clopen --lots`](#close) to carry the current lots into it,
+   and declare the new method in the new file.
+
 ## Gain postings
 
 Each disposal transaction will have a balanced pair of postings recording the capital gain (or loss):
