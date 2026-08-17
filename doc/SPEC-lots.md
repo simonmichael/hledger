@@ -252,7 +252,7 @@ For tracking a commodity's lots in only some accounts, the recommended style is
 manual cost basis annotations with no lots tag. (A per-account opt-out such as
 `lots: none` was considered and deferred: it would serve only the
 tracked-everywhere-with-exceptions case, and can be added compatibly later if
-there is demand.)
+there is demand. See Roadmap.)
 
 (In future, we may also recognise some common commodity symbols as lotful, even without the lots tag.)
 
@@ -933,6 +933,45 @@ Display behaviour:
 For end-to-end walkthroughs, see the user manual's "First lots example" and "Lot reporting example" sections.
 
 A larger collection of example entries: <https://github.com/simonmichael/hledger/blob/main/examples/lots/lots.journal>
+
+## Roadmap
+
+Possible future work, from design discussions (2026-08):
+
+- **Per-account lot tracking opt-out.** The general model we are converging on
+  is "this commodity is lotful, except in these declared places". An account
+  tag value such as `lots: NONE` could opt an account (and its subaccounts)
+  out of lot tracking, for eg tax-sheltered accounts where basis is
+  irrelevant. Precedence by specificity: posting annotation beats account
+  opt-out beats commodity tag. Deferred until there is demand; meanwhile the
+  recommended style for partial tracking is explicit cost basis annotations
+  with no lots tag.
+
+- **Tax boundary declarations and checks.** Users could tag accounts as
+  tax-sheltered (a jurisdiction-neutral, user-declared boundary, in the same
+  spirit as account types). Then an opt-in check could flag identity-preserving
+  lot transfers crossing the boundary, which usually should be recorded as a
+  disposal at fair market value plus a new acquisition (write a transacted
+  price on the outgoing posting to get that today). The same declaration could
+  drive the lot-tracking opt-out above, and scope pooling (below).
+
+- **AVERAGE vs transfers.** A transfer into an account using the AVERAGE
+  method currently keeps the incoming lot's own basis, silently violating the
+  pool's single-shared-cost invariant (verified 2026-08-17); a later disposal
+  uses the un-pooled basis. Spec decision needed: a transfer-in should
+  probably re-average the pool like an acquisition at the carried basis, and
+  a transfer-out should carry the pooled cost. Also document that pooling is
+  lossy: original lot identity cannot be reconstructed on the way out.
+
+- **Method coherence checks.** The local methods (FIFO, LIFO, HIFO, SPECID)
+  govern reduction order within one account and are safe to mix per account.
+  The non-local ones are not: the ALL variants validate against a global pool
+  that other accounts' methods can freely violate, and AVERAGE pooling is
+  per-taxpayer in some jurisdictions. These are commodity-level policies
+  wearing an account-level tag; consider preferring commodity-level
+  declaration for them, and/or a declaration-time check flagging a commodity
+  held under an ALL/AVERAGE method in one account and a different method
+  elsewhere.
 
 ### Disposal
 
