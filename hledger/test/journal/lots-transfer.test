@@ -1064,3 +1064,28 @@ $ hledger -f- print -a date:2020-04
     equity:unrealised-gain                        $0.80  ; ptype: ugain, generated-posting:
 
 >=
+
+# ** 46. A zero-amount posting beside a transfer (eg a balance assertion
+# carrier) is ignored by lot classification: it must not become a transfer-to
+# via commodity matching, which would fail lot processing.
+<
+commodity A  ; lots:
+
+2021-09-01 buy
+    assets:cash    $-200
+    assets:a        A 100
+
+2021-09-02 transfer with in-kind fee and a zero posting
+    assets:a         A -50.176105
+    expenses:fees      A 0.176105
+    assets:b          A 50.000000
+    assets:b           A 0 = A 50.000000
+
+$ hledger -f- bal --lots 2>&1
+         A 49.823895  assets:a:{2021-09-01, $2}
+         A 50.000000  assets:b:{2021-09-01, $2}
+               $-200  assets:cash
+          A 0.176105  expenses:fees
+--------------------
+               $-200
+               A 100  

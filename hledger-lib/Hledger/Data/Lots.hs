@@ -711,6 +711,11 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     shouldClassify p = do
       let amts = amountsRaw $ pamount p
           baseAcct = lotBaseAccount (paccount p)
+      -- Zero-amount postings (eg balance assertion carriers) move no lots and
+      -- are left unclassified, consistent with isUnclassifiedLotfulPosting's
+      -- zero exemption. (Eg a zero posting beside a transfer must not become
+      -- a transfer-to via commodity matching.)
+      guard $ any ((/= 0) . aquantity) amts
       if any (isJust . acostbasis) amts
         -- Cost basis present: classify regardless of account type (fix A)
         then dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " withCostBasis") $
