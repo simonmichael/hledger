@@ -1742,8 +1742,10 @@ groupIndexedTransferPostings t froms tos = do
             Left $ showPos ++ "mismatched transfer quantities for commodity " ++ T.unpack comm
                        ++ ": " ++ show fromTotal ++ " transferred out but "
                        ++ show toTotal ++ " received.\n"
-                       ++ "If the difference is a fee, record it as its own posting\n"
-                       ++ "in the same commodity; hledger will dispose of it separately."
+                       ++ "If the difference is a fee, you can either\n"
+                       ++ "- split the sending posting into a transfer part and a fee part\n"
+                       ++ "  matching the fee expense\n"
+                       ++ "- or record the fee expense in the lot-tracked commodity."
           Right (comm, sortOn postingSortKey fs, sortOn postingSortKey ts)
 
 -- | Extract a per-unit cost Amount from an AmountCost, normalising TotalCost by quantity.

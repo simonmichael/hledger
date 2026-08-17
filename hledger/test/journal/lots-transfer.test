@@ -1040,3 +1040,30 @@ $ hledger -f- print -a date:2020-04
     equity:unrealised-gain                        $0.80  ; ptype: ugain, generated-posting:
 
 >=
+
+# ** 45. The same entry with the fee disposal's price elided: the balancer
+# attaches the inferred cost to that posting only (the one whose amount is
+# the whole residual), leaving the transfer pair unpriced, so this works
+# like the explicitly priced form above. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy
+     assets:cash        -$10
+     assets:broker1      5 ABC @ $2
+
+2020-04-05 transfer, with fee disposed at an inferred price
+     assets:broker1     -4.9 ABC
+     assets:broker2      4.9 ABC
+     assets:broker1      -0.1 ABC
+     expenses:fees       $1
+$ hledger -f- print -a date:2020-04
+2020-04-05 transfer, with fee disposed at an inferred price
+    assets:broker1:{2020-03-08, $2}               -4.9 ABC {2020-03-08, $2}  ; ptype: transfer-from
+    assets:broker2:{2020-03-08, $2}                4.9 ABC {2020-03-08, $2}  ; ptype: transfer-to
+    assets:broker1:{2020-03-08, $2}               -0.1 ABC {2020-03-08, $2} @@ $1  ; ptype: dispose
+    expenses:fees                                 $1
+    revenues:gain                                $-0.80  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                        $0.80  ; ptype: ugain, generated-posting:
+
+>=

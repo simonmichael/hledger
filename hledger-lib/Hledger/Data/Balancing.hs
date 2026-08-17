@@ -473,21 +473,40 @@ costInferrerFor lotfulcomms t pt = maybe id infercost inferFromAndTo
                            | otherwise         = Nothing
       _ -> Nothing
 
+    -- When the from commodity is lot-related and appears with both signs,
+    -- and exactly one single-amount posting equals the residual, attach the
+    -- whole cost to that posting only (as a total cost), leaving the others
+    -- unpriced: they form matched transfer pairs, which must stay unpriced
+    -- for lot classification; only the odd one out (a dispose, eg a fee
+    -- disposal alongside a transfer) needs the cost (#2692).
+    isTargeted fromamount =
+      lotRelatedBothSigns lotfulcomms postings (acommodity fromamount)
+      && length residualPostings == 1
+      where
+        residualPostings =
+          [ () | q <- postings, [a] <- [amounts (pamount q)]
+               , acommodity a == acommodity fromamount, aquantity a == aquantity fromamount ]
+
     -- For each posting, if the posting type matches, there is only a single amount in the posting,
-    -- and the commodity of the amount matches the amount we're converting from,
+    -- and the commodity of the amount matches the amount we're converting from
+    -- (and, in the targeted case above, its quantity is the whole residual),
     -- then set its cost based on the ratio between fromamount and toamount.
     infercost (fromamount, toamount) p
         | [a] <- amounts (pamount p), preal p == pt, acommodity a == acommodity fromamount
+        , not (isTargeted fromamount) || aquantity a == aquantity fromamount
             = p{ pamount   = mixedAmount a{acost=Just conversionprice}
                   & dbg9With (lbl "inferred cost".showMixedAmountOneLine)
                , poriginal = Just $ originalPosting p }
         | otherwise = p
       where
-        -- If only one Amount in the posting list matches fromamount we can use TotalCost.
+        -- In the targeted case, or if only one Amount in the posting list matches fromamount,
+        -- we can use TotalCost.
         -- Otherwise divide the conversion equally among the Amounts by using a unit price.
-        conversionprice = case filter (== acommodity fromamount) pcommodities of
-            [_] -> TotalCost $ negate toamount
-            _   -> UnitCost  $ negate unitcost `withPrecision` unitprecision
+        conversionprice
+          | isTargeted fromamount = TotalCost $ negate toamount
+          | otherwise = case filter (== acommodity fromamount) pcommodities of
+              [_] -> TotalCost $ negate toamount
+              _   -> UnitCost  $ negate unitcost `withPrecision` unitprecision
 
         unitcost     = aquantity fromamount `divideAmount` toamount
         unitprecision = case (asprecision $ astyle fromamount, asprecision $ astyle toamount) of
