@@ -7082,6 +7082,9 @@ Lot tracking can be enabled in two ways:
 
 A posting with any of these is called a lot posting.
 If you want a commodity tracked lotfully in only some accounts, use annotations rather than the `lots` tag.
+Or if it should be tracked everywhere except certain accounts (eg tax-sheltered accounts
+where cost basis doesn't matter), use the `lots` tag,
+and add a `lots: NONE` tag to those accounts' declarations to disable lot tracking there.
 
 The disposal order (AKA cost basis method - which lots are consumed first)
 is FIFO by default; or as set by a `lots` tag *value* on the commodity or account declaration
@@ -7220,7 +7223,18 @@ so it will infer cost basis annotations automatically, and you won't need to wri
 (The `lots` tag can optionally have a value, specifying the order for disposing lots,
 discussed later in [Cost basis methods](#cost-basis-methods).
 Note, account declarations can also have a `lots` tag, but there it does not declare lotfulness,
-only disposal order.)
+only disposal order; or, with the special value `NONE`, it disables lot tracking
+in that account and its subaccounts. Eg for a tax-sheltered account
+where cost basis is irrelevant:
+
+```journal
+account assets:ira      ; lots: NONE
+```
+
+Postings there are not lot-tracked and get no lot subaccounts or gain postings -
+unless they have explicit lot annotations, which always enable tracking.
+Moving a lotful commodity from a tracked account into such an account is a disposal;
+moving it out again needs a cost basis or price on the receiving posting.)
 
 ### Lot subaccounts
 

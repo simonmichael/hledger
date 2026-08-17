@@ -243,16 +243,31 @@ Commodities can be declared as lotful, by adding a "lots" tag to their declarati
 This signifies that their postings always involve a cost basis and lots, 
 so these should be inferred if not written explicitly.
 
-Lotfulness is a property of commodities only, not accounts: a commodity is
-lot-tracked everywhere or nowhere, so lots can't leak into untracked accounts.
-A "lots" tag on an account declaration does not declare lotfulness; it sets
-the account's reduction method (see below), and requires a method value
-(a valueless account lots: tag is an error, reported by journalCheckLotsTagValues).
-For tracking a commodity's lots in only some accounts, the recommended style is
-manual cost basis annotations with no lots tag. (A per-account opt-out such as
-`lots: none` was considered and deferred: it would serve only the
-tracked-everywhere-with-exceptions case, and can be added compatibly later if
-there is demand. See Roadmap.)
+Lotfulness is a property of commodities only, not accounts: an account
+"lots" tag cannot enable lot tracking. It can however *disable* it: the
+special value NONE (case insensitive) opts the account and its subaccounts
+out of lot tracking, eg for tax-sheltered accounts where cost basis is
+irrelevant. Any other value sets the account's reduction method (see
+below); a value is required (a valueless account lots: tag, or lots: NONE
+on a commodity declaration, is an error, reported by
+journalCheckLotsTagValues).
+
+Precedence is by specificity: a posting's explicit cost basis annotation
+beats the account opt-out (such postings are still lot-tracked), which
+beats the commodity's lots tag; and the nearest account declaration wins,
+so a subaccount can re-enable tracking with its own lots: method tag.
+Opted-out postings are invisible to lot classification and counterpart
+detection (`optedOut` in Lots.hs's classification, gain inference,
+auto-split, the unclassified-posting error, and the method coherence
+check all skip them). Consequences at the boundary: bare units moving
+from a tracked account into an opted-out one classify as a (priceless)
+disposal, leaving lot tracking like an in-kind donation; bare units
+moving the other way fail with the unclassified-posting error, since
+entering lot tracking requires a basis or price.
+
+For tracking a commodity's lots in only a few accounts (the inverse
+shape), the recommended style remains manual cost basis annotations with
+no lots tag.
 
 (In future, we may also recognise some common commodity symbols as lotful, even without the lots tag.)
 
@@ -328,7 +343,8 @@ These are classified regardless of account type:
 
 **3. Bare postings in lotful commodities on asset accounts (no cost basis).**
 These require an asset account type and a lotful commodity
-(commodity `lots:` tag). They are tried in this order:
+(commodity `lots:` tag), and the account must not have opted out of lot
+tracking with a `lots: NONE` tag. They are tried in this order:
 
 - **Negative lotful** →
   `transfer-from` if a counterpart (same commodity, exact quantity,
@@ -828,7 +844,7 @@ Post-balancing:
    acquire/dispose/transfer-from/transfer-to/gain.
 5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account
    declarations. On commodities an empty value is valid (lotful, default FIFO);
-   on accounts a reduction method value is required.
+   on accounts a reduction method value or NONE is required.
 6. **journalCheckLotsMethodCoherence** — reject a global (*ALL) reduction
    method mixed with any different method among the accounts holding a
    commodity (see Reduction methods).
@@ -972,14 +988,9 @@ A larger collection of example entries: <https://github.com/simonmichael/hledger
 
 Possible future work, from design discussions (2026-08):
 
-- **Per-account lot tracking opt-out.** The general model we are converging on
-  is "this commodity is lotful, except in these declared places". An account
-  tag value such as `lots: NONE` could opt an account (and its subaccounts)
-  out of lot tracking, for eg tax-sheltered accounts where basis is
-  irrelevant. Precedence by specificity: posting annotation beats account
-  opt-out beats commodity tag. Deferred until there is demand; meanwhile the
-  recommended style for partial tracking is explicit cost basis annotations
-  with no lots tag.
+- **Per-account lot tracking opt-out.** Implemented 2026-08: an account
+  `lots: NONE` tag opts the account and its subaccounts out of lot
+  tracking, with precedence by specificity (see Lotful commodities).
 
 - **Tax boundary declarations and checks.** Users could tag accounts as
   tax-sheltered (a jurisdiction-neutral, user-declared boundary, in the same

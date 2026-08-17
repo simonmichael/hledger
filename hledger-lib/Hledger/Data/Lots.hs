@@ -130,7 +130,7 @@ import Hledger.Data.AccountName (accountNameType, parentAccountNames)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
 import Hledger.Data.Amount (AmountFormat(..), amountRoundedQuantity, amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, maSum, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountOneLine, showMixedAmountsDistinctly)
 import Hledger.Data.Errors (makeAccountTagErrorExcerpt, makeCommodityTagErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt, transactionFindPostingIndex)
-import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapPostings, journalMapTransactions, journalPostings, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Journal (journalAccountType, journalAccountUsesNoLots, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapPostings, journalMapTransactions, journalPostings, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
 import Hledger.Data.Transaction (transactionCommodityStyles, txnTieKnot)
 import Hledger.Data.Types
@@ -183,13 +183,16 @@ journalCheckLotsMethodCoherence j = do
     Right j
   where
     -- The base accounts holding each lot-tracked commodity (postings with
-    -- a cost basis annotation or a lotful commodity).
+    -- a cost basis annotation, or a lotful commodity in an account that
+    -- hasn't opted out of lot tracking with lots: NONE).
     holdings :: M.Map CommoditySymbol (S.Set AccountName)
     holdings = M.fromListWith S.union
-      [ (acommodity a, S.singleton (lotBaseAccount (paccount p)))
+      [ (acommodity a, S.singleton acct)
       | p <- journalPostings j
+      , let acct = lotBaseAccount (paccount p)
       , a <- amountsRaw (pamount p)
-      , isJust (acostbasis a) || journalCommodityUsesLots j (acommodity a) ]
+      , isJust (acostbasis a)
+        || (journalCommodityUsesLots j (acommodity a) && not (journalAccountUsesNoLots j acct)) ]
 
     resolutions c accts = [ (acct, m, src)
                           | acct <- S.toList accts
@@ -488,12 +491,13 @@ journalClassifyLotPostings :: Bool -> Journal -> Journal
 journalClassifyLotPostings verbosetags j =
   journalMapTransactions
     ( txnTieKnot  -- retie the postings' transaction pointers (nothing else does after this)
-    . transactionClassifyLotPostings verbosetags lookupType commodityIsLotful
-    . transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful
+    . transactionClassifyLotPostings verbosetags lookupType commodityIsLotful accountUsesNoLots
+    . transactionAutoSplitFeeOutflows verbosetags lookupType commodityIsLotful accountUsesNoLots
     ) j
   where
     lookupType = journalAccountType j
     commodityIsLotful = journalCommodityUsesLots j
+    accountUsesNoLots = journalAccountUsesNoLots j
 
 -- | Detect a lot transfer with a fee - an unpriced negative lotful asset
 -- posting (bare in a lotful commodity, or carrying a cost basis annotation)
@@ -519,13 +523,18 @@ transactionAutoSplitFeeOutflows
   :: Bool
   -> (AccountName -> Maybe AccountType)
   -> (CommoditySymbol -> Bool)
+  -> (AccountName -> Bool)
   -> Transaction -> Transaction
-transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful t =
+transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful accountUsesNoLots t =
     t{tpostings = concatMap (\p -> fromMaybe [p] (trySplit p)) (tpostings t)}
   where
     ps = tpostings t
     isAsset    acct = maybe False isAssetType (lookupAccountType (lotBaseAccount acct))
     isNonAsset acct = not (isAsset acct)
+    -- An account with a lots: NONE tag doesn't participate in lot tracking,
+    -- unless the posting carries explicit cost basis annotations.
+    optedOut p = accountUsesNoLots (lotBaseAccount (paccount p))
+                 && not (any (isJust . acostbasis) (amountsRaw (pamount p)))
 
     -- Try to split posting p into [transferPortion, disposePortion].
     -- Requires: a single unpriced negative asset amount, either bare in a
@@ -535,6 +544,7 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
     trySplit p = do
       guard $ not (postingHasTag feesplitPostingTagName p)
       guard $ isAsset (paccount p)
+      guard $ not (optedOut p)
       [a] <- Just $ amountsRaw (pamount p)
       guard $ aquantity a < 0
            && (commodityIsLotful (acommodity a) || isJust (acostbasis a))
@@ -544,6 +554,7 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
           toQty   = sum [ aquantity pa
                         | q  <- ps
                         , isAsset (paccount q)
+                        , not (optedOut q)
                         , pa <- amountsRaw (pamount q)
                         , acommodity pa == comm
                         , aquantity pa > 0
@@ -587,8 +598,8 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
 --
 -- For more detail on classification rules, please see doc/SPEC-lots.md > Lot postings.
 --
-transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> (CommoditySymbol -> Bool) -> Transaction -> Transaction
-transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t@Transaction{tpostings=ps}
+transactionClassifyLotPostings :: Bool -> (AccountName -> Maybe AccountType) -> (CommoditySymbol -> Bool) -> (AccountName -> Bool) -> Transaction -> Transaction
+transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful accountUsesNoLots t@Transaction{tpostings=ps}
   | not (any hasLotRelevantAmount ps) && not (any isGainAcct ps)
     = lotDbg t "no lot-relevant amounts, skipping" t
   | otherwise = lotDbg t "classifying" $ t{tpostings=zipWith classifyAt [0..] ps}
@@ -598,8 +609,15 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                          result = any (isJust . acostbasis) amts
                      in dbg5 ("classifyLotPostings: hasCostBasis " ++ show (paccount p) ++ " amts=" ++ show (length amts)) result
 
+    -- An account with a lots: NONE tag doesn't participate in lot tracking:
+    -- its postings are not classified and are invisible to counterpart
+    -- detection - unless they carry explicit cost basis annotations
+    -- (the more specific declaration wins).
+    optedOut :: Posting -> Bool
+    optedOut p = accountUsesNoLots (lotBaseAccount (paccount p)) && not (hasCostBasis p)
+
     hasLotRelevantAmount :: Posting -> Bool
-    hasLotRelevantAmount p = isReal p && not (hasBalancerCopiedBasis p)
+    hasLotRelevantAmount p = isReal p && not (hasBalancerCopiedBasis p) && not (optedOut p)
       && (hasCostBasis p || hasNegativeLotfulAmount p || hasPositiveLotfulAmount p)
 
     hasNegativeLotfulAmount :: Posting -> Bool
@@ -655,6 +673,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
               | not (isReal p) = (neg, pos, noCB)  -- skip virtual postings
               | hasBalancerCopiedBasis p = (neg, pos, noCB)  -- skip balancer-copied basis annotations
               | i `S.member` sameAcctTransferSet = (neg, pos, noCB)  -- skip same-account transfer pairs
+              | optedOut p = (neg, pos, noCB)  -- skip lots: NONE accounts' postings
               | otherwise =
               let baseAcct = lotBaseAccount (paccount p)
                   isAsset  = maybe False isAssetType (lookupAccountType baseAcct)
@@ -716,6 +735,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
           | hasBalancerCopiedBasis p = (neg, pos)
           | i `S.member` sameAcctTransferSet = (neg, pos)
           | postingHasTag feesplitPostingTagName p = (neg, pos)
+          | optedOut p = (neg, pos)
           | otherwise = foldl' addAmt (neg, pos) amts
           where
             acct = lotBaseAccount (paccount p)
@@ -778,6 +798,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       -- zero exemption. (Eg a zero posting beside a transfer must not become
       -- a transfer-to via commodity matching.)
       guard $ any ((/= 0) . aquantity) amts
+      guard $ not (optedOut p)
       if any (isJust . acostbasis) amts
         -- Cost basis present: classify regardless of account type (fix A)
         then dbg5 ("classifyLotPostings: shouldClassify " ++ show (paccount p) ++ " withCostBasis") $
@@ -857,6 +878,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                 qBase = lotBaseAccount (paccount q)
             in qBase /= baseAcct
                && maybe False isAssetType (lookupAccountType qBase)
+               && not (optedOut q)
                && amountsAreLotful qAmts
                && any (\a -> aquantity a > 0 && acommodity a `S.member` negCommodities) qAmts
           -- Does a non-asset posting receive exactly this commodity+quantity?
@@ -1007,7 +1029,12 @@ journalAddGainOrUGainPosting verbosetags j = do
     -- (This is broader than "classified dispose" - it also matches transfer
     -- sources - but the case analysis below is a no-op for those.)
     hasDisposeShape p =
-      any (\a -> isNegativeAmount a && amountIsLotfulOrHasBasis a) (amountsRaw (pamount p))
+      any (\a -> isNegativeAmount a
+              && (isJust (acostbasis a)
+                  || (journalCommodityUsesLots j (acommodity a)
+                      -- lots: NONE accounts' bare postings aren't disposals
+                      && not (journalAccountUsesNoLots j (lotBaseAccount (paccount p))))))
+          (amountsRaw (pamount p))
     amountIsLotfulOrHasBasis a =
          isJust (acostbasis a)
       || journalCommodityUsesLots j (acommodity a)
@@ -1465,6 +1492,8 @@ isUnclassifiedLotfulPosting j p =
   && hasAmount p
   && not (isLotPosting p)
   && maybe False isAssetType (journalAccountType j (lotBaseAccount (paccount p)))
+  -- lots: NONE accounts' postings are exempt (not lot-tracked).
+  && not (journalAccountUsesNoLots j (lotBaseAccount (paccount p)))
   && hasNonzeroLotfulAmount
   -- Postings with balancer-copied basis annotations are deliberately left
   -- unclassified (see 'hasBalancerCopiedBasis'); the posting they mirror

@@ -71,6 +71,7 @@ data BalancingOpts = BalancingOpts
   , txn_balancing_         :: TransactionBalancingPrecision
   , account_types_         :: M.Map AccountName AccountType  -- ^ account type map, passed through for any balancing helpers that need it
   , lotful_commodities_    :: S.Set CommoditySymbol  -- ^ commodities declared lotful, used to guide balancing cost inference (when lots are enabled)
+  , account_lots_tags_     :: M.Map AccountName T.Text  -- ^ declared lots: tag values by account, used to detect lots: NONE opt-outs (when lots are enabled)
   , verbose_balancing_tags_        :: Bool  -- ^ should tags added by balancing helpers (eg lot fee splits) also be made visible in comments ?
   } deriving (Eq, Ord, Show)
 
@@ -82,6 +83,7 @@ defbalancingopts = BalancingOpts
   , txn_balancing_         = TBPExact
   , account_types_         = M.empty
   , lotful_commodities_    = S.empty
+  , account_lots_tags_     = M.empty
   , verbose_balancing_tags_        = False
   }
 
@@ -229,7 +231,8 @@ balanceTransactionHelperMaybeSplittingLotFees bopts t
       Left _      -> balanceTransactionHelper bopts t
   where
     lotfulcomms = lotful_commodities_ bopts
-    t2 = transactionAutoSplitFeeOutflows (verbose_balancing_tags_ bopts) (accountNameType (account_types_ bopts)) (`S.member` lotfulcomms) t
+    t2 = transactionAutoSplitFeeOutflows (verbose_balancing_tags_ bopts) (accountNameType (account_types_ bopts)) (`S.member` lotfulcomms)
+           (accountUsesNoLotsWith (account_lots_tags_ bopts)) t
 
 -- | Helper used by balanceSingleTransaction and balanceTransactionWithBalanceAssignmentAndCheckAssertionsB;
 -- use one of those instead.

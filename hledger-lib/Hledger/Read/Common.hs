@@ -369,6 +369,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       >>= (if auto_ && not (null $ jtxnmodifiers pj)
             then journalAddAutoPostings verbose_tags_ _ioDay                      -- add auto postings if enabled; does preliminary transaction balancing
                   balancingopts_{lotful_commodities_ = if checklots then journalLotfulCommodities pj else mempty
+                                ,account_lots_tags_ = if checklots then journalAccountLotsTags pj else mempty
                                 ,verbose_balancing_tags_ = verbose_tags_}
             else pure)
 
@@ -383,6 +384,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       >>= (\j -> journalBalanceTransactions                                                  -- infer balance assignments/amounts, maybe check balance assertions
             (balancingopts_{ignore_assertions_=not checkassertions, account_types_ = jaccounttypes j
                            ,lotful_commodities_ = if checklots then journalLotfulCommodities j else mempty
+                           ,account_lots_tags_ = if checklots then journalAccountLotsTags j else mempty
                            ,verbose_balancing_tags_ = verbose_tags_}) j)
 
       -- Lot classification

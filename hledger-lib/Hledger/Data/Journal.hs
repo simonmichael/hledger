@@ -46,6 +46,9 @@ module Hledger.Data.Journal (
   journalPostingsAddCommodityTags,
   journalInferPostingsTransactedCost,
   journalCommodityUsesLots,
+  journalAccountUsesNoLots,
+  journalAccountLotsTags,
+  accountUsesNoLotsWith,
   journalLotfulCommodities,
   journalCommodityLotsMethod,
   postingLotsMethod,
@@ -157,7 +160,7 @@ import Data.List (foldl')
 #endif
 import Data.List.Extra (nubSort)
 import Data.Map.Strict qualified as M
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, mapMaybe, maybeToList)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe, mapMaybe, maybeToList)
 import Data.Ord (comparing)
 import Data.Set qualified as S
 import Data.Text (Text)
@@ -733,6 +736,33 @@ journalLotfulCommodities :: Journal -> S.Set CommoditySymbol
 journalLotfulCommodities j@Journal{jdeclaredcommoditytags} =
   S.filter (journalCommodityUsesLots j) (M.keysSet jdeclaredcommoditytags)
 
+-- | The declared lots: tag values by account (the first value, if an
+-- account somehow has several).
+journalAccountLotsTags :: Journal -> M.Map AccountName Text
+journalAccountLotsTags Journal{jdeclaredaccounttags} =
+  M.mapMaybe (\tags -> listToMaybe [v | (k, v) <- tags, T.toLower k == "lots"]) jdeclaredaccounttags
+
+-- | Does this account opt out of lot tracking, via a NONE-valued lots: tag
+-- on its own or an ancestor's declaration ? The nearest declaration wins,
+-- so a subaccount can re-enable tracking with its own lots: method tag.
+-- Postings with explicit cost basis annotations are still lot-tracked
+-- regardless (the more specific declaration wins).
+journalAccountUsesNoLots :: Journal -> AccountName -> Bool
+journalAccountUsesNoLots = accountUsesNoLotsWith . journalAccountLotsTags
+
+-- | Like journalAccountUsesNoLots, but taking the 'journalAccountLotsTags'
+-- map (useful where no Journal is at hand, eg during balancing).
+accountUsesNoLotsWith :: M.Map AccountName Text -> AccountName -> Bool
+accountUsesNoLotsWith lotstags a =
+  case [v | a' <- a : parentAccountNames a, Just v <- [M.lookup a' lotstags]] of
+    (v:_) -> isNoneLotsTagValue v
+    []    -> False
+
+-- | Is this lots: tag value the special NONE value (case insensitive),
+-- valid on account declarations to opt out of lot tracking ?
+isNoneLotsTagValue :: Text -> Bool
+isNoneLotsTagValue v = T.toUpper (T.strip v) == "NONE"
+
 -- | Get the reduction method from a commodity's lots: tag value, if any.
 journalCommodityLotsMethod :: Journal -> CommoditySymbol -> Maybe ReductionMethod
 journalCommodityLotsMethod j c =
@@ -788,8 +818,19 @@ journalCheckLotsTagValues j = do
        "%s:%d:"
       ,"%s"
       ,"An account lots: tag sets the disposal order for lot-tracked commodities there,"
-      ,"so it needs a value, one of " ++ methods ++ "."
+      ,"so it needs a value, one of " ++ methods ++ ";"
+      ,"or NONE, to disable lot tracking in this account."
       ,"(A commodity lots: tag enables lot tracking, and can also set the disposal order.)"
+      ]
+
+    nonecommoditymsg :: String
+    nonecommoditymsg = unlines [
+       "%s:%d:"
+      ,"%s"
+      ,"lots: NONE is not supported on commodity declarations."
+      ,"To disable lot tracking of this commodity in particular accounts,"
+      ,"add a lots: NONE tag to those accounts' declarations instead;"
+      ,"to disable it everywhere, remove the commodity's lots: tag."
       ]
 
     checkCommodity (sym, tags) =
@@ -800,6 +841,7 @@ journalCheckLotsTagValues j = do
     checkCommodityTag comm (k, v)
       | T.toLower k /= "lots"       = Right ()
       | T.null (T.strip v)          = Right ()
+      | isNoneLotsTagValue v        = Left $ printf nonecommoditymsg f l ex
       | Just _ <- parseReductionMethod v = Right ()
       | otherwise = Left $ printf unrecognisedmsg f l ex (show v)
           where (f, l, _mcols, ex) = makeCommodityTagErrorExcerpt comm k
@@ -810,6 +852,7 @@ journalCheckLotsTagValues j = do
     checkAccountTag acctName adi (k, v)
       | T.toLower k /= "lots"       = Right ()
       | T.null (T.strip v)          = Left $ printf valuelessmsg f l ex
+      | isNoneLotsTagValue v        = Right ()
       | Just _ <- parseReductionMethod v = Right ()
       | otherwise = Left $ printf unrecognisedmsg f l ex (show v)
           where (f, l, _mcols, ex) = makeAccountTagErrorExcerpt (acctName, adi) k
