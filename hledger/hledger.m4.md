@@ -7041,8 +7041,6 @@ First, a quick glossary:
 
 (Since 1.99.1)
 
-Also known as Gain reporting.
-
 When you buy (acquire) some amount of an investment commodity (a lot),
 it can be important (depending on your local tax rules) 
 to keep track of its original cost and acquisition date (cost basis),
@@ -7052,7 +7050,7 @@ and document how you satisfied the rules about disposal order, short term vs lon
 
 For many kinds of investment, each individual lot has its own cost basis, 
 which must be tracked even if the lot is reduced, split up, or transferred.
-Also lots may need to be moved and disposed of in a prescribed order (*cost basis method*).
+Also lots may need to be moved and disposed of in a prescribed order.
 All this can be very hard to keep track of by hand, 
 so usually it is done by an investment broker, cryptocurrency exchange, or specialised tax software.
 Now, you can also do it yourself with hledger.
@@ -7073,14 +7071,17 @@ For a more technical version of what's in this manual, see [SPEC-lots](/SPEC-lot
 
 Lot tracking can be enabled in two ways:
 
-- *Per posting:* write [cost basis annotations](#cost-basis-annotations) (`{...}`) yourself.
-  Only annotated postings are tracked.
-  ([Lot subaccount](#lot-subaccounts) names in posting accounts also count as annotations.)
+- *Per posting:*
+  write explicit [curly-brace lot annotations](#cost-basis-annotations) like in Ledger or Beancount,
+  or write explicit [lot subaccount names](#lot-subaccounts).
+  Only these postings will be tracked lotfully.
+
 - *Per commodity:* declare the commodity lotful with a [`lots` tag](#lotful-commodities).
-  All of its postings are tracked, and the annotations are inferred for you.
+  All of its postings are tracked lotfully, and the annotations are inferred for you.
+  This is convenient, and recommended.
 
 A posting with any of these is called a lot posting.
-If you want a commodity tracked lotfully in only some accounts, use annotations rather than the commodity tag.
+If you want a commodity tracked lotfully in only some accounts, use annotations rather than the `lots` tag.
 
 The disposal order (AKA cost basis method - which lots are consumed first)
 is FIFO by default; or as set by a `lots` tag *value* on the commodity or account declaration
@@ -7215,8 +7216,10 @@ commodity AAPL          ; lots:
 This tells hledger that postings involving these commodities always involve lots,
 so it will infer cost basis annotations automatically, and you won't need to write them in the journal.
 
-(A `lots` tag can also appear on an account declaration, but there it does not declare lotfulness;
-it sets the account's [cost basis method](#cost-basis-methods), and requires a method value.)
+(The `lots` tag can optionally have a value, specifying the order for disposing lots,
+discussed later in [Cost basis methods](#cost-basis-methods).
+Note, account declarations can also have a `lots` tag, but there it does not declare lotfulness,
+only disposal order.)
 
 ### Lot subaccounts
 
