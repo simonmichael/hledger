@@ -951,12 +951,15 @@ journalAddGainOrUGainPosting verbosetags j = do
     -- 2. no rgain or ugain → defer to journalAddOrCheckGainPostings
     -- 3. rgain on type:G alone → infer balancing ugain posting
     -- 4. rgain on no type:G account → detect rgain postings heuristically and infer ugain posting
+    -- Only real postings are considered, here and in tryResidual: virtual
+    -- postings don't affect balancing and are ignored by the lot machinery,
+    -- so they must neither look like disposals nor count in the residual.
     infer t
-      | not (any hasDisposeShape (tpostings t))  = Right t
+      | not (any hasDisposeShape ps)             = Right t
       | any isRgain ps && any isUgain ps         = Right t                  -- 1
       | any isRgain ps                           = addCounter t (filter isRgain ps) ugainAccount "ugain"  -- 3
       | otherwise                                = tryResidual t            -- 2 or 4
-      where ps = tpostings t
+      where ps = filter isReal (tpostings t)
 
     addCounter t existing missingAcc ptypeTag
       | any (not . hasAmount) existing = Left (amountlessErr t)
@@ -975,22 +978,22 @@ journalAddGainOrUGainPosting verbosetags j = do
     -- (indicating that the transaction is balanced without them)
     -- or to a multi-commodity amount (which we leave the transaction balancer to deal with).
     tryResidual t
-      | any (not . hasAmount) ps = Right t  -- let balancer handle
-      | null rgainCandidates     = Right t  -- no candidate: defer
-      | not shouldInsert         = Right t  -- imbalance isn't pure gain: defer
-      | otherwise                = Right $ txnTieKnot t{tpostings = ps' ++ [ugainP]}
+      | any (not . hasAmount) realps = Right t  -- let balancer handle
+      | null rgainCandidates         = Right t  -- no candidate: defer
+      | not shouldInsert             = Right t  -- imbalance isn't pure gain: defer
+      | otherwise                    = Right $ txnTieKnot t{tpostings = ps' ++ [ugainP]}
       where
-        ps = tpostings t
-        (rgainCandidates, nonCandidates) = partition isRgainCandidate ps
+        realps = filter isReal (tpostings t)
+        (rgainCandidates, nonCandidates) = partition isRgainCandidate realps
         nonCandResidual = foldMap (mixedAmountCost . pamount) nonCandidates
         nonCandCommodities = filter (not . isZeroAmount) (amountsRaw nonCandResidual)
         shouldInsert =
              mixedAmountIsZero nonCandResidual            -- well-formed disposal: net zero
           || length nonCandCommodities >= 2               -- multi-commodity: cost inference will resolve
         isZeroAmount a = aquantity a == 0
-        ps' = map tagCandidate ps
+        ps' = map tagCandidate (tpostings t)
         tagCandidate p
-          | isRgainCandidate p = postingAddHiddenAndMaybeVisibleTag True verbosetags (toHiddenTag ("ptype", "rgain")) p
+          | isReal p && isRgainCandidate p = postingAddHiddenAndMaybeVisibleTag True verbosetags (toHiddenTag ("ptype", "rgain")) p
           | otherwise = p
         sumCand = foldMap pamount rgainCandidates
         ugainP = mkGeneratedGainPosting verbosetags ugainAccount (maNegate sumCand) "ugain"

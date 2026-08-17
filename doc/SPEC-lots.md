@@ -611,6 +611,11 @@ Styles are listed in the same order as the manual, from implicit to explicit.
   transacted price), the transaction balancer fills in a balancing `@` price from the
   non-gain postings; the gain check then proceeds as above.
 
+  Virtual (parenthesised) postings are ignored throughout this gain
+  inference, as they are by the transaction balancer and the lot
+  classifier: they neither make an entry look like a disposal nor
+  count in the residual sums.
+
 3. **Only rgain written, using a type:G account.**
   hledger identifies the rgain posting by the type:G account,
   and infers a balancing ugain posting. The gain amount must be written explicitly, and is checked.

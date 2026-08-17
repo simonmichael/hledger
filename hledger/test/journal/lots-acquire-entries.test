@@ -243,3 +243,24 @@ $ hledger -f- print --lots --verbose-tags
     assets:cash                                $-250
 
 >=
+
+# *** 18. An acquire entry with an unbalanced virtual posting in the lotful
+# commodity: virtual postings don't trigger gain inference (which would
+# add a spurious ugain posting, unbalancing the entry). The real posting
+# is a normal acquire, and the entry balances within display precision.
+<
+commodity $0.00
+commodity 0.00000000 A    ; lots:
+
+2017-12-01
+    (assets:cc:receivable)     A -0.22211127
+    assets:cc                   A 0.22211127 @ $3923.07
+    revenues:cc               $-871.36
+
+$ hledger -f- print -a
+2017-12-01
+    (assets:cc:receivable)                        -0.22211127 A
+    assets:cc:{2017-12-01, $3923.07}               0.22211127 A {$3923.07} @ $3923.07  ; ptype: acquire
+    revenues:cc                                $-871.36
+
+>=
