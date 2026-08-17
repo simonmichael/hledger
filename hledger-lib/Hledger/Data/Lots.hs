@@ -1731,10 +1731,13 @@ groupIndexedTransferPostings t froms tos = do
             Left $ showPos ++ "Mismatched transfer quantities for lot-tracked commodity " ++ T.unpack comm
                        ++ ": " ++ show fromTotal ++ " transferred out but "
                        ++ show toTotal ++ " received.\n"
-                       ++ "If the difference is a fee, you can either\n"
-                       ++ "- split the sending posting into a transfer part and a fee part\n"
-                       ++ "  matching the fee expense\n"
-                       ++ "- or record the fee expense in the lot-tracked commodity."
+                       ++ if toTotal > fromTotal
+                          then "More was received than sent, which a fee can't explain;\n"
+                            ++ "check the entry for sign errors or rounding adjustments."
+                          else "If the difference is a fee, you can either\n"
+                            ++ "- split the sending posting into a transfer part and a fee part\n"
+                            ++ "  matching the fee expense\n"
+                            ++ "- or record the fee expense in the lot-tracked commodity."
           Right (comm, sortOn postingSortKey fs, sortOn postingSortKey ts)
 
 -- | Extract a per-unit cost Amount from an AmountCost, normalising TotalCost by quantity.

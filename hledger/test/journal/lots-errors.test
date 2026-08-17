@@ -268,3 +268,30 @@ to add up. If the difference is a fee, you can either
 - or record the fee expense in the lot-tracked commodity.
 (Lot processing can be disabled with --ignore-lots.)
 >=1
+
+# ** 16. A balanced transfer-like entry where more of the lotful commodity is
+# received than sent (eg sign errors or rounding-patched imported data) gets a
+# direction-aware hint, since a fee can't explain that direction.
+<
+commodity ABC ; lots:
+
+2020-03-08 buy
+     assets:cash        -$10
+     assets:broker1      5 ABC
+
+2020-04-05 transfer, more received than sent
+     assets:broker1     -4.9 ABC
+     expenses:fees      -0.1 ABC
+     assets:broker2      5 ABC
+
+$ hledger -f- bal --lots 2>&1
+hledger: Error: -:7:
+7 | 2020-04-05 transfer, more received than sent
+  |     assets:broker1                                -4.9 ABC
+  |     expenses:fees                                 -0.1 ABC
+  |     assets:broker2                                 5 ABC
+
+Mismatched transfer quantities for lot-tracked commodity ABC: 4.9 transferred out but 5 received.
+More was received than sent, which a fee can't explain;
+check the entry for sign errors or rounding adjustments.
+>=1
