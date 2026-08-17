@@ -7541,6 +7541,11 @@ across acquisitions.
 The average cost can best be seen with `print -x`, currently;
 in disposal postings it is visible in the cost basis annotations and inferred gain amounts.
 (`print -x` shows acquire postings with their acquisition cost basis, not the average.)
+Transferring lots into an average-cost account recalculates the pool's
+average, just like an acquisition at the transferred lots' cost;
+transferring lots out carries the pool's average cost with them.
+Note averaging loses information: a lot's original cost
+cannot be recovered by transferring it back out of the pool.
 
 All of these methods select lots from the account mentioned in the posting.
 But the **\*ALL** variants (FIFOALL, LIFOALL, HIFOALL) additionally validate

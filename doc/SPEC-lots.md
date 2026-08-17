@@ -535,6 +535,26 @@ The pool's running cost is surfaced on disposal postings (where the user
 wrote `{}` and the system fills in the lot's stored cost) and on
 realised-gain calculations (e.g. via `bal -B`).
 
+Transfers interact with AVERAGE pools like this:
+
+- A transfer out of a pool carries the pooled cost, and (like disposal)
+  does not change the remaining pool's running cost.
+- A transfer into a pool re-averages it, exactly like an acquisition at the
+  carried cost; all pool lots' stored costs, including the incoming lot's,
+  are rewritten to the new average (`addTransferredLot` calls
+  `updatePoolOnAcquire`). Under AVERAGEALL this is a no-op: the lot never
+  leaves the global pool, so the carried cost equals the pool cost.
+- Pooling is lossy: original lot identity (cost) cannot be reconstructed on
+  transfer back out; only the date and label survive.
+- The displayed transfer fragments keep the carried (source) cost on both
+  sides, matching each other (the same convention as acquisitions, which
+  display the user's literal cost); the destination's post-merge average
+  lives in lot state and appears on later disposals. Fragment lot
+  subaccount names follow each side's own method (costless under AVERAGE).
+- A cost written in a transfer-to annotation into an AVERAGE account is not
+  validated against the source lot's cost (the pool's running cost
+  legitimately differs); date and label are still validated.
+
 ## Lot transactions
 
 Lot transactions are transactions with lot postings.
@@ -955,13 +975,14 @@ Possible future work, from design discussions (2026-08):
   price on the outgoing posting to get that today). The same declaration could
   drive the lot-tracking opt-out above, and scope pooling (below).
 
-- **AVERAGE vs transfers.** A transfer into an account using the AVERAGE
-  method currently keeps the incoming lot's own basis, silently violating the
-  pool's single-shared-cost invariant (verified 2026-08-17); a later disposal
-  uses the un-pooled basis. Spec decision needed: a transfer-in should
-  probably re-average the pool like an acquisition at the carried basis, and
-  a transfer-out should carry the pooled cost. Also document that pooling is
-  lossy: original lot identity cannot be reconstructed on the way out.
+- **AVERAGE round trip.** `print --lots` output for AVERAGE accounts is not
+  re-readable: the costless lot subaccount names it emits (`{2026-01-15}`)
+  are rejected on re-read ("lot subaccount name must contain a date and
+  cost"). Either accept date-only lot subaccount names when the account's
+  method is AVERAGE, or omit lot subaccounts from AVERAGE print output.
+  (The AVERAGE-vs-transfers item previously here was implemented 2026-08:
+  transfers in re-average the pool, transfers out carry the pooled cost;
+  see "Reduction methods".)
 
 - **Method coherence checks.** The local methods (FIFO, LIFO, HIFO, SPECID)
   govern reduction order within one account and are safe to mix per account.

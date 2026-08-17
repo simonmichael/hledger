@@ -551,3 +551,165 @@ $ hledger -f- print --lots -x
 
 >=
 
+
+# ** 23. A transfer into an AVERAGE account re-averages the pool, like an
+# acquisition at the carried cost: (10x$20 + 10x$10)/20 = $15. The later
+# disposal's gain proves the pooled cost (5 x ($30-$15) = $75), and the
+# destination lot subaccounts are costless as usual under AVERAGE.
+<
+commodity A  ; lots:
+account assets:avg  ; lots: AVERAGE
+
+2026-01-01 buy in fifo account
+    assets:x    10 A {$10}
+    assets:cash
+
+2026-02-01 buy in average account
+    assets:avg   10 A {$20}
+    assets:cash
+
+2026-03-01 transfer fifo account to average account
+    assets:x    -10 A
+    assets:avg   10 A
+
+2026-04-01 sell from average account
+    assets:avg  -5 A {} @ $30
+    assets:cash  $150
+
+$ hledger -f- bal --lots
+                 5 A  assets:avg:{2026-01-01}
+                10 A  assets:avg:{2026-02-01}
+               $-150  assets:cash
+                 $75  equity:unrealised-gain
+                $-75  revenues:gain
+--------------------
+               $-150
+                15 A  
+
+# ** 24. A transfer out of an AVERAGE pool carries the pooled cost ($20)
+# into the destination account, and leaves the remaining pool's running
+# cost unchanged: both later disposals have gain 5 x ($50-$20) = $150.
+<
+commodity A  ; lots:
+account assets:avg  ; lots: AVERAGE
+
+2026-01-01 buy
+    assets:avg   10 A {$10}
+    assets:cash
+
+2026-02-01 buy
+    assets:avg   10 A {$30}
+    assets:cash
+
+2026-03-01 transfer out of the pool
+    assets:avg   -5 A {}
+    assets:fifo    5 A
+
+2026-04-01 sell from the fifo account
+    assets:fifo  -5 A {} @ $50
+    assets:cash  $250
+
+2026-05-01 sell from the pool
+    assets:avg   -5 A {} @ $50
+    assets:cash  $250
+
+$ hledger -f- bal --lots
+                10 A  assets:avg:{2026-02-01}
+                $100  assets:cash
+                $300  equity:unrealised-gain
+               $-300  revenues:gain
+--------------------
+                $100
+                10 A  
+
+# ** 25. print --lots -x of a transfer into an AVERAGE account: both
+# fragments show the carried (source) cost; the source subaccount keeps its
+# cost, the destination subaccount is costless. (The post-merge pool cost
+# lives in lot state and appears on later disposals.)
+<
+commodity A  ; lots:
+account assets:avg  ; lots: AVERAGE
+
+2026-01-01 buy in fifo account
+    assets:x    10 A {$10}
+    assets:cash
+
+2026-02-01 buy in average account
+    assets:avg   10 A {$20}
+    assets:cash
+
+2026-03-01 transfer fifo account to average account
+    assets:x    -10 A
+    assets:avg   10 A
+
+$ hledger -f- print --lots -x
+2026-01-01 buy in fifo account
+    assets:x:{2026-01-01, $10}                    10 A {$10} @ $10
+    assets:cash                                $-100
+
+2026-02-01 buy in average account
+    assets:avg:{2026-02-01}                       10 A {$20} @ $20
+    assets:cash                                $-200
+
+2026-03-01 transfer fifo account to average account
+    assets:x:{2026-01-01, $10}                   -10 A {2026-01-01, $10}
+    assets:avg:{2026-01-01}                       10 A {2026-01-01, $10}
+
+>=
+
+# ** 26. A cost in a transfer-to annotation into an AVERAGE account is not
+# required to match the source lot's cost (the pool's running cost
+# legitimately differs); date and label must still match.
+<
+commodity A  ; lots:
+account assets:avg  ; lots: AVERAGE
+
+2026-01-01 buy in fifo account
+    assets:x    10 A {$10}
+    assets:cash
+
+2026-02-01 buy in average account
+    assets:avg   10 A {$20}
+    assets:cash
+
+2026-03-01 transfer, destination annotation with a different cost
+    assets:x    -10 A {2026-01-01, $10}
+    assets:avg   10 A {2026-01-01, $15}
+
+$ hledger -f- bal --lots -N
+                10 A  assets:avg:{2026-01-01}
+                10 A  assets:avg:{2026-02-01}
+               $-300  assets:cash
+
+# ** 27. AVERAGEALL: a transfer between accounts within the global pool
+# does not change the shared cost ($60); the later disposal's gain is
+# 5 x ($70-$60) = $50.
+<
+commodity AAPL  ; lots: AVERAGEALL
+
+2026-01-15 buy
+    assets:broker1    10 AAPL {$40}
+    assets:checking
+
+2026-02-01 buy
+    assets:broker2    10 AAPL {$80}
+    assets:checking
+
+2026-03-01 transfer within the global pool
+    assets:broker1   -10 AAPL {}
+    assets:broker2    10 AAPL
+
+2026-04-01 sell
+    assets:broker2    -5 AAPL {} @ $70
+    assets:cash       $350
+
+$ hledger -f- bal --lots
+              5 AAPL  assets:broker2:{2026-01-15}
+             10 AAPL  assets:broker2:{2026-02-01}
+                $350  assets:cash
+              $-1200  assets:checking
+                 $50  equity:unrealised-gain
+                $-50  revenues:gain
+--------------------
+               $-850
+             15 AAPL  

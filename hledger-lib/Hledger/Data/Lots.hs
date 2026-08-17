@@ -2070,7 +2070,8 @@ processTransferGroup styles verbosetags j t lotState0 (commodity, ifroms, itos) 
       where
         mk (lotId, storedAmt, qty) = do
           lotCb <- lotCbOf lotId storedAmt
-          let lotName = showLotName (styleLotCbCost styles lotCb)
+          let (fromMethod, _) = resolveReductionMethodWithSource j fromP commodity
+              lotName = showLotNameForMethod fromMethod (styleLotCbCost styles lotCb)
               -- Use base accounts to avoid double-appending lot subaccounts.
               fromAcct = lotBaseAccount (paccount fromP) <> ":" <> lotName
               fromAmt' = (amountSetQuantity (negate qty) fromAmt){acostbasis = Just lotCb}
@@ -2093,21 +2094,22 @@ processTransferGroup styles verbosetags j t lotState0 (commodity, ifroms, itos) 
                    [(_, cb)] -> Just cb
                    _         -> Nothing
           (portions, queue') = drawFromQueue toQty queue
+          (toMethod, _) = resolveReductionMethodWithSource j toP commodity
+          toBaseAcct = lotBaseAccount (paccount toP)
       when (sum [qty | (_, _, qty, _) <- portions] /= toQty) $
         Left $ showPos ++ "could not distribute transferred lots exactly (internal error)"
-      toPs <- mapM (mkToPosting toP toCb) portions
-      let toBaseAcct = lotBaseAccount (paccount toP)
-          st' = foldl' (addTransferredLot toBaseAcct) st
-                       [(lid, amt, qty) | (lid, amt, qty, _) <- portions]
+      toPs <- mapM (mkToPosting toMethod toP toCb) portions
+      st' <- foldM (addTransferredLot toMethod toBaseAcct) st
+                   [(lid, amt, qty) | (lid, amt, qty, _) <- portions]
       return $ lotDbg t ("transferred in " ++ show toQty ++ " " ++ T.unpack commodity
                           ++ " to " ++ T.unpack toBaseAcct)
              (st', (i, preserveParentAssertion verbosetags (paccount toP) (pbalanceassertion toP) (tagIfMulti toPs)) : acc, queue')
 
-    mkToPosting toP toCb (lotId, storedAmt, qty, fromAmt) = do
+    mkToPosting toMethod toP toCb (lotId, storedAmt, qty, fromAmt) = do
       lotCb <- lotCbOf lotId storedAmt
       -- Validate transfer-to cost basis if it has specific fields
-      validateToCb toCb lotCb
-      let lotName = showLotName (styleLotCbCost styles lotCb)
+      validateToCb toMethod toCb lotCb
+      let lotName = showLotNameForMethod toMethod (styleLotCbCost styles lotCb)
           toAcct = lotBaseAccount (paccount toP) <> ":" <> lotName
           toAmt' = (amountSetQuantity qty fromAmt){acostbasis = Just lotCb}
       Right toP{ paccount = toAcct
@@ -2149,8 +2151,11 @@ processTransferGroup styles verbosetags j t lotState0 (commodity, ifroms, itos) 
     -- If the transfer-to posting has any attributes specified in a lot annotation,
     -- make sure they correspond to the source lot's attributes.
     -- Transfers are not allowed to change a lot's identity.
-    validateToCb Nothing _ = Right ()
-    validateToCb (Just toCb') lotCb =
+    -- Under an AVERAGE destination method the cost check is skipped:
+    -- the pool's running cost legitimately differs from any written cost
+    -- (cf mergeCostBasisForMethod).
+    validateToCb _ Nothing _ = Right ()
+    validateToCb method (Just toCb') lotCb =
         when (dateMismatch || labelMismatch || costMismatch) $
           Left $ showPos <> unlines
             ["Destination lot info " <> T.unpack (showLotName toCb') <> " does not match the source lot " <> T.unpack (showLotName lotCb) <> "."
@@ -2165,14 +2170,29 @@ processTransferGroup styles verbosetags j t lotState0 (commodity, ifroms, itos) 
         labelMismatch = case cbLabel toCb' of
           Just l  -> cbLabel lotCb /= Just l
           Nothing -> False
-        costMismatch  = case (cbCost toCb', cbCost lotCb) of
-          (Just c, Just lc) -> not (lotCostsMatch c lc)
-          _                 -> False
+        costMismatch  = not (methodIsAverage method) &&
+          case (cbCost toCb', cbCost lotCb) of
+            (Just c, Just lc) -> not (lotCostsMatch c lc)
+            _                 -> False
 
     -- Re-add a transferred lot to LotState under the destination account.
-    addTransferredLot destAcct ls (lotId, storedAmt, consumedQty) =
-      let amt = storedAmt{aquantity = consumedQty}
-      in addLotState commodity lotId destAcct amt ls
+    -- If the destination uses an AVERAGE method, first re-average its pool
+    -- with the incoming quantity at its carried cost, like an acquisition;
+    -- the incoming lot is then stored at the new pool cost. (Under
+    -- AVERAGEALL this is a no-op: the lot never left the global pool, so
+    -- the carried cost equals the pool cost.)
+    addTransferredLot method destAcct ls (lotId, storedAmt, consumedQty)
+      | methodIsAverage method = do
+          lotCb <- lotCbOf lotId storedAmt
+          carried <- maybe (Left $ showPos ++ "lot " ++ show lotId
+                              ++ " has no carried cost (internal error)") Right (cbCost lotCb)
+          (newAvg, ls') <- updatePoolOnAcquire showPos (methodIsGlobal method)
+                             destAcct commodity consumedQty carried ls
+          let amt = storedAmt{aquantity = consumedQty, acostbasis = Just lotCb{cbCost = Just newAvg}}
+          Right $ addLotState commodity lotId destAcct amt ls'
+      | otherwise =
+          let amt = storedAmt{aquantity = consumedQty}
+          in Right $ addLotState commodity lotId destAcct amt ls
 
 -- Lot state operations
 
