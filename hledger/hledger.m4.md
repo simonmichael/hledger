@@ -7088,8 +7088,9 @@ is FIFO by default; or as set by a `lots` tag *value* on the commodity or accoun
 (account wins), eg `lots: LIFO`; or chosen explicitly per disposal with a lot selector.
 See [Cost basis methods](#cost-basis-methods).
 
-Sometimes you may want to disable lots/gains calculations, and silence lot-related errors.
-Eg if you are working with incomplete journals, as when piping hledger print output into another hledger command.
+Sometimes you may want to disable lots/gains processing,
+to silence lot-related errors when you are working with incomplete journals
+(eg, when piping hledger print into another hledger command).
 For this, use the `--ignore-lots` flag, or just `-I`.
 
 ## First lots example
