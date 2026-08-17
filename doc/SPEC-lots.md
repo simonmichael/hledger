@@ -321,9 +321,12 @@ These require an asset account type and a lotful commodity or account
 
 - **Negative lotful** →
   `transfer-from` if a counterpart (same commodity, exact quantity,
-  different account) exists, or if another asset account in the same
-  transaction receives a positive lotful amount of the same commodity
-  (transfer+fee pattern, where source qty > dest qty due to fees).
+  different account) exists, or if the posting has no transacted price
+  and another asset account in the same transaction receives a positive
+  lotful amount of the same commodity (transfer+fee pattern, where
+  source qty > dest qty due to fees; a transacted price signals dispose
+  intent, eg an explicit priced fee disposal written alongside a matched
+  transfer pair).
   Otherwise `dispose` if the posting has a transacted price.
 
 - **Positive lotful, no price, with transfer-from counterpart** →

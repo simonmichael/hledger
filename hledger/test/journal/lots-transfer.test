@@ -1013,3 +1013,30 @@ $ hledger -f- print --verbose-tags date:2026-02
     expenses:fees                                 $2
 
 >=
+
+# ** 44. An explicit priced fee disposal written alongside a matched
+# transfer pair (fee paid in cash) classifies as a dispose, not as part of
+# the transfer: the transacted price signals dispose intent, so the
+# other-asset-receives transfer+fee heuristic does not apply. #2692
+<
+commodity ABC ; lots:
+
+2020-03-08 buy
+     assets:cash        -$10
+     assets:broker1      5 ABC @ $2
+
+2020-04-05 transfer, with fee disposed at a price
+     assets:broker1     -4.9 ABC
+     assets:broker2      4.9 ABC
+     assets:broker1      -0.1 ABC @@ $1
+     expenses:fees       $1
+$ hledger -f- print -a date:2020-04
+2020-04-05 transfer, with fee disposed at a price
+    assets:broker1:{2020-03-08, $2}               -4.9 ABC {2020-03-08, $2}  ; ptype: transfer-from
+    assets:broker2:{2020-03-08, $2}                4.9 ABC {2020-03-08, $2}  ; ptype: transfer-to
+    assets:broker1:{2020-03-08, $2}               -0.1 ABC {2020-03-08, $2} @@ $1  ; ptype: dispose
+    expenses:fees                                 $1
+    revenues:gain                                $-0.80  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                        $0.80  ; ptype: ugain, generated-posting:
+
+>=

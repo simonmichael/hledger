@@ -803,7 +803,10 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                && any (\a -> aquantity a > 0
                           && any (\na -> acommodity na == acommodity a
                                       && abs (aquantity na) == aquantity a) negAmts) qAmts
-      if isTransfer || (otherAssetReceives && not hasFeeCounterpart)
+      -- The other-asset-receives heuristic (transfer+fee pattern) applies only
+      -- to unpriced postings: a transacted price signals dispose intent, eg an
+      -- explicit priced fee disposal written alongside a matched transfer pair.
+      if isTransfer || (otherAssetReceives && not hasFeeCounterpart && not hasPrice)
         then return "transfer-from"
         else do
           guard $ hasPrice || hasFeeCounterpart || not otherAssetReceives
