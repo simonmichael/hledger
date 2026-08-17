@@ -201,9 +201,10 @@ $  printf '[alias]\nm = balance\n  --tree\nn = accounts\n' >$$.conf; printf '202
 a:x
 b
 
-# ** 31. The removed [alias NAME] section form is rejected with a migration hint.
+# ** 31. The old [alias NAME] section form (removed) defines no alias; like any
+# unrecognised section, it is ignored.
 $  printf '[alias foo] run\n-- echo hi\n' >$$.conf; hledger --conf $$.conf foo; s=$?; rm -f $$.conf; exit $s
->2 /the \[alias NAME\] section form has been removed/
+>2 /command foo is not recognised/
 >= 1
 
 # ** 32. A successful shell alias does not end a run sequence; later commands still run.

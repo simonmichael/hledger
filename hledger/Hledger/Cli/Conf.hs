@@ -33,7 +33,6 @@ import Control.Exception (handle)
 import Control.Monad (void, forM, guard)
 import Control.Monad.Identity (Identity)
 import Data.Functor ((<&>))
-import Data.List (isPrefixOf)
 import Data.Map qualified as M
 import Data.Maybe (catMaybes)
 import Data.Text (Text)
@@ -130,12 +129,6 @@ confAliasesE conf@Conf{confSections} = concat <$> mapM sectionaliases confSectio
   where
     sectionaliases ConfSection{csName, csArgs}
       | csName `elem`["alias", "aliases"] = mapM aliasline csArgs
-      -- The old [alias NAME] section form has been removed; point the user to the new form.
-      | "alias " `isPrefixOf` csName, (lnum,l):_ <- csArgs =
-          Left $ confErrorAt conf lnum l
-            "the [alias NAME] section form has been removed;\n\
-            \define aliases in an [alias] section as: NAME = COMMAND [ARGS...]\n\
-            \(a value may continue on the following, more-indented lines)"
       | otherwise = Right []
     aliasline (lnum, l) = case break (=='=') l of
       (name, '=':cmdline) | not $ null $ strip name -> Right (strip name, strip cmdline)
