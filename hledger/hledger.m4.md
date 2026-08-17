@@ -7412,6 +7412,19 @@ The fee's disposal selects lots before the transfer does, using the
 method, the fee consumes the oldest lots and the transfer carries the rest.
 `print --lots` (or `print -a`) shows the split form explicitly, so the output round-trips correctly.
 
+Conversely, if the destination receives *more* than the source sends
+(eg a reclaimed fee, or dust from a past bookkeeping error), a fee can't explain that,
+and the extra should be recorded as its own acquisition:
+give it a real or dummy cost basis (or price) annotation, which keeps it out of the transfer matching. Eg:
+
+```journal
+2026-05-01 transfer, plus a reclaimed fee
+    assets:broker      -10 ETH
+    assets:broker2      10 ETH
+    expenses:fees   -0.001 ETH
+    assets:broker2   0.001 ETH {$0}
+```
+
 hledger does not automatically capitalise fees into cost basis
 (as some tax treatments allow, for purchase or transfer fees).
 To capitalise an acquisition fee, fold it into the acquisition cost:
