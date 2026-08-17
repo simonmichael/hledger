@@ -488,9 +488,10 @@ is skipped when:
   Formerly, a from>to quantity difference was consumed from the source silently (an
   implicit fee disposal); that is now handled only by the explicit fee auto-split -
   see "Auto-splitting lot transfer fees" below - which requires the fee recorded as
-  its own posting with the exact fee quantity, and produces an explicit dispose
-  portion. Patterns auto-split doesn't detect (eg a fee split across multiple
-  postings) are errors suggesting that form.
+  non-asset posting(s) in the same commodity adding up to the exact fee quantity,
+  and produces explicit dispose portion(s). Patterns auto-split doesn't detect
+  (eg fee postings not summing to the missing quantity) are errors suggesting
+  that form.
 
 - An equity transfer is a variant of a lot transfer that happens in two parts across
   separate transactions (e.g. a closing transaction transfers lots into equity, and an
@@ -883,17 +884,20 @@ pattern and rewrites it into explicit transfer + disposal postings.
 If a transaction has an unpriced negative lotful asset posting (bare in a
 lotful commodity, or carrying a cost basis annotation) whose absolute
 quantity exceeds the unpriced positive quantity received by asset accounts
-by some amount, and a non-asset posting (typically an expense) in the same
-commodity matches that excess, the negative posting is split into two:
+by some amount, and non-asset posting(s) (typically expenses) in the same
+commodity account for that excess - either a single posting matching it
+exactly, or otherwise all of the positive ones summing to it exactly -
+the negative posting is split:
 
 - a transfer portion with the matching positive quantity, and
-- a dispose portion with the excess quantity. If the fee counterpart has a
-  transacted price (`@`/`@@`), the dispose portion carries it and a gain is
-  calculated; otherwise the dispose portion is priceless - lots are still
-  reduced, but no gain is calculated (as with any priceless bare disposal).
+- a dispose portion per fee counterpart, with that counterpart's quantity.
+  If the fee counterpart has a transacted price (`@`/`@@`), its dispose
+  portion carries it and a gain is calculated; otherwise the dispose portion
+  is priceless - lots are still reduced, but no gain is calculated (as with
+  any priceless bare disposal).
 
 Any balance assertion on the original posting is kept only on the dispose
-portion, which is posted last, so it is still checked after the full original
+portion posted last, so it is still checked after the full original
 quantity.
 
 During lot calculation, the fee's dispose portion selects lots *before* the

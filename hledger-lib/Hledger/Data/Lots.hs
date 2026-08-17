@@ -536,10 +536,10 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
     optedOut p = accountUsesNoLots (lotBaseAccount (paccount p))
                  && not (any (isJust . acostbasis) (amountsRaw (pamount p)))
 
-    -- Try to split posting p into [transferPortion, disposePortion].
+    -- Try to split posting p into a transfer portion and dispose portion(s).
     -- Requires: a single unpriced negative asset amount, either bare in a
-    -- lotful commodity or carrying a cost basis annotation, with a matching
-    -- non-asset counterpart. Positive postings naturally exclude p itself.
+    -- lotful commodity or carrying a cost basis annotation, with matching
+    -- non-asset counterpart(s). Positive postings naturally exclude p itself.
     -- Fee fragments from an earlier split (during balancing) are left alone.
     trySplit p = do
       guard $ not (postingHasTag feesplitPostingTagName p)
@@ -562,27 +562,37 @@ transactionAutoSplitFeeOutflows verbosetags lookupAccountType commodityIsLotful 
                         ]
           feeQty  = fromQty - toQty
       guard $ toQty > 0 && feeQty > 0
-      feeMAcost <- findFeeCounterpart comm feeQty
+      feeAmts <- findFeeCounterparts comm feeQty
       let origP = originalPosting p
           p1    = p{ pamount = mixedAmount (amountSetQuantity (negate toQty)  a)
                    , poriginal = Just origP
                    , pbalanceassertion = Nothing }
-          p2    = addTag feesplitPostingTagName
+          -- Any balance assertion is kept only on the last portion posted.
+          mkFeePart islast fa
+                = addTag feesplitPostingTagName
                 $ addTag generatedPostingTagName
-                $ p{ pamount = mixedAmount (amountSetQuantity (negate feeQty) a){ acost = feeMAcost }
-                   , poriginal = Just origP }
-      Just [p1, p2]
+                $ p{ pamount = mixedAmount (amountSetQuantity (negate (aquantity fa)) a){ acost = acost fa }
+                   , poriginal = Just origP
+                   , pbalanceassertion = if islast then pbalanceassertion p else Nothing }
+          n = length feeAmts
+      Just (p1 : [mkFeePart (i == n) fa | (i, fa) <- zip [1..] feeAmts])
 
     addTag name = postingAddHiddenAndMaybeVisibleTag False verbosetags (name, "")
 
-    -- Find the first non-asset counterpart posting with the given commodity
-    -- and quantity, and return its transacted cost if it has one.
-    findFeeCounterpart comm qty = listToMaybe
-      [ acost pa
-      | q  <- ps, isNonAsset (paccount q)
-      , pa <- amountsRaw (pamount q)
-      , acommodity pa == comm, aquantity pa == qty
-      ]
+    -- Find non-asset counterpart posting amounts accounting for the given
+    -- fee quantity in the given commodity: the first single amount equal to
+    -- it, or otherwise all of the positive amounts, if they sum to it exactly.
+    findFeeCounterparts comm qty
+      | (fa:_) <- [fa | fa <- candidates, aquantity fa == qty] = Just [fa]
+      | not (null candidates) && sum (map aquantity candidates) == qty = Just candidates
+      | otherwise = Nothing
+      where
+        candidates =
+          [ pa
+          | q  <- ps, isNonAsset (paccount q)
+          , pa <- amountsRaw (pamount q)
+          , acommodity pa == comm, aquantity pa > 0
+          ]
 
 -- | Classify lot-related postings by adding a ptype tag.
 -- For each posting with a cost basis (any account type):
@@ -1815,9 +1825,9 @@ groupIndexedTransferPostings t froms tos = do
                             ++ " has no matching transfer-to posting"
         _ -> do
           -- The total from/to quantities must agree; a difference indicates an
-          -- analysis failure or an unrecorded fee (#2692). (A transfer fee
-          -- should be recorded as its own posting in the same commodity;
-          -- hledger then splits off a matching disposal automatically.)
+          -- analysis failure or an unrecorded fee (#2692). (Transfer fees
+          -- should be recorded as their own posting(s) in the same commodity;
+          -- hledger then splits off matching disposal(s) automatically.)
           let qtyTotal ips = sum [ abs (aquantity a)
                                  | (_, p) <- ips, a <- amountsRaw (pamount p)
                                  , acommodity a == comm ]
@@ -1831,9 +1841,10 @@ groupIndexedTransferPostings t froms tos = do
                           then "More was received than sent, which a fee can't explain;\n"
                             ++ "check the entry for sign errors or rounding adjustments."
                           else "If the difference is a fee, you can either\n"
-                            ++ "- split the sending posting into a transfer part and a fee part\n"
-                            ++ "  matching the fee expense\n"
-                            ++ "- or record the fee expense in the lot-tracked commodity."
+                            ++ "- record the fee expense in the lot-tracked commodity, with posting(s)\n"
+                            ++ "  adding up to the missing quantity\n"
+                            ++ "- or split the sending posting into a transfer part and fee part(s)\n"
+                            ++ "  matching the fee expense(s)."
           Right (comm, sortOn postingSortKey fs, sortOn postingSortKey ts)
 
 -- | Extract a per-unit cost Amount from an AmountCost, normalising TotalCost by quantity.

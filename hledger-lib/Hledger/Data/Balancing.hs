@@ -176,9 +176,10 @@ transactionCheckBalanced BalancingOpts{commodity_styles_=_mglobalstyles, txn_bal
              "\nNote, " ++ intercalate ", " cs ++ " is a lot-tracked commodity being transferred between accounts,"
             ,"so no balancing conversion cost was inferred; its quantities are expected"
             ,"to add up. If the difference is a fee, you can either"
-            ,"- split the sending posting into a transfer part and a fee part"
-            ,"  matching the fee expense"
-            ,"- or record the fee expense in the lot-tracked commodity."
+            ,"- record the fee expense in the lot-tracked commodity, with posting(s)"
+            ,"  adding up to the missing quantity"
+            ,"- or split the sending posting into a transfer part and fee part(s)"
+            ,"  matching the fee expense(s)."
             ,"(Lot processing can be disabled with --ignore-lots.)"
             ]
         oldbalancingmsg = unlines [

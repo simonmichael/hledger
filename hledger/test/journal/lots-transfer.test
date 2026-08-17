@@ -870,8 +870,8 @@ $ hledger -f- print --lots -x date:2020-04
 
 >=
 
-# ** 38. Mismatched transfer quantities (eg a fee not recorded as a single
-# matching posting) are an error. #2692
+# ** 38. A transfer fee split across several fee postings also auto-splits,
+# when together they add up to the missing quantity. #2692
 <
 commodity ABC ; lots:
 
@@ -879,14 +879,19 @@ commodity ABC ; lots:
      assets:cash        -$10
      assets:broker1      5 ABC
 
-2020-04-05 transfer, fee recorded unmatchably
+2020-04-05 transfer, fee recorded as two postings
      assets:broker1     -5 ABC
      assets:broker2      4.9 ABC
      expenses:fees       0.05 ABC
      expenses:fees2      0.05 ABC
 $ hledger -f- bal --lots
->2 /Mismatched transfer quantities for lot-tracked commodity ABC: 5 transferred out but 4.9 received/
->=1
+            4.90 ABC  assets:broker2:{2020-03-08, $2}
+                $-10  assets:cash
+            0.05 ABC  expenses:fees
+            0.05 ABC  expenses:fees2
+--------------------
+                $-10
+               5 ABC  
 
 # ** 39. Several source postings can also feed one destination posting
 # (consolidation), preserving each lot's identity. #2692

@@ -7416,10 +7416,11 @@ Within that, source and destination postings need not pair up one to one -
 one source posting can feed several destination accounts, or several sources one destination.
 If the destination receives less than the source sends (eg due to a fee deducted by an exchange),
 record the fee as its own posting in the same commodity (eg `expenses:fees 0.001 ETH @ $3000`, or without the price);
-hledger then automatically splits the source posting into a transfer portion and a disposal portion,
-so that the fee disposal is detected correctly.
+several fee postings which together add up to the missing quantity also work.
+hledger then automatically splits the source posting into a transfer portion and disposal portion(s),
+so that the fee disposals are detected correctly.
 Otherwise, mismatched sent/received totals are an error.
-If the fee posting has a transacted price, the disposal portion carries it and a gain is calculated;
+If a fee posting has a transacted price, its disposal portion carries it and a gain is calculated;
 otherwise the disposal is priceless and no gain is calculated.
 The fee's disposal selects lots before the transfer does, using the
 [cost basis method](#cost-basis-methods) in effect - so under the default FIFO
