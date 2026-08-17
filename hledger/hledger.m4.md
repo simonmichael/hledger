@@ -7494,10 +7494,6 @@ Eg:
 commodity FUND                  ; lots: AVERAGE
 account assets:stocks           ; lots: LIFO
 ```
-<!--
-account assets:stocks:till2024  ; lots: FIFOALL
-account assets:stocks:from2025  ; lots: FIFO
--->
 
 These methods are supported:
 
@@ -7507,7 +7503,7 @@ These methods are supported:
 | **FIFO**           | oldest first                      | each lot's cost             | Sufficient lot(s) exist in the account.
 | **LIFO**           | newest first                      | each lot's cost             | "
 | **HIFO**           | highest cost first                | each lot's cost             | "
-| **AVERAGE**        | oldest first (all accounts)       | average cost                | "
+| **AVERAGE**        | oldest first                      | average cost                | "
 | **FIFOALL**        | oldest first (all accounts)       | each lot's cost             | Sufficient lot(s) exist in the account, and are highest priority across all accounts.
 | **LIFOALL**        | newest first (all accounts)       | each lot's cost             | "
 | **HIFOALL**        | highest cost first (all accounts) | each lot's cost             | "
@@ -7553,6 +7549,9 @@ that these lots are the ones that would be chosen if considering the global pool
 So if there is a more appropriate lot in another account (eg an older lot when using FIFOALL),
 they will raise an error showing which account holds it.
 This is useful if you need to enforce a global disposal order across all accounts (brokers, exchanges, wallets etc).
+Since these methods involve all accounts, a commodity using one must use it
+in every account that holds the commodity; hledger checks this, so it's best
+to declare a \*ALL method on the commodity rather than on accounts.
 
 **AVERAGEALL** is to AVERAGE what FIFOALL is to FIFO: the pool spans all
 accounts holding the commodity, so the running cost is a single global value

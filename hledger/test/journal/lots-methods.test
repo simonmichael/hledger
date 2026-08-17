@@ -713,3 +713,103 @@ $ hledger -f- bal --lots
 --------------------
                $-850
              15 AAPL  
+
+# ** 28. A global (*ALL) method mixed with a different method for the same
+# commodity is an error: the non-global account would skip the global
+# validation, making it meaningless.
+<
+commodity AAPL  ; lots: FIFOALL
+account assets:b  ; lots: LIFO
+
+2026-01-15 buy
+    assets:a    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy
+    assets:b    10 AAPL {$60}
+    assets:checking
+
+$ hledger -f- bal --lots -N 2>&1
+hledger: Error: -:1:
+1 | commodity AAPL  ; lots: FIFOALL
+
+AAPL uses the global method FIFOALL (from commodity tag on AAPL) in assets:a,
+but a different method elsewhere:
+  assets:b uses LIFO (from account tag on assets:b)
+A global (*ALL) method must be used by every account holding the commodity.
+Declare it once on the commodity declaration, and remove conflicting account lots: tags.
+>=1
+
+# ** 29. Likewise AVERAGEALL mixed with per-account AVERAGE (they are
+# different pools).
+<
+commodity AAPL  ; lots: AVERAGEALL
+account assets:b  ; lots: AVERAGE
+
+2026-01-15 buy
+    assets:a    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy
+    assets:b    10 AAPL {$60}
+    assets:checking
+
+$ hledger -f- bal --lots -N
+>2 /AAPL uses the global method AVERAGEALL \(from commodity tag on AAPL\)/
+>=1
+
+# ** 30. A redundant account tag declaring the same global method is fine.
+<
+commodity AAPL  ; lots: FIFOALL
+account assets:b  ; lots: FIFOALL
+
+2026-01-15 buy
+    assets:a    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy
+    assets:b    10 AAPL {$60}
+    assets:checking
+
+$ hledger -f- bal --lots -N
+             10 AAPL  assets:b:{2026-02-01, $60}
+             10 AAPL  assets:a:{2026-01-15, $50}
+              $-1100  assets:checking
+
+# ** 31. A conflicting method tag on an account that never holds the
+# commodity is fine: only accounts holding it must agree.
+<
+commodity AAPL  ; lots: FIFOALL
+account assets:cash  ; lots: LIFO
+
+2026-01-15 buy
+    assets:a    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy
+    assets:b    10 AAPL {$60}
+    assets:checking
+
+$ hledger -f- bal --lots -N
+             10 AAPL  assets:a:{2026-01-15, $50}
+             10 AAPL  assets:b:{2026-02-01, $60}
+              $-1100  assets:checking
+
+# ** 32. Local methods (no *ALL) may be mixed per account freely.
+<
+commodity AAPL  ; lots:
+account assets:a  ; lots: LIFO
+account assets:b  ; lots: HIFO
+
+2026-01-15 buy
+    assets:a    10 AAPL {$50}
+    assets:checking
+
+2026-02-01 buy
+    assets:b    10 AAPL {$60}
+    assets:checking
+
+$ hledger -f- bal --lots -N
+             10 AAPL  assets:a:{2026-01-15, $50}
+             10 AAPL  assets:b:{2026-02-01, $60}
+              $-1100  assets:checking

@@ -97,6 +97,7 @@ module Hledger.Data.Lots (
   transactionAutoSplitFeeOutflows,
   journalCalculateLots,
   journalCheckAcquireBasis,
+  journalCheckLotsMethodCoherence,
   journalCollapseLotDetail,
   journalAddGainOrUGainPosting,
   journalAddOrCheckGainPostings,
@@ -125,11 +126,11 @@ import Data.Decimal (roundTo)
 import Data.Time.Calendar (Day, fromGregorianValid)
 import Text.Printf (printf)
 
-import Hledger.Data.AccountName (accountNameType)
+import Hledger.Data.AccountName (accountNameType, parentAccountNames)
 import Hledger.Data.AccountType (isAssetType, isEquityType, isLiabilityType)
 import Hledger.Data.Amount (AmountFormat(..), amountRoundedQuantity, amountSetPrecisionMin, amountSetQuantity, amountsRaw, divideAmountAndUpdatePrecision, isNegativeAmount, maNegate, maSum, mapMixedAmount, mixedAmount, mixedAmountCost, mixedAmountIsZero, mixedAmountLooksZero, nullmixedamt, noCostFmt, oneLineNoCostFmt, showAmountWith, showAmountsDistinctly, showMixedAmountOneLine, showMixedAmountsDistinctly)
-import Hledger.Data.Errors (makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt, transactionFindPostingIndex)
-import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapPostings, journalMapTransactions, journalTieTransactions, parseReductionMethod)
+import Hledger.Data.Errors (makeAccountTagErrorExcerpt, makeCommodityTagErrorExcerpt, makePostingErrorExcerptByIndex, makeTransactionErrorExcerpt, transactionFindPostingIndex)
+import Hledger.Data.Journal (journalAccountType, journalBaseGainAccount, journalBaseUnrealisedGainAccount, journalCommodityLotsMethod, journalCommodityStylesWith, journalCommodityUsesLots, journalInheritedAccountTags, journalMapPostings, journalMapTransactions, journalPostings, journalTieTransactions, parseReductionMethod)
 import Hledger.Data.Posting (generatedPostingTagName, hasAmount, isReal, isVirtual, lotParentAssertionTagName, lotsplitPostingTagName, nullposting, originalPosting, postingAddHiddenAndMaybeVisibleTag, postingHasTag, postingStripCosts, feesplitPostingTagName)
 import Hledger.Data.Transaction (transactionCommodityStyles, txnTieKnot)
 import Hledger.Data.Types
@@ -149,19 +150,80 @@ type LotState = M.Map CommoditySymbol (M.Map LotId (M.Map AccountName Amount))
 -- Since commodity tags are propagated to ptags, we distinguish by checking the
 -- commodity's own declared tags separately.
 resolveReductionMethodWithSource :: Journal -> Posting -> CommoditySymbol -> (ReductionMethod, String)
-resolveReductionMethodWithSource j p commodity =
+resolveReductionMethodWithSource j p = resolveReductionMethodForAccount j (paccount p)
+
+-- | Resolve which reduction method is in effect for an account and commodity,
+-- and where it came from: the account's (inherited) lots: tag if any,
+-- else the commodity's lots: tag value if any, else FIFO.
+resolveReductionMethodForAccount :: Journal -> AccountName -> CommoditySymbol -> (ReductionMethod, String)
+resolveReductionMethodForAccount j acct commodity =
   case accountLotsMethod of
-    Just m  -> (m, "from account tag on " ++ T.unpack (paccount p))
+    Just m  -> (m, "from account tag on " ++ T.unpack acct)
     Nothing -> case journalCommodityLotsMethod j commodity of
       Just m  -> (m, "from commodity tag on " ++ T.unpack commodity)
       Nothing -> (FIFO, "default")
   where
     -- Check account-inherited tags only (excluding commodity-propagated tags).
     accountLotsMethod =
-      let acctTags = journalInheritedAccountTags j (paccount p)
+      let acctTags = journalInheritedAccountTags j acct
       in case [v | (k, v) <- acctTags, T.toLower k == "lots"] of
            (v:_) -> parseReductionMethod v
            []    -> Nothing
+
+-- | Check that global (*ALL) reduction methods are used coherently:
+-- when any account holding a lot-tracked commodity resolves to a global
+-- method, every account holding that commodity must resolve to the same
+-- method. Mixing a global method with any other is rejected, because the
+-- global validation (and, for AVERAGEALL, the global pool updates) only
+-- make sense when every account participates. Local methods (FIFO, LIFO,
+-- HIFO, SPECID, AVERAGE) may be mixed per account freely.
+journalCheckLotsMethodCoherence :: Journal -> Either String Journal
+journalCheckLotsMethodCoherence j = do
+    mapM_ checkCommodity (M.toList holdings)
+    Right j
+  where
+    -- The base accounts holding each lot-tracked commodity (postings with
+    -- a cost basis annotation or a lotful commodity).
+    holdings :: M.Map CommoditySymbol (S.Set AccountName)
+    holdings = M.fromListWith S.union
+      [ (acommodity a, S.singleton (lotBaseAccount (paccount p)))
+      | p <- journalPostings j
+      , a <- amountsRaw (pamount p)
+      , isJust (acostbasis a) || journalCommodityUsesLots j (acommodity a) ]
+
+    resolutions c accts = [ (acct, m, src)
+                          | acct <- S.toList accts
+                          , let (m, src) = resolveReductionMethodForAccount j acct c ]
+
+    checkCommodity (c, accts) =
+      case [r | r@(_, m, _) <- rs, methodIsGlobal m] of
+        [] -> Right ()
+        (gacct, gmethod, gsrc):_ ->
+          case [r | r@(_, m, _) <- rs, m /= gmethod] of
+            []        -> Right ()
+            conflicts -> Left $ errmsg c gacct gmethod gsrc conflicts
+      where rs = resolutions c accts
+
+    errmsg c gacct gmethod gsrc conflicts =
+         maybe "" (\(f, l, _, ex) -> printf "%s:%d:\n%s\n" f l ex) (methodDecl gacct c)
+      ++ T.unpack c ++ " uses the global method " ++ show gmethod ++ " (" ++ gsrc ++ ")"
+      ++ " in " ++ T.unpack gacct ++ ",\nbut a different method elsewhere:\n"
+      ++ unlines ["  " ++ T.unpack acct ++ " uses " ++ show m ++ " (" ++ src ++ ")" | (acct, m, src) <- conflicts]
+      ++ "A global (*ALL) method must be used by every account holding the commodity.\n"
+      ++ "Declare it once on the commodity declaration, and remove conflicting account lots: tags."
+
+    -- The declaration providing an account's method for a commodity,
+    -- rendered as an error excerpt: the nearest self-or-ancestor account
+    -- declaration with a method-valued lots: tag, else the commodity's
+    -- declaration. Mirrors resolveReductionMethodForAccount's precedence.
+    methodDecl :: AccountName -> CommoditySymbol -> Maybe (FilePath, Int, Maybe (Int, Maybe Int), Text)
+    methodDecl acct c =
+      case [ (a', adi) | a' <- acct : parentAccountNames acct
+                       , Just adi <- [lookup a' (jdeclaredaccounts j)]
+                       , any isMethodTag (aditags adi) ] of
+        ((a', adi):_) -> Just $ makeAccountTagErrorExcerpt (a', adi) "lots"
+        []            -> (`makeCommodityTagErrorExcerpt` "lots") <$> M.lookup c (jdeclaredcommodities j)
+      where isMethodTag (k, v) = T.toLower k == "lots" && isJust (parseReductionMethod v)
 
 -- | If the account name's final colon-separated component is enclosed in @{@
 -- and @}@, treat it as a lot subaccount and return @Just (base, "{...}")@.

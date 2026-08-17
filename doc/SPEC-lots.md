@@ -525,6 +525,17 @@ original acquisition dates).
 The scope of a pool is per-account for AVERAGE and global (across all
 accounts holding the commodity) for AVERAGEALL.
 
+The global (*ALL) methods are only coherent when every account holding the
+commodity uses them: a non-participating account's disposals would skip the
+global validation, and (for AVERAGEALL) its acquisitions would not update
+the global pool even as pool updates rewrite its lots' costs. So mixing a
+global method with any different method for one commodity is rejected at
+load time (`journalCheckLotsMethodCoherence`): for each lot-tracked
+commodity, the method is resolved for every base account holding it, and if
+any resolves to a *ALL method, all must resolve to the same method. Local
+methods (FIFO, LIFO, HIFO, SPECID, AVERAGE) may be mixed per account
+freely; an unused account's conflicting tag is harmless.
+
 Under AVERAGE methods the lot subaccount name omits the cost component
 (`{2026-01-15}` rather than `{2026-01-15, $50}`): the running cost would
 otherwise change on every acquisition, making the subaccount unstable
@@ -818,14 +829,17 @@ Post-balancing:
 5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account
    declarations. On commodities an empty value is valid (lotful, default FIFO);
    on accounts a reduction method value is required.
-6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
+6. **journalCheckLotsMethodCoherence** — reject a global (*ALL) reduction
+   method mixed with any different method among the accounts holding a
+   commodity (see Reduction methods).
+7. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
    disposals, normalise transacted cost.
-7. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
+8. **journalCheckAcquireBasis** — *gated separately on `hledger check basis`*,
    not on `checklots`. Errors if any acquire posting has cost basis differing
    from its transacted cost (per-unit). Default mode skips this check; see
    [DECISIONS.md](DECISIONS.md) for the rationale.
-8. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
+9. **journalAddOrCheckGainPostings** — for disposals with no gain postings yet, add
    the rgain + ugain pair sized at the disposal gain. Also validates that any
    user-written gain amount matches the disposal gain.
 
@@ -984,15 +998,12 @@ Possible future work, from design discussions (2026-08):
   transfers in re-average the pool, transfers out carry the pooled cost;
   see "Reduction methods".)
 
-- **Method coherence checks.** The local methods (FIFO, LIFO, HIFO, SPECID)
-  govern reduction order within one account and are safe to mix per account.
-  The non-local ones are not: the ALL variants validate against a global pool
-  that other accounts' methods can freely violate, and AVERAGE pooling is
-  per-taxpayer in some jurisdictions. These are commodity-level policies
-  wearing an account-level tag; consider preferring commodity-level
-  declaration for them, and/or a declaration-time check flagging a commodity
-  held under an ALL/AVERAGE method in one account and a different method
-  elsewhere.
+- **Method coherence checks.** Implemented 2026-08 for the global (*ALL)
+  methods: mixing one with a different method among the accounts holding a
+  commodity is rejected at load time (see Reduction methods). Plain
+  per-account AVERAGE mixed with other methods remains legal by design
+  (independent pools); whether that is appropriate for the user's tax
+  jurisdiction is, as elsewhere, the user's responsibility.
 
 ### Disposal
 

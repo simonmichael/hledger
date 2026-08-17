@@ -407,6 +407,7 @@ journalFinalise iopts@InputOpts{auto_,balancingopts_,ignore_lots_,infer_costs_,i
       -- Lot and capital gains calculation/checking
       -- (skipped by --ignore-lots or -I; forced back on by --strict or `hledger check lots`)
       >>= (if checklots then journalCheckLotsTagValues                   else pure)  -- validate lots: tag values on commodity/account declarations
+      >>= (if checklots then journalCheckLotsMethodCoherence             else pure)  -- reject a global (*ALL) method mixed with other methods for one commodity
       >>= (if checklots then journalCalculateLots verbose_tags_          else pure)  -- evaluate lot selectors, calculate lot balances, add lot subaccounts
       >>= (if checkbasis then journalCheckAcquireBasis                   else pure)  -- if `hledger check basis`, error on any acquire with cost basis ≠ transacted cost
       >>= (if checklots then journalAddOrCheckGainPostings verbose_tags_ else pure)  -- in disposal transactions, add the realised-gain + unrealised-gain posting pair
