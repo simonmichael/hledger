@@ -762,20 +762,34 @@ parseReductionMethod t = case T.toUpper (T.strip t) of
   _            -> Nothing
 
 -- | Check that all lots: tag values on commodity and account declarations are recognised.
--- Empty values (bare @lots:@ tag) are valid and default to FIFO.
--- Non-empty values must be one of the known reduction methods.
+-- On a commodity declaration, an empty value (bare @lots:@ tag) is valid,
+-- declaring the commodity lotful with the default FIFO reduction method;
+-- a non-empty value must be one of the known reduction methods.
+-- On an account declaration, the tag only sets the reduction method for
+-- lotful commodities in that account, so a method value is required.
 journalCheckLotsTagValues :: Journal -> Either String Journal
 journalCheckLotsTagValues j = do
   mapM_ checkCommodity (M.toList $ jdeclaredcommoditytags j)
   mapM_ checkAccount   (jdeclaredaccounts j)
   Right j
   where
-    msg :: String
-    msg = unlines [
+    methods = "FIFO, LIFO, HIFO, AVERAGE, SPECID, FIFOALL, LIFOALL, HIFOALL, AVERAGEALL"
+
+    unrecognisedmsg :: String
+    unrecognisedmsg = unlines [
        "%s:%d:"
       ,"%s"
       ,"unrecognised lots: tag value %s."
-      ,"Use FIFO, LIFO, HIFO, AVERAGE, SPECID, FIFOALL, LIFOALL, HIFOALL, AVERAGEALL, or nothing (meaning FIFO)"
+      ,"Use " ++ methods ++ ", or nothing (meaning FIFO)"
+      ]
+
+    valuelessmsg :: String
+    valuelessmsg = unlines [
+       "%s:%d:"
+      ,"%s"
+      ,"An account lots: tag sets the disposal order for lot-tracked commodities there,"
+      ,"so it needs a value, one of " ++ methods ++ "."
+      ,"(A commodity lots: tag enables lot tracking, and can also set the disposal order.)"
       ]
 
     checkCommodity (sym, tags) =
@@ -787,7 +801,7 @@ journalCheckLotsTagValues j = do
       | T.toLower k /= "lots"       = Right ()
       | T.null (T.strip v)          = Right ()
       | Just _ <- parseReductionMethod v = Right ()
-      | otherwise = Left $ printf msg f l ex (show v)
+      | otherwise = Left $ printf unrecognisedmsg f l ex (show v)
           where (f, l, _mcols, ex) = makeCommodityTagErrorExcerpt comm k
 
     checkAccount (acctName, adi) =
@@ -795,9 +809,9 @@ journalCheckLotsTagValues j = do
 
     checkAccountTag acctName adi (k, v)
       | T.toLower k /= "lots"       = Right ()
-      | T.null (T.strip v)          = Right ()
+      | T.null (T.strip v)          = Left $ printf valuelessmsg f l ex
       | Just _ <- parseReductionMethod v = Right ()
-      | otherwise = Left $ printf msg f l ex (show v)
+      | otherwise = Left $ printf unrecognisedmsg f l ex (show v)
           where (f, l, _mcols, ex) = makeAccountTagErrorExcerpt (acctName, adi) k
 
 -- | To all postings in the journal, add any tags from their amount's commodities.

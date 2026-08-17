@@ -387,14 +387,12 @@ transactionInferBalancingCosts lotfulcomms t@Transaction{tpostings=ps} = t{tpost
 
 -- | Does one of these postings make this commodity look lot-related ?
 -- True if the commodity appears in a posting amount with a cost basis
--- annotation, or in a posting with an inherited lots: account tag.
+-- annotation.
 -- (Lot classification runs after balancing, so ptype tags can't be used
 -- here; this is a shape check.)
 commodityHasLotPosting :: [Posting] -> CommoditySymbol -> Bool
 commodityHasLotPosting postings comm = any (\p ->
     any (\a -> acommodity a == comm && isJust (acostbasis a)) (amountsRaw $ pamount p)
-    || (  any ((== comm) . acommodity) (amountsRaw $ pamount p)
-       && any ((== "lots") . T.toLower . fst) (ptags p))
   ) postings
 
 -- | Is this commodity lot-related (see commodityHasLotPosting, or declared

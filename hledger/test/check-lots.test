@@ -94,3 +94,17 @@ $ hledger -f - -I check lots
 >2 /unrecognised lots: tag value/
 >=1
 
+# ** 10. fails with a valueless lots: tag on an account declaration
+# (account lots: tags set only the reduction method; lotfulness is declared
+# on commodities)
+<
+account assets:stocks  ; lots:
+
+2026-01-15 buy
+    assets:stocks    10 AAPL {$50}
+    assets:checking
+
+$ hledger -f - check lots
+>2 /An account lots: tag sets the disposal order for lot-tracked commodities there,/
+>=1
+

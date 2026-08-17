@@ -35,8 +35,6 @@ $ hledger -f- bal assets:broker --lots -N
 # ** 3. Wildcard multi-lot transfer with {}.
 <
 commodity AAPL  ; lots:
-account assets:broker1  ; lots:
-account assets:broker2  ; lots:
 
 2026-01-15 buy cheap
     assets:broker1    10 AAPL {$50}
@@ -77,10 +75,9 @@ $ hledger -f- print --verbose-tags
 
 >=
 
-# ** 5. Transfer-to posting without {} is classified when account has lots: tag.
+# ** 5. Transfer-to posting without {} is classified via its cost-basis-annotated
+# counterpart, with no commodity or account declarations needed.
 <
-account assets:broker2  ; lots:
-
 2026-01-15 buy
     assets:broker1    10 AAPL {$50}
     assets:checking
@@ -888,7 +885,7 @@ commodity ABC ; lots:
      expenses:fees       0.05 ABC
      expenses:fees2      0.05 ABC
 $ hledger -f- bal --lots
->2 /mismatched transfer quantities for commodity ABC: 5 transferred out but 4.9 received/
+>2 /Mismatched transfer quantities for lot-tracked commodity ABC: 5 transferred out but 4.9 received/
 >=1
 
 # ** 39. Several source postings can also feed one destination posting

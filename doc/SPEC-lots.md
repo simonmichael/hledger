@@ -32,7 +32,7 @@ A lot's acquisition price and date are preserved, to
 
 By default, lot inference, tracking, and error checking are performed when loading a
 journal, as part of journal finalising (see SPEC-finalising.md). Any journal with
-lot-related content (lotful commodities/accounts, cost basis annotations, or
+lot-related content (lotful commodities, cost basis annotations, or
 disposals) is validated up front. Journals with no lot activity pay near-zero cost
 via an internal fast path.
 
@@ -237,17 +237,28 @@ data LotId = LotId { lotDate :: Day, lotLabel :: Maybe Text }
 A definite cost basis (used for a fully resolved lot) has all fields present except cbLabel which is only present when needed for uniqueness.
 A partial cost basis (used as a lot selector or during inference) may have any fields missing.
 
-## Lotful commodities and accounts
+## Lotful commodities
 
-Commodities and/or accounts can be declared as lotful, by adding a "lots" tag to their declaration.
+Commodities can be declared as lotful, by adding a "lots" tag to their declaration.
 This signifies that their postings always involve a cost basis and lots, 
 so these should be inferred if not written explicitly.
+
+Lotfulness is a property of commodities only, not accounts: a commodity is
+lot-tracked everywhere or nowhere, so lots can't leak into untracked accounts.
+A "lots" tag on an account declaration does not declare lotfulness; it sets
+the account's reduction method (see below), and requires a method value
+(a valueless account lots: tag is an error, reported by journalCheckLotsTagValues).
+For tracking a commodity's lots in only some accounts, the recommended style is
+manual cost basis annotations with no lots tag. (A per-account opt-out such as
+`lots: none` was considered and deferred: it would serve only the
+tracked-everywhere-with-exceptions case, and can be added compatibly later if
+there is demand.)
 
 (In future, we may also recognise some common commodity symbols as lotful, even without the lots tag.)
 
 ## Inferring cost basis from transacted cost
 
-In postings with a positive amount, involving a lotful commodity or account,
+In postings with a positive amount, involving a lotful commodity,
 which have a transacted cost but no explicit cost basis annotation,
 or an empty cost basis annotation (`{}`),
 we infer a cost basis from the transacted cost.
@@ -315,9 +326,9 @@ These are classified regardless of account type:
   dispose/acquire. This handles `close --clopen --lots` style equity
   transfers where lots move to/from equity in separate transactions.
 
-**3. Bare postings on lotful asset accounts (no cost basis).**
-These require an asset account type and a lotful commodity or account
-(`lots:` tag). They are tried in this order:
+**3. Bare postings in lotful commodities on asset accounts (no cost basis).**
+These require an asset account type and a lotful commodity
+(commodity `lots:` tag). They are tried in this order:
 
 - **Negative lotful** →
   `transfer-from` if a counterpart (same commodity, exact quantity,
@@ -332,7 +343,7 @@ These require an asset account type and a lotful commodity or account
 - **Positive lotful, no price, with transfer-from counterpart** →
   `transfer-to`. The counterpart can match by exact quantity or by
   commodity only (for transfer+fee patterns). This handles bare
-  transfer-to postings in lotful commodities/accounts that don't repeat
+  transfer-to postings in lotful commodities that don't repeat
   the `{...}` notation.
 
 - **Positive (any), no cost basis, with cost-basis transfer-from counterpart** →
@@ -411,7 +422,7 @@ fallback.
   - `classifyAt`: per-posting dispatch.
   - `shouldClassify` → `shouldClassifyWithCostBasis`, `shouldClassifyNegativeLotful`,
     `shouldClassifyLotful`, `shouldClassifyBareTransferTo`, `shouldClassifyPositiveLotful`.
-  - `postingIsLotful`: checks for `lots:` tag on commodity or account.
+  - `amountsAreLotful`: checks for a `lots:` tag on the amounts' commodities.
 
 ## Inferring transacted cost from cost basis
 
@@ -475,7 +486,7 @@ is skipped when:
 - A dispose posting selects one more lots to be disposed (sold), like a transfer-from posting.
   It must also have a transacted cost, either explicit or inferred from transaction balancing
   (or from market price, in future).
-  When the dispose posting has no cost basis annotation but involves a lotful commodity or account,
+  When the dispose posting has no cost basis annotation but involves a lotful commodity,
   the cost basis is inferred from the selected lot, and the transacted cost
   (if inferred by the balancer as @@) is normalized to unit cost (@).
 
@@ -748,8 +759,7 @@ posting amount (including ones inferred from elided amounts or balance
 assignments) is known: every entry shape then classifies identically to its
 fully-explicit form (#2686, #2690, #2692). The few lot-related steps that must
 run before balancing use *shape* checks (cost basis annotations, lotful
-commodities, `lots:` account tags, amount signs and prices) rather than
-classification tags.
+commodities, amount signs and prices) rather than classification tags.
 
 Pre-balancing:
 
@@ -785,7 +795,9 @@ Post-balancing:
 4. **journalClassifyLotPostings** — auto-split remaining (unpriced) transfer fees
    (`transactionAutoSplitFeeOutflows`), then tag postings as
    acquire/dispose/transfer-from/transfer-to/gain.
-5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account declarations.
+5. **journalCheckLotsTagValues** — validate `lots:` tag values on commodity/account
+   declarations. On commodities an empty value is valid (lotful, default FIFO);
+   on accounts a reduction method value is required.
 6. **journalCalculateLots** — walk transactions in date order, evaluate lot selectors,
    apply reduction methods, add explicit lot subaccounts, infer cost basis for bare
    disposals, normalise transacted cost.

@@ -53,7 +53,7 @@ journalCalculateLots:
 
 * groupIndexedTransferPostings:
   "transfer-to/from posting ... has no matching ... posting",
-  "mismatched transfer quantities for commodity X",
+  "Mismatched transfer quantities for lot-tracked commodity X",
   "... posting has no lotful commodity"
 
 * processTransferGroup:
@@ -545,7 +545,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       let amts = amountsRaw (pamount p)
       in not (any (isJust . acostbasis) amts)
          && any isNegativeAmount amts
-         && postingIsLotful p amts
+         && amountsAreLotful amts
 
     hasPositiveLotfulAmount :: Posting -> Bool
     hasPositiveLotfulAmount p =
@@ -553,7 +553,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       in not (any (isJust . acostbasis) amts)
          && not (any isNegativeAmount amts)
          && any (\a -> aquantity a > 0) amts  -- has a strictly positive amount (not zero or amountless)
-         && postingIsLotful p amts
+         && amountsAreLotful amts
 
     -- Same-account transfer pairs: within each account, match positive and negative
     -- postings with the same commodity and absolute quantity as transfer pairs.
@@ -600,7 +600,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                   acct     = baseAcct
                   isNeg    = any isNegativeAmount amts
                   hasCB    = any (isJust . acostbasis) amts
-                  isLotful = postingIsLotful p amts
+                  isLotful = amountsAreLotful amts
                   cbKeys   = [(acommodity a, abs (aquantity a)) | a <- amts, isJust (acostbasis a)]
                   allKeys  = [(acommodity a, abs (aquantity a)) | a <- amts]
                   -- Include cost-basis negatives (any account type) and bare lotful
@@ -658,7 +658,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
           where
             acct = lotBaseAccount (paccount p)
             isAsset = maybe False isAssetType (lookupAccountType acct)
-            isLotful = postingIsLotful p amts
+            isLotful = amountsAreLotful amts
             amts = amountsRaw (pamount p)
             addAmt (!neg', !pos') a
               | isJust (acost a) = (neg', pos')
@@ -775,7 +775,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     -- global FIFO will handle the lot reduction when the destination account trades.
     shouldClassifyNegativeLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyNegativeLotful p amts = do
-      guard $ postingIsLotful p amts
+      guard $ amountsAreLotful amts
       guard $ any isNegativeAmount amts
       let baseAcct = lotBaseAccount (paccount p)
           hasPrice = any (isJust . acost) amts
@@ -790,7 +790,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
                 qBase = lotBaseAccount (paccount q)
             in qBase /= baseAcct
                && maybe False isAssetType (lookupAccountType qBase)
-               && postingIsLotful q qAmts
+               && amountsAreLotful qAmts
                && any (\a -> aquantity a > 0 && acommodity a `S.member` negCommodities) qAmts
           -- Does a non-asset posting receive exactly this commodity+quantity?
           -- If so, this posting is likely a fee/dispose (e.g. paired with expenses:fees),
@@ -817,7 +817,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     -- and with a matching transfer-from counterpart, is classified as transfer-to.
     shouldClassifyLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyLotful p amts = do
-      guard $ postingIsLotful p amts
+      guard $ amountsAreLotful amts
       guard $ not $ any isNegativeAmount amts
       guard $ not $ any (isJust . acost) amts
       let baseAcct = lotBaseAccount (paccount p)
@@ -845,7 +845,7 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
     -- Without any of these, no lot can be created so we skip classification.
     shouldClassifyPositiveLotful :: Posting -> [Amount] -> Maybe Text
     shouldClassifyPositiveLotful p amts = do
-      guard $ postingIsLotful p amts
+      guard $ amountsAreLotful amts
       guard $ any (\a -> aquantity a > 0) amts
       let commodities = S.fromList [acommodity a | a <- amts]
           hasPrice = any (isJust . acost) amts
@@ -857,11 +857,9 @@ transactionClassifyLotPostings verbosetags lookupAccountType commodityIsLotful t
       guard $ hasPrice || hasDiffCommodity || hasTransferFrom
       return "acquire"
 
-    -- Check if a posting is lotful: its commodity or account has a lots: tag.
-    postingIsLotful :: Posting -> [Amount] -> Bool
-    postingIsLotful p amts =
-      any ((== "lots") . T.toLower . fst) (ptags p)  -- account lots: tag (inherited via ptags)
-      || any (commodityIsLotful . acommodity) amts     -- commodity lots: tag
+    -- Check if a posting's amounts are lotful: one of their commodities has a lots: tag.
+    amountsAreLotful :: [Amount] -> Bool
+    amountsAreLotful = any (commodityIsLotful . acommodity)
 
 -- Lot calculation (pipeline stage 2)
 
@@ -942,12 +940,11 @@ journalAddGainOrUGainPosting verbosetags j = do
     -- (This is broader than "classified dispose" - it also matches transfer
     -- sources - but the case analysis below is a no-op for those.)
     hasDisposeShape p =
-      any (\a -> isNegativeAmount a && amountIsLotfulOrHasBasis p a) (amountsRaw (pamount p))
-    amountIsLotfulOrHasBasis p a =
+      any (\a -> isNegativeAmount a && amountIsLotfulOrHasBasis a) (amountsRaw (pamount p))
+    amountIsLotfulOrHasBasis a =
          isJust (acostbasis a)
       || journalCommodityUsesLots j (acommodity a)
-      || any ((== "lots") . T.toLower . fst) (ptags p)
-    postingHasLotfulOrBasisAmount p = any (amountIsLotfulOrHasBasis p) (amountsRaw (pamount p))
+    postingHasLotfulOrBasisAmount p = any amountIsLotfulOrHasBasis (amountsRaw (pamount p))
 
     -- Match the four cases in SPEC-lots.md "Gain inference":
     -- 1. rgain on type:G + ugain on type:U → no inference
@@ -1392,7 +1389,7 @@ journalStripBalancerCopiedBases = journalMapPostings strip
           p{pamount = mapMixedAmount (\a -> a{acostbasis = Nothing}) (pamount p)}
       | otherwise = p
 
--- | True if this posting involves a lotful commodity/account in an asset account
+-- | True if this posting involves a lotful commodity in an asset account
 -- but has no _ptype tag (wasn't classified as acquire/dispose/transfer/gain).
 -- Postings with zero amount in the lotful commodity are exempt (no lot tracking needed).
 isUnclassifiedLotfulPosting :: Journal -> Posting -> Bool
@@ -1407,15 +1404,9 @@ isUnclassifiedLotfulPosting j p =
   -- produces the relevant error.
   && not (hasBalancerCopiedBasis p)
   where
-    amts = amountsRaw (pamount p)
-    lotfulAmts = filter (journalCommodityUsesLots j . acommodity) amts
-    hasAccountLotsTag = any ((== "lots") . T.toLower . fst) (ptags p)
+    lotfulAmts = filter (journalCommodityUsesLots j . acommodity) (amountsRaw (pamount p))
     -- Flag only when the lotful commodity itself has nonzero quantity.
-    -- For account-level lots: tags with no commodity-lotful amounts, fall back to all amounts.
-    hasNonzeroLotfulAmount
-      | not (null lotfulAmts) = any ((/= 0) . aquantity) lotfulAmts
-      | hasAccountLotsTag     = any ((/= 0) . aquantity) amts
-      | otherwise             = False
+    hasNonzeroLotfulAmount = any ((/= 0) . aquantity) lotfulAmts
 
 -- | Build an error message for an unclassified lotful posting.
 -- Takes the transaction and the 0-based posting index for precise source location.
@@ -1428,11 +1419,9 @@ unclassifiedLotWarning :: Journal -> Transaction -> Int -> Posting -> String
 unclassifiedLotWarning j t idx p =
   let amts = amountsRaw (pamount p)
       lotfulCommodities = [acommodity a | a <- amts, journalCommodityUsesLots j (acommodity a)]
-      hasAccountTag = any ((== "lots") . T.toLower . fst) (ptags p)
-      source = case (lotfulCommodities, hasAccountTag) of
-        (c:_, _)   -> T.unpack c ++ " is declared lotful (commodity lots: tag)"
-        ([], True)  -> T.unpack (paccount p) ++ " is declared lotful (account lots: tag)"
-        _           -> "posting involves a lotful commodity or account"
+      source = case lotfulCommodities of
+        (c:_) -> T.unpack c ++ " is declared lotful (commodity lots: tag)"
+        []    -> "this posting involves a lotful commodity"
       inferrednote = if hasAmount (originalPosting p) then "" else
         " (with inferred amount " ++ showMixedAmountOneLine (pamount p) ++ ")"
       (f, line, _, ex) = makePostingErrorExcerptByIndex (transactionAsWritten t) (asWrittenPostingIndex t idx) Nothing
@@ -1739,7 +1728,7 @@ groupIndexedTransferPostings t froms tos = do
               fromTotal = qtyTotal fs
               toTotal   = qtyTotal ts
           when (fromTotal /= toTotal) $
-            Left $ showPos ++ "mismatched transfer quantities for commodity " ++ T.unpack comm
+            Left $ showPos ++ "Mismatched transfer quantities for lot-tracked commodity " ++ T.unpack comm
                        ++ ": " ++ show fromTotal ++ " transferred out but "
                        ++ show toTotal ++ " received.\n"
                        ++ "If the difference is a fee, you can either\n"

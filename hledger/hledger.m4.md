@@ -2238,7 +2238,7 @@ Eg, to have `alias` directives affect all of your files, put them at the start o
 | **[`decimal-mark`]**      | Declares the decimal mark, for parsing amounts of all commodities in following entries until next `decimal-mark` or file end. Subfiles can override.                                                                                                                                            | Y                   |
 | **[`include`]**           | Includes entries from another file, as if they were written inline.                                                                                                                                                                                                                             |                     |
 |                           | <br>**Declares data:**                                                                                                                                                                                                                                                                          |                     |
-| **[`account`]**           | Declares an account, for [checking](#check) all entries in all files, and its [display order](#account-display-order), and optionally its [type](#account-types) and [lotfulness].                                                                                                              | N                   |
+| **[`account`]**           | Declares an account, for [checking](#check) all entries in all files, and its [display order](#account-display-order), and optionally its [type](#account-types) and [cost basis method](#cost-basis-methods).                                                                                                              | N                   |
 | **[`commodity`]**         | Declares <br>1. a commodity symbol, for checking all amounts in all files <br>2. the commodity's display style <br>3. optional [commodity aliases](#commodity-aliases) and [lotfulness], and <br>4. the decimal mark for parsing this commodity, until file end (overridden by `decimal-mark`). | N <br>N <br>N <br>N |
 | **[`payee`]**             | Declares a payee name, for checking all entries in all files.                                                                                                                                                                                                                                   | N                   |
 | **[`tag`]**               | Declares a tag name, for checking all entries in all files.                                                                                                                                                                                                                                     | N                   |
@@ -2270,7 +2270,7 @@ Eg, to have `alias` directives affect all of your files, put them at the start o
 [`tag`]:                     #tag-directive
 [`~`]:                       #periodic-transactions
 [other-directives]:          #other-ledger-directives
-[lotfulness]:                #lotful-commodities-and-accounts
+[lotfulness]:                #lotful-commodities
 
 
 ## `account` directive
@@ -6115,9 +6115,9 @@ To also add visible tags, use `--verbose-tags` (useful for troubleshooting).
 | `conversion-posting`  | A pair of adjacent, single-commodity, costless postings to `Conversion`-type accounts, with a nearby corresponding costful or potentially corresponding costless posting | Helps transaction balancer infer costs or avoid redundancy in commodity conversions                   |
 | `cost-posting`        | A costful posting whose amount and transacted cost correspond to a conversion postings pair; or a costless posting matching one of the pair                              | Helps transaction balancer infer costs or avoid redundancy in commodity conversions                   |
 | `generated-posting`   | Postings generated at runtime                                                                                                                                            | Helps users understand or find postings added at runtime by hledger                                   |
-| `ptype:acquire`       | Positive postings with [lot annotations](#lot-syntax), or in a lotful commodity/account, with no matching counterposting                                                 | Creates a new lot                                                                                     |
-| `ptype:dispose`       | Negative postings with lot annotations, or in a lotful commodity/account, with no matching counterposting                                                                | Selects and reduces existing lots                                                                     |
-| `ptype:transfer-from` | The negative posting of a pair of counterpostings, at least one with lot annotation or a lotful commodity/account; or a negative lot posting with an equity counterpart (equity transfer) | Moves lots between accounts, preserving cost basis                                                    |
+| `ptype:acquire`       | Positive postings with [lot annotations](#lot-syntax), or in a lotful commodity, with no matching counterposting                                                 | Creates a new lot                                                                                     |
+| `ptype:dispose`       | Negative postings with lot annotations, or in a lotful commodity, with no matching counterposting                                                                | Selects and reduces existing lots                                                                     |
+| `ptype:transfer-from` | The negative posting of a pair of counterpostings, at least one with lot annotation or a lotful commodity; or a negative lot posting with an equity counterpart (equity transfer) | Moves lots between accounts, preserving cost basis                                                    |
 | `ptype:transfer-to`   | The positive posting of a transfer pair; or a positive lot posting with an equity counterpart (equity transfer, e.g. opening balances)                                   | As above                                                                                              |
 | `ptype:gain`          | A user-written posting to a `Gain`-type account                                                                                                                          | Marks the user's explicit realised gain posting in a disposal                                         |
 | `ptype:rgain`         | A generated realised-gain posting on a `Gain`-type account                                                                                                               | Marks hledger-inferred realised capital gain/loss in a disposal                                       |
@@ -7071,13 +7071,21 @@ For a more technical version of what's in this manual, see [SPEC-lots](/SPEC-lot
 
 ## How to enable or disable lot tracking
 
-hledger will enable lots/gains tracking if it sees any of these three things, described below:
+Lot tracking can be enabled in two ways:
 
-- Amounts with [cost basis annotations](#cost-basis-annotations).
-- Postings involving a [lotful commodity or account](#lotful-commodities-and-accounts).
-- Account names ending with a [lot subaccount](#lot-subaccounts).
+- *Per posting:* write [cost basis annotations](#cost-basis-annotations) (`{...}`) yourself.
+  Only annotated postings are tracked.
+  ([Lot subaccount](#lot-subaccounts) names in posting accounts also count as annotations.)
+- *Per commodity:* declare the commodity lotful with a [`lots` tag](#lotful-commodities).
+  All of its postings are tracked, and the annotations are inferred for you.
 
 A posting with any of these is called a lot posting.
+If you want a commodity tracked lotfully in only some accounts, use annotations rather than the commodity tag.
+
+The disposal order (AKA cost basis method - which lots are consumed first)
+is FIFO by default; or as set by a `lots` tag *value* on the commodity or account declaration
+(account wins), eg `lots: LIFO`; or chosen explicitly per disposal with a lot selector.
+See [Cost basis methods](#cost-basis-methods).
 
 Sometimes you may want to disable lots/gains calculations, and silence lot-related errors.
 Eg if you are working with incomplete journals, as when piping hledger print output into another hledger command.
@@ -7086,7 +7094,7 @@ For this, use the `--ignore-lots` flag, or just `-I`.
 ## First lots example
 
 To get a feel for what lot tracking looks like, here is a minimal buy and sell
-using a [lotful commodity](#lotful-commodities-and-accounts) (the lowest-boilerplate style):
+using a [lotful commodity](#lotful-commodities) (the lowest-boilerplate style):
 
 ```journal
 commodity AAPL  ; lots:
@@ -7195,18 +7203,20 @@ Here are some examples:
     {2026-01-15, "12:05", $50}
     {}
 
-### Lotful commodities and accounts
+### Lotful commodities
 
-A more convenient way to record lot transactions, is to declare commodities or accounts as *lotful*,
+A more convenient way to record lot transactions, is to declare commodities as *lotful*,
 by adding a `lots` tag in their declaration. Eg:
 
 ```journal
 commodity AAPL          ; lots:
-account assets:funds    ; lots:
 ```
 
-This tells hledger that postings involving these commodities or accounts always involve lots,
+This tells hledger that postings involving these commodities always involve lots,
 so it will infer cost basis annotations automatically, and you won't need to write them in the journal.
+
+(A `lots` tag can also appear on an account declaration, but there it does not declare lotfulness;
+it sets the account's [cost basis method](#cost-basis-methods), and requires a method value.)
 
 ### Lot subaccounts
 
@@ -7352,7 +7362,7 @@ A positive lot posting in an asset account creates a new lot.
 The cost basis can be specified explicitly with `{}` on the amount,
 inferred from the lot subaccount name,
 or inferred from the transacted cost.
-On lotful commodities/accounts, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
+For lotful commodities, even a bare positive posting (no `{}` or `@`) can be detected as an acquire,
 with cost inferred from the transaction's other postings.
 
 Acquire postings may carry a per-unit (`{}`) or total (`{{{{}}}}`) cost basis annotation,
@@ -7459,7 +7469,8 @@ hledger selects from the available lots automatically, using a *cost basis metho
 (AKA disposal method / reduction method / booking method).
 
 The default method is FIFO (first in, first out).
-You can override this with a `lots` tag on the commodity or account. (An account tag will take precedence.)
+You can override this with a `lots` tag value on the commodity or account declaration.
+(An account tag will take precedence; on an account, the tag requires a method value.)
 Eg:
 
 ```journal
@@ -7720,7 +7731,7 @@ Here is a version using cost basis annotations:
     assets:cash      $350
 ```
 
-And here it is with a lots tag on the commodity (on account would also work):
+And here it is with a lots tag on the commodity:
 
 ```journal
 commodity AAPL         ; lots:

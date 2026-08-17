@@ -57,7 +57,8 @@ $ hledger -f- print --verbose-tags
 
 >=
 
-# ** 5. Account-level lots: tag also triggers lot classification.
+# ** 5. An account-level lots: tag does not declare lotfulness; it sets the
+# reduction method, so it requires a method value. A valueless one is an error.
 <
 account assets:broker  ; lots:
 
@@ -66,11 +67,8 @@ account assets:broker  ; lots:
     assets:cash     -$1000
 
 $ hledger -f- print --verbose-tags
-2026-01-07 Buy stock
-    assets:broker                                 10 AAPL {$100}  ; ptype: acquire
-    assets:cash                               $-1000
-
->=
+>2 /An account lots: tag sets the disposal order/
+>=1
 
 # ** 6. With --lots, acquired lots are displayed in their own subaccounts.
 <
