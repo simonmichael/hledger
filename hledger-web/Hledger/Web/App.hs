@@ -173,6 +173,7 @@ instance Yesod App where
       -- load these things early, in HEAD:
       toWidgetHead [hamlet|
         <script type="text/javascript" src="@{StaticR js_bootstrap_bundle_min_js}">
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/typeahead.js@0.11.1/dist/typeahead.bundle.min.js">
       |]
       addStylesheet $ StaticR hledger_css
       addScript $ StaticR hledger_js

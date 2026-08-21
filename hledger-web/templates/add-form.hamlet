@@ -5,6 +5,15 @@
     // Set up autocomplete data
     globalThis.descriptions = #{toBloodhoundJson (toList descriptions)};
     globalThis.accounts = #{toBloodhoundJson (journalAccountNamesDeclaredOrImplied j)};
+
+    // Initialize Bloodhound for accounts
+    if (typeof Bloodhound !== 'undefined') {
+      globalThis.accountsCompleter = new Bloodhound({
+        datumTokenizer: Bloodhound.tokenizers.whitespace,
+        queryTokenizer: Bloodhound.tokenizers.whitespace,
+        local: globalThis.accounts
+      });
+    }
   });
 
   if (typeof utf8textdecoder === 'undefined') {
@@ -52,7 +61,7 @@
           <span .help-block .error-block>_{err}
 
 <div .row>
-  <div .col-sm-9.col-xs-9>
+  <div .col-sm-9.col-xs-9 style="display: flex; align-items: center; gap: 10px;">
     $if length files > 1
       Add to:
       &nbsp;
@@ -60,5 +69,7 @@
         ^{fvInput fileView}
         $maybe err <- fvErrors fileView
           <span .help-block .error-block>#{err}
-  <div .col-sm-3.col-xs-3 style="text-align:right;">
+    <button type=button .btn .btn-default .btn-lg onclick="addformAddPosting()" title="Adds a new posting row">
+      <span .bi.bi-plus>
+  <div .col-sm-3.col-xs-3 style="text-align: right;">
     <button type=submit .btn .btn-default .btn-lg name=submit style="font-weight:bold;">Save

@@ -108,18 +108,23 @@ function hledgerInitGlobal() {
   }
 
   // highlight the entry from the url hash
-  if (window.location.hash && document.querySelector(window.location.hash)) {
-    document.querySelector(window.location.hash).classList.add('highlighted');
+  if (window.location.hash) {
+    var hash = window.location.hash.substring(1); // Remove the #
+    var element = document.getElementById(hash);
+    if (element) {
+      element.classList.add('highlighted');
+    }
   }
   window.addEventListener('hashchange', function() {
-    var hash = window.location.hash;
-    var target = hash ? document.querySelector(hash) : null;
-    
     document.querySelectorAll('.highlighted').forEach(function(el) {
       el.classList.remove('highlighted');
     });
-    if (target) {
-      target.classList.add('highlighted');
+    if (window.location.hash) {
+      var hash = window.location.hash.substring(1); // Remove the #
+      var element = document.getElementById(hash);
+      if (element) {
+        element.classList.add('highlighted');
+      }
     }
   });
   document.querySelectorAll('[data-toggle="offcanvas"]').forEach(function(el) {
@@ -529,7 +534,7 @@ function addformAddPosting() {
   if (!addform || addform.style.display === 'none') { return; }
 
   // Clone the last row.
-  var lastRow = addform.querySelector('.account-group:last');
+  var lastRow = addform.querySelector('.account-group:last-child');
   var newrow = lastRow.cloneNode(true);
   newrow.classList.add('added-row');
   var newnum = addform.querySelectorAll('.account-group').length + 1;
