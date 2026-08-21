@@ -10,19 +10,23 @@ $ hledger -f- print -O beancount
 >=1
 
 # ** 2. Otherwise, accounts are modified/encoded to suit beancount, and open directives are added.
+# Underscore-separated subparts within a component are capitalised and joined.
 <
 2000-01-01
   assets          0 ABC
   equity:$-€:$    0 USD
+  assets:my_cash  0 ABC
 
 $ hledger -f- print -O beancount
 ;option "inferred_tolerance_default" "*:0.005"
 2000-01-01 open Assets:A
+2000-01-01 open Assets:MyCash
 2000-01-01 open Equity:C24-C20ac:C24
 
 2000-01-01 *
     Assets:A                       0 ABC
     Equity:C24-C20ac:C24           0 USD
+    Assets:MyCash                  0 ABC
 
 >=
 
