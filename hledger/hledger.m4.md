@@ -7098,61 +7098,90 @@ For this, use the `--ignore-lots` flag, or just `-I`.
 
 ## First lots example
 
-To get a feel for what lot tracking looks like, here is a minimal buy and sell
-using a [lotful commodity](#lotful-commodities) (the lowest-boilerplate style):
+hledger's lot tracking does not require much extra notation. Here is a small example, using @ syntax.
+([Lot reporting example](#lot-reporting-example) below shows other styles.):
 
 ```journal
 commodity AAPL  ; lots:
 
 2026-01-15 buy
-    assets:stocks      10 AAPL @ $50
     assets:cash     -$500
+    assets:stocks      10 AAPL @ $50
 
-2026-02-01 sell some at a gain
+2026-02-01 sell some
     assets:stocks      -5 AAPL @ $70
     assets:cash      $350
+
 ```
 
-hledger automatically records each acquisition as a lot, picks lots at disposal
-using FIFO by default, calculates the resulting capital gain, and adds gain postings
-(using default account names in this example):
+Lot tracking is activated for AAPL by the `lots` tag, so hledger will
+
+- keep track of each lot that's acquired (and optionally show them in reports)
+- dispose of lots in the right order (FIFO by default)
+- calculate the resulting capital gain, and add the gain postings if missing
+- check for many kinds of error (such as selling more than you have).
+
+`print` shows the inferred gain postings:
 
 ```cli
 $ hledger print
 2026-01-15 buy
-    assets:stocks                                 10 AAPL @ $50
     assets:cash                                $-500
+    assets:stocks                                 10 AAPL @ $50
 
-2026-02-01 sell some at a gain
+2026-02-01 sell some
     assets:stocks                                 -5 AAPL @ $70
     assets:cash                                 $350
     revenues:gain                              $-100
     equity:unrealised-gain                      $100
+
 ```
 
-Adding the `--lots` flag makes the individual lots visible as subaccounts:
+Adding `--lots` shows the lots, as subaccounts. (This flag works with all reports.):
 
 ```cli
 $ hledger print --lots
 2026-01-15 buy
-    assets:stocks:{2026-01-15, $50}               10 AAPL @ $50
     assets:cash                                $-500
+    assets:stocks:{2026-01-15, $50}               10 AAPL @ $50
 
-2026-02-01 sell some at a gain
+2026-02-01 sell some
     assets:stocks:{2026-01-15, $50}               -5 AAPL @ $70
     assets:cash                                 $350
     revenues:gain                              $-100
     equity:unrealised-gain                      $100
+
 ```
+
+Or use `print -a` (short for `--all`) to show maximum detail:
 
 ```cli
-$ hledger bal assets:stocks --lots -N
-              5 AAPL  assets:stocks:{2026-01-15, $50}
+$ hledger print -a
+2026-01-15 buy
+    assets:cash                                $-500
+    assets:stocks:{2026-01-15, $50}               10 AAPL {$50} @ $50  ; ptype: acquire
+
+2026-02-01 sell some
+    assets:stocks:{2026-01-15, $50}               -5 AAPL {2026-01-15, $50} @ $70  ; ptype: dispose
+    assets:cash                                 $350
+    revenues:gain                              $-100  ; ptype: rgain, generated-posting:
+    equity:unrealised-gain                      $100  ; ptype: ugain, generated-posting:
+
 ```
 
-And if you also record a market price, eg with a `P 2026-03-31 AAPL $72` directive,
-the [holdings](#holdings) command shows an overview of your investment holdings -
-units held, cost basis, current value and unrealised gain:
+Note, hledger is quite good at analysing lot entries but it won't understand every possible shape;
+so if anything looks wrong, check the `print -a` output,
+and if necessary rewrite the entry in a different form.
+
+Once you have lot entries, [`holdings`](#holdings) will show an overview of your investments -
+units held, per-unit and total cost and value, realised and unrealised gain, and [XIRR] (extended internal rate of return).
+To see all of these, add at least one market price declaration, eg:
+
+```journal
+P 2026-03-31 AAPL $72
+```
+
+Then:
 
 ```cli
 $ hledger holdings -e 2026-04-01
@@ -7160,31 +7189,12 @@ Holdings on 2026-03-31
 
                ||       Date  Age   Units  Avg cost  Price  Cost  Value  Weight  UGain  UGain%  RGain     XIRR
 ===============++==============================================================================================
- assets:stocks || 2026-01-15  75d  5 AAPL       $50    $72  $250   $360  100.0%   $110   44.0%   $100  1865.3%
+ assets:stocks || 2026-01-15  75d  5 AAPL       $50    $72  $250   $360  100.0%   $110   44.0%   $100  1865.3% 
 ---------------++----------------------------------------------------------------------------------------------
-               ||                                           $250   $360  100.0%   $110   44.0%   $100  1865.3%
+               ||                                           $250   $360  100.0%   $110   44.0%   $100  1865.3% 
 ```
 
-Or use `print -a` to see maximum detail on how hledger has analysed your entries -
-lot subaccounts, inferred annotations, and posting types:
-
-```cli
-$ hledger print -a
-2026-01-15 buy
-    assets:stocks:{2026-01-15, $50}               10 AAPL {$50} @ $50  ; ptype: acquire
-    assets:cash                                $-500
-
-2026-02-01 sell some at a gain
-    assets:stocks:{2026-01-15, $50}               -5 AAPL {2026-01-15, $50} @ $70  ; ptype: dispose
-    assets:cash                                 $350
-    revenues:gain                              $-100  ; ptype: rgain, generated-posting:
-    equity:unrealised-gain                      $100  ; ptype: ugain, generated-posting:
-```
-
-Until you are familiar with hledger's lot tracking, it's worth checking your entries with `print -a`.
-Not every possible lot-related entry can be analysed correctly; if anything looks wrong, rewrite the entry.
-
-[Lot reporting example](#lot-reporting-example) below shows this same scenario recorded with other notation styles.
+[XIRR]: https://en.wikipedia.org/wiki/Internal_rate_of_return
 
 ## Lot concepts
 
