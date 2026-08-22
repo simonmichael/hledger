@@ -34,6 +34,8 @@ data InputOpts = InputOpts {
     ,anon_              :: Bool                 -- ^ do light obfuscation of the data ? Now corresponds to --obfuscate, not the old --anon flag.
     ,new_               :: Bool                 -- ^ read only new transactions since this file was last read ?
     ,new_save_          :: Bool                 -- ^ save latest new transactions state for next time ?
+    ,latest_if_none_defined_ :: Maybe Day       -- ^ a fallback date for latest date, used in source rules when no
+                                                --   latest date has yet been recorded for the rules file
     ,pivot_             :: String               -- ^ use the given field's value as the account name
     ,forecast_          :: Maybe DateSpan       -- ^ span in which to generate forecast transactions
     ,verbose_tags_      :: Bool                 -- ^ add user-visible tags when generating/modifying transactions & postings ?
@@ -64,6 +66,7 @@ definputopts = InputOpts
     , anon_              = False
     , new_               = False
     , new_save_          = True
+    , latest_if_none_defined_ = Nothing
     , pivot_             = ""
     , forecast_          = Nothing
     , verbose_tags_      = False

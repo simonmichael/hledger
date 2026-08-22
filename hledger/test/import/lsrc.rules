@@ -1,0 +1,3 @@
+source | echo %l,latest test,10
+fields date,description,amount
+account1 assets:bank

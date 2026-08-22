@@ -242,6 +242,7 @@ rawOptsToInputOpts day usecoloronstdout rawopts =
       ,anon_              = boolopt "obfuscate" rawopts
       ,new_               = boolopt "new" rawopts
       ,new_save_          = True
+      ,latest_if_none_defined_ = latestIfNoneDefinedFromRawOpts rawopts
       ,pivot_             = stringopt "pivot" rawopts
       ,forecast_          = forecastPeriodFromRawOpts day rawopts
       ,verbose_tags_      = boolopt "verbose-tags" rawopts
@@ -260,6 +261,13 @@ rawOptsToInputOpts day usecoloronstdout rawopts =
       ,_ioDay             = day
       ,_oldtimeclock      = boolopt "oldtimeclock" rawopts
       }
+
+-- | Get the fallback latest date from --latest-if-none-defined's DATE argument, if any.
+-- This will fail with a usage error if the date cannot be parsed.
+latestIfNoneDefinedFromRawOpts :: RawOpts -> Maybe Day
+latestIfNoneDefinedFromRawOpts rawopts = parsedate' <$> maybestringopt "latest-if-none-defined" rawopts
+  where
+    parsedate' s  = fromMaybe (error' $ "could not parse --latest-if-none-defined date: \"" ++ s ++ "\"") $ parsedate s  -- PARTIAL:
 
 handleReadFnToTextReadFn :: (InputOpts -> FilePath -> Text -> ExceptT String IO Journal) -> InputOpts -> FilePath -> Handle -> ExceptT String IO Journal
 handleReadFnToTextReadFn p iopts fp =

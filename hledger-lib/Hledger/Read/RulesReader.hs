@@ -87,6 +87,7 @@ import Text.Printf (printf)
 import Hledger.Data
 import Hledger.Utils
 import Hledger.Read.Common (aliasesFromOpts, Reader(..), InputOpts(..), amountp, statusp, journalFinalise, accountnamep, transactioncommentp, postingcommentp )
+import Hledger.Read.LatestDates (latestDatesFileFor, previousLatestDates)
 import Hledger.Write.Csv
 
 --- ** doctest setup
@@ -188,12 +189,26 @@ parse iopts rulesfile h = do
       case T.unpack . stripspaces . fst <$> mpatandcmd of
         Just s | not $ null s -> Just s
         _ -> Nothing
-    mcmd = dbg2 "data command" $  -- a non-empty command, or nothing
+    mrawcmd =  -- a non-empty command, or nothing
       mpatandcmd >>= \sc ->
         let c = T.unpack . stripspaces . T.drop 1 . snd $ sc
         in if null c then Nothing else Just c
 
     archive = isJust (getDirective "archive" rules)
+
+  -- Perform any relevant substiutions.
+  mcmd <- fmap (dbg2 "data command") $ case mrawcmd of
+    Just c | "%l" `isInfixOf` c -> do
+      latestdates <- liftIO $ previousLatestDates rulesfile
+      d <- case (latestdates, latest_if_none_defined_ iopts) of
+        (dt:_, _)     -> return dt
+        (_, Just dt)  -> return dt
+        _             -> error' $
+          rulesfile ++ ": the source rule's command uses %l, but no latest date is recorded in "
+          ++ latestDatesFileFor rulesfile
+          ++ ".\nImport some data first, or provide a fallback date with --latest-if-none-defined=DATE."
+      return $ Just $ T.unpack $ T.replace "%l" (showDate d) $ T.pack c
+    _ -> return mrawcmd
 
   -- 3. find the file to be read, if any
   --  needs: file pattern, data command, import flag, archive flag, data dir, downloads dir
