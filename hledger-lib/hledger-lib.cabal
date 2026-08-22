@@ -119,6 +119,7 @@ library
       Hledger.Write.Ledger
       Hledger.Write.Ods
       Hledger.Write.Spreadsheet
+      Hledger.Write.Tabular
       Text.Tabular.AsciiWide
       Text.WideString
   other-modules:

@@ -22,6 +22,7 @@ import Data.List.NonEmpty (NonEmpty((:|)))
 import Data.Maybe (fromMaybe, mapMaybe, maybeToList)
 import Safe (atMay)
 import Data.Map qualified as Map
+import Data.Set qualified as Set
 import Data.List qualified as List
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Text qualified as T
@@ -310,11 +311,13 @@ compoundBalanceReportAsText ropts (CompoundPeriodicReport title _colspans subrep
           --   [COL1LINE1, COL2LINE1]
           --   [COL1LINE2, COL2LINE2]
           --  ]
-          coltotalslines = multiBalanceRowAsText ropts totalsrow
+          coltotalslines = multiBalanceRowAsText ropts allCommodities totalsrow
           totalstable = Table
             (Group NoLine $ map Header $ "Net:" : replicate (length coltotalslines - 1) "")  -- row headers
             (Header [])     -- column headers, concatTables will discard these
             coltotalslines  -- cell values         
+
+    allCommodities = allCommoditiesFromSubreports subreports
 
     -- | Convert a named multi balance report to a table suitable for
     -- concatenating with others to make a compound balance report table.
@@ -387,14 +390,24 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
           _ -> []
     dataHeaders =
       (guard (layout_ ropts /= LayoutTidy) >>) $
-      map (Spr.headerCell . reportPeriodName (period_titles_ ropts) (balanceaccum_ ropts) colspans)
-      (if not (summary_only_ ropts) then colspans else []) ++
-      (guard (multiBalanceHasTotalsColumn ropts) >> [Spr.headerCell "Total"]) ++
-      (guard (average_   ropts) >> [Spr.headerCell "Average"])
+      map
+        (dataHeaderCell .
+            reportPeriodName
+                (period_titles_ ropts) (balanceaccum_ ropts) colspans)
+        (if not (summary_only_ ropts) then colspans else []) ++
+      (guard (multiBalanceHasTotalsColumn ropts) >> [dataHeaderCell "Total"]) ++
+      (guard (average_   ropts) >> [dataHeaderCell "Average"])
+    dataHeaderCell label =
+      (Spr.headerCell label) {Spr.cellSpan = Spr.SpanHorizontal numSubColumns}
     headerrow = leadingHeaders ++ dataHeaders
 
     blankrow =
       fmap (Spr.horizontalSpan headerrow . Spr.defaultCell) maybeBlank
+    numSubColumns =
+        case layout_ ropts of
+            LayoutBareWide -> length allCommodities
+            _ -> 1
+    allCommodities = allCommoditiesFromSubreports subreports
 
     -- Make rows for a subreport: its title row, not the headings row,
     -- the data rows, any totals row, and a blank row for whitespace.
@@ -403,15 +416,20 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
     subreportrows (subreporttitle, mbr, _increasestotal) =
       let
         (_, bodyrows, mtotalsrows) =
-          multiBalanceReportAsSpreadsheetParts fmt ropts mbr
+          multiBalanceReportAsSpreadsheetParts fmt ropts allCommodities mbr
+        accountCell =
+            (Spr.defaultCell subreporttitle) {
+                Spr.cellStyle = Spr.Body Spr.Total,
+                Spr.cellClass = Spr.Class "account"
+            }
         titleRows
           | T.null subreporttitle = []
           | otherwise =
-              [Spr.horizontalSpan headerrow
-                ((Spr.defaultCell subreporttitle){
-                    Spr.cellStyle = Spr.Body Spr.Total,
-                    Spr.cellClass = Spr.Class "account"
-                })]
+              [case layout_ ropts of
+                  LayoutBareWide ->
+                      accountCell :
+                      map Spr.headerCell (dataHeaders >> allCommodities)
+                  _ -> Spr.horizontalSpan headerrow accountCell]
       in
         titleRows ++
         bodyrows ++
@@ -421,7 +439,7 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
     totalrows =
       if no_total_ ropts || length subreports == 1 then []
       else
-        multiBalanceRowAsCellBuilders fmt ropts colspans
+        multiBalanceRowAsCellBuilders fmt ropts colspans allCommodities
             Total (simpleDateSpanCell $ period_titles_ ropts) totalrow
                              -- make a table of rendered lines of the report totals row
         & map (map (fmap wbToText))
@@ -433,3 +451,10 @@ compoundBalanceReportAsSpreadsheet fmt accountLabel maybeBlank ropts cbr =
   in  (title,
         ((1,1),
             headerrow :| concatMap subreportrows subreports ++ totalrows))
+
+allCommoditiesFromSubreports ::
+    [(text, PeriodicReport a MixedAmount, bool)] -> [CommoditySymbol]
+allCommoditiesFromSubreports =
+    Set.toAscList .
+    foldMap (\(_,mbr,_) ->
+                foldMap (foldMap maCommodities . prrAmounts) $ prRows mbr)
