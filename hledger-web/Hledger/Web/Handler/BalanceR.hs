@@ -26,8 +26,7 @@ getBalanceR = do
   checkServerSideUiEnabled
   VD{j, q, qopts, qparam, opts, today, trs} <- getViewData
   require ViewPermission
-  mperiod <- lookupGetParam "period"
-  maccum <- lookupGetParam "accum"
+  params <- reqGetParams <$> getRequest
   hideEmpty <- hideEmptyAccounts
   urlrender <- getUrlRenderParams
   let withFilter t = if q /= Any then trf trs "{title}, filtered" [("title", t)] else t
@@ -37,7 +36,7 @@ getBalanceR = do
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.
     setTitleI (HMsg "balance - hledger-web")
-    case reportParams today rspecOrig qparam q qopts hideEmpty mperiod maccum of
+    case reportParams today rspecOrig qparam q qopts hideEmpty params of
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ reportTitle roptsOrig $ tr trs "Balance report"
         paramError trs err
