@@ -72,15 +72,15 @@ data ReportParamError = BadPeriod String | BadAccum Text
 -- the report like a date: search term would, and the report's links
 -- carry it, so that a row's register is restricted the same way.
 reportParams ::
-  Day -> ReportSpec -> Text -> Query -> [QueryOpt] -> Bool -> Maybe Text -> Maybe Text ->
+  Day -> ReportSpec -> Text -> Query -> [QueryOpt] -> Bool -> [(Text, Text)] ->
   Either ReportParamError ReportParams
-reportParams today rspecOrig qparam q qopts hideEmpty mperiod maccum = do
+reportParams today rspecOrig qparam q qopts hideEmpty params = do
   let roptsOrig = _rsReportOpts rspecOrig
-      rpPeriod = mfilter (not . T.null) mperiod
+      rpPeriod = mfilter (not . T.null) $ lookup "period" params
   (ivl, rpSpan) <- case rpPeriod of
     Nothing -> Right (interval_ roptsOrig, nulldatespan)
     Just p  -> either (Left . BadPeriod . errorBundlePretty) Right $ parsePeriodExpr today p
-  rpAccum <- parseAccum maccum
+  rpAccum <- parseAccum $ lookup "accum" params
   let rpInterval = fromMaybe ivl $ intervalFromQueryOpts qopts
       rpRopts =
         roptsOrig {

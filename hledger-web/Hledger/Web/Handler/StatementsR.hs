@@ -50,8 +50,7 @@ statementPage here tabtitle spec = do
   checkServerSideUiEnabled
   VD{j, q, qopts, qparam, opts, today, trs} <- getViewData
   require ViewPermission
-  mperiod <- lookupGetParam "period"
-  maccum <- lookupGetParam "accum"
+  params <- reqGetParams <$> getRequest
   hideEmpty <- hideEmptyAccounts
   urlrender <- getUrlRenderParams
   let withFilter t = if q /= Any then trf trs "{title}, filtered" [("title", t)] else t
@@ -61,7 +60,7 @@ statementPage here tabtitle spec = do
 
   defaultLayout $ do
     setTitleI (HMsg tabtitle)
-    case reportParams today rspecOrig qparam q qopts hideEmpty mperiod maccum of
+    case reportParams today rspecOrig qparam q qopts hideEmpty params of
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ effectiveTitle roptsOrig $ tr trs $ cbctitle spec NoInterval
         paramError trs err
