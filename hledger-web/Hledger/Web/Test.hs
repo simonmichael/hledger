@@ -655,7 +655,7 @@ hledgerWebTest = do
       statusIs 200
       bodyContains ">2025-01-31<"
       bodyContains ">2025-02-28<"
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?period=2025-01&amp;accum=historical\" title=\"Show this report for this period\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;accum=historical\" title=\"Show this report for this period\"")
 
     yit "links a balance change column's heading to this report for the period" $ do
       request $ do
@@ -666,7 +666,7 @@ hledgerWebTest = do
       statusIs 200
       bodyContains ">2025-01<"
       -- the column's period replaces the search's date term
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?period=2025-01\" title=\"Show this report for this period\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01\" title=\"Show this report for this period\"")
 
     yit "reports an accumulation mode it does not know" $ do
       request $ do
@@ -870,7 +870,7 @@ hledgerWebTest = do
       bodyContains "<h2>Monthly Balance Sheet 2025-01-31..2025-02-28</h2>"
       bodyContains ">2025-01-31<"
       bodyContains ">2025-02-28<"
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?period=2025-01\" title=\"Show this report for this period\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=date%3A2025-01\" title=\"Show this report for this period\"")
       bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
 
     yit "shows balance changes instead when asked, and says so" $ do

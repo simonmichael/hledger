@@ -17,7 +17,7 @@ import Hledger.Utils.I18n (tr, trf)
 import Hledger.Web.Import
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (accumulationLinks, intervalLinks, removeDates, removeInacct, reportLinks)
+import Hledger.Web.Widget.Common (accumulationLinks, intervalLinks, removeInacct, reportLinks)
 
 
 -- | The balance or multi-period balance view, with sidebar.
@@ -29,7 +29,8 @@ getBalanceR = do
   params <- reqGetParams <$> getRequest
   hideEmpty <- hideEmptyAccounts
   urlrender <- getUrlRenderParams
-  let withFilter t = if q /= Any then trf trs "{title}, filtered" [("title", t)] else t
+  let dateless = filterQuery (not . queryIsDateOrDate2)
+      withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
 
@@ -56,13 +57,7 @@ getBalanceR = do
             -- links to the other reports keep the search, minus any account
             -- term, which the reports ignore, and the period as given
             menuParams = periodParams ++ [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)]
-            -- A column heading opens this report for that column's period,
-            -- in place of any date terms in the search, which the column
-            -- narrows anyway.
-            headinglink spn = urlrender BalanceR $
-              ("period", showDateSpanForQuery spn) :
-              [("q", qt) | let qt = T.unwords $ removeDates qparam, not (T.null qt)] ++
-              accumParams
+            headinglink = urlrender BalanceR . headingParams qparam params
             -- The heading, and the report's rows in three parts, for the
             -- table's thead, tbody, and tfoot.
             (title, header, body, totals) = case rpInterval of
@@ -73,7 +68,7 @@ getBalanceR = do
                     -- The plain page has its own name; one narrowed to a
                     -- period, or showing ending balances, says so like the
                     -- multi-period page does.
-                    dflt | rpSpan == nulldatespan && accum == PerPeriod = tr trs "Balance report"
+                    dflt | queryDateSpan (date2_ ropts) (_rsQuery rspec) == nulldatespan && accum == PerPeriod = tr trs "Balance report"
                          | otherwise = trimColon $ Balance.multiBalanceReportTitle ropts mbr
                 in (reportTitle ropts dflt, [toList h], map toList b, map toList t)
               _ ->
