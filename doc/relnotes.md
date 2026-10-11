@@ -745,10 +745,12 @@ hledger-web security fixes.**
 - The `demo` command, which played asciinema recordings, has been removed.
 
 - The `--tldr` flag has been renamed to `--examples`.
-  (Rationale: "It might be better to disconnect from the tldr naming and tldr-pages project repo.
+  (Rationale for detaching from tldr:
+   "It might be better to disconnect from the tldr naming and tldr-pages project repo.
    It adds maintenance cost; restricts our content quite a lot, eg to commands only;
-   the people who need it most won't know what it means;
-   and having such docs built in will always be preferable to needing to install and update a separate tool.")
+   and having such docs built in will always be preferable to needing to install and update a separate tool."
+   and for renaming:
+   "The people who need it most won't know what it means.")
 
 - `stats`'s `-1` flag has been renamed to `--oneline`.
 
