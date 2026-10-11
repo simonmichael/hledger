@@ -1869,7 +1869,7 @@ ai-sessions DATE='today':
 @ai-aij-import *IMPORTARGS:
     just ai-ccusagej-regen
     cd {{ AIDIR }} \
-    ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv \
+    ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv -X kt \
     | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
 
 # Run a hledger command on ai.journal.
