@@ -1753,20 +1753,53 @@ AI:
 ai-help:
     #!/bin/bash
     cat <<EOS
-    AI usage scripts.
+    AI usage scripts help.
     These are in groups, corresponding to various data sources:
-    1. ccusage         - prints reports from this machine's recent claude code logs
-    2. ccusage.journal - a cached snapshot of the above as a hledger journal
-    3. aicommits.csv   - a snapshot of the "AI usage:" disclosure lines in commit messages
-    4. ai.journal      - a permanent journal of project's monthly ai usage, with entries imported from the above and added manually
+    1. ai-session  - read this machine's recent claude code logs directly
+    2. ai-ccusage  - read this machine's recent claude code logs with ccusage
+    3. ai-ccusagej - update/read a temp journal caching the above (ccusage.journal)
+    4. ai-commits  - update/read a temp csv caching git ai usage messages (aicommits.csv)
+    5. ai-aij      - update/read a permanent journal of project's overall ai usage (ai.journal)
     Notes:
     - ccusage.journal's numbers drop over time (when regenerated) as old logs get purged.
       Eg compare just ai-ccusagej-monthly -Xkt -c1.kt; j ai-aij-monthly -Xkt -c1.kt
-    - in recent period, ccusage.journal should be similar to the usage recorded in SM commits.
+    - in recent period, ccusage.journal should be similar to the usage recorded in SM's commits.
     - ai.journal should be >= the usage recorded in all commits. (It may record additional AI usage not tied to commits.)
 
     EOS
+    #'
     just h ai-
+
+CCPROJECTS := '~/.claude/projects'
+
+# jq program summing output tokens in claude code transcripts, between epoch times $from and $to.
+# Deduplicates by message and request id, since a response is often logged on several lines (ccusage session --id doesn't do this).
+AI_OUTPUT_JQ := '[.[] | select(.message.usage) | select((.timestamp | sub("\\.[0-9]+Z$"; "Z") | fromdate) as $t | $t >= $from and $t < $to)] | unique_by([.message.id, .requestId]) | [.[].message.usage.output_tokens] | add // 0'
+
+# Show one claude code session's output tokens (kt), including its subagents; optionally only those since a time (gdate syntax). Unlike the daily numbers, not affected by other concurrent sessions.
+ai-session SESSIONID SINCE='1970-01-01':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s nullglob
+    files=({{ CCPROJECTS }}/*/{{ SESSIONID }}*.jsonl)
+    if [[ ${#files[@]} -ne 1 ]]; then echo "expected one transcript matching {{ SESSIONID }}, found ${#files[@]}" >&2; exit 1; fi
+    main=${files[0]}
+    from=$(gdate -d '{{ SINCE }}' +%s)
+    cat "$main" "${main%.jsonl}"/subagents/*.jsonl \
+      | jq -s -r --argjson from "$from" --argjson to 9999999999 '({{ AI_OUTPUT_JQ }}) / 1000 | "\(.) kt"'
+
+# List the claude code sessions active on a day (default today), with their output tokens (kt) that day, and the total.
+ai-sessions DATE='today':
+    #!/usr/bin/env bash
+    set -euo pipefail
+    shopt -s nullglob
+    day=$(gdate -d '{{ DATE }}' +%F)
+    from=$(gdate -d "$day" +%s)
+    to=$(gdate -d "$day +1 day" +%s)
+    for main in $(find {{ CCPROJECTS }}/ -mindepth 2 -maxdepth 2 -name '*.jsonl' -newermt "$(gdate -d @$from "+%F %T")"); do
+      kt=$(cat "$main" "${main%.jsonl}"/subagents/*.jsonl | jq -s --argjson from "$from" --argjson to "$to" '({{ AI_OUTPUT_JQ }}) / 1000')
+      [[ $kt == 0 ]] || printf "%8.1f kt  %s  %s\n" "$kt" "$(basename "$main" .jsonl)" "$(basename "$(dirname "$main")")"
+    done | sort -rn | awk '{print} {t+=$1} END {printf "%8.1f kt  total\n", t}'
 
 # Show today's logged local-machine claude code usage. Accepts ccusage options, like -b.
 @ai-ccusage-today *CCUSAGEOPTS:
@@ -1824,37 +1857,6 @@ ai-ccusagej-recent *BALARGS:
 # Run ai-ccusagej-recent repeatedly.
 @ai-ccusagej-recent-watch *BALARGS:
     while true; do just ai-ccusagej-recent -c1.kt {{ BALARGS }}; echo; read -p "press enter to update.."; done
-
-CCPROJECTS := '~/.claude/projects'
-
-# jq program summing output tokens in claude code transcripts, between epoch times $from and $to.
-# Deduplicates by message and request id, since a response is often logged on several lines (ccusage session --id doesn't do this).
-AI_OUTPUT_JQ := '[.[] | select(.message.usage) | select((.timestamp | sub("\\.[0-9]+Z$"; "Z") | fromdate) as $t | $t >= $from and $t < $to)] | unique_by([.message.id, .requestId]) | [.[].message.usage.output_tokens] | add // 0'
-
-# Show one claude code session's output tokens (kt), including its subagents; optionally only those since a time (gdate syntax). Unlike the daily numbers, not affected by other concurrent sessions.
-ai-session SESSIONID SINCE='1970-01-01':
-    #!/usr/bin/env bash
-    set -euo pipefail
-    shopt -s nullglob
-    files=({{ CCPROJECTS }}/*/{{ SESSIONID }}*.jsonl)
-    if [[ ${#files[@]} -ne 1 ]]; then echo "expected one transcript matching {{ SESSIONID }}, found ${#files[@]}" >&2; exit 1; fi
-    main=${files[0]}
-    from=$(gdate -d '{{ SINCE }}' +%s)
-    cat "$main" "${main%.jsonl}"/subagents/*.jsonl \
-      | jq -s -r --argjson from "$from" --argjson to 9999999999 '({{ AI_OUTPUT_JQ }}) / 1000 | "\(.) kt"'
-
-# List the claude code sessions active on a day (default today), with their output tokens (kt) that day, and the total.
-ai-sessions DATE='today':
-    #!/usr/bin/env bash
-    set -euo pipefail
-    shopt -s nullglob
-    day=$(gdate -d '{{ DATE }}' +%F)
-    from=$(gdate -d "$day" +%s)
-    to=$(gdate -d "$day +1 day" +%s)
-    for main in $(find {{ CCPROJECTS }}/ -mindepth 2 -maxdepth 2 -name '*.jsonl' -newermt "$(gdate -d @$from "+%F %T")"); do
-      kt=$(cat "$main" "${main%.jsonl}"/subagents/*.jsonl | jq -s --argjson from "$from" --argjson to "$to" '({{ AI_OUTPUT_JQ }}) / 1000')
-      [[ $kt == 0 ]] || printf "%8.1f kt  %s  %s\n" "$kt" "$(basename "$main" .jsonl)" "$(basename "$(dirname "$main")")"
-    done | sort -rn | awk '{print} {t+=$1} END {printf "%8.1f kt  total\n", t}'
 
 # Extract the "AI usage:" disclosure lines from commit messages to aicommits.csv.
 @ai-commits-csv:
