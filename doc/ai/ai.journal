@@ -29,6 +29,9 @@ account ai
 2026-07-01 sm
     (ai)                                           2.8 Mt
 
+2026-08-01 sm
+    (ai)                                       3,527.6 kt
+
 2026-08-03 sm | research (core dev stats, github organisation, hledger username)
     (ai)                                         105 kt
 
@@ -46,6 +49,9 @@ account ai
 
 2026-08-28 sm | branch syncing, deps repair
     (ai)                                         35 kt
+
+2026-09-01 sm
+    (ai)                                       9,884.7 kt
 
 2026-09-04 sm | doc updates, misc
     (ai)                                         25 kt
@@ -104,7 +110,6 @@ account ai
 2026-09-23 sm | megaparsec regression investigation, upstream issue 612
     (ai)                                         102 kt
 
-
 2026-09-24 sm | commit message rewording, jj and ssh signing setup, stats timing checks
     (ai)                                         82 kt
 
@@ -140,3 +145,4 @@ account ai
 
 2026-10-01 sm | 1.99.5 release
     (ai)                                         33 kt
+
