@@ -1,21 +1,21 @@
 # commodities
 commodity $1.
-commodity 1,000.t            ; generic total tokens, alias: opus_output_tokens, alias: codex_output_tokens
-commodity 1,000.0kt          ; kilotokens
-commodity 1,000.0Mt          ; megatokens
-commodity 1,000.0Gt          ; gigatokens
+commodity 1,000. t            ; generic total tokens, alias: opus_output_tokens, alias: codex_output_tokens
+commodity 1,000.0 kt          ; kilotokens
+commodity 1,000.0 Mt          ; megatokens
+commodity 1,000.0 Gt          ; gigatokens
 commodity 1,000. opus_output_tokens
 commodity 1,000.j            ; joules
-commodity 1,000.0kj          ; kilojoules
-commodity 1,000.0Mj          ; megajoules
-commodity 1,000.0Gj          ; gigajoules
-commodity 1,000.0Wh          ; watt hours
-commodity 1,000.0kWh         ; kilowatt hours
-commodity 1,000.mL           ; millilitres of water
-commodity 1,000.0L           ; litres of water
-commodity 1,000.c            ; characters
-commodity 1,000.kb           ; kilobytes
-commodity 1,000.Mb           ; megabytes
+commodity 1,000.0 kj          ; kilojoules
+commodity 1,000.0 Mj          ; megajoules
+commodity 1,000.0 Gj          ; gigajoules
+commodity 1,000.0 Wh          ; watt hours
+commodity 1,000.0 kWh         ; kilowatt hours
+commodity 1,000. mL           ; millilitres of water
+commodity 1,000.0 L           ; litres of water
+commodity 1,000. c            ; characters
+commodity 1,000. kb           ; kilobytes
+commodity 1,000. Mb           ; megabytes
 commodity 1,000. heartbeats  ; human heartbeats
 commodity 1,000.0 raisins    ; the energy in one raisin
 commodity 1,000.0 prius_miles
