@@ -750,7 +750,7 @@ hledger-web security fixes.**
    It adds maintenance cost; restricts our content quite a lot, eg to commands only;
    and having such docs built in will always be preferable to needing to install and update a separate tool."
    and for renaming:
-   "The people who need it most won't know what it means.")
+   "The people who need it most won't know the acronym, --examples is clearer.")
 
 - `stats`'s `-1` flag has been renamed to `--oneline`.
 
