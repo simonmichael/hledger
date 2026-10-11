@@ -1323,16 +1323,23 @@ postingShareStyles styles = postingTransformAmount $ \(Mixed m) -> Mixed $ M.map
 journalCommodityStyles :: Journal -> M.Map CommoditySymbol AmountStyle
 journalCommodityStyles j =
   -- XXX could be some redundancy here, cf journalStyleInfluencingAmounts
-  styles <> aliasstyles
+  explicitstyles <> aliasstyles <> inferredstyles
   where
-    styles                = globalstyles <> declaredstyles <> defaultcommoditystyle <> inferredstyles
+    explicitstyles        = globalstyles <> declaredstyles <> defaultcommoditystyle
     globalstyles          = jglobalcommoditystyles j
     declaredstyles        = M.mapMaybe cformat $ jdeclaredcommodities j
     defaultcommoditystyle = M.fromList $ catMaybes [jparsedefaultcommodity j]
     inferredstyles        = jinferredcommoditystyles j
-    -- commodity aliases without a style of their own (shown when valuing in them with -X) use their commodity's style
-    aliasstyles           = M.fromList [ (a, st) | c <- M.elems (jdeclaredcommodities j), Just st <- [M.lookup (csymbol c) styles]
-                                                 , a <- commodityAliases c ]
+    -- A commodity alias without a declared style of its own uses its commodity's number format
+    -- (precision, decimal mark, digit groups), with the symbol placement of the amounts written
+    -- with the alias, if any, otherwise of its commodity.
+    aliasstyles = M.fromList
+      [ (a, cst{ascommodityside = ascommodityside pst, ascommodityspaced = ascommodityspaced pst})
+      | c <- M.elems (jdeclaredcommodities j)
+      , Just cst <- [M.lookup (csymbol c) (explicitstyles <> inferredstyles)]
+      , a <- commodityAliases c
+      , let pst = M.findWithDefault cst a inferredstyles
+      ]
 
 -- | Like journalCommodityStyles, but attach a particular rounding strategy to the styles,
 -- affecting how they will affect display precisions when applied.

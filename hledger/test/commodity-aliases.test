@@ -175,9 +175,9 @@ $ hledger -f- bal --no-total
 
 # ** 16. An alias can be the valuation commodity.
 $ hledger -f- bal -X min --no-total
-              90 min  a
-             120 min  b
-            -210 min  c
+           90.00 min  a
+          120.00 min  b
+         -210.00 min  c
 
 # ** 17. -V leaves amounts in the commodity.
 $ hledger -f- bal -V --no-total
@@ -426,3 +426,24 @@ This transaction is unbalanced.
 The real postings' sum should be 0 but is h -0.03333333
   h 0.16666667  +  h -0.2  =  h -0.03333333
 >=1
+
+# ** 34. An alias without its own commodity directive is shown with its commodity's number format
+#        (precision, decimal mark, digit groups), and the symbol placement it was written with.
+<
+commodity USD 1,000.00  ; alias: $
+
+2024-01-01
+    a   $1234.5
+    b   -1234.50 USD
+
+$ hledger -f- bal -X '$' --no-total
+           $1,234.50  a
+          $-1,234.50  b
+
+# ** 35. print shows the amounts with that style, but their written precision.
+$ hledger -f- print
+2024-01-01
+    a                                         $1,234.5
+    b                                     USD -1,234.50
+
+>=

@@ -2310,7 +2310,9 @@ If your journal uses decimal commas, remember that a comma ends a tag's value;
 you can write a fractional quantity with an exponent instead, eg `alias: 1E-3 kilobucks`.
 
 You can also show amounts in an alias, with `-X`, eg `-X min` or `-X kilobucks`.
-They will be shown with the commodity's display style, or the alias's own, if you add a `commodity` directive for it:
+An alias is displayed with its commodity's number format (precision, decimal mark and digit groups),
+and with its symbol placed as in the amounts written with it (or as its commodity's, if there are none).
+To give an alias a different display style, add a `commodity` directive for it too:
 
 ```journal
 commodity USD 1.00    ; alias: 0.001 kilobucks
