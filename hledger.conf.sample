@@ -8,8 +8,8 @@
 # or run it with --debug or --debug=8 to troubleshoot.
 # https://hledger.org/dev/hledger.html#config-files
 
-
-# 1. General options. These will be used with all commands which support them.
+###############################################################################
+# 1. General options, to be added to all commands which support them.
 
 # https://hledger.org/dev/hledger.html#output
 # If you need to turn off any of these, I'd like to hear details:
@@ -21,26 +21,21 @@
 # It means less need to add -I while piping or fixing problems.
 --ignore-assertions    # https://hledger.org/hledger.html#balance-assertions
 
-# Always infer these things ? Why not.
+# Always infer these things ?
 # https://hledger.org/hledger.html#--infer-market-prices-market-prices-from-transactions
 # https://hledger.org/hledger.html#equity-conversion-postings
 # https://hledger.org/hledger.html#inferring-equity-conversion-postings
 --infer-market-prices
 --infer-costs
 #--infer-equity
-#
-# If you enable --infer-equity and use hledger check accounts or hledger check -s,
-# you might need to add account declarations to your journal, something like:
-# account equity:conversion:CUR1-CUR2:CUR1
-# account equity:conversion:CUR1-CUR2:CUR2
 
 
-# 2. Command-specific options.
+###############################################################################
+# 2. Command options, to be added to specific commands.
 
 # https://hledger.org/hledger.html#print
 [print]
 --explicit     # show inferred amounts
---show-costs   # show inferred costs
 
 # https://hledger.org/hledger.html#help
 [help]
@@ -48,25 +43,24 @@
 
 # Set some defaults for the balance commands ?
 # You can override these by adding more options on the command line.
-# [balance]            --layout=bare --tree --depth 3
-# [balancesheet]       --layout=bare --tree --depth 3
-# [balancesheetequity] --layout=bare --tree --depth 3
-# [cashflow]           --layout=bare --tree --depth 3
-# [incomestatement]    --layout=bare --tree --depth 3
+#[balance]            --layout=bare --tree --depth 3
+#[balancesheet]       --layout=bare --tree --depth 3
+#[balancesheetequity] --layout=bare --tree --depth 3
+#[cashflow]           --layout=bare --tree --depth 3
+#[incomestatement]    --layout=bare --tree --depth 3
 
 
-# You can also set options for add-on commands here. This works only if
+# You can also set options for add-on commands here, which works if
 # you run them with hledger (`hledger ui ...`, not `hledger-ui ...`).
-# Note they will also respect the general options above
-# (hledger-ui and hledger-web will, at least).
+# Some addons (eg hledger-ui, hledger-web) also respect the general options.
 
-# https://hledger.org/hledger-ui.html
-# Start in the "Cash accounts" screen, with a depth limit,
-# hiding zeros and equity accounts, and watch for file changes.
-[ui] --cash -3 -E not:type:e --watch
+# https://hledger.org/hledger-ui.html#options
+# Start in the Cash accounts screen, depth-limited, hiding zeros and equity.
+[ui]
+--cash -3 -E not:type:e
 
-# https://hledger.org/hledger-web.html
-[web] --port 5050 --allow edit
+# https://hledger.org/hledger-web.html#options
+[web] --port=0 --allow edit
 
 # https://hledger.org/scripts.html#hledger-iadd
 [iadd] --date-format %Y-%m-%d
@@ -80,32 +74,53 @@
 # ACCT
 
 
-# 3. Command aliases: your own custom hledger commands, similar to git aliases.
+###############################################################################
+# 3. Command aliases, for your own custom hledger commands and reports.
 # https://hledger.org/dev/hledger.html#command-aliases
 
-# [alias]
-# p     = print
-# p1    = print --oneline
-# rev10 = bal type:R -2 -X$ -p 'every 10 years from 2000'
+[alias]
+p   = tx              # brief print
+pr  = print           # full print
+pex = print --export  # lossless print
 
-# Aliases beginning with ! are shell commands. These will run only from
-# a trusted config file (your user config, or one specified with --conf).
+revdecades = bal type:R -2 -X$ -p 'every 10 years from 2000'  # revenue by decade
 
-# commit = ! jj commit `hledger files` -m
-# gitcommit = ! git commit -p -- `hledger files`
+# hledger watch HLEDGERARGS.. - rerun a report when $LEDGER_FILE changes
+watch = ! hledger files | watchexec -F- -c -- hledger    
 
-# A command line can continue on following, more-indented lines:
+# Aliases beginning with ! are shell commands. (These will run only from
+# a trusted config file: your user config, or one specified with --conf.)
+commit = ! jj commit `hledger files` -m   # commit 'MSG'
+#commit = ! git commit -p -- `hledger files`
 
-# forecast = aregister --forecast -E
-#     -p today..3months
+# A command can be continued on indented lines:
+forecast = aregister --forecast -E
+    -p today..3months
 
-# With the run command you can build multi-command scripts:
+# You can build multi-command scripts with hledger run:
+forecasts = run
+    -- echo checking1:  -- forecast checking1
+    -- echo checking2:  -- forecast checking2
+    -- echo creditcard: -- forecast creditcard
 
-# forecasts = run
-#     -- echo bchecking: -- forecast bchecking #-e 2months
-#     -- echo pchecking: -- forecast pchecking #-e 2months
-#     -- echo ichecking: -- forecast ichecking #-e 2months
+# Or use shell scripts with !.
+# Here are some useful helpers for finding commands with less typing:
+cmds = !  # cmds [REGEX] - list all or matched commands
+ f() {
+  # run hledger help commands, passing any flags to it
+  o=; p=;
+  for a; do case $a in -*) o="$o $a";; *) p=$a;; esac; done;
+  hledger help commands --color=yes $o
+  # convert OTHER ADDONS to a single column
+  | awk '/^OTHER ADDONS/{c=1; print; next} /^[^ ]/{c=0} c{for(i=1;i<=NF;i++) print " " $i; next} {print}'
+  # grep the name or abbreviation; highlight the matched part
+  | rg -P "^\s*(\S*\K$p|\S+ \(\S*\K$p)";
+ }; f
+builtins = cmds --builtins
+addons   = cmds --addons
+aliases  = cmds --aliases
 
-# # hledger watch CMD - show a report that updates when files change
-# watch = ! hledger files | watchexec -F- -c -- hledger    
-
+c = cmds
+b = builtins
+d = addons
+a = aliases
