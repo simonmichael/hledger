@@ -13,15 +13,15 @@ Disclosure lines look like:
     AI usage: Claude Fable 5, (estimate included in previous commit message)
 
 CSV columns (sorted by commit timestamp, oldest commit first):
-    commitdate     commit (committer) date (YYYY-MM-DD)
-    commit         abbreviated commit hash (first 9 chars)
-    author         commit author name
-    provider       AI provider (eg "Anthropic")
-    model          AI model(s) (eg "Opus 4.8", "Opus 4.8/Fable 5")
-    koutputtokens  estimated output tokens, in thousands, whole number,
-                   right-aligned in a 4-char field (eg "  30")
-    summary        the commit message's first line
-    notes          free-form remainder (eg parenthetical remarks)
+    commitdate  commit (committer) date (YYYY-MM-DD)
+    commit      abbreviated commit hash (first 9 chars)
+    author      commit author name
+    provider    AI provider (eg "Anthropic")
+    model       AI model(s) (eg "Opus 4.8", "Opus 4.8/Fable 5")
+    outputkt    estimated output tokens, in thousands, whole number,
+                right-aligned in a 4-char field (eg "  30")
+    summary     the commit message's first line
+    notes       free-form remainder (eg parenthetical remarks)
 
 Usage: tools/aicommits
 """
@@ -124,8 +124,7 @@ def main():
 
     # lineterminator="\n" gives Unix line endings (csv defaults to "\r\n").
     writer = csv.writer(sys.stdout, lineterminator="\n")
-    writer.writerow(["commitdate", "commit", "author", "provider", "model",
-                     "koutputtokens", "summary", "notes"])
+    writer.writerow(["commitdate", "commit", "author", "provider", "model", "outputkt", "summary", "notes"])
     writer.writerows(row for _, row in rows)
 
 

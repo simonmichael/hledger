@@ -5,14 +5,14 @@
 # Keep synced with tools/aicommits.
 
 skip 1
-fields commitdate,commit,author,provider,model,koutputtokens,summary,notes
+fields commitdate,commit,author,provider,model,outputkt,summary,notes
 
 date        %commitdate
 # Commit messages often contain semicolons, but descriptions can't.
 description %commit | %{replace(replace(%summary, "^; *", ""), ";", ",")}
 comment     %notes
 account1    (ai)
-amount1     %koutputtokens kt
+amount1     %outputkt kt
 comment1    model:%model, author:%author
 
 # Commits whose disclosure gave no token estimate: record zero.
