@@ -28,7 +28,6 @@ Usage: tools/aicommits
 # Keep synced with doc/ai/aicommits.csv.rules
 
 
-import csv
 import re
 import subprocess
 import sys
@@ -46,6 +45,19 @@ NOTE_RE = re.compile(r"\(([^)]*)\)")
 # Normalise the disclosed provider name to a canonical form.
 PROVIDERS = {"Claude": "Anthropic"}
 
+# Matches an Anthropic model name, with or without "Claude", in a few styles:
+# "Claude Opus 4.8", "Fable 5.1", "claude-opus-5", "Fable".
+ANTHROPIC_MODEL_RE = re.compile(
+    r"\b(?:claude[- ])?(opus|sonnet|haiku|fable|mythos)\b(?:[- ]([0-9]+(?:[.-][0-9]+)?)\b)?",
+    re.IGNORECASE)
+
+# Matches a context size note in a model name, eg "(1M context)", so it isn't read as a token count.
+CONTEXT_RE = re.compile(r"\(\s*[0-9.]+\s*[kKmM]\s+context\s*\)")
+
+# Per-commit corrections, for disclosures that can't be parsed as intended.
+# bc624be48's usage was included in the previous commit's estimate.
+KTOKENS_OVERRIDES = {"bc624be48": 0}
+
 
 def ktokens(unit_value, unit):
     """Convert a token count to thousands (k), as a float."""
@@ -55,23 +67,43 @@ def ktokens(unit_value, unit):
     return n
 
 
+def anthropic_models(text):
+    """The Anthropic model names mentioned in text, normalised (eg "Opus 4.8"), without duplicates."""
+    names = []
+    for family, version in ANTHROPIC_MODEL_RE.findall(text):
+        name = family.capitalize() + (" " + version.replace("-", ".") if version else "")
+        if name not in names:
+            names.append(name)
+    return names
+
+
 def parse_disclosure(line):
     """Parse the text after "AI usage:" into (provider, model, ktokens, notes).
 
-    ktokens is a float in thousands, or None if no count was given.
+    Several models are joined with "/" (eg "Opus 4.8/Fable 5").
+    ktokens is a float in thousands, or None if no count was given;
+    when only per-model counts are given (eg "Fable 5.1 ~28k and Opus 5.5 ~10k"), it's their sum.
     """
-    body = line.split("AI usage:", 1)[1].strip()
+    body = CONTEXT_RE.sub("", line.split("AI usage:", 1)[1]).strip()
 
     # provider + model is everything up to the first comma.
     modelpart, _, rest = body.partition(",")
-    words = modelpart.split()
-    provider = words[0] if words else ""
-    provider = PROVIDERS.get(provider, provider)
-    # Normalise " */ *" between multiple models to a bare "/".
-    model = re.sub(r" */ *", "/", " ".join(words[1:]))
+    models = anthropic_models(modelpart)
+    if models:
+        provider, model = "Anthropic", "/".join(models)
+    else:
+        words = modelpart.split()
+        provider = PROVIDERS.get(words[0], words[0]) if words else ""
+        # Normalise " */ *" between multiple models to a bare "/".
+        model = re.sub(r" */ *", "/", " ".join(words[1:]))
 
+    # A count after the comma is the total; otherwise sum any per-model counts before it.
     m = TOKENS_RE.search(rest)
-    kt = ktokens(m.group(1), m.group(2)) if m else None
+    if m:
+        kt = ktokens(m.group(1), m.group(2))
+    else:
+        counts = [ktokens(v, u) for v, u in TOKENS_RE.findall(modelpart)]
+        kt = sum(counts) if counts else None
 
     n = NOTE_RE.search(rest)
     notes = n.group(1).strip() if n else ""
@@ -114,6 +146,7 @@ def main():
         if not line or not line.startswith("AI usage:"):
             continue
         provider, model, kt, notes = parse_disclosure(line)
+        kt = KTOKENS_OVERRIDES.get(hash_, kt)
         summary = body.splitlines()[0].strip() if body.strip() else ""
         rows.append((ts, [
             date, hash_, author, provider, model,
@@ -122,10 +155,20 @@ def main():
         ]))
     rows.sort(key=lambda r: r[0])  # by commit timestamp, oldest commit first
 
-    # lineterminator="\n" gives Unix line endings (csv defaults to "\r\n").
-    writer = csv.writer(sys.stdout, lineterminator="\n")
-    writer.writerow(["commitdate", "commit", "author", "provider", "model", "outputkt", "summary", "notes"])
-    writer.writerows(row for _, row in rows)
+    print("commitdate,commit,author,provider,model,outputkt,summary,notes")
+    for _, row in rows:
+        print(",".join(csvfield(v, quote=(i == SUMMARY_COLUMN)) for i, v in enumerate(row)))
+
+
+# The summary is always quoted, for consistency; other fields only when needed.
+SUMMARY_COLUMN = 6
+
+
+def csvfield(value, quote=False):
+    """A CSV field, double-quoted if quote is true or the value needs it."""
+    if quote or any(c in value for c in ',"\r\n'):
+        return '"' + value.replace('"', '""') + '"'
+    return value
 
 
 if __name__ == "__main__":
