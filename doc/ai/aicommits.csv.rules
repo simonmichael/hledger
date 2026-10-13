@@ -8,7 +8,8 @@ skip 1
 fields commitdate,commit,author,provider,model,koutputtokens,summary,notes
 
 date        %commitdate
-description %commit | %summary
+# Commit messages often contain semicolons, but descriptions can't.
+description %commit | %{replace(replace(%summary, "^; *", ""), ";", ",")}
 comment     %notes
 account1    (ai)
 amount1     %koutputtokens kt
