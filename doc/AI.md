@@ -157,39 +157,11 @@ because the cost of designing and building it outweighed the need and the availa
     - Given the times, this was a good project to motivate exploring the new tech and surrounding issues,
     and how to use it or to respond to others using it.
 
-## Measuring usage
+## Measuring the hledger project's AI usage
 
-The hledger project's estimated AI usage is tracked in [ai.journal](https://github.com/hledgerorg/hledger/blob/main/doc/ai/ai.journal).
+The hledger project's estimated AI usage is tracked in doc/ai/ai.journal.
+See more about this and tracking AI usage in general at [AI usage accounting](ai-usage-accounting.md).
 
-Some notes on tracking AI usage:
-
-### Anthropic API
-
-For the initial lots work in the first 2.0 preview release (1.99.1),
-here's my (SM's) estimated claude input+output tokens and costs,
-from <https://platform.claude.com/usage>:
-
-- 2026-01: 133 Mt,   $85
-- 2026-02: 598 Mt,  $551
-- 2026-03: 299 Mt,  $256
-- Total:    ~1 Gt, ~$900
-
-Estimated human dev time: ~150h, market value ~$10k-30k
-
-### Anthropic monthly plan
-
-From 2026-04-01, I'm using Anthropic's 6-month FOSS Claude Max plan (worth about $1200),
-which I applied for and received after writing this policy.
-It is helping recover the costs of the initial experimentation above.
-
-[ccusage](https://ccusage.com) shows data from the claude code chat logs on your machine,
-for both API and monthly plan usage.
-It sees only the chat logs still present on the machine, so it can undercount;
-for me it shows numbers much lower than the ones from platform.claude.com above.
-
-`just h ai-` shows some related Justfile scripts.
-Each month I import my estimated claude code usage data, summarised, to the project's ai.journal.
-Other contributors' usage estimates can be added here too.
 
 ## Related
 
