@@ -17,6 +17,42 @@ Files in this directory. The parenthesised ones are not committed.
 
 Last updated: 2026-10-12
 
+```
+     || Commodity  Jan   Feb   Mar  Apr   May   Jun   Jul   Aug    Sep  Oct    Total  Average 
+=====++=======================================================================================
+ ... || kt         748  3371  1889  707  2200  1300  1411  5850  10939   76    28491     2849 
+ 
+
+     || Commodity  Jan  Feb  Mar  Apr  May  Jun  Jul  Aug   Sep  Oct    Total  Average 
+=====++================================================================================
+ ... || Mt         0.7  3.4  1.9  0.7  2.2  1.3  1.4  5.8  10.9  0.1     28.5      2.8 
+ 
+
+     || Commodity  Jan  Feb  Mar  Apr  May  Jun  Jul   Aug   Sep  Oct    Total  Average 
+=====++=================================================================================
+ ... || kWh        1.9  8.4  4.7  1.8  5.5  3.2  3.5  14.6  27.3  0.2     71.2      7.1 
+ 
+
+     || Commodity   Jan   Feb   Mar   Apr   May   Jun   Jul    Aug    Sep  Oct    Total  Average 
+=====++==========================================================================================
+ ... || L          15.0  67.4  37.8  14.1  44.0  26.0  28.2  117.0  218.8  1.5    569.8     57.0 
+ 
+
+     || Commodity  Jan  Feb  Mar  Apr  May  Jun  Jul   Aug   Sep  Oct    Total  Average 
+=====++=================================================================================
+ ... || kg         1.3  6.1  3.4  1.3  4.0  2.3  2.5  10.5  19.7  0.1     51.3      5.1 
+ 
+
+     || Commodity    Jan  Feb  Mar  Apr  May  Jun  Jul  Aug  Sep  Oct    Total  Average 
+=====++=================================================================================
+ ... || dryer_hours  0.4  1.7  0.9  0.4  1.1  0.6  0.7  2.9  5.5    0     14.2      1.4 
+ 
+
+     || Commodity    Jan   Feb  Mar  Apr  May  Jun  Jul   Aug   Sep  Oct    Total  Average 
+=====++====================================================================================
+ ... || prius_miles  2.8  12.5  7.0  2.6  8.1  4.8  5.2  21.6  40.5  0.3    105.4     10.5 
+```
+
 <h3 class="report-title"> </h3>
 <table>
 <tr><th class="account border-bottom-double">account</th><th class="border-bottom-double">commodity</th><th class="amount border-bottom-double">2026-01</th><th class="amount border-bottom-double">2026-02</th><th class="amount border-bottom-double">2026-03</th><th class="amount border-bottom-double">2026-04</th><th class="amount border-bottom-double">2026-05</th><th class="amount border-bottom-double">2026-06</th><th class="amount border-bottom-double">2026-07</th><th class="amount border-bottom-double">2026-08</th><th class="amount border-bottom-double">2026-09</th><th class="amount border-bottom-double">2026-10</th><th class="amount rowtotal border-bottom-double">total</th><th class="amount rowaverage border-bottom-double">average</th></tr>
