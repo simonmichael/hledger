@@ -23,15 +23,15 @@
 # But the dominant environmental lever is the grid mix powering the datacenter, not the raw token count.
 # The same model on hydro-powered infrastructure vs. coal differs by ~10× on carbon.
 
-commodity 1,000.0 kt            ; generic kilotokens
+commodity 1000. kt             ; generic kilotokens
     ; Other units we can use for output or input; if read, they are converted to kt.
     ; alias: 1e3 opus_output_tokens
     ; alias: 1e3 t
     ; alias: 1e-3 Mt
     ; alias: 1e-6 Gt
 # Some of these also need a commodity directive, to customise their display style.
-commodity 1,000.  opus_output_tokens
-commodity 1,000.  t
+commodity 1000.0 Mt
+commodity 1000.0 Gt
 
 # ** Other commodities we might convert to.
 
