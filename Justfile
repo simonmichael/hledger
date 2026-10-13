@@ -1749,7 +1749,7 @@ bloglog:
 
 # ** AI ------------------------------------------------------------
 
-# AI usage scripts are in doc/ai/Justfile. Run them as just ai [RECIPE].
+# AI usage scripts are in doc/ai/Justfile. Run them as just ai [RECIPE], or in that directory, just [RECIPE].
 mod ai "doc/ai/Justfile"
 
 # ** Misc ------------------------------------------------------------
