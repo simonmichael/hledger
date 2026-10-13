@@ -1896,8 +1896,8 @@ ai-readme:
       echo '```'
       hledger --conf hledger.conf -f ai.journal all
       echo '```'
-      echo
-      hledger --conf hledger.conf -f ai.journal all-html | sed -e '/^<style>/,/^<\/style>/d' -e '/^<link rel="stylesheet"/d'
+      # echo
+      # hledger --conf hledger.conf -f ai.journal all-html | sed -e '/^<style>/,/^<\/style>/d' -e '/^<link rel="stylesheet"/d'
     } > .README.md
     mv .README.md README.md
     echo "updated {{ AIDIR }}/README.md"
