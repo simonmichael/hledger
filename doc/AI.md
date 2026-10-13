@@ -160,7 +160,7 @@ because the cost of designing and building it outweighed the need and the availa
 ## Measuring the hledger project's AI usage
 
 The hledger project's estimated AI usage is tracked in doc/ai/ai.journal.
-See more about this and tracking AI usage in general at [AI usage accounting](ai-usage-accounting.md).
+See more about this and tracking AI usage in general at [AI usage tracking](ai-usage-tracking.md).
 
 
 ## Related
