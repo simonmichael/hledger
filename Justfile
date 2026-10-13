@@ -1826,7 +1826,6 @@ ai-ccusagej-regen:
     {
     cat <<'EOS'
     # Local user's claude code usage based on available chat logs.
-    include commodities.journal
     account ai
     EOS
     just ai-ccusage-csv daily | hledger -f csv:- --rules {{ AIDIR }}/ccusage.rules print -c '1,000,000 t'
