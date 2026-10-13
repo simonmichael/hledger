@@ -1,6 +1,6 @@
 # * Estimates of AI usage by the hledger project.
 #
-# See also ../AI.md, and `just ai-help` which describes the data sources.
+# See also ../AI.md, and `just ai help` which describes the data sources.
 
 # ** Commodities. We currently record generic output kilotokens, mostly from opus and fable.
 

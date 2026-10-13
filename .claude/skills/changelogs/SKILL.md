@@ -16,7 +16,7 @@ and inserts them below that heading (and then replaces that heading with the lat
 
 The drafts come partly pre-cleaned:
 - items for routine bookkeeping commits (changelog updates, regenerated cabal files, etc) are dropped
-- "AI usage:" trailer lines are stripped (AI usage is reported separately, by `just ai-commits`)
+- "AI usage:" trailer lines are stripped (AI usage is reported separately, by `just ai commits`)
 - in package changelogs, breaking changes (a "!" in the commit's category prefix) are moved to the top under a "Breaking changes" heading, with the rest under "Other changes"
 - items that may duplicate an already-announced change are flagged with a "DUPLICATE?" or "CHERRYPICK?" note line.
 
