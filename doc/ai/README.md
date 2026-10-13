@@ -1,6 +1,7 @@
 Additional notes about the hledger project's AI usage, complementing ../AI.md.
 
-See also the ai scripts in Justfile: `just ai-help`
+Related scripts are in ../../Justfile: run `just ai-help`
+
 Files that might exist here (+ are committed)::
 
 + ccusage.rules       - for reading `ccusage` output (to generate ccusage.journal)
@@ -11,3 +12,4 @@ Files that might exist here (+ are committed)::
 - aiextra.csv         - a local log of additional AI usage not recorded in commit messages (for import to ai.journal)
 + ai.journal          - the project's public log of estimated monthly overall AI usage
 + commodities.journal - commodity declarations and unit conversion rates
+
