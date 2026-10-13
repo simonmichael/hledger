@@ -117,15 +117,11 @@ ccusagej-recent *BALARGS:
     ../../tools/aicommits > aicommits.csv
     echo "wrote doc/ai/aicommits.csv"
 
-# Run a hledger command on aicommits.csv. If you need it to be up to date, run commits-csv first.
-@commits *HLEDGERARGS:
-    hledger -f aicommits.csv {{ HLEDGERARGS }}
-
-# Regen ccusage.journal, then import any new summarised month entries from there to ai.journal.
+# Regen aicommits.csv and import any new monthly summaries from there to ai.journal.
 @aij-import *IMPORTARGS:
-    {{ just }} ccusagej-regen
-    hledger -f ccusage.journal reg ai -ME -e thismonth -O csv -X kt \
-    | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
+    {{ just }} commits-csv
+    hledger -f aicommits.csv reg ai -ME -e thismonth -O csv | \
+     hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
 
 # Run a hledger command on ai.journal, and use hledger.conf.
 @aij *HLEDGERARGS:
