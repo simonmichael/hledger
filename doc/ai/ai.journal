@@ -58,6 +58,16 @@ commodity 1,000. J
 commodity 1,000.0 L             ; litres of water
     ; alias: 1e3 mL
 commodity 1,000. mL
+commodity 1,000.0 dryer_hours
+commodity 1,000. fiftyW_laptop_secs
+commodity 1,000.0 fridge_hours
+commodity 1,000.0 gasoline_gallons
+commodity 1,000. google_search
+commodity 1,000.0 iphone_charge
+commodity 1,000.0 kcal
+commodity 1,000.0 microwave_hours
+commodity 1,000.0 oven_hours
+commodity 1,000. waterdrop_fiftyC_heating
 
 # ** Some ballpark conversion rates.
 
@@ -70,7 +80,6 @@ commodity 1,000. mL
 #  A laptop running for ~0.2 seconds at typical 50W load
 #  ~1/700th of an AA battery (a fully charged AA stores ~7 kJ)
 #  ~1/5,000th of an iPhone battery charge (~50 kJ)
-#  ~1/200th of a kitchen match (a match releases ~2 kJ when burned)
 #  Heating one drop of water by ~50 °C (a drop is ~50 mg; 10 J takes it from room temp to nearly boiling)
 #  ~10 human heartbeats' worth of mechanical work (heart does ~1 J/beat)
 #  ~0.0024 food calories (kcal)
@@ -85,8 +94,7 @@ P 0000-01-01 opus_output_tokens 1 led_secs
 P 0000-01-01 opus_output_tokens 0.2 fiftyW_laptop_secs
 P 0000-01-01 AA 700 opus_output_tokens
 P 0000-01-01 iphone_charge 5000 opus_output_tokens
-P 0000-01-01 match 200 opus_output_tokens
-P 0000-01-01 opus_output_tokens 1 drop_fiftyC_heating
+P 0000-01-01 opus_output_tokens 1 waterdrop_fiftyC_heating
 P 0000-01-01 opus_output_tokens 10 heartbeats
 P 0000-01-01 opus_output_tokens 0.0024 kcal
 P 0000-01-01 raisins 840 opus_output_tokens
