@@ -4,16 +4,18 @@
 # in the kt (kilotokens) commodity.
 # Keep synced with tools/aicommits.
 
-skip 1
-fields commitdate,commit,author,provider,model,outputkt,summary,notes
+source ./aicommits.csv
 
-date        %commitdate
+skip 1
+fields date,hash,author,provider,model,outputkt,summary,notes
+
 # Commit messages often contain semicolons, but descriptions can't.
-description %commit | %{replace(replace(%summary, "^; *", ""), ";", ",")}
+description %author | %hash %{replace(replace(%summary, "^; *", ""), ";", ",")}
 comment     %notes
 account1    (ai)
 amount1     %outputkt kt
-comment1    model:%model, author:%author
+#comment1    provider:%provider, model:%model
+comment1    model:%model
 
 # Commits whose disclosure gave no token estimate: record zero.
 if %outputkt ^ *$
