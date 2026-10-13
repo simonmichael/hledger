@@ -1873,9 +1873,9 @@ ai-ccusagej-recent *BALARGS:
     ; hledger -f ccusage.journal reg ai -ME -e thismonth -O csv -X kt \
     | hledger -f ai.journal import csv:- --rules ai.rules {{ IMPORTARGS }}
 
-# Run a hledger command on ai.journal.
+# Run a hledger command on ai.journal, and use doc/ai/hledger.conf.
 @ai-aij *HLEDGERARGS:
-    hledger -f {{ AIDIR }}/ai.journal {{ HLEDGERARGS }}
+    hledger --conf {{ AIDIR }}/hledger.conf -f {{ AIDIR }}/ai.journal {{ HLEDGERARGS }}
 
 # Show a project ai usage balance report.
 @ai-aij-bal *BALARGS:
