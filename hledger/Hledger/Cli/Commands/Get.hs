@@ -81,6 +81,10 @@ getcmd opts@CliOpts{rawopts_=rawopts} j = do
 warn_ :: String -> IO ()
 warn_ msg = warn msg (return ())
 
+-- | Show a helper script's command line on stderr (stdout is kept for data).
+logCommand :: Bool -> String -> IO ()
+logCommand dryRun cmdline = hPutStrLn stderr $ (if dryRun then "would run: " else "running: ") <> cmdline
+
 
 -- ====================================================================
 -- 2. Data fetching (transactions)
@@ -90,9 +94,10 @@ dataScriptName :: FilePath
 dataScriptName = "getdata"
 
 -- | Run the data-fetching phase. Ensures the journal's data/ directory exists,
--- then if data/getdata is present, runs it with cwd = data/, forwarding its
--- stdout to ours and its stderr to ours. If the helper is missing, logs a
--- skip notice and returns.
+-- then if data/getdata is present, runs it with cwd = data/, forwarding both
+-- its stdout and its stderr to our stderr (it saves its data in files, so its
+-- output is progress information, and stdout is kept for data). If the helper
+-- is missing, logs a skip notice and returns.
 fetchData :: CliOpts -> Journal -> IO ()
 fetchData CliOpts{rawopts_=rawopts} j = do
   let
@@ -106,7 +111,7 @@ fetchData CliOpts{rawopts_=rawopts} j = do
     then hPutStrLn stderr $ "no " <> script <> " script, skipping data fetch"
     else do
       let cmdline = "cd " <> dataDir <> " && " <> dataScriptName
-      hPutStrLn stderr cmdline
+      logCommand dryRun cmdline
       unless dryRun $ do
         eres <- try (readCreateProcessWithExitCode (proc script []){cwd = Just dataDir} "")
                   :: IO (Either IOException (ExitCode, String, String))
@@ -114,7 +119,7 @@ fetchData CliOpts{rawopts_=rawopts} j = do
           Left e ->
             warn_ $ dataScriptName <> " failed: " <> show e
           Right (ec, out, err) -> do
-            putStr out
+            hPutStr stderr out
             hPutStr stderr err
             case ec of
               ExitFailure n -> warn_ $ dataScriptName <> " exited " <> show n
@@ -192,7 +197,7 @@ fetchPrices CliOpts{rawopts_=rawopts} j = do
                   maybe (return ()) (mergeAndWritePrices outfile >=> reportOutcome outfile) mout)
                 codes
 
--- | Fetch prices for one commodity. Logs the command line to stderr (always),
+-- | Fetch prices for one commodity. Logs the command line (see 'logCommand'),
 -- runs the script (unless dry-run), and forwards its stderr.
 -- Returns 'Nothing' if there are no prices to write — either because the
 -- script failed (in which case a warning has been logged to stderr) or
@@ -206,7 +211,7 @@ runFetch script base commspans today dryRun redir code =
       let code'   = T.unpack code
           args    = [T.unpack base, code', show start, show today]
           cmdline = unwords (pricesScriptName : args) <> redirSuffix redir
-      hPutStrLn stderr cmdline
+      logCommand dryRun cmdline
       if dryRun
         then return Nothing
         else do

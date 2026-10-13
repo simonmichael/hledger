@@ -58,6 +58,7 @@ make your own `getdata` shell script (or executable program),
 and install it in the `data` directory next to your main journal file.
 
 It should download zero or more transaction data files into its current directory.
+Anything it prints (on stdout or stderr) is shown on stderr, as progress output.
 These are typically bank/brokerage CSV/TSV/SSV files, but could be anything that your hledger rules files can read.
 The hledger repo's [bin/getdata](https://github.com/hledgerorg/hledger/blob/main/bin/getdata)
 is a stub you can start from, with commented examples.
