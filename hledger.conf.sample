@@ -85,13 +85,13 @@ pex = print --export  # lossless print
 
 revdecades = bal type:R -2 -X$ -p 'every 10 years from 2000'  # revenue by decade
 
-# hledger watch HLEDGERARGS.. - rerun a report when $LEDGER_FILE changes
-watch = ! hledger files | watchexec -F- -c -- hledger    
-
 # Aliases beginning with ! are shell commands. (These will run only from
-# a trusted config file: your user config, or one specified with --conf.)
+# a trusted config file, which means $HOME/.hledger.conf or one specified with --conf.
 commit = ! jj commit `hledger files` -m   # commit 'MSG'
 #commit = ! git commit -p -- `hledger files`
+
+# hledger watch HLEDGERARGS.. - rerun a report when $LEDGER_FILE changes
+watch = ! hledger files | watchexec -F- -c -- hledger    
 
 # A command can be continued on indented lines:
 forecast = aregister --forecast -E
