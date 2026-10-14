@@ -117,7 +117,7 @@ cmds = !
   hledger help commands --color=yes $o
   # convert OTHER ADDONS to a single column
   | awk '/^OTHER ADDONS/{c=1; print; next} /^[^ ]/{c=0} c{for(i=1;i<=NF;i++) print " " $i; next} {print}'
-  # grep the name or abbreviation; highlight the matched part
+  # grep the name and abbreviation, and highlight just the matched part
   | rg -P "^\s*(\S*\K$p|\S+ \(\S*\K$p)";
  }; f
 builtins = cmds --builtins
