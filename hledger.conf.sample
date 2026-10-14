@@ -85,8 +85,9 @@ pex = print --export  # lossless print
 
 revdecades = bal type:R -2 -X$ -p 'every 10 years from 2000'  # revenue by decade
 
-# Aliases beginning with ! are shell commands. (These will run only from
-# a trusted config file, which means $HOME/.hledger.conf or one specified with --conf.
+# Aliases beginning with ! are shell commands.
+# These will run only from a trusted config file, which means $HOME/.hledger.conf
+# or a config file specified with --conf.
 
 # hledger commit 'MSG' - commit changed journal files in version control
 commit = ! jj commit `hledger files` -m
@@ -107,8 +108,8 @@ forecasts = run
 
 # Or use shell scripts:
 
-# Some useful helpers for finding commands, with less typing.
-cmds = !  # cmds [REGEX] - list all or matched commands
+# cmds [REGEX] - list all or matched commands
+cmds = !
  f() {
   # run hledger help commands, passing any flags to it
   o=; p=;
