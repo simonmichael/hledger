@@ -1,0 +1,8 @@
+# The command is indented so that shelltest -w (make test) leaves it alone.
+$  sh ambiguousalias.sh
+>2 /hledger: Error: commodity alias Mt is declared differently by different files, .*
+.*usage\.journal:2: commodity kt  ; alias: 0\.001 Mt
+.*mt-alias\.journal:2: commodity kt  ; alias: 0\.01 Mt
+To use it, make these declarations agree; .*
+/
+>= 1

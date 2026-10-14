@@ -1,0 +1,2 @@
+; For commodity-aliases.test: declares kt again, with a different Mt alias.
+commodity kt  ; alias: 1e-2 Mt

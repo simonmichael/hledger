@@ -201,11 +201,12 @@ Click error names to see an example. The table headings mean:
 | [csvskipvalue](#csvskipvalue)                         | ✓          | ✓    | ✓      | ✓✓      | ✓        |
 | [csvstatusparse](#csvstatusparse)                     | ✓          | ✓    | -      | ✓       | ✓        |
 | [csvtwofields](#csvtwofields)                         | ✓          | ✓    | -      | ✓       | ✓        |
+| [ambiguousalias](#ambiguousalias)                     |            | ✓    | -      | -       |          |
 | [csvstdinrules](#csvstdinrules)                       |            |      |        |         |          |
 
 
 <!-- GENERATED: -->
-hledger 1.99-gfb3ed53b7-20261009 error messages:
+hledger 1.99-ge47d97316-20261014 error messages:
 
 ### accounts
 ```
@@ -729,6 +730,15 @@ hledger: Error: /path/to/csvtwofields.csv:4:
 
 This CSV record has less than two fields.
 Perhaps the separator is wrong (it can be set with a separator rule).
+```
+
+
+### ambiguousalias
+```
+hledger: Error: commodity alias Mt is declared differently by different files, so it can't be used for valuation:
+/path/to/usage.journal:2: commodity kt  ; alias: 0.001 Mt
+/path/to/mt-alias.journal:2: commodity kt  ; alias: 0.01 Mt
+To use it, make these declarations agree; or use a different alias in one of them.
 ```
 
 

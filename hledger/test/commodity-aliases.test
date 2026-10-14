@@ -553,17 +553,17 @@ $ hledger -f- -f commodity-aliases/x-alias.journal bal -X Z -N
 
 # ** 46. prices --show-aliases shows the alias rates (and with --show-reverse, their reverses).
 $ hledger -f commodity-aliases/usage.journal -f commodity-aliases/savings.journal prices --show-aliases --show-reverse
-P 0000-01-01 kt 0.1 users  ; commodity alias
 P 0000-01-01 kt 0.001 Mt  ; commodity alias
-P 0000-01-01 users 10.0 kt  ; commodity alias
+P 0000-01-01 kt 0.1 users  ; commodity alias
 P 0000-01-01 Mt 1,000.000 kt  ; commodity alias
+P 0000-01-01 users 10.0 kt  ; commodity alias
 >2 /different display styles/
 
 # ** 47. With --locations, it shows the commodity directive which declared each alias
 # (even when the commodity was declared again later).
 $ hledger -f commodity-aliases/usage.journal -f commodity-aliases/savings.journal prices --show-aliases --locations
-> /users  ; commodity alias, location: .*commodity-aliases\/savings.journal:2
-.*Mt  ; commodity alias, location: .*commodity-aliases\/usage.journal:2/
+> /Mt  ; commodity alias, location: .*commodity-aliases\/usage.journal:2
+.*users  ; commodity alias, location: .*commodity-aliases\/savings.journal:2/
 >2 /different display styles/
 
 # ** 48. Only alias rates which can be used are shown: not those between commodities with a market price between them.
@@ -582,3 +582,24 @@ $ hledger -f- -f commodity-aliases/x-alias.journal bal -X Z -N --debug=2
                 10 Z  a
 >2 /no market price found from X to Z on 2026-01-01, trying commodity alias rates:
  X>Z 10  \(alias declared at .*commodity-aliases\/x-alias.journal:2\)/
+
+# ** 50. File trees which declare an alias differently can still be combined,
+# and reports which don't need the alias work as usual.
+$ hledger -f commodity-aliases/usage.journal -f commodity-aliases/mt-alias.journal bal -N
+             2000 kt  a
+
+# ** 51. But converting to that alias is an error, which shows the declarations.
+$ hledger -f commodity-aliases/usage.journal -f commodity-aliases/mt-alias.journal bal -N -X Mt
+>2 /commodity alias Mt is declared differently by different files, so it can't be used for valuation:
+.*commodity-aliases\/usage.journal:2: commodity kt  ; alias: 0.001 Mt
+.*commodity-aliases\/mt-alias.journal:2: commodity kt  ; alias: 0.01 Mt/
+>= 1
+
+# ** 52. As is valuing an amount left in that alias (here, declared as an alias of two different commodities).
+<
+2026-03-01
+    (c)  -1 Mt
+
+$ hledger -f commodity-aliases/usage.journal -f commodity-aliases/t-alias.journal -f - bal -N -X kt
+>2 /commodity alias Mt is declared differently by different files/
+>= 1

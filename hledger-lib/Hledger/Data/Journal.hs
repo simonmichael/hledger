@@ -1429,15 +1429,16 @@ commodityRedeclare new old = new{
 
 -- | Combine two declarations of a commodity from different journals (file trees, or a file and its included file),
 -- the first being the later one. Like 'commodityRedeclare', this keeps the later one's comment, source position,
--- and display style if it has one, and the aliases and tags of both (the later one's tags first).
+-- and display style if it has one, and the aliases (in reading order) and tags (the later one's first) of both.
 commodityCombine :: Commodity -> Commodity -> Commodity
 commodityCombine c1 c2 = c1{
    cformat  = cformat c1 <|> cformat c2
   ,ctags    = ctags c1 `union` ctags c2
-  ,caliases = caliases c1 `unionAliases` caliases c2
+  ,caliases = caliases c2 `unionAliases` caliases c1
   }
 
--- | Combine two lists of commodity aliases, dropping repeated definitions (same symbol and quantity).
+-- | Combine two lists of commodity aliases, the first being the earlier ones, keeping them in reading order
+-- and dropping repeated definitions (same symbol and quantity).
 -- An alias redefined with a different quantity is kept, so it can be reported as a conflict.
 unionAliases :: [(Amount, SourcePos)] -> [(Amount, SourcePos)] -> [(Amount, SourcePos)]
 unionAliases = unionBy ((==) `on` \(a, _) -> (acommodity a, aquantity a))

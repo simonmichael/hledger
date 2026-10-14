@@ -204,13 +204,17 @@ journalPriceOracle infer j@Journal{jpricedirectives, jinferredmarketprices} =
     -- Build indexes once for all lookups
     oracleWith extraprices = memo $ uncurry3 $ priceLookup $ memo $ makePriceGraph $
       buildPriceIndexes declaredprices inferredprices extraprices
-    aliasrates   = journalAliasPriceDirectives j
+    (ambiguousaliases, aliasrates) = journalAliasPriceDirectivesChecked j
     aliasprices  = map priceDirectiveToMarketPrice aliasrates
     marketoracle = oracleWith []
     aliasoracle  = oracleWith aliasprices
     -- Alias rates are never default valuation destinations, so they are tried only when converting to a given commodity.
-    withaliases k@(_, _, Just _) = marketoracle k <|> dbg2Msg (aliasmsg k) (aliasoracle k)
-    withaliases k                = marketoracle k
+    -- If that is to or from an alias which file trees declared differently, it's an error.
+    withaliases k@(_, from, Just to) = marketoracle k <|>
+      case mapMaybe (`M.lookup` ambiguousaliases) [from, to] of
+        pds:_ -> error' $ ambiguousAliasError pds  -- PARTIAL: an alias declared differently by different files can't be used
+        []    -> dbg2Msg (aliasmsg k) (aliasoracle k)
+    withaliases k = marketoracle k
     -- at --debug=2 +, show when alias rates are tried, and where they were declared
     aliasmsg (d, from, mto) =
       printf "no market price found from %s to %s on %s, trying commodity alias rates:\n%s"
@@ -218,7 +222,26 @@ journalPriceOracle infer j@Journal{jpricedirectives, jinferredmarketprices} =
         (intercalate "\n" [printf " %s>%s %s  (alias declared at %s)" f (acommodity a) (show $ aquantity a) (sourcePosFileLine pos)
                           | PriceDirective{pdcommodity=f, pdamount=a, pdsourcepos=pos} <- aliasrates] :: String)
   in
-    if null aliasprices then marketoracle else memo withaliases
+    if null aliasprices && M.null ambiguousaliases then marketoracle else memo withaliases
+
+-- | Like 'journalAliasPriceDirectives', but separates out the aliases which are declared differently
+-- (as an alias of a different commodity, or with a different quantity), which can happen when file trees are combined.
+-- These are returned in a map, from each such alias to its different declarations.
+journalAliasPriceDirectivesChecked :: Journal -> (M.Map CommoditySymbol [PriceDirective], [PriceDirective])
+journalAliasPriceDirectivesChecked j = (ambiguous, filter (not . (`M.member` ambiguous) . aliasOf) pds)
+  where
+    pds       = journalAliasPriceDirectives j
+    aliasOf   = acommodity . pdamount
+    ambiguous = M.filter ((>1) . length) $ M.fromListWith (flip (++)) [(aliasOf pd, [pd]) | pd <- pds]
+
+-- | An error message for using an alias with these different declarations.
+ambiguousAliasError :: [PriceDirective] -> String
+ambiguousAliasError pds = unlines $
+  [printf "commodity alias %s is declared differently by different files, so it can't be used for valuation:" alias]
+  <> [printf "%s: commodity %s  ; alias: %s %s" (sourcePosFileLine pdsourcepos) (showCommoditySymbol pdcommodity) (show $ aquantity pdamount) alias
+     | PriceDirective{..} <- pds]
+  <> ["To use it, make these declarations agree; or use a different alias in one of them."]
+  where alias = maybe "" (T.unpack . showCommoditySymbol . acommodity . pdamount) $ headMay pds
 
 -- | A journal's commodity aliases, as fixed exchange rates: price directives dated 'nulldate',
 -- saying that one unit of a commodity is worth the alias's quantity of the alias (as written), at all dates.

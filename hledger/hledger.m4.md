@@ -1685,6 +1685,8 @@ But a few declarations reach all file trees ("all files" in the table below):
 - [`P`](#p-directive) market prices, used for valuation.
 - [Commodity aliases](#commodity-aliases), but only for valuation, and only as a last resort:
   when market prices can't convert an amount, eg if it's in an alias declared by another file tree.
+  If file trees declare an alias differently (for a different commodity, or with a different quantity),
+  converting to or from it this way is an error.
 
 So you can combine file trees that weren't designed to work together.
 The interactions to watch for are conflicting display styles, account types, and market prices.
