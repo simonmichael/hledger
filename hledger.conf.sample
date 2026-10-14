@@ -87,7 +87,9 @@ revdecades = bal type:R -2 -X$ -p 'every 10 years from 2000'  # revenue by decad
 
 # Aliases beginning with ! are shell commands. (These will run only from
 # a trusted config file, which means $HOME/.hledger.conf or one specified with --conf.
-commit = ! jj commit `hledger files` -m   # commit 'MSG'
+
+# hledger commit 'MSG' - commit changed journal files in version control
+commit = ! jj commit `hledger files` -m
 #commit = ! git commit -p -- `hledger files`
 
 # hledger watch HLEDGERARGS.. - rerun a report when $LEDGER_FILE changes
@@ -103,8 +105,9 @@ forecasts = run
     -- echo checking2:  -- forecast checking2
     -- echo creditcard: -- forecast creditcard
 
-# Or use shell scripts with !.
-# Here are some useful helpers for finding commands with less typing:
+# Or use shell scripts:
+
+# Some useful helpers for finding commands, with less typing.
 cmds = !  # cmds [REGEX] - list all or matched commands
  f() {
   # run hledger help commands, passing any flags to it
@@ -119,7 +122,6 @@ cmds = !  # cmds [REGEX] - list all or matched commands
 builtins = cmds --builtins
 addons   = cmds --addons
 aliases  = cmds --aliases
-
 c = cmds
 b = builtins
 d = addons
