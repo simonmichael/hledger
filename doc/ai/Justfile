@@ -148,7 +148,9 @@ readme:
       # echo
       # hledger --conf hledger.conf -f ai.journal all-html | sed -e '/^<style>/,/^<\/style>/d' -e '/^<link rel="stylesheet"/d'
       echo
-      echo "Some scenarios where hledger development AI usage is offset by user AI usage reductions from using hledger:"
+      echo "## Offset scenarios"
+      echo
+      echo "Here are some scenarios where hledger development AI usage is offset by user AI usage reductions from using hledger:"
       echo
       echo '```'
       hledger --conf hledger.conf -f ai.journal forecasts -e thismonth
