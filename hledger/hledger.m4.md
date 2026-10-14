@@ -2283,6 +2283,14 @@ So they combine with it in reports, and a transaction can balance across them.
 This is useful eg if your bank data, manual entries and downloaded market prices use different symbols for the same currency.
 Choose the symbol you want to see in reports as the commodity.
 
+Commodity aliases and [`P` market prices](#p-directive) both allow converting between commodity symbols.
+When should you use one or the other ?
+
+- Use an alias when two symbols are the same thing in different names or units (like `$` and `USD`, or `megabytes` and `kilobytes`);
+  amounts written with an alias are converted automatically to the commodity's canonical symbol.
+- Use a P directive when they are different things with an exchange rate, even a fixed rate (like AI tokens and kWh);
+  amounts with these commodities are converted only on request, by [valuation](#value-reporting).
+
 `print` still shows the amounts as they were written; `print -x` shows them converted, in the commodity's display style.
 In queries, [`cur:`](#cur-query) matches amounts written with an alias as the commodity, not the alias.
 Aliases are accepted by `hledger check commodities`.
