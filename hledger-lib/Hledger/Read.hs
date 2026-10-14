@@ -141,8 +141,11 @@ import "mtl" Control.Monad.Except (ExceptT(..), runExceptT, liftEither)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Data.Default (def)
 import Data.Foldable (asum)
+import Data.List (union)
 import Data.List.NonEmpty (nonEmpty, NonEmpty((:|)))
-import Data.Maybe (catMaybes, fromMaybe)
+import Data.Containers.ListUtils (nubOrd)
+import Data.Map qualified as M
+import Data.Maybe (catMaybes, fromMaybe, isJust)
 import Data.Semigroup (sconcat)
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -153,8 +156,9 @@ import System.FilePath ((</>), splitDirectories, takeDirectory, takeFileName)
 import System.Info (os)
 import System.IO (Handle, hPutStrLn, stderr)
 
+import Hledger.Data.Amount (nullamt, showAmount)
 import Hledger.Data.Dates (getCurrentDay)
-import Hledger.Data.Journal (journalNumberAndTieTransactions, nulljournal)
+import Hledger.Data.Journal (commodityCombine, journalNumberAndTieTransactions, nulljournal)
 import Hledger.Data.JournalChecks (journalStrictChecks)
 import Hledger.Data.Types
 import Hledger.Read.Common
@@ -394,7 +398,31 @@ readJournalFiles iopts@InputOpts{strict_, new_, new_save_} prefixedfiles = do
 readJournalFilesAndLatestDates :: InputOpts -> [PrefixedFilePath] -> ExceptT String IO (Journal, [LatestDatesForFile])
 readJournalFilesAndLatestDates iopts pfs = do
   (js, lastdates) <- unzip <$> mapM (readJournalFileAndLatestDates iopts) pfs
-  return (journalNumberAndTieTransactions $ maybe def sconcat $ nonEmpty js, catMaybes lastdates)
+  mapM_ warnIO $ commodityStyleConflicts js
+  let j = combineCommodityDeclarations js $ maybe def sconcat $ nonEmpty js
+  return (journalNumberAndTieTransactions j, catMaybes lastdates)
+
+-- | Set a combined journal's commodity declarations to those of its parts combined in reading order,
+-- so that a later file's declaration of a commodity adds to or overrides an earlier file's
+-- (as a later declaration in the same file does). See 'commodityCombine'.
+combineCommodityDeclarations :: [Journal] -> Journal -> Journal
+combineCommodityDeclarations js j = j{
+   jdeclaredcommodities   = M.unionsWith commodityCombine $ reverse $ map jdeclaredcommodities js
+  ,jdeclaredcommoditytags = M.unionsWith union $ reverse $ map jdeclaredcommoditytags js
+  }
+
+-- | Warnings for commodities declared with different display styles in different file trees.
+-- When journals are combined, the last file tree's declared style is used (see 'combineCommodityDeclarations').
+commodityStyleConflicts :: [Journal] -> [String]
+commodityStyleConflicts js =
+  [ unlines $ ("commodity " <> T.unpack sym <> " is declared with different display styles; using the last:")
+            : [ "  " <> sourcePosFileLine (csourcepos c) <> ": " <> showAmount nullamt{acommodity=sym, aquantity=1000, astyle=st}
+              | c <- cs, Just st <- [cformat c] ]
+  | (sym, cs) <- M.toList declsBySymbol
+  , length (nubOrd [st{asrounding=NoRounding} | c <- cs, Just st <- [cformat c]]) > 1
+  ]
+  where
+    declsBySymbol = M.fromListWith (flip (<>)) [(csymbol c, [c]) | j <- js, c <- M.elems $ jdeclaredcommodities j, isJust $ cformat c]
 
 -- | An easy version of 'readJournal' which assumes default options, and fails in the IO monad.
 readJournal' :: Handle -> IO Journal

@@ -31,6 +31,8 @@ module Hledger.Data.Journal (
   journalCommodityAliases,
   convertAliasAmount,
   commodityAliases,
+  commodityRedeclare,
+  commodityCombine,
   commoditiesAndAliases,
   journalInferCommodityStyles,
   journalStyleAmounts,
@@ -156,8 +158,8 @@ import Data.Char (toUpper, isDigit)
 import Data.Decimal (normalizeDecimal)
 import Data.Default (Default(..))
 import Data.Foldable (toList)
-import Data.Function ((&))
-import Data.List (find, intercalate, minimumBy, sortBy, union, (\\))
+import Data.Function ((&), on)
+import Data.List (find, intercalate, minimumBy, sortBy, union, unionBy, (\\))
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -320,7 +322,10 @@ journalConcat j1 j2 =
     ,jglobalcommoditystyles     = (<>) (jglobalcommoditystyles j1) (jglobalcommoditystyles j2)
     --
     -- ,jdeclaredcommodities           :: M.Map CommoditySymbol Commodity
-    ,jdeclaredcommodities               = (<>) (jdeclaredcommodities j1) (jdeclaredcommodities j2)
+    -- A commodity declared in both is combined, preferring j1's declaration, see commodityCombine.
+    -- (When merging an included file, j1 is the included file, whose declarations are the later ones.
+    -- Files read with several -f options are combined differently, see Hledger.Read.combineCommodityDeclarations.)
+    ,jdeclaredcommodities               = M.unionWith commodityCombine (jdeclaredcommodities j1) (jdeclaredcommodities j2)
     --
     -- ,jdeclaredcommoditytags     :: M.Map CommoditySymbol [Tag]
     ,jdeclaredcommoditytags     = M.unionWith (<>) (jdeclaredcommoditytags j1) (jdeclaredcommoditytags j2)
@@ -1409,6 +1414,33 @@ journalInferMarketPricesFromTransactions j =
 -- | Aliases declared on a commodity directive by its @alias:@ tags.
 commodityAliases :: Commodity -> [CommoditySymbol]
 commodityAliases = map acommodity . caliases
+
+-- | Update a commodity's declaration with a later declaration of it, in the same file tree.
+-- The later declaration adds to the earlier one rather than replacing it:
+-- aliases are combined, a display style replaces the earlier one only if the later declaration has one,
+-- and the later tags come first (so they win, for tags looked up by their first value).
+-- The comment and source position are the later declaration's.
+commodityRedeclare :: Commodity -> Commodity -> Commodity
+commodityRedeclare new old = new{
+   cformat  = cformat new <|> cformat old
+  ,ctags    = ctags new `union` ctags old
+  ,caliases = caliases old `unionAliases` caliases new
+  }
+
+-- | Combine two declarations of a commodity from different journals (file trees, or a file and its included file),
+-- the first being the later one. Like 'commodityRedeclare', this keeps the later one's comment, source position,
+-- and display style if it has one, and the aliases and tags of both (the later one's tags first).
+commodityCombine :: Commodity -> Commodity -> Commodity
+commodityCombine c1 c2 = c1{
+   cformat  = cformat c1 <|> cformat c2
+  ,ctags    = ctags c1 `union` ctags c2
+  ,caliases = caliases c1 `unionAliases` caliases c2
+  }
+
+-- | Combine two lists of commodity aliases, dropping repeated definitions (same symbol and quantity).
+-- An alias redefined with a different quantity is kept, so it can be reported as a conflict.
+unionAliases :: [Amount] -> [Amount] -> [Amount]
+unionAliases = unionBy ((==) `on` \a -> (acommodity a, aquantity a))
 
 -- | All commodity symbols that this journal treats as declared:
 -- both the canonical 'jdeclaredcommodities' keys and any 'alias:'

@@ -685,9 +685,7 @@ commoditydirectiveonelinep = do
   let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle, ccomment=comment, ctags=tags, caliases=commaliases, csourcepos=pos}
   if isNothing $ asdecimalmark astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
-  else modify' (\j -> j{jdeclaredcommodities=M.insert acommodity comm $ jdeclaredcommodities j
-                       ,jdeclaredcommoditytags=if null tags then jdeclaredcommoditytags j
-                                               else M.insert acommodity tags $ jdeclaredcommoditytags j})
+  else modify' (addCommodityDeclaration comm)
 
 pleaseincludedecimalpoint :: String
 pleaseincludedecimalpoint = chomp $ unlines [
@@ -716,11 +714,18 @@ commoditydirectivemultilinep = do
   subdirectives <- many $ indented (eitherP (formatdirectivep sym) (lift restofline))
   let mfmt = lastMay $ lefts subdirectives
   let comm = Commodity{csymbol=sym, cformat=mfmt, ccomment=comment, ctags=tags, caliases=commaliases, csourcepos=pos}
-  modify' (\j -> j{jdeclaredcommodities=M.insert sym comm $ jdeclaredcommodities j
-                  ,jdeclaredcommoditytags=if null tags then jdeclaredcommoditytags j
-                                          else M.insert sym tags $ jdeclaredcommoditytags j})
+  modify' (addCommodityDeclaration comm)
   where
     indented = (lift skipNonNewlineSpaces1 >>)
+
+-- | Add a commodity directive's declaration to the journal.
+-- A commodity declared again adds to its earlier declaration (see 'commodityRedeclare').
+addCommodityDeclaration :: Commodity -> Journal -> Journal
+addCommodityDeclaration comm@Commodity{csymbol, ctags} j = j{
+   jdeclaredcommodities   = M.insertWith commodityRedeclare csymbol comm $ jdeclaredcommodities j
+  ,jdeclaredcommoditytags = if null ctags then jdeclaredcommoditytags j
+                            else M.insertWith union csymbol ctags $ jdeclaredcommoditytags j
+  }
 
 -- | Parse a format (sub)directive, throwing a parse error if its
 -- symbol does not match the one given.
@@ -744,6 +749,7 @@ formatdirectivep expectedsym = do
 -- the number of alias units equal to one unit of the commodity (1 if omitted).
 -- These are returned as amounts, keeping the style they were written with.
 -- A 1:1 alias to the commodity itself, or a repeat of an earlier alias, is ignored.
+-- An alias already declared for this commodity (by an earlier commodity directive) with a different quantity is an error.
 -- Errors are reported at the given offset (the start of the directive's comment).
 commodityaliasesp :: Int -> CommoditySymbol -> [Tag] -> JournalParser m [Amount]
 commodityaliasesp off sym tags = do
@@ -753,8 +759,12 @@ commodityaliasesp off sym tags = do
   if sym `elem` aliassyms then customFailure $ errAt $ printf "%s can't be an alias of itself with a quantity other than 1" (quote sym)
   else case aliassyms \\ nub aliassyms of
     a:_ -> customFailure $ errAt $ printf "alias %s is declared more than once, with different quantities" (quote a)
-    []  -> pure commaliases
+    []  -> case [(a, e) | a <- commaliases, e <- earlieraliases j, acommodity e == acommodity a, aquantity e /= aquantity a] of
+      (a, e):_ -> customFailure $ errAt $ printf "alias %s was declared earlier for %s with a different quantity (%s), at %s"
+                    (quote $ acommodity a) (quote sym) (show $ aquantity e) (sourcePosFileLine $ maybe nullsourcepos csourcepos $ M.lookup sym $ jdeclaredcommodities j)
+      []       -> pure commaliases
   where
+    earlieraliases j = maybe [] caliases $ M.lookup sym $ jdeclaredcommodities j
     errAt = parseErrorAt off
     symqty a = (acommodity a, aquantity a)
     nubOn f = nubBy (\a b -> f a == f b)

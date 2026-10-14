@@ -1,0 +1,5 @@
+; For commodity-aliases.test: declares kt, with a Mt alias.
+commodity 1000. kt  ; alias: 1e-3 Mt
+
+2026-01-01
+    (a)  2000 kt

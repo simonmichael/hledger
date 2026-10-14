@@ -2259,6 +2259,14 @@ commodity INR
   other subdirective  ; ignored
 ```
 
+A commodity can be declared more than once, eg in a main file and an included file, or in several files read with `-f`.
+The later declaration will override or add to the earlier one, as follows:
+its display style (if it has one) replaces the earlier style,
+its tags take precedence over the earlier tags,
+and its [aliases](#commodity-aliases) are added to the earlier aliases.
+("Later" means later in the order hledger reads them: through each file and its included files, then the next `-f` file.)
+hledger warns if files read with `-f` declare different display styles.
+
 ### Commodity tags
 
 A commodity directive's comment may contain [tags](#tags).
@@ -2331,7 +2339,9 @@ An alias can't have aliases of its own,
 and if the same alias is declared on two different commodities, hledger reports an error.
 
 To use the same commodity aliases with several journals, put the `commodity` directives
-in a file which they [`include`](#include-directive), or which you add with an extra `-f` option.
+in a file which they [`include`](#include-directive).
+(Aliases convert only the amounts in their own [file tree](#directive-scopes),
+so a file added with an extra `-f` option won't convert the other files' amounts.)
 
 ### Commodity error checking
 

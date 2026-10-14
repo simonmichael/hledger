@@ -447,3 +447,67 @@ $ hledger -f- print
     b                                     USD -1,234.50
 
 >=
+
+# ** 36. A commodity declared again adds to its earlier declaration, rather than replacing it.
+# A later declaration without aliases keeps the earlier aliases.
+<
+commodity 1000. kt  ; alias: 1e-3 Mt
+commodity kt
+
+2026-01-01
+    (a)  2000 kt
+
+$ hledger -f- bal -X Mt -N
+                2 Mt  a
+
+# ** 37. A later declaration's aliases are added to the earlier ones.
+<
+commodity 1000. kt  ; alias: 1e-3 Mt
+commodity kt  ; alias: 10 users
+
+2026-01-01
+    (a)  2 Mt
+    (b)  -20000 users
+
+$ hledger -f- print -x
+2026-01-01
+    (a)                                         2000 kt
+    (b)                                        -2000 kt
+
+>=
+
+# ** 38. A later declaration's display style replaces the earlier one.
+<
+commodity 1000. kt
+commodity 1,000.00 kt
+
+2026-01-01
+    (a)  2000 kt
+
+$ hledger -f- bal -N
+         2,000.00 kt  a
+
+# ** 39. Redeclaring an alias with a different quantity is an error.
+<
+commodity kt  ; alias: 1e-3 Mt
+commodity kt  ; alias: 2e-3 Mt
+
+$ hledger -f- check
+>2 /alias "Mt" was declared earlier for "kt" with a different quantity \(0.001\), at -:1/
+>=1
+
+# ** 40. When several files are read with -f, their declarations of a commodity are combined,
+# so -X can use the aliases from both, whichever file is read first.
+# (The Mt amounts are shown with kt's number format, from usage.journal, which is read last.)
+$ hledger -f commodity-aliases/savings.journal -f commodity-aliases/usage.journal bal -X Mt -N
+                2 Mt  a
+               -1 Mt  b
+>2 /different display styles/
+
+# ** 41. If the files declare different display styles, the last file's is used, as in a single file, with a warning.
+$ hledger -f commodity-aliases/usage.journal -f commodity-aliases/savings.journal bal -N
+         2,000.00 kt  a
+        -1,000.00 kt  b
+>2 /commodity kt is declared with different display styles; using the last:
+  .*commodity-aliases\/usage.journal:2: 1000 kt
+  .*commodity-aliases\/savings.journal:2: 1,000.00 kt/

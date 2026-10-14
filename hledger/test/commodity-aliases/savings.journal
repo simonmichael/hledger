@@ -1,0 +1,5 @@
+; For commodity-aliases.test: declares kt again, with another alias and display style.
+commodity 1,000.00 kt  ; alias: 0.1 users
+
+2026-02-01
+    (b)  -100 users

@@ -21,6 +21,7 @@ module Hledger.Utils.Parse (
   initialPos,
   sourcePosPretty,
   sourcePosPairPretty,
+  sourcePosFileLine,
 
   -- * Parsers and helpers
   choice',
@@ -151,6 +152,10 @@ sourcePosPairPretty (SourcePos fp l1 _, SourcePos _ l2 c2) =
   where
     l1' = unPos l1
     l2' = if unPos c2 == 1 then unPos l2 - 1 else unPos l2  -- might be at end of file with a final new line
+
+-- | Render a source position as FILE:LINE, without its column.
+sourcePosFileLine :: SourcePos -> String
+sourcePosFileLine (SourcePos fp l _) = fp ++ ":" ++ show (unPos l)
 
 -- | Backtracking choice, use this when alternatives share a prefix.
 -- Consumes no input if all choices fail.
