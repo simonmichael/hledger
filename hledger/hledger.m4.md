@@ -2341,7 +2341,8 @@ and if the same alias is declared on two different commodities, hledger reports 
 To use the same commodity aliases with several journals, put the `commodity` directives
 in a file which they [`include`](#include-directive).
 (Aliases convert only the amounts in their own [file tree](#directive-scopes),
-so a file added with an extra `-f` option won't convert the other files' amounts.)
+so a file added with an extra `-f` option won't convert the other files' amounts.
+Its aliases can still be used for [valuation](#finding-market-price), eg with `-X`.)
 
 ### Commodity error checking
 
@@ -6283,12 +6284,21 @@ in this order of preference:
    a chain of any market prices, including both forward and
    reverse prices (1 and 2 above), leading from A to B.
 
+5. *Commodity alias rates*:
+   if none of the above is found, the same search is repeated,
+   also using [commodity aliases](#commodity-aliases) as fixed exchange rates
+   (between a commodity and its alias, when there are no market prices between them).
+   This lets you value amounts in an alias declared by another file, or show amounts in an alias with `-X`,
+   but aliases never change a conversion that market prices can provide.
+
 There is a limit to the length of these price chains; if hledger
 reaches that length without finding a complete chain or exhausting 
 all possibilities, it will give up (with a "gave up" message 
 visible in `--debug=2` output). That limit is currently 1000.
 
 Amounts for which no suitable market price can be found, are not converted.
+
+Commodity alias rates are used only for converting, never as a default valuation commodity for `-V`.
 
 ## --infer-market-prices: market prices from transactions
 

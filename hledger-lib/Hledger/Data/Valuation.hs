@@ -147,14 +147,21 @@ data PriceIndexes = PriceIndexes
   , piInferredDefault :: !DefaultValuationIndex -- ^ Index for inferred prices (fallback for default valuation)
   }
 
--- | Build all price indexes from declared and inferred market prices.
+-- | Build all price indexes from declared and inferred market prices, and commodity alias rates (see 'journalAliasPrices').
+-- An alias rate is used only between two commodities which have no market prices between them, in either direction,
+-- and never to choose a default valuation commodity.
 -- This is O(n log n) but done only once.
-buildPriceIndexes :: [MarketPrice] -> [MarketPrice] -> PriceIndexes
-buildPriceIndexes declaredprices inferredprices = PriceIndexes
-  { piForward = buildPriceIndex declaredprices inferredprices
+buildPriceIndexes :: [MarketPrice] -> [MarketPrice] -> [MarketPrice] -> PriceIndexes
+buildPriceIndexes declaredprices inferredprices aliasprices = PriceIndexes
+  { piForward = addAliasPrices $ buildPriceIndex declaredprices inferredprices
   , piDeclaredDefault = buildDefaultValuationIndex declaredprices
   , piInferredDefault = buildDefaultValuationIndex inferredprices
   }
+  where
+    addAliasPrices idx = M.union idx $ M.fromList
+      [ ((f, t), M.singleton (mpdate p) p)
+      | p@MarketPrice{mpfrom=f, mpto=t} <- aliasprices
+      , not $ M.member (f, t) idx, not $ M.member (t, f) idx ]
 
 -- | Look up default valuation commodities for all source commodities at a given date.
 -- Fallback logic: declared at date d, then declared at any date, then inferred at date d.
@@ -181,27 +188,33 @@ lookupDefaultValuations d PriceIndexes{..} =
 -- The boolean argument is whether to infer market prices from
 -- transactions or not.
 --
--- A commodity alias can be the valuation commodity: amounts are valued in the alias's commodity,
--- then converted using the alias's quantity. (A journal's amounts are never in an alias,
--- since they have been converted to its commodity; see journalApplyCommodityAliases.)
+-- Commodity aliases are also used, as fixed exchange rates (see 'buildPriceIndexes'),
+-- but only when no conversion can be found with market prices alone;
+-- so they can't change a valuation which market prices provide (eg one declared in another file tree).
+-- So an alias can be the valuation commodity,
+-- and amounts left in an alias (by a file which didn't declare it) can be valued.
 journalPriceOracle :: Bool -> Journal -> PriceOracle
-journalPriceOracle infer Journal{jpricedirectives, jinferredmarketprices, jdeclaredcommodities} =
+journalPriceOracle infer j@Journal{jpricedirectives, jinferredmarketprices} =
   let
     declaredprices = map priceDirectiveToMarketPrice jpricedirectives
     inferredprices =
       (if infer then jinferredmarketprices else [])
       & dbg2Msg ("use prices inferred from costs? " <> if infer then "yes" else "no")
     -- Build indexes once for all lookups
-    indexes = buildPriceIndexes declaredprices inferredprices
-    makepricegraph = memo $ makePriceGraph indexes
-    oracle = memo $ uncurry3 $ priceLookup makepricegraph
-    -- each alias symbol, with its commodity and the number of alias units equal to one unit of that
-    aliases = M.fromList [(acommodity a, (csymbol c, aquantity a)) | c <- M.elems jdeclaredcommodities, a <- caliases c]
-    aliasoracle (d, from, Just to) | Just (c, q) <- M.lookup to aliases =
-      (\r -> (to, r * q)) <$> if from == c then Just 1 else snd <$> oracle (d, from, Just c)
-    aliasoracle k = oracle k
+    oracleWith extraprices = memo $ uncurry3 $ priceLookup $ memo $ makePriceGraph $
+      buildPriceIndexes declaredprices inferredprices extraprices
+    aliasprices  = journalAliasPrices j
+    marketoracle = oracleWith []
+    aliasoracle  = oracleWith aliasprices
   in
-    if M.null aliases then oracle else aliasoracle
+    if null aliasprices then marketoracle else memo $ \k -> marketoracle k <|> aliasoracle k
+
+-- | A journal's commodity aliases, as fixed exchange rates:
+-- for each alias, one unit of its commodity is worth the alias's quantity of the alias, at all dates.
+journalAliasPrices :: Journal -> [MarketPrice]
+journalAliasPrices Journal{jdeclaredcommodities} =
+  [ MarketPrice{mpdate=nulldate, mpfrom=csymbol c, mpto=acommodity a, mprate=aquantity a}
+  | c <- M.elems jdeclaredcommodities, a <- caliases c ]
 
 priceDirectiveToMarketPrice :: PriceDirective -> MarketPrice
 priceDirectiveToMarketPrice PriceDirective{..} =
@@ -432,12 +445,21 @@ tests_priceLookup =
       ,p 2000 01 01 "E"  2 "D"
       ,p 2001 01 01 "A" 11 "B"
       ]
-    makepricegraph = makePriceGraph (buildPriceIndexes ps1 [])
+    makepricegraph = makePriceGraph (buildPriceIndexes ps1 [] [])
   in testCase "priceLookup" $ do
     priceLookup makepricegraph (fromGregorian 1999 01 01) "A" Nothing    @?= Nothing
     priceLookup makepricegraph (fromGregorian 2000 01 01) "A" Nothing    @?= Just ("B",10)
     priceLookup makepricegraph (fromGregorian 2000 01 01) "B" (Just "A") @?= Just ("A",0.1)
     priceLookup makepricegraph (fromGregorian 2000 01 01) "A" (Just "E") @?= Just ("E",500)
+    -- alias rates (100 d per D; and 1000 B per A, which is ignored since there are A-B market prices)
+    -- are used only between commodities with no market prices between them, and are never default destinations
+    let aliasprices = [p 0 01 01 "D" 100 "d", p 0 01 01 "A" 1000 "B"]
+        makepricegraph' = makePriceGraph (buildPriceIndexes ps1 [] aliasprices)
+    priceLookup makepricegraph' (fromGregorian 2000 01 01) "D" (Just "d") @?= Just ("d",100)
+    priceLookup makepricegraph' (fromGregorian 2000 01 01) "d" (Just "D") @?= Just ("D",0.01)
+    priceLookup makepricegraph' (fromGregorian 2000 01 01) "A" (Just "d") @?= Just ("d",100000)
+    priceLookup makepricegraph' (fromGregorian 2000 01 01) "A" (Just "B") @?= Just ("B",10)
+    priceLookup makepricegraph' (fromGregorian 2000 01 01) "D" Nothing    @?= Nothing
 
 ------------------------------------------------------------------------------
 -- Market price graph

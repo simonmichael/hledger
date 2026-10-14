@@ -511,3 +511,42 @@ $ hledger -f commodity-aliases/usage.journal -f commodity-aliases/savings.journa
 >2 /commodity kt is declared with different display styles; using the last:
   .*commodity-aliases\/usage.journal:2: 1000 kt
   .*commodity-aliases\/savings.journal:2: 1,000.00 kt/
+
+# ** 42. Valuation can use aliases declared in another file read with -f,
+# eg to value amounts which that file's aliases didn't convert.
+<
+2026-03-01
+    (c)  -1 Mt
+
+$ hledger -f commodity-aliases/usage.journal -f - bal -N
+             2000 kt  a
+               -1 Mt  c
+
+# ** 43.
+$ hledger -f commodity-aliases/usage.journal -f - bal -X kt -N
+             2000 kt  a
+            -1000 kt  c
+
+# ** 44. An alias is used for valuation only between commodities with no market price between them.
+# Here a P price for users is used, not savings.journal's users alias.
+<
+P 2026-01-01 users 5 kt
+
+2026-01-01
+    (x)  1 users
+
+$ hledger -f - -f commodity-aliases/savings.journal bal -X kt -N
+        -1,000.00 kt  b
+             5.00 kt  x
+
+# ** 45. And only when market prices can't provide a conversion at all;
+# so another file's alias can't shortcut a chain of market prices (here, X to Z via Y, at 6).
+<
+P 2026-01-01 X 2 Y
+P 2026-01-01 Y 3 Z
+
+2026-01-01
+    (a)  1 X
+
+$ hledger -f- -f commodity-aliases/x-alias.journal bal -X Z -N
+                 6 Z  a
