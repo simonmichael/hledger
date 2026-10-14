@@ -94,8 +94,10 @@ Miles driven in a prius:
 ### Offset scenarios
 
 Here are some scenarios where hledger development's AI usage is offset by users' AI usage reductions from using hledger.
-I think these effects will be real: users will sometimes choose hledger instead of AI for a task,
-and users' AI sessions will sometimes use hledger to do work more efficiently (and reliably).
+I think these effects will be real:
+
+- users will sometimes choose hledger instead of AI for a task
+- users' AI sessions will sometimes use hledger for a task instead of burning a lot of tokens doing it directly (probably with followups needed)
 
 So providing an efficient tool, even one where AI was used in building it, can bring a net reduction in carbon emissions.
 
