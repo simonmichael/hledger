@@ -43,7 +43,10 @@ import Text.Blaze (Markup)
 import Text.Hamlet (hamletFile)
 import Yesod
 import Yesod.Default.Config
+import Yesod.Form.I18n.Chinese (chineseFormMessage)
 import Yesod.Form.I18n.German (germanFormMessage)
+import Yesod.Form.I18n.Russian (russianFormMessage)
+import Yesod.Form.I18n.Spanish (spanishFormMessage)
 
 import Hledger.Utils.I18n (Translations(..), i18n, langTagCandidates, resolveLang, tr, trc)
 import Hledger
@@ -267,7 +270,13 @@ instance RenderMessage App HMsgc where
 instance RenderMessage App FormMessage where
   renderMessage app langs = fromMaybe defaultFormMessage $ listToMaybe
     [ m | c <- langTagCandidates (trLang $ translationsFor app langs), Just m <- [lookup c formMessages] ]
-    where formMessages = [("de", germanFormMessage)]
+    where
+      formMessages =
+        [ ("de",      germanFormMessage)
+        , ("es",      spanishFormMessage)
+        , ("ru",      russianFormMessage)
+        , ("zh-Hans", chineseFormMessage)
+        ]
 
 
 ----------------------------------------------------------------------
