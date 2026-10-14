@@ -68,11 +68,13 @@ Last updated: 2026-10-13
 └─────╨─────────────┴─────┴──────┴─────┴─────┴─────┴─────┴─────┴──────┴──────┴─────┴─────────┴─────────┘
 ```
 
-Some scenarios where hledger development AI usage is offset by user AI usage reductions from using hledger:
+## Offset scenarios
+
+Here are some scenarios where hledger development AI usage is offset by user AI usage reductions from using hledger:
 
 ```
 
-100 users using 10 kt less per month
+100 users using 10 kt less per month:
 
 ┌──────────╥───────────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬──────┬─────────┬─────────┐
 │          ║ Commodity │  Jan │  Feb │  Mar │  Apr │  May │  Jun │  Jul │  Aug │  Sep │   Total │ Average │
@@ -83,7 +85,7 @@ Some scenarios where hledger development AI usage is offset by user AI usage red
 │          ║ Mt        │ -0.3 │  2.4 │  0.9 │ -0.3 │  1.2 │  0.3 │  0.4 │  4.8 │ 10.0 │    19.5 │     2.2 │
 └──────────╨───────────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴──────┴─────────┴─────────┘
 
-200 users using 50 kt less per month
+200 users using 50 kt less per month:
 
 ┌──────────╥───────────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬───────┬─────────┬─────────┐
 │          ║ Commodity │   Jan │   Feb │   Mar │   Apr │   May │   Jun │   Jul │   Aug │   Sep │   Total │ Average │
@@ -94,7 +96,7 @@ Some scenarios where hledger development AI usage is offset by user AI usage red
 │          ║ Mt        │  -9.3 │  -6.6 │  -8.1 │  -9.3 │  -7.8 │  -8.7 │  -8.6 │  -4.2 │   1.0 │   -61.5 │    -6.8 │
 └──────────╨───────────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴───────┴─────────┴─────────┘
 
-1000 users using 100 kt less per month
+1000 users using 100 kt less per month:
 
 ┌──────────╥───────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬────────┬─────────┬─────────┐
 │          ║ Commodity │    Jan │    Feb │    Mar │    Apr │    May │    Jun │    Jul │    Aug │    Sep │   Total │ Average │
