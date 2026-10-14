@@ -1413,7 +1413,7 @@ journalInferMarketPricesFromTransactions j =
 
 -- | Aliases declared on a commodity directive by its @alias:@ tags.
 commodityAliases :: Commodity -> [CommoditySymbol]
-commodityAliases = map acommodity . caliases
+commodityAliases = map (acommodity . fst) . caliases
 
 -- | Update a commodity's declaration with a later declaration of it, in the same file tree.
 -- The later declaration adds to the earlier one rather than replacing it:
@@ -1439,8 +1439,8 @@ commodityCombine c1 c2 = c1{
 
 -- | Combine two lists of commodity aliases, dropping repeated definitions (same symbol and quantity).
 -- An alias redefined with a different quantity is kept, so it can be reported as a conflict.
-unionAliases :: [Amount] -> [Amount] -> [Amount]
-unionAliases = unionBy ((==) `on` \a -> (acommodity a, aquantity a))
+unionAliases :: [(Amount, SourcePos)] -> [(Amount, SourcePos)] -> [(Amount, SourcePos)]
+unionAliases = unionBy ((==) `on` \(a, _) -> (acommodity a, aquantity a))
 
 -- | All commodity symbols that this journal treats as declared:
 -- both the canonical 'jdeclaredcommodities' keys and any 'alias:'
@@ -1462,7 +1462,7 @@ type CommodityAliases = M.Map CommoditySymbol (CommoditySymbol, Quantity, Maybe 
 journalCommodityAliases :: Journal -> CommodityAliases
 journalCommodityAliases j =
   M.fromList [(acommodity a, (csymbol c, aquantity a, M.lookup (csymbol c) styles))
-             | c <- M.elems $ jdeclaredcommodities j, a <- caliases c]
+             | c <- M.elems $ jdeclaredcommodities j, (a, _) <- caliases c]
   where styles = journalCommodityStyles j
 
 -- | Convert an amount written in one of these commodity aliases to its commodity,

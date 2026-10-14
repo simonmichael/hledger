@@ -550,3 +550,35 @@ P 2026-01-01 Y 3 Z
 
 $ hledger -f- -f commodity-aliases/x-alias.journal bal -X Z -N
                  6 Z  a
+
+# ** 46. prices --show-aliases shows the alias rates (and with --show-reverse, their reverses).
+$ hledger -f commodity-aliases/usage.journal -f commodity-aliases/savings.journal prices --show-aliases --show-reverse
+P 0000-01-01 kt 0.1 users  ; commodity alias
+P 0000-01-01 kt 0.001 Mt  ; commodity alias
+P 0000-01-01 users 10.0 kt  ; commodity alias
+P 0000-01-01 Mt 1,000.000 kt  ; commodity alias
+>2 /different display styles/
+
+# ** 47. With --locations, it shows the commodity directive which declared each alias
+# (even when the commodity was declared again later).
+$ hledger -f commodity-aliases/usage.journal -f commodity-aliases/savings.journal prices --show-aliases --locations
+> /users  ; commodity alias, location: .*commodity-aliases\/savings.journal:2
+.*Mt  ; commodity alias, location: .*commodity-aliases\/usage.journal:2/
+>2 /different display styles/
+
+# ** 48. Only alias rates which can be used are shown: not those between commodities with a market price between them.
+<
+P 2026-01-01 Z 0.2 X
+
+$ hledger -f- -f commodity-aliases/x-alias.journal prices --show-aliases
+P 2026-01-01 Z 0.2 X
+
+# ** 49. --debug=2 shows when alias rates are tried, and where they were declared.
+<
+2026-01-01
+    (a)  1 X
+
+$ hledger -f- -f commodity-aliases/x-alias.journal bal -X Z -N --debug=2
+                10 Z  a
+>2 /no market price found from X to Z on 2026-01-01, trying commodity alias rates:
+ X>Z 10  \(alias declared at .*commodity-aliases\/x-alias.journal:2\)/

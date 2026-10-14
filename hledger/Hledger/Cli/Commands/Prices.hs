@@ -24,6 +24,7 @@ import Text.Printf (printf)
 pricesmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Prices.txt")
   [flagNone ["show-reverse"] (setboolopt "show-reverse") "also show the prices inferred by reversing known prices"
+  ,flagNone ["show-aliases"] (setboolopt "show-aliases") "also show the exchange rates provided by commodity aliases"
   ,flagNone ["summary"] (setboolopt "summary") "summarise declared prices per commodity instead of listing them"
   ,flagNone ["locations"] (setboolopt "locations") "also show where prices where declared"
   ]
@@ -47,7 +48,7 @@ prices opts j = do
     styles  = journalCommodityStyles j
     render pd =
       showPriceDirective (styleAmounts styles pd)
-      <> if showloc then locationComment pd else ""
+      <> comment (["commodity alias" | isAliasRate pd] <> [loc | showloc, Just loc <- [locationTag pd]])
 
     -- XXX duplicates logic in Hledger.Data.Valuation.makePriceGraph, keep synced
 
@@ -63,11 +64,26 @@ prices opts j = do
                             else postingPriceDirectivesFromCost) $
       journalPostings j
 
-    forwardprices =
-      -- dbg0 "forwardprices" $
+    marketprices =
+      -- dbg0 "marketprices" $
       if boolopt "infer-market-prices" (rawopts_ opts)
       then declaredprices `mergePriceDirectives` pricesfromcosts
       else declaredprices
+
+    -- Commodity alias rates, between commodities with no market prices between them
+    -- (as in Hledger.Data.Valuation.buildPriceIndexes).
+    aliasprices =
+      if boolopt "show-aliases" (rawopts_ opts)
+      then [ pd | pd <- journalAliasPriceDirectives j, let (f, t) = pricePair pd
+                , not $ S.member (f, t) marketpairs, not $ S.member (t, f) marketpairs ]
+      else []
+      where marketpairs = S.fromList $ map pricePair marketprices
+    aliaspairs = S.fromList $ map pricePair aliasprices
+    pricePair pd = (pdcommodity pd, acommodity $ pdamount pd)
+    -- An alias rate, or its reverse ?
+    isAliasRate pd = let (f, t) = pricePair pd in S.member (f, t) aliaspairs || S.member (t, f) aliaspairs
+
+    forwardprices = marketprices <> aliasprices
 
     reverseprices =
       -- dbg0 "reverseprices" $
@@ -96,14 +112,19 @@ postingPriceDirectivesWithLoc p =
   where
     pos = maybe nullsourcepos (fst . tsourcepos) (ptransaction p)
 
--- | A trailing journal comment showing the file and line where a
--- price directive was declared or inferred. Reversed prices inherit
--- the source position of the directive they were derived from. Empty
--- only when no source position is available.
-locationComment :: PriceDirective -> T.Text
-locationComment PriceDirective{pdsourcepos=SourcePos fp l _}
-  | null fp   = ""
-  | otherwise = "  ; location: " <> T.pack fp <> ":" <> T.pack (show (unPos l))
+-- | A trailing journal comment containing these items, if any.
+comment :: [T.Text] -> T.Text
+comment [] = ""
+comment xs = "  ; " <> T.intercalate ", " xs
+
+-- | A location tag showing the file and line where a price directive was declared or inferred
+-- (or for a commodity alias rate, the commodity directive declaring it).
+-- Reversed prices inherit the source position of the directive they were derived from.
+-- Nothing only when no source position is available.
+locationTag :: PriceDirective -> Maybe T.Text
+locationTag PriceDirective{pdsourcepos=SourcePos fp l _}
+  | null fp   = Nothing
+  | otherwise = Just $ "location: " <> T.pack fp <> ":" <> T.pack (show (unPos l))
 
 -- | Per-commodity stats from the journal's declared price directives.
 data PriceStats = PriceStats

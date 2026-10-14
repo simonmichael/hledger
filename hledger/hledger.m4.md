@@ -6310,6 +6310,8 @@ in this order of preference:
    (between a commodity and its alias, when there are no market prices between them).
    This lets you value amounts in an alias declared by another file, or show amounts in an alias with `-X`,
    but aliases never change a conversion that market prices can provide.
+   To see these rates and where their aliases were declared, use [`prices --show-aliases --locations`](#prices);
+   `--debug=2` output shows when they are tried.
 
 There is a limit to the length of these price chains; if hledger
 reaches that length without finding a complete chain or exhausting 

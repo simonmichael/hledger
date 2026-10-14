@@ -682,7 +682,7 @@ commoditydirectiveonelinep = do
   commentoff <- getOffset
   (comment, tags) <- lift transactioncommentp
   commaliases <- commodityaliasesp commentoff acommodity tags
-  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle, ccomment=comment, ctags=tags, caliases=commaliases, csourcepos=pos}
+  let comm = Commodity{csymbol=acommodity, cformat=Just $ dbg7 "style from commodity directive" astyle, ccomment=comment, ctags=tags, caliases=[(a, pos) | a <- commaliases], csourcepos=pos}
   if isNothing $ asdecimalmark astyle
   then customFailure $ parseErrorAt off pleaseincludedecimalpoint
   else modify' (addCommodityDeclaration comm)
@@ -713,7 +713,7 @@ commoditydirectivemultilinep = do
   -- read all subdirectives, saving format subdirectives as Lefts
   subdirectives <- many $ indented (eitherP (formatdirectivep sym) (lift restofline))
   let mfmt = lastMay $ lefts subdirectives
-  let comm = Commodity{csymbol=sym, cformat=mfmt, ccomment=comment, ctags=tags, caliases=commaliases, csourcepos=pos}
+  let comm = Commodity{csymbol=sym, cformat=mfmt, ccomment=comment, ctags=tags, caliases=[(a, pos) | a <- commaliases], csourcepos=pos}
   modify' (addCommodityDeclaration comm)
   where
     indented = (lift skipNonNewlineSpaces1 >>)
@@ -759,9 +759,9 @@ commodityaliasesp off sym tags = do
   if sym `elem` aliassyms then customFailure $ errAt $ printf "%s can't be an alias of itself with a quantity other than 1" (quote sym)
   else case aliassyms \\ nub aliassyms of
     a:_ -> customFailure $ errAt $ printf "alias %s is declared more than once, with different quantities" (quote a)
-    []  -> case [(a, e) | a <- commaliases, e <- earlieraliases j, acommodity e == acommodity a, aquantity e /= aquantity a] of
-      (a, e):_ -> customFailure $ errAt $ printf "alias %s was declared earlier for %s with a different quantity (%s), at %s"
-                    (quote $ acommodity a) (quote sym) (show $ aquantity e) (sourcePosFileLine $ maybe nullsourcepos csourcepos $ M.lookup sym $ jdeclaredcommodities j)
+    []  -> case [(a, e, epos) | a <- commaliases, (e, epos) <- earlieraliases j, acommodity e == acommodity a, aquantity e /= aquantity a] of
+      (a, e, epos):_ -> customFailure $ errAt $ printf "alias %s was declared earlier for %s with a different quantity (%s), at %s"
+                    (quote $ acommodity a) (quote sym) (show $ aquantity e) (sourcePosFileLine epos)
       []       -> pure commaliases
   where
     earlieraliases j = maybe [] caliases $ M.lookup sym $ jdeclaredcommodities j

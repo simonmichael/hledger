@@ -17,6 +17,7 @@ module Hledger.Data.Valuation (
   ,ValuationType(..)
   ,PriceOracle
   ,journalPriceOracle
+  ,journalAliasPriceDirectives
   ,mixedAmountToCost
   ,mixedAmountApplyValuation
   ,mixedAmountValueAtDate
@@ -203,18 +204,29 @@ journalPriceOracle infer j@Journal{jpricedirectives, jinferredmarketprices} =
     -- Build indexes once for all lookups
     oracleWith extraprices = memo $ uncurry3 $ priceLookup $ memo $ makePriceGraph $
       buildPriceIndexes declaredprices inferredprices extraprices
-    aliasprices  = journalAliasPrices j
+    aliasrates   = journalAliasPriceDirectives j
+    aliasprices  = map priceDirectiveToMarketPrice aliasrates
     marketoracle = oracleWith []
     aliasoracle  = oracleWith aliasprices
+    -- Alias rates are never default valuation destinations, so they are tried only when converting to a given commodity.
+    withaliases k@(_, _, Just _) = marketoracle k <|> dbg2Msg (aliasmsg k) (aliasoracle k)
+    withaliases k                = marketoracle k
+    -- at --debug=2 +, show when alias rates are tried, and where they were declared
+    aliasmsg (d, from, mto) =
+      printf "no market price found from %s to %s on %s, trying commodity alias rates:\n%s"
+        (showCommoditySymbol from) (maybe "" showCommoditySymbol mto) (show d)
+        (intercalate "\n" [printf " %s>%s %s  (alias declared at %s)" f (acommodity a) (show $ aquantity a) (sourcePosFileLine pos)
+                          | PriceDirective{pdcommodity=f, pdamount=a, pdsourcepos=pos} <- aliasrates] :: String)
   in
-    if null aliasprices then marketoracle else memo $ \k -> marketoracle k <|> aliasoracle k
+    if null aliasprices then marketoracle else memo withaliases
 
--- | A journal's commodity aliases, as fixed exchange rates:
--- for each alias, one unit of its commodity is worth the alias's quantity of the alias, at all dates.
-journalAliasPrices :: Journal -> [MarketPrice]
-journalAliasPrices Journal{jdeclaredcommodities} =
-  [ MarketPrice{mpdate=nulldate, mpfrom=csymbol c, mpto=acommodity a, mprate=aquantity a}
-  | c <- M.elems jdeclaredcommodities, a <- caliases c ]
+-- | A journal's commodity aliases, as fixed exchange rates: price directives dated 'nulldate',
+-- saying that one unit of a commodity is worth the alias's quantity of the alias (as written), at all dates.
+-- Each has the source position of the commodity directive which declared the alias.
+journalAliasPriceDirectives :: Journal -> [PriceDirective]
+journalAliasPriceDirectives Journal{jdeclaredcommodities} =
+  [ PriceDirective{pdsourcepos=pos, pddate=nulldate, pdcommodity=csymbol c, pdamount=a}
+  | c <- M.elems jdeclaredcommodities, (a, pos) <- caliases c ]
 
 priceDirectiveToMarketPrice :: PriceDirective -> MarketPrice
 priceDirectiveToMarketPrice PriceDirective{..} =

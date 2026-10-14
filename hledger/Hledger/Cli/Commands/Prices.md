@@ -3,11 +3,14 @@
 Print the [market prices](hledger.md#p-directive) declared with P directives.
 With --infer-market-prices, also show any additional prices inferred from [costs](hledger.md#costs).
 With --show-reverse, also show additional prices inferred by reversing known prices.
+With --show-aliases, also show the exchange rates provided by [commodity aliases](hledger.md#commodity-aliases).
 
 ```flags
 Flags:
      --show-reverse         also show the prices inferred by reversing known
                             prices
+     --show-aliases         also show the exchange rates provided by
+                            commodity aliases
      --summary              summarise declared prices per commodity instead
                             of listing them
      --locations            also show where prices where declared
@@ -20,12 +23,19 @@ Declared prices point at their P directive; prices inferred from
 Reversed prices keep the source position of the directive they were
 derived from.
 
+With `--show-aliases`, each commodity alias which provides an exchange rate
+(between a commodity and its alias, when there are no market prices between them)
+is shown as a price dated 0000-01-01 with a `; commodity alias` comment.
+Its location is the commodity directive which declared the alias.
+These are used only when market prices can't provide a conversion,
+see [Finding market price](hledger.md#finding-market-price).
+
 Price amounts are always displayed with their full precision,
 except for reverse prices which are limited to 8 decimal digits.
 
 Prices can be filtered by a date:, cur: or amt: query.
 
-Generally if you run this command with --infer-market-prices --show-reverse,
+Generally if you run this command with --infer-market-prices --show-reverse --show-aliases,
 it will show the same prices used internally to calculate value reports.
 But if in doubt, you can inspect those directly by running the value report
 with --debug=2.
