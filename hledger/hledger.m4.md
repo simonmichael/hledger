@@ -1669,6 +1669,26 @@ This is sometimes inconvenient, but there are usually workarounds.
 In particular, to have account aliases affect all entries in a file tree, declare them at the start of the main file, before any `include`s.
 (Or to affect all file trees specified at runtime, use `--alias` options.)
 
+### Combining file trees
+
+When you read several file trees (with several `-f` options), hledger reads and processes each one separately, then combines them.
+So one file tree can't change how another's entries are read:
+account and commodity aliases, decimal marks, transaction balancing, balance assertions,
+auto postings, forecast transactions and lot tracking all work within each file tree.
+
+But a few declarations reach all file trees ("all files" in the table below):
+
+- Account declarations, including account types and display order.
+- Commodity declarations, including display styles. If file trees declare a commodity's display style differently,
+  the last one is used, with a warning.
+- Payee and tag declarations.
+- [`P`](#p-directive) market prices, used for valuation.
+- [Commodity aliases](#commodity-aliases), but only for valuation, and only as a last resort:
+  when market prices can't convert an amount, eg if it's in an alias declared by another file tree.
+
+So you can combine file trees that weren't designed to work together.
+The interactions to watch for are conflicting display styles, account types, and market prices.
+
 ### Directives summary
 
 | directive            | what it does                                                                                                                                  | scope                       |
