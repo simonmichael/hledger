@@ -34,6 +34,7 @@ extra-source-files:
 - README.md
 - locale/de.po
 - locale/es.po
+- locale/ru.po
 - locale/zh-Hans.po
 - test/unittest.hs
 - test/doctests.hs

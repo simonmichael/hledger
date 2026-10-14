@@ -5620,7 +5620,7 @@ To always get German output, for example, put it in your config file's general o
 --lang de
 ```
 
-Currently German (`de`), Spanish (`es`) and Simplified Chinese (`zh`, also selected by `zh_CN` or `zh-Hans`) catalogs are built in.
+Currently German (`de`), Spanish (`es`), Russian (`ru`) and Simplified Chinese (`zh`, also selected by `zh_CN` or `zh-Hans`) catalogs are built in.
 Catalogs are [gettext PO files](https://www.gnu.org/software/gettext/manual/html_node/PO-Files.html),
 which the usual translation tools can edit.
 hledger also looks for catalogs in the `locale` subdirectory of its config directory

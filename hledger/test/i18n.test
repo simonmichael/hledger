@@ -140,3 +140,13 @@ Balance general anual con patrimonio 2008-12-31
 
 $ XDG_CONFIG_HOME=/nonexistent hledger -f sample.journal cf -M --lang es | head -1
 Estado mensual de flujos de efectivo 2008
+
+# ** 14. Russian is built in, and regional tags fall back to it.
+$ XDG_CONFIG_HOME=/nonexistent hledger -f sample.journal bs --lang ru | head -1
+Баланс 2008-12-31
+
+$ XDG_CONFIG_HOME=/nonexistent hledger -f sample.journal bs --lang ru_RU | head -1
+Баланс 2008-12-31
+
+$ XDG_CONFIG_HOME=/nonexistent hledger -f sample.journal cf -M --lang ru | head -1
+Ежемесячный отчёт о движении денежных средств 2008

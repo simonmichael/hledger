@@ -105,6 +105,25 @@ Notes on the choices:
 - Month names are capitalized, as column headings, though Spanish writes
   them in lower case in running text.
 
+## Russian
+
+Contributed by Daniil Iaitskov (#2773). Regional tags like `ru-RU` or `ru_RU` select it too.
+
+| English | Russian |
+|---|---|
+| Balance Sheet / With Equity | Баланс / Баланс с капиталом |
+| Income Statement | Отчёт о прибылях и убытках |
+| Cashflow Statement | Отчёт о движении денежных средств |
+| Assets / Liabilities / Equity | Активы / Обязательства / Капитал |
+| Revenues / Expenses | Доходы / Расходы |
+| Net: | Чистый итог: |
+| Total / Average | Итого / Среднее |
+| Commodity | Единица |
+| Account / Amount | Счёт / Сумма |
+| Journal (hledger-web's view) | Журнал |
+| Balance changes / Ending balances | Изменения сальдо / Конечные сальдо |
+| Budget performance | Исполнение бюджета |
+
 ## Simplified Chinese
 
 Contributed by Chunhui Ouyang, as `zh_CN.po`; renamed to `zh-Hans.po`,

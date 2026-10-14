@@ -359,4 +359,4 @@ translatable:
   in hledger's normalized form and that translations keep their
   placeholders; `hledger/test/i18n.test`, the yesod tests and
   `hledger-web/test/browser/i18n.spec.js` cover the German output end to
-  end, and `i18n.test` checks that Chinese and Spanish are selectable.
+  end, and `i18n.test` checks that Chinese, Spanish and Russian are selectable.
