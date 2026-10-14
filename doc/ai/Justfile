@@ -147,6 +147,12 @@ readme:
       echo '```'
       # echo
       # hledger --conf hledger.conf -f ai.journal all-html | sed -e '/^<style>/,/^<\/style>/d' -e '/^<link rel="stylesheet"/d'
+      echo
+      echo "Some scenarios where hledger development AI usage is offset by user AI usage reductions from using hledger:"
+      echo
+      echo '```'
+      hledger --conf hledger.conf -f ai.journal forecasts -e thismonth
+      echo '```'
     } > .README.md
     mv .README.md README.md
     echo "updated doc/ai/README.md"
