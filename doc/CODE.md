@@ -230,6 +230,31 @@ For ways to run it during development, see
   using the excerpt helpers in Hledger.Data.Errors where possible.
   A new kind of error message, or a changed layout, needs an example in hledger/test/errors/.
 
+## Report periods, intervals and date spans
+
+Three related types in Hledger.Data.Types describe a report's dates:
+
+- `DateSpan`: just bounds, an inclusive start and an exclusive end, either of which may be open.
+  A `date:` query is a `Date DateSpan` predicate, which can be combined, repeated or negated like other query terms.
+- `Period`: a span that knows its unit (`MonthPeriod`, `YearPeriod`, `PeriodBetween`..),
+  so that it can be named in titles, and stepped or grown/shrunk (hledger-ui's period navigation).
+  It is the report's overall period, `ReportOpts.period_`, set by `-p`, `-b` and `-e`.
+- `Interval`: how the period is divided into columns (`Months 1`, `Quarters 1`..),
+  `ReportOpts.interval_`, set by `-p` or `-D/-W/-M/-Q/-Y`.
+
+A period expression (the argument of -p/--period, and also used in several other places) 
+can specify a period, an interval, or both: `-p 'monthly in 2025'` sets
+`interval_ = Months 1` and `period_ = YearPeriod 2025`.
+The report options (period and interval) say how to shape the report; the query (including `date:`) says which data to include.
+They overlap on the span: `queryFromFlags` turns `period_` into a `Date` query,
+and the report's dates are the intersection of that and any `date:` terms.
+
+Since 1.52 a `date:` term can also carry an interval, which the CLI uses (but hledger-ui and hledger-web may not yet).
+(This slightly mixes report shape and query.)
+
+When converting a `Period` to a `DateSpan`, the period's unit awareness is lost; code that needs it (eg for a title)
+must look at the period, or reconstruct it with `dateSpanAsPeriod`.
+
 ## Debug output
 
 The main hledger programs accept `--debug[=N]` (N from 1 to 9), which prints debug output on stderr
