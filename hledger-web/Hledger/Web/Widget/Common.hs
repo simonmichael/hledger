@@ -8,8 +8,6 @@ module Hledger.Web.Widget.Common
   ( accountQuery
   , accountOnlyQuery
   , balanceReportAsHtml
-  , linksRow
-  , reportLinks
   , helplink
   , mixedAmountAsHtml
   , fromFormSuccess
@@ -101,21 +99,6 @@ balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty tr
     -- the way out of a search.
     journallink = (journalR, [("q", t) | let t = T.unwords $ removeInacct qparam, not (T.null t)])
     totallink = (registerR, [("q", t) | let t = T.unwords $ removeInacct qparam, not (T.null t)])
-
--- | A row of links above a report: a label, then each link's label,
--- title, target, and whether it is the one being shown.
--- Each label and title is a whole phrase, not a word slotted into a
--- sentence: an adjective that fits one language's sentence does not fit
--- another's, so a translation cannot be assembled from parts.
-linksRow :: Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
-linksRow rowlabel items = $(hamletFile "templates/balance-links.hamlet")
-
--- | Links to the report pages, given as route, label, and title,
--- keeping the given parameters; the page being shown is marked.
-reportLinks :: Eq r => Translations -> r -> [(Text, Text)] -> [(r, Text, Text)] -> HtmlUrl r
-reportLinks trs here kept menu =
-  -- TRANSLATORS: the label before a page's report links.
-  linksRow (tr trs "Report:") [ (tr trs label, tr trs title, (route, kept), route == here) | (route, label, title) <- menu ]
 
 accountQuery :: AccountName -> Text
 accountQuery = ("inacct:" <>) .  quoteIfSpaced
