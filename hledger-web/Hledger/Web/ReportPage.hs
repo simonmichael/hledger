@@ -8,7 +8,6 @@ page's table.
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
-{-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Web.ReportPage (
   ReportParams(..),
@@ -32,10 +31,9 @@ import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 import Data.Set qualified as Set
-import Text.Blaze.Html5 ((!))
+import Text.Blaze.Html5 ((!), (!?))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
-import Text.Hamlet (hamletFile)
 import Text.Megaparsec.Error (errorBundlePretty)
 import Yesod (HtmlUrl)
 
@@ -123,7 +121,15 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
 -- sentence: an adjective that fits one language's sentence does not fit
 -- another's, so a translation cannot be assembled from parts.
 linksRow :: Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
-linksRow rowlabel items = $(hamletFile "templates/balance-links.hamlet")
+linksRow rowlabel items renderUrl = do
+    H.p ! A.class_ "report-links" $ do
+      H.toHtml rowlabel
+      for_ items $ \(label, title, link, current) -> do
+        H.a !? (current, A.class_ "current")
+            ! A.href (H.toValue $ uncurry renderUrl link)
+            ! A.title (H.toValue title) $
+          H.toHtml label
+
 
 -- | Links to the report pages, given as route, label, and title,
 -- keeping the given parameters; the page being shown is marked.
