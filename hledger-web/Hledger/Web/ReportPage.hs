@@ -16,6 +16,8 @@ module Hledger.Web.ReportPage (
   paramError,
   columnHeading,
   headingParams,
+  intervalLinks,
+  accumulationLinks,
   relinkDateHeaders,
   reportTable,
 ) where
@@ -31,11 +33,12 @@ import Text.Blaze.Html5 ((!))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 import Text.Megaparsec.Error (errorBundlePretty)
+import Yesod (HtmlUrl)
 
-import Hledger.Utils.I18n (Translations, tr)
+import Hledger.Utils.I18n (Translations, tr, trc)
 import Hledger
 import Hledger.Cli.Anchor (dateTerm, renderPeriodHeading)
-import Hledger.Web.Widget.Common (removeDates)
+import Hledger.Web.Widget.Common (linksRow, removeDates)
 import Hledger.Query qualified as Query
 import Hledger.Write.Html (Html, formatCell, nl)
 import Hledger.Write.Spreadsheet (Cell(..), NumLines)
@@ -108,6 +111,49 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
           _rsReportOpts = rpRopts
         }
   Right ReportParams{..}
+
+-- | Links to the same report page for each reporting interval, keeping
+-- the search, the period's date span, and the given parameters; the
+-- interval being shown is marked.
+intervalLinks :: Translations -> r -> [(Text, Text)] -> Text -> DateSpan -> Interval -> HtmlUrl r
+intervalLinks trs route kept qparam spn current =
+  -- TRANSLATORS: the label before a report's interval links.
+  linksRow (tr trs "Interval:")
+    [ (label, title, link mword, ivl == current) | (label, title, mword, ivl) <- intervals ]
+  where
+    -- TRANSLATORS: the interval links above a report: each link's text, and its tooltip.
+    intervals :: [(Text, Text, Maybe Text, Interval)]
+    intervals =
+      [ (trc trs "interval" "None", tr trs "Show one column for the whole period", Nothing,          NoInterval)
+      , (tr trs "Yearly",    tr trs "Show a column per year",               Just "yearly",    Years 1)
+      , (tr trs "Quarterly", tr trs "Show a column per quarter",            Just "quarterly", Quarters 1)
+      , (tr trs "Monthly",   tr trs "Show a column per month",              Just "monthly",   Months 1)
+      , (tr trs "Weekly",    tr trs "Show a column per week",               Just "weekly",    Weeks 1)
+      , (tr trs "Daily",     tr trs "Show a column per day",                Just "daily",     Days 1)
+      ]
+    -- Each link keeps the period's date span, so that changing the
+    -- interval does not silently widen the report to the whole journal.
+    -- "monthly 2025-01-01..2025-12-31" is a period expression like any other.
+    spantext = if spn == nulldatespan then "" else showDateSpanForQuery spn
+    periodparam mword = case (mword, spantext) of
+      (Nothing,   "") -> []
+      (Nothing,   sp) -> [("period", sp)]
+      (Just w,    "") -> [("period", w)]
+      (Just w,    sp) -> [("period", w <> " " <> sp)]
+    link mword =
+      (route, periodparam mword ++ [("q", qparam) | not (T.null qparam)] ++ kept)
+
+-- | Links to the same report page showing balance changes or ending
+-- balances, keeping the given parameters; the one being shown is marked.
+accumulationLinks :: Translations -> r -> [(Text, Text)] -> BalanceAccumulation -> HtmlUrl r
+accumulationLinks trs route kept current =
+  -- TRANSLATORS: the label before a report's accumulation mode links, and the links' text and tooltips.
+  linksRow (tr trs "Show:")
+    [ (tr trs "Balance changes", tr trs "Show how much each balance changed in each period",
+        (route, kept), current /= Historical)
+    , (tr trs "Ending balances", tr trs "Show each balance at the end of each period, including everything before it",
+        (route, kept ++ [("accum", "historical")]), current == Historical)
+    ]
 
 -- | The accum parameter: "historical" for ending balances, "change" for
 -- balance changes, or none for the page's default.
