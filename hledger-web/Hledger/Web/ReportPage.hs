@@ -8,6 +8,7 @@ page's table.
 {-# LANGUAGE NamedFieldPuns    #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards   #-}
+{-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Web.ReportPage (
   ReportParams(..),
@@ -16,6 +17,8 @@ module Hledger.Web.ReportPage (
   paramError,
   columnHeading,
   headingParams,
+  linksRow,
+  reportLinks,
   intervalLinks,
   accumulationLinks,
   relinkDateHeaders,
@@ -32,13 +35,14 @@ import Data.Set qualified as Set
 import Text.Blaze.Html5 ((!))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
+import Text.Hamlet (hamletFile)
 import Text.Megaparsec.Error (errorBundlePretty)
 import Yesod (HtmlUrl)
 
 import Hledger.Utils.I18n (Translations, tr, trc)
 import Hledger
 import Hledger.Cli.Anchor (dateTerm, renderPeriodHeading)
-import Hledger.Web.Widget.Common (linksRow, removeDates)
+import Hledger.Web.Widget.Common (removeDates)
 import Hledger.Query qualified as Query
 import Hledger.Write.Html (Html, formatCell, nl)
 import Hledger.Write.Spreadsheet (Cell(..), NumLines)
@@ -111,6 +115,23 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
           _rsReportOpts = rpRopts
         }
   Right ReportParams{..}
+
+
+-- | A row of links above a report: a label, then each link's label,
+-- title, target, and whether it is the one being shown.
+-- Each label and title is a whole phrase, not a word slotted into a
+-- sentence: an adjective that fits one language's sentence does not fit
+-- another's, so a translation cannot be assembled from parts.
+linksRow :: Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
+linksRow rowlabel items = $(hamletFile "templates/balance-links.hamlet")
+
+-- | Links to the report pages, given as route, label, and title,
+-- keeping the given parameters; the page being shown is marked.
+reportLinks :: Eq r => Translations -> r -> [(Text, Text)] -> [(r, Text, Text)] -> HtmlUrl r
+reportLinks trs here kept menu =
+  -- TRANSLATORS: the label before a page's report links.
+  linksRow (tr trs "Report:") [ (tr trs label, tr trs title, (route, kept), route == here) | (route, label, title) <- menu ]
+
 
 -- | Links to the same report page for each reporting interval, keeping
 -- the search, the period's date span, and the given parameters; the
