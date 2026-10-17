@@ -230,7 +230,7 @@ instance Yesod App where
         sidebarParams =
           [p | p@("period", _) <- keptParams] ++
           [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
-          [p | p@(k, _) <- keptParams, k /= "period", k `elem` ("lots" : stickyParamNames)]
+          [p | p@(k, _) <- keptParams, k /= "period", k `elem` stickyParamNames]
         -- What the sidebar's bottom row is, in the current amounts mode:
         -- the whole journal's net. Label it by what that means.
         (totlabel, tottitle) = case amountModeOf ropts' of
@@ -510,7 +510,7 @@ keptAccums route =
 -- costs.
 keptParamNames :: Route App -> [Text]
 keptParamNames route
-  | route == HoldingsR        = "lots" : stickyParamNames
+  | route == HoldingsR        = stickyParamNames
   | route `elem` reportRoutes = "accum" : stickyParamNames
   | route == RegisterR        = "accum" : "costs" : stickyParamNames
   | route == JournalR         = stickyParamNames
@@ -520,7 +520,7 @@ keptParamNames route
 -- only the control it names. date2 has no control, being deprecated,
 -- but is preserved like the rest.
 stickyParamNames :: [Text]
-stickyParamNames = ["period", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty"]
+stickyParamNames = ["period", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty", "lots"]
 
 -- | Are zero-balance accounts hidden ? The empty parameter says (1
 -- shows them, 0 hides them, the direction of the command line's

@@ -26,7 +26,7 @@ import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
               commodityLinks, controlsHint, controlsToggle, costsLinks, depthLinks,
-              inertControls, listModeLinks, mixedAmountAsHtml,
+              inertControls, listModeLinks, lotsLinks, mixedAmountAsHtml,
               mixedAmountAsHtmlWith, percentLinks, pricesLinks, realLinks,
               sortLinks, statusLinks, typeLinks,
               zeroBalanceLinks, transactionFragment, removeDates, removeInacct, replaceInacct, journalDayQuery)
@@ -35,7 +35,7 @@ import Hledger.Web.Widget.Common
 getRegisterR :: Handler Html
 getRegisterR = do
   checkServerSideUiEnabled
-  VD{perms, j, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{jHasLots, lotsShown, perms, j, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   -- With accum=historical the running balance is the account's balance,
   -- starting from before the query's start date, rather than a total of
@@ -93,9 +93,10 @@ getRegisterR = do
         [("sort", "amount") | sortAmt] ++
         [("pct", "1") | pctOn] ++
         [("calc", c) | Just c <- [mcalc], not (T.null c)]
+      lotsParams = [("lots", "1") | lotsShown]
       modeParams =
         dbg1 "register modeParams" $
-        stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams
+        stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams ++ lotsParams
       -- Links to the journal carry the sticky state; the accumulation
       -- mode and the costs toggle are this page's own.
       journalCarry = removeAttributes ["accum", "costs"] modeParams
@@ -124,6 +125,11 @@ getRegisterR = do
       costsRow = costsLinks trs RegisterR (qParams qparam ++ removeAttributes ["costs"] modeParams) costsOn
       pricesRow = pricesLinks trs RegisterR (qParams qparam ++ removeAttributes ["infer"] modeParams) inferOn
       zeroRow = zeroBalanceLinks trs RegisterR (qParams qparam ++ removeAttributes ["empty"] modeParams) dfltHidden hideEmpty
+      -- Lot detail shows lot subaccounts and per-lot postings; row
+      -- hidden when the journal has no lots.
+      lotsRow = if jHasLots
+        then lotsLinks trs RegisterR (qParams qparam ++ removeAttributes ["lots"] modeParams) lotsShown
+        else const mempty
       -- The report-shaping controls, operative on the report pages,
       -- shown dimmed with the url's state marked.
       (pivl, pspan) = case mperiod of
@@ -149,7 +155,7 @@ getRegisterR = do
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs controlsOpen $ mconcat $
         [intervalRow, yearsNav, statusRow, realRow, typeRow, typeHintRow, commodityRow] ++ [depthRow | deepest > 1] ++
-        [listRow, amountsRow, costsRow, pricesRow, zeroRow, inertRows]
+        [listRow, amountsRow, costsRow, pricesRow, zeroRow, lotsRow, inertRows]
       -- the amount column's display format: with costs when asked
       amtfmt = noCostFmt{displayZeroCommodity = True, displayCost = costsOn}
       qParams t = [("q", t) | not (T.null t)]

@@ -20,7 +20,7 @@ import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsHint, controlsToggle,
-   depthLinks, listModeLinks,
+   depthLinks, listModeLinks, lotsLinks,
    percentLinks, pricesLinks, realLinks, removeInacct, sortLinks,
    statusLinks, typeLinks, zeroBalanceLinks)
 
@@ -29,7 +29,7 @@ import Hledger.Web.Widget.Common
 getBalanceR :: Handler Html
 getBalanceR = do
   checkServerSideUiEnabled
-  VD{j, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{j, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
@@ -79,11 +79,12 @@ getBalanceR = do
             inferParams = [("infer", "1") | infer_prices_ ropts, not (infer_prices_ roptsOrig)]
             date2Params = [("date2", "1") | date2_ ropts, not (date2_ roptsOrig)]
             emptyParams = [("empty", if hideEmpty then "0" else "1") | hideEmpty /= empty_ roptsOrig]
+            lotsParams  = [("lots", "1") | lotsShown]
             pageParams =
               dbg1 "balance pageParams" $
               periodParams ++ accumParams ++ valParams ++ listParams ++
               totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
-              inferParams ++ date2Params ++ emptyParams
+              inferParams ++ date2Params ++ emptyParams ++ lotsParams
             qParams = [("q", qparam) | not (T.null qparam)]
             -- links to the other reports keep the search, minus any account
             -- term, which the reports ignore, and this page's parameters,
@@ -128,7 +129,7 @@ getBalanceR = do
             -- The links to the other reports stay visible; every other
             -- control the page responds to, one row of links each, sits
             -- behind the controls disclosure.
-            reportsRow = reportLinks trs BalanceR menuParams $ reportLinkItems reportMenu
+            reportsRow = reportLinks trs BalanceR menuParams $ reportLinkItems $ reportMenuFor jHasLots
             -- The years the search matches in, ignoring all date
             -- narrowing, as a row of links among the controls; the year
             -- links rewrite the date narrowing themselves, so they
@@ -154,6 +155,7 @@ getBalanceR = do
               , amountLinks trs BalanceR (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)
               , pricesLinks trs BalanceR (qParams ++ removeAttributes ["infer"] pageParams) (infer_prices_ ropts)
               , zeroBalanceLinks trs BalanceR (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty ] ++
+              [ lotsLinks trs BalanceR (qParams ++ removeAttributes ["lots"] pageParams) lotsShown | jHasLots ] ++
               [ columnsLinks trs BalanceR (qParams ++ removeAttributes ["total", "avg"] pageParams) (row_total_ ropts) (average_ ropts)
               | rpInterval /= NoInterval ] ++
               [ sortLinks trs BalanceR (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts)
@@ -163,7 +165,7 @@ getBalanceR = do
         Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
         for_ pctErr $ Yesod.toWidget . pctError trs
-        Yesod.toWidget $ reportTable isTree mfold header [(acctsPrefix, body', [])] totals
+        Yesod.toWidget $ reportTable isTree False mfold header [(acctsPrefix, body', [])] totals
 
 -- | The heading for a report: --title if one was given, otherwise the
 -- given default.

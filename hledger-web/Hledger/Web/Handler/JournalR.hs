@@ -19,7 +19,7 @@ import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, interv
 import Hledger.Web.Widget.Common
             (accountQuery, amountLinks, calcLinks, columnsLinks, commodityLinks,
              controlsHint, controlsToggle,
-             depthLinks, inertControls, listModeLinks,
+             depthLinks, inertControls, listModeLinks, lotsLinks,
              mixedAmountAsHtml, percentLinks, pricesLinks, realLinks, sortLinks,
              statusLinks, typeLinks,
              transactionFragment, replaceInacct, journalDayQuery, zeroBalanceLinks)
@@ -28,7 +28,7 @@ import Hledger.Web.Widget.Common
 getJournalR :: Handler Html
 getJournalR = do
   checkServerSideUiEnabled
-  VD{perms, j, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{perms, j, jHasLots, lotsShown, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   mmode <- either (const Nothing) id . parseValue <$> lookupGetParam "value"
   mlist <- either (const Nothing) id . parseListMode <$> lookupGetParam "list"
@@ -82,7 +82,8 @@ getJournalR = do
         [("pct", "1") | pctOn] ++
         [("calc", c) | Just c <- [mcalc], not (T.null c)] ++
         [("date2", "1") | date2On]
-      carried = dbg1 "journal carried params" $ stickyParams ++ valParams ++ listParams ++ inferParams ++ emptyParams
+      lotsParams = [("lots", "1") | lotsShown]
+      carried = dbg1 "journal carried params" $ stickyParams ++ valParams ++ listParams ++ inferParams ++ emptyParams ++ lotsParams
       qps = [("q", qparam) | not (T.null qparam)]
       -- An entry's date link: the journal on that date, same modes.
       dayParams t = ("q", journalDayQuery qparam (tdate t)) : carried
@@ -108,6 +109,11 @@ getJournalR = do
         (amountModeOf roptsStartup) (amountModeOf $ maybe id setAmountMode mmode roptsStartup)
       pricesRow = pricesLinks trs JournalR (qps ++ removeAttributes ["infer"] carried) inferOn
       zeroRow = zeroBalanceLinks trs JournalR (qps ++ removeAttributes ["empty"] carried) dfltHidden hideEmpty
+      -- Lot detail shows in the entries and the sidebar; row hidden
+      -- when the journal has no lots.
+      lotsRow = if jHasLots
+        then lotsLinks trs JournalR (qps ++ removeAttributes ["lots"] carried) lotsShown
+        else const mempty
       -- The report-shaping controls, operative on the report pages,
       -- shown dimmed with the url's state marked.
       (pivl, pspan) = case mperiod of
@@ -133,7 +139,7 @@ getJournalR = do
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs controlsOpen $ mconcat $
         [intervalRow, yearsNav, statusRow, realRow, typeRow, typeHintRow, commodityRow] ++ [depthRow | deepest > 1] ++
-        [listRow, amountsRow, pricesRow, zeroRow, inertRows]
+        [listRow, amountsRow, pricesRow, zeroRow, lotsRow, inertRows]
 
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.
