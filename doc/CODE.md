@@ -245,12 +245,16 @@ Three related types in Hledger.Data.Types describe a report's dates:
 A period expression (the argument of -p/--period, and also used in several other places) 
 can specify a period, an interval, or both: `-p 'monthly in 2025'` sets
 `interval_ = Months 1` and `period_ = YearPeriod 2025`.
-The report options (period and interval) say how to shape the report; the query (including `date:`) says which data to include.
-They overlap on the span: `queryFromFlags` turns `period_` into a `Date` query,
+A rule of thumb: the query selects the data; report options control what is done with it.
+On the command line these are query arguments and flags; in hledger-web, the search box and the URL parameters set by the page's links.
+A few query terms also affect the report: `date:` sets the report period, `depth:` summarises,
+and `inacct:` (a `QueryOpt`, not a filter) sets a register's focus account.
+
+The period and the query overlap on the span: `queryFromFlags` turns `period_` into a `Date` query,
 and the report's dates are the intersection of that and any `date:` terms.
 
-Since 1.52 a `date:` term can also carry an interval, which the CLI uses (but hledger-ui and hledger-web may not yet).
-(This slightly mixes report shape and query.)
+Since 1.52 a `date:` term can also carry an interval (`date:monthly`), which goes against the rule above.
+The CLI and hledger-web use it; removing it is being discussed in [#2777](https://github.com/hledgerorg/hledger/issues/2777).
 
 When converting a `Period` to a `DateSpan`, the period's unit awareness is lost; code that needs it (eg for a title)
 must look at the period, or reconstruct it with `dateSpanAsPeriod`.
