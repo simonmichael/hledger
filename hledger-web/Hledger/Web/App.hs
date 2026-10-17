@@ -510,7 +510,7 @@ keptAccums route =
 -- costs.
 keptParamNames :: Route App -> [Text]
 keptParamNames route
-  | route == HoldingsR        = stickyParamNames
+  | route == HoldingsR        = "closed" : stickyParamNames
   | route `elem` reportRoutes = "accum" : stickyParamNames
   | route == RegisterR        = "accum" : "costs" : stickyParamNames
   | route == JournalR         = stickyParamNames
