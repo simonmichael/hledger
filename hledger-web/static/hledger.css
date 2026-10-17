@@ -837,3 +837,7 @@ ul {
 .report-table td.account.depth-10 { padding-left: 14.2em; }
 .report-table td.account.depth-11 { padding-left: 15.6em; }
 .report-table td.account.depth-12 { padding-left: 17.0em; }
+
+/* The holdings page's tree mode: account heading rows stand out from the
+   position rows (named by their commodity) grouped beneath them. */
+.report-table td.account.acctheading { font-weight: bold; }
