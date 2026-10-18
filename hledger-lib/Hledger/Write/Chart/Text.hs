@@ -23,7 +23,7 @@ module Hledger.Write.Chart.Text (
   tests_Hledger_Write_Chart_Text,
 ) where
 
-import Data.List (find, nub, sortOn)
+import Data.List (find, nub, partition, sortOn)
 #if !MIN_VERSION_base(4,20,0)
 import Data.List (foldl')
 #endif
@@ -143,8 +143,14 @@ panelLines TextChartOpts{tcWidth, tcUnicode} xaxis colouring showheading Panel{p
     mtotal = find ((== SeriesTotal) . seRole) pnSeries
     single = length drawn == 1
     -- each series' style, fill character (chosen by its name, like its colour, so that it stays the same in other charts) and values
-    -- (favouring the denser fill characters, which look better, so that the sparser ones are used mainly when there are more series)
-    styled = zipWith3 seriesStyle (stableSlotsFavouringFirst 0.5 (length fillchars) [(lbFull $ seLabel s, seriesSize s) | s <- drawn]) (seriesColours colouring drawn) drawn
+    styled = zipWith3 seriesStyle [fromMaybe 0 $ lookup i fillslots | i <- [0 .. length drawn - 1]] (seriesColours colouring drawn) drawn
+    -- each series' fill character, chosen by name: for accounts, favouring the first (best looking) characters,
+    -- so that the others are used mainly when there are more series; for "other" series, which are grey,
+    -- so their texture matters less, favouring the last ones
+    fillslots = slotsfor id items ++ slotsfor (\k -> length fillchars - 1 - k) others
+      where
+        (items, others) = partition ((== SeriesItem) . seRole . snd) (zip [0 :: Int ..] drawn)
+        slotsfor f ss = zip (map fst ss) $ map f $ stableSlotsFavouringFirst 0.5 (length fillchars) [(lbFull $ seLabel s, seriesSize s) | (_, s) <- ss]
     styledseries = zip styled drawn
     -- The groups of series (see 'seGroup'), in order, and each group's name and usual sign (if its series have one; otherwise 1).
     groups = nub $ map seGroup drawn
@@ -172,7 +178,7 @@ panelLines TextChartOpts{tcWidth, tcUnicode} xaxis colouring showheading Panel{p
       (XCategories ls, True) | Just l <- ls `atMay` j, Just at <- lbType l -> StyleType (mainAccountType at) 0
       _ -> st
     mtotalvals = seriesValues <$> mtotal
-    fillchars = if tcUnicode then "█▓▒░" else "#=+:"
+    fillchars = if tcUnicode then "█▓▒░" else "#=+:"  -- best looking first
     fillChar i = if single then cyclicAt ' ' fillchars 0 else cyclicAt ' ' fillchars i
 
     xlabels = case xaxis of
