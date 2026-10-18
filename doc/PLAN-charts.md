@@ -149,14 +149,14 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 - activity was reimplemented on `balance --count --chart` rather than removed; its old `*` output and daily default are gone.
 - Repeatable `-o` (several outputs, eg table on stdout plus an SVG file) is deferred: useful independently of charts,
   and better than comma-separated `-o` (commas are legal in file names).
-- A `--view`/`--open` flag (temp file, open-browser) could make SVG nearly as quick as text; inline terminal images need raster output.
+- `--view` (not `--open`, which `close` has) writes the output to the `-o` file or `view.FMT` in hledger's XDG cache directory, html by default,
+  and opens it with the system's default viewer (reusing openBrowserOn's launchers), only warning if that fails.
+  Not a shared temp directory: on Linux, `/tmp` files were readable by other users, and a predictable path invited symlink tricks.
+  Not next to the journal, which may be a git repo or synced folder. Inline terminal images would need raster output.
 
 ## Next?
 
-- get translations updated
-- html: with --chart, collapse the text report by default ?
 - html: include the chart by default ?
-- html/svg: easy opening/display with --view/--open ?
 - Phase 4: hledger-web integration, could eventually replace the flot register chart
 - hledger-ui integration, a chart toggle ?
 - bigger friendlier bars / lines / text ?

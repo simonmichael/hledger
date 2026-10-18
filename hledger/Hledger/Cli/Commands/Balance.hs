@@ -378,6 +378,7 @@ balancemode = hledgerCommandMode
     -- output:
     ,outputFormatFlag ["txt","html","csv","tsv","json","fods","svg"]
     ,outputFileFlag
+    ,outputViewFlag
     ,chartFlag
     ,chartWidthFlag
 

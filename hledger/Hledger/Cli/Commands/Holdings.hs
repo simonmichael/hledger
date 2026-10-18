@@ -69,7 +69,8 @@ holdingsmode = hledgerCommandMode
      ,"all  - also round cost amounts to precision"
      ]
    ,outputFormatFlag ["txt","csv","tsv","html","fods","json"]
-   ,outputFileFlag])
+   ,outputFileFlag
+   ,outputViewFlag])
   cligeneralflagsgroups1
   hiddenflags
   ([], Just $ argsFlag "[QUERY]")

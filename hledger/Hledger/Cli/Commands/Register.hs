@@ -75,6 +75,7 @@ registermode = hledgerCommandMode
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
   ,outputFormatFlag ["txt","csv","tsv","html","fods","json","svg"]
   ,outputFileFlag
+  ,outputViewFlag
   ,chartFlag
   ])
   cligeneralflagsgroups1

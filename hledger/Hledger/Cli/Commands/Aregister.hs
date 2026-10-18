@@ -77,6 +77,7 @@ aregistermode = hledgerCommandMode
   ,flagNone ["align-all"] (setboolopt "align-all") "guarantee alignment across all lines (slower)"
   ,outputFormatFlag ["txt","html","csv","tsv","json","svg"]
   ,outputFileFlag
+  ,outputViewFlag
   ,chartFlag
   ])
   cligeneralflagsgroups1
