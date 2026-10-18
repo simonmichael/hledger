@@ -160,9 +160,9 @@ hledger-web's main views are:
 The journal and register views show the newest 1000 matching transactions, with links to the older
 and newer pages and to pages by number, so that a page stays a reasonable size
 however large the journal is (a `page` parameter in the URL names the page).
-When the matching transactions span more than one year, a row of years, on every page,
-links to the view narrowed to each year; "All" widens it again, and shift-clicking a
-year selects a range of years (a `date:FIRST..END` search term, whose years the row marks).
+When the matching transactions span more than one year, a row of years among the
+controls links to the view narrowed to each year; "All" widens it again, and shift-clicking
+a year selects a range of years (a `date:FIRST..END` search term, whose years the row marks).
 When they span more than twenty years, the years are shown one row per decade.
 
 The **sidebar** lists accounts and their balances (parent balances include subaccounts,

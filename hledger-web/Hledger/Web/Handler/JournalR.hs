@@ -129,7 +129,7 @@ getJournalR = do
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs $ mconcat $
-        [intervalRow, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
+        [intervalRow, yearsNav, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, pricesRow, zeroRow, inertRows]
 
   defaultLayout $ do

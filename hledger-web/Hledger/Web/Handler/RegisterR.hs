@@ -145,7 +145,7 @@ getRegisterR = do
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs $ mconcat $
-        [intervalRow, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
+        [intervalRow, yearsNav, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, costsRow, pricesRow, zeroRow, inertRows]
       -- the amount column's display format: with costs when asked
       amtfmt = noCostFmt{displayZeroCommodity = True, displayCost = costsOn}

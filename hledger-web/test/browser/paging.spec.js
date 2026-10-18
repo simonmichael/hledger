@@ -57,6 +57,8 @@ test('shift-clicking a year selects a range of years', async ({ page }) => {
   await page.goto(URL + '/journal?q=date%3A2024');
   const row = page.locator('p.years').first();
   await expect(row.locator('a.current')).toHaveText(['2024']);
+  // the years row sits with the other controls, behind the disclosure
+  await page.locator('#main-content details.report-controls > summary').click();
   await row.locator('a', { hasText: '2026' }).click({ modifiers: ['Shift'] });
   await expect(page).toHaveURL(/date(%3A|:)2024\.\.2027/);
   await expect(row.locator('a.current')).toHaveText(['2024', '2025', '2026']);

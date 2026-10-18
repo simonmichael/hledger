@@ -6,8 +6,6 @@ $if elem AddPermission perms
      data-toggle="modal" data-target="#addmodal" title=_{HMsg "Add a new transaction to the journal"}>
     _{HMsg "Add a transaction"}
 
-^{yearsNav}
-
 ^{controlsRows}
 
 ^{pagingLinks trs JournalR qparam carried page}

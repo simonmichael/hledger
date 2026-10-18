@@ -1,8 +1,6 @@
 <h2>
   #{header}
 
-^{yearsNav}
-
 ^{controlsRows}
 
 ^{pagingLinks trs RegisterR qparam modeParams page}

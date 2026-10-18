@@ -146,9 +146,9 @@ statementPage here tabtitle spec = do
             -- No type row: the statements choose their own account types.
             reportsRow = reportLinks trs here menuParams menu
             -- The years the search matches in, ignoring all date
-            -- narrowing, as a row of links staying visible like the
-            -- report links; the year links rewrite the date narrowing
-            -- themselves, so they reduce the period to its interval.
+            -- narrowing, as a row of links among the controls; the year
+            -- links rewrite the date narrowing themselves, so they
+            -- reduce the period to its interval.
             yearsDays = map tdate $
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
             yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
@@ -156,6 +156,7 @@ statementPage here tabtitle spec = do
             controlRows = controlsToggle trs $ \render -> foldMap ($ render) $
               [ accumulationLinks trs here (qParams ++ removeAttributes ["accum"] pageParams) (cbcaccum spec) accum
               , intervalLinks trs here (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
+              , yearsNav
               , statusLinks trs here pageParams qparam
               , realLinks trs here pageParams qparam
               , commodityLinks trs here pageParams qparam j
@@ -173,7 +174,6 @@ statementPage here tabtitle spec = do
               , calcLinks trs here (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
         Yesod.toWidget reportsRow
-        Yesod.toWidget yearsNav
         Yesod.toWidget controlRows
         if empty
           then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)
