@@ -313,7 +313,7 @@ msgstr "交易数"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#: hledger-web/Hledger/Web/Widget/Common.hs
+#: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Balance changes"
 msgstr "平衡性调整"
 
@@ -607,7 +607,7 @@ msgid "Register"
 msgstr "日记账"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger/Hledger/Cli/Commands/Run.hs hledger-web/Hledger/Web/Widget/Common.hs
+#: hledger/Hledger/Cli/Commands/Run.hs hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show:"
 msgstr "显示："
 
@@ -733,6 +733,93 @@ msgstr "第 {n} 页"
 #, python-brace-format
 msgid "Show only {year}"
 msgstr "仅显示 {year}"
+
+#. the label before a page's report links.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Report:"
+msgstr "报告："
+
+#. the label before a report's interval links.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Interval:"
+msgstr "间隔："
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show one column for the whole period"
+msgstr "针对整个期间显示列"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgctxt "interval"
+msgid "None"
+msgstr "没有任何"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Yearly"
+msgstr "每年"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per year"
+msgstr "按年份显示列"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Quarterly"
+msgstr "每季"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per quarter"
+msgstr "按季度显示列"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Monthly"
+msgstr "每月度"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per month"
+msgstr "按月显示列"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Weekly"
+msgstr "每周"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per week"
+msgstr "按周显示列"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Daily"
+msgstr "每日"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per day"
+msgstr "按天显示列"
+
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show how much each balance changed in each period"
+msgstr "展示每个期间各项余额的变化幅度"
+
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Ending balances"
+msgstr "期末余额"
+
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid ""
+"Show each balance at the end of each period, including everything before it"
+msgstr "显示每个期间结束时的余额，包括该期间之前的所有内容"
 
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Could not parse the period expression:"
@@ -941,93 +1028,6 @@ msgstr "无效值：{error}"
 #: hledger-web/Hledger/Web/Widget/AddForm.hs
 msgid "Postings validation failed"
 msgstr "过账验证失败"
-
-#. the label before a page's report links.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Report:"
-msgstr "报告："
-
-#. the label before a report's interval links.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Interval:"
-msgstr "间隔："
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show one column for the whole period"
-msgstr "针对整个期间显示列"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgctxt "interval"
-msgid "None"
-msgstr "没有任何"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Yearly"
-msgstr "每年"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per year"
-msgstr "按年份显示列"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Quarterly"
-msgstr "每季"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per quarter"
-msgstr "按季度显示列"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Monthly"
-msgstr "每月度"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per month"
-msgstr "按月显示列"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Weekly"
-msgstr "每周"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per week"
-msgstr "按周显示列"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Daily"
-msgstr "每日"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per day"
-msgstr "按天显示列"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show how much each balance changed in each period"
-msgstr "展示每个期间各项余额的变化幅度"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Ending balances"
-msgstr "期末余额"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid ""
-"Show each balance at the end of each period, including everything before it"
-msgstr "显示每个期间结束时的余额，包括该期间之前的所有内容"
 
 #: hledger-web/templates/add-form.hamlet
 msgid "Pick a date"

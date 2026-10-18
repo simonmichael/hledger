@@ -310,7 +310,7 @@ msgstr "Anzahl der Buchungen"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#: hledger-web/Hledger/Web/Widget/Common.hs
+#: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Balance changes"
 msgstr "Saldoänderungen"
 
@@ -604,7 +604,7 @@ msgid "Register"
 msgstr "Register"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger/Hledger/Cli/Commands/Run.hs hledger-web/Hledger/Web/Widget/Common.hs
+#: hledger/Hledger/Cli/Commands/Run.hs hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show:"
 msgstr "Anzeigen:"
 
@@ -730,6 +730,93 @@ msgstr "Seite {n}"
 #, python-brace-format
 msgid "Show only {year}"
 msgstr "Nur {year} anzeigen"
+
+#. the label before a page's report links.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Report:"
+msgstr "Bericht:"
+
+#. the label before a report's interval links.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Interval:"
+msgstr "Intervall:"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show one column for the whole period"
+msgstr "Eine Spalte für den ganzen Zeitraum anzeigen"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgctxt "interval"
+msgid "None"
+msgstr "Keins"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Yearly"
+msgstr "Jährlich"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per year"
+msgstr "Eine Spalte pro Jahr anzeigen"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Quarterly"
+msgstr "Vierteljährlich"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per quarter"
+msgstr "Eine Spalte pro Quartal anzeigen"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Monthly"
+msgstr "Monatlich"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per month"
+msgstr "Eine Spalte pro Monat anzeigen"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Weekly"
+msgstr "Wöchentlich"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per week"
+msgstr "Eine Spalte pro Woche anzeigen"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Daily"
+msgstr "Täglich"
+
+#. the interval links above a report: each link's text, and its tooltip.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show a column per day"
+msgstr "Eine Spalte pro Tag anzeigen"
+
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Show how much each balance changed in each period"
+msgstr "Anzeigen, wie sich jeder Saldo in jeder Periode verändert hat"
+
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Ending balances"
+msgstr "Endsalden"
+
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger-web/Hledger/Web/ReportPage.hs
+msgid ""
+"Show each balance at the end of each period, including everything before it"
+msgstr "Jeden Saldo am Ende jeder Periode anzeigen, einschließlich allem davor"
 
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Could not parse the period expression:"
@@ -941,93 +1028,6 @@ msgstr "Ungültiger Wert: {error}"
 #: hledger-web/Hledger/Web/Widget/AddForm.hs
 msgid "Postings validation failed"
 msgstr "Prüfung der Buchungszeilen fehlgeschlagen"
-
-#. the label before a page's report links.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Report:"
-msgstr "Bericht:"
-
-#. the label before a report's interval links.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Interval:"
-msgstr "Intervall:"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show one column for the whole period"
-msgstr "Eine Spalte für den ganzen Zeitraum anzeigen"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgctxt "interval"
-msgid "None"
-msgstr "Keins"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Yearly"
-msgstr "Jährlich"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per year"
-msgstr "Eine Spalte pro Jahr anzeigen"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Quarterly"
-msgstr "Vierteljährlich"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per quarter"
-msgstr "Eine Spalte pro Quartal anzeigen"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Monthly"
-msgstr "Monatlich"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per month"
-msgstr "Eine Spalte pro Monat anzeigen"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Weekly"
-msgstr "Wöchentlich"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per week"
-msgstr "Eine Spalte pro Woche anzeigen"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Daily"
-msgstr "Täglich"
-
-#. the interval links above a report: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show a column per day"
-msgstr "Eine Spalte pro Tag anzeigen"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show how much each balance changed in each period"
-msgstr "Anzeigen, wie sich jeder Saldo in jeder Periode verändert hat"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Ending balances"
-msgstr "Endsalden"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid ""
-"Show each balance at the end of each period, including everything before it"
-msgstr "Jeden Saldo am Ende jeder Periode anzeigen, einschließlich allem davor"
 
 #: hledger-web/templates/add-form.hamlet
 msgid "Pick a date"
