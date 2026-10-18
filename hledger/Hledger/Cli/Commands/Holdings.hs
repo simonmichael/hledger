@@ -22,6 +22,7 @@ module Hledger.Cli.Commands.Holdings (
  ,HoldingsReport(..)
  ,HoldingsReportOpts(..)
  ,HoldingsTotals(..)
+ ,HoldingsLine(..)
  ,Holding(..)
  ,holdingsReport
  ,showage
@@ -46,7 +47,7 @@ import Text.Printf (printf)
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Commands.Balance.Internal (addTotalBorders, renderPeriodicAcct)
+import Hledger.Cli.Commands.Balance.Internal (addTotalBorders)
 import Hledger.Cli.Commands.Print (roundFromRawOpts)
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
@@ -202,14 +203,37 @@ data HoldingsTotals = HoldingsTotals {
   ,htXirr     :: Maybe Double    -- ^ the portfolio's annualised internal rate of return percent
   }
 
+-- | One display line of the holdings report.
+data HoldingsLine
+  -- | An account heading row (tree mode): an account with subaccounts
+  -- or several commodities, showing its subtree's totals.
+  = HoldingsHeading {
+      hlIndent  :: Int             -- ^ tree indent depth, 0 at top level
+     ,hlAccount :: AccountName     -- ^ the full account name
+     ,hlDisplay :: T.Text          -- ^ the name to display: the leaf name, or a squashed chain like b:c
+     ,hlTotals  :: HoldingsTotals  -- ^ the account's subtree totals (see hrAccountTotals)
+    }
+  -- | A holding's line: a position, lot, or depth-clipped aggregate,
+  -- one line per held commodity.
+  | HoldingsPosition {
+      hlIndent  :: Int          -- ^ tree indent depth, 0 at top level and in list mode
+     ,hlAccount :: AccountName  -- ^ the account (or lot subaccount) the line belongs to
+     ,hlDisplay :: T.Text       -- ^ the name to display: the account name (list mode, or a combined tree row), its commodity (a position under its account's heading), or a lot's name
+     ,hlIsLot   :: Bool         -- ^ is this a lot subaccount's line ?
+     ,hlHolding :: Holding
+    }
+
 -- | A computed holdings report: the display lines and totals shown by
 -- the holdings command, renderable by any UI.
 data HoldingsReport = HoldingsReport {
    hrDate            :: Day     -- ^ the date holdings are shown at: the day before the (exclusive) report end date if specified, otherwise today
+  ,hrLines           :: [HoldingsLine]
+     -- ^ the display lines in display order: flat holdings in list
+     --   mode, or account sections in tree mode
   ,hrRows            :: [(PeriodicReportRow DisplayName MixedAmount, Holding)]
-     -- ^ the display lines in display order: each holding, paired with the
-     --   report row it belongs to for rendering the account cell (a row
-     --   holding several commodities repeats on several lines)
+     -- ^ the holdings as flat records, for machine-readable output:
+     --   each holding, paired with its report row (a row holding
+     --   several commodities repeats on several lines)
   ,hrTotals          :: HoldingsTotals  -- ^ the grand totals row's components
   ,hrAccountTotals   :: AccountName -> HoldingsTotals
      -- ^ the totals of the lots at or under any one account, computed
@@ -235,6 +259,7 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
                rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} j =
   HoldingsReport
     { hrDate            = reportdate
+    , hrLines           = displaylines
     , hrRows            = rowlines
     , hrTotals          = totals
     , hrAccountTotals   = accountTotals
@@ -657,6 +682,17 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     rowlines :: [(PeriodicReportRow DisplayName MixedAmount, Holding)]
     rowlines = [(r, h) | r <- sortedrows, h <- rowHoldings r]
 
+    -- One display line per report line.
+    displaylines :: [HoldingsLine]
+    displaylines =
+      [ HoldingsPosition
+          { hlIndent  = prrIndent r
+          , hlAccount = prrFullName r
+          , hlDisplay = prrDisplayName r
+          , hlIsLot   = isJust $ lotSubaccountName $ prrFullName r
+          , hlHolding = h }
+      | (r, h) <- rowlines ]
+
     -- The cost column's heading matches what's shown: "Avg cost" on rows
     -- aggregating multiple lots (the default) or when the lots shown all
     -- belong to AVERAGE/AVERAGEALL pools (whose per-lot rows show the
@@ -862,14 +898,27 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOp
         tbl
 
     tbl = maybe id addtotalrow (map (T.intercalate ", ") <$> mtotalrowparts) $ Table
-      (Group NoLine $ map (Header . renderacct . fst) rowlines)
+      (Group NoLine $ map (Header . lineacct) displaylines)
       (Group NoLine $ map Header colheadings)
-      (map (map (T.intercalate ", ") . holdingCellParts . snd) rowlines)
+      (map (map (T.intercalate ", ") . linecells) displaylines)
       where
         addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
           Table (Group NoLine [Header ""]) (Header []) [totalrow]
     colheadings = ["Date", "Age", "Units", hrUnitCostHeading rpt, "Unit price", "Total cost", "Total value", "Weight", "UGain", "UGain%", "RGain", "XIRR"]
-    renderacct r = renderPeriodicAcct ropts " " r
+    displaylines = hrLines rpt
+
+    -- A display line's account cell: indented display names in tree
+    -- mode, full (possibly dropped) account names otherwise.
+    lineacct :: HoldingsLine -> T.Text
+    lineacct l
+      | accountlistmode_ ropts == ALTree && not (full_names_ ropts) =
+          T.replicate (hlIndent l * 2) " " <> hlDisplay l
+      | otherwise = accountNameDrop (drop_ ropts) (hlAccount l)
+
+    -- A display line's data cells, each as a list of parts.
+    linecells :: HoldingsLine -> [[T.Text]]
+    linecells HoldingsHeading{hlTotals}   = totalsCellParts hlTotals
+    linecells HoldingsPosition{hlHolding} = holdingCellParts hlHolding
 
     showpct = showPercentWith (hrStyles rpt)
     -- Show an XIRR percentage, like showpct: eg 12.3%.
@@ -898,29 +947,32 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOp
         showamt  = T.pack . showAmountWith noCostFmt
         showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
 
-    -- The grand totals row as cell parts, like holdingCellParts,
-    -- unless --no-total is in effect.
+    -- A totals row's cells (the grand total, or an account heading row
+    -- in tree mode), each as a list of parts like holdingCellParts.
+    totalsCellParts :: HoldingsTotals -> [[T.Text]]
+    totalsCellParts tot =
+      [ []
+      , []
+      , maybe [] ((:[]) . showamt) (htUnits tot)
+      , maybe [] ((:[]) . showamt) (htAvgCost tot)
+      , []
+      , map showamt (htCost tot)
+      , maybe [] (map showamt) (htValue tot)
+      , [maybe "" showpct (htWeight tot)]
+      , maybe [] (map showamtz) (htUgain tot)
+      , [maybe "" showpct (htUgainPct tot)]
+      , map showamt (htRgain tot)
+      , [maybe "" showxirr (htXirr tot)]
+      ]
+      where
+        showamt  = T.pack . showAmountWith noCostFmt
+        showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
+
+    -- The grand totals row as cell parts, unless --no-total is in effect.
     mtotalrowparts :: Maybe [[T.Text]]
     mtotalrowparts
       | no_total_ ropts = Nothing
-      | otherwise = Just
-          [ []
-          , []
-          , maybe [] ((:[]) . showamt) (htUnits tot)
-          , maybe [] ((:[]) . showamt) (htAvgCost tot)
-          , []
-          , map showamt (htCost tot)
-          , maybe [] (map showamt) (htValue tot)
-          , [maybe "" showpct (htWeight tot)]
-          , maybe [] (map showamtz) (htUgain tot)
-          , [maybe "" showpct (htUgainPct tot)]
-          , map showamt (htRgain tot)
-          , [maybe "" showxirr (htXirr tot)]
-          ]
-      where
-        tot = hrTotals rpt
-        showamt  = T.pack . showAmountWith noCostFmt
-        showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
+      | otherwise = Just $ totalsCellParts $ hrTotals rpt
 
     -- Spreadsheet-shaped tables for the html and fods output: like the
     -- text table, but with single-line cells, an Account column heading,
@@ -930,9 +982,9 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOp
                     -> [[Ods.Cell Ods.NumLines content]]
     spreadsheetWith plain parts =
       addHeaderBorders (zipWith hcell colclasses ("Account" : colheadings))
-      : [ zipWith3 bodycell [0..] colclasses
-            (plain (acctcell r) : zipWith parts amountcols (holdingCellParts h))
-        | (r, h) <- rowlines ]
+      : [ zipWith3 bodycell [0..] (lineclasses l)
+            (plain (acctcell l) : zipWith parts amountcols (linecells l))
+        | l <- displaylines ]
       ++ maybe [] (\tot -> addTotalBorders
            [zipWith3 totalcell [0..] colclasses
               (plain "Total:" : zipWith parts amountcols tot) :: [Ods.Cell () content]])
@@ -943,6 +995,9 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOp
         -- which of the other columns' cell parts are amounts
         amountcols = [False, False, True, True, True, True, True, False, True, False, True, False]
         hcell cls t = plain <$> (headerCell t){Ods.cellClass = Ods.Class cls}
+        -- account heading rows get an extra class, so html can style them
+        lineclasses HoldingsHeading{}  = "account acctheading" : drop 1 colclasses
+        lineclasses HoldingsPosition{} = colclasses
         -- body cells are right-aligned, except the first two columns
         -- (Account and Date); headings are unaffected
         bodycell :: Ods.Lines border => Int -> T.Text -> content' -> Ods.Cell border content'
@@ -951,7 +1006,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOp
           ,Ods.cellClass = Ods.Class cls}
         totalcell i cls = bodycell i (cls <> " coltotal")
         -- indent tree-mode account names with no-break spaces
-        acctcell r = T.replicate (prrIndent r * 2) "\160" <> prrDisplayName r
+        acctcell l = T.replicate (hlIndent l * 2) "\160" <> hlDisplay l
 
     -- Each commodity amount gets its own span with an "amount" class,
     -- so eg wrapping within amounts can be prevented with css.
