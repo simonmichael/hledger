@@ -66,12 +66,15 @@ Keep the template's `#.` comments and `#:` references. Never change a
 `msgid` or `msgctxt`.
 
 **Existing language.** Run `just i18n-merge` (every built-in catalog) or
-`msgmerge --update --previous FILE hledger-lib/locale/hledger.pot`. New
-entries arrive empty. Entries whose English changed arrive marked fuzzy,
-with the previous English in `#|` lines. For each fuzzy entry, compare the
-old and new English and revise the translation, then remove the fuzzy flag
-and the `#|` lines. Never just clear the flag: msgmerge's guess is often a
-translation of a different string. Fuzzy entries are not used until cleared.
+`msgmerge --update --no-fuzzy-matching FILE hledger-lib/locale/hledger.pot`.
+Fuzzy matching is off because its guesses are often translations of
+unrelated strings, and hledger's terminology must be precise. New entries,
+and entries whose English changed, arrive empty; a changed entry's old
+translation is kept as an obsolete `#~` entry at the end, to consult.
+If a catalog already has fuzzy entries (eg from Poedit), compare each with
+its `#|` previous English and translate it afresh if they differ in
+meaning, then remove the fuzzy flag and the `#|` lines. Never just clear
+the flag. Fuzzy entries are not used until cleared.
 
 ## 3. Translate: checklist
 
