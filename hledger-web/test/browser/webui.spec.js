@@ -228,7 +228,7 @@ test.describe('keyboard shortcuts', () => {
     await page.goto('/balance');
     const details = page.locator('#main-content details.report-controls');
     await expect(details.locator('p.report-links').first()).toBeHidden();
-    await details.locator('summary').click();
+    await details.locator('> summary').click();
     await expect(details.locator('p.report-links').first()).toBeVisible();
     // the open state is saved from the toggle event, which fires
     // asynchronously; wait for the save before navigating away
@@ -252,17 +252,24 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  // Shift-clicking commodities composes a cur:A|B search term from the
-  // links' data attributes; the row marks each selected one.
-  test('shift-clicking commodities selects several', async ({ page }) => {
+  // Many commodities collapse to a line showing the selection; opening
+  // the list is remembered across pages. Shift-clicking composes a
+  // cur:A|B search term from the links' data attributes, and the row
+  // marks each selected one.
+  test('the commodity list opens, stays open, and shift-click selects several', async ({ page }) => {
     await page.goto('/journal');
     await page.locator('#main-content details.report-controls > summary').click();
-    const row = page.locator('#main-content div.commodities');
-    await row.locator('a', { hasText: 'USD' }).click();
+    const box = page.locator('#main-content div.commodities');
+    await expect(box.locator('summary .sel')).toHaveText('All');
+    await box.locator('summary').click();
+    await box.locator('a', { hasText: 'USD' }).click();
     await expect(page).toHaveURL(/cur%3AUSD/);
-    await row.locator('a', { hasText: '$' }).click({ modifiers: ['Shift'] });
+    // the selection reads back, and the opened list is remembered
+    await expect(box.locator('summary .sel')).toHaveText('USD');
+    await expect(box.locator('details')).toHaveAttribute('open', '');
+    await box.locator('a', { hasText: '$' }).click({ modifiers: ['Shift'] });
     await expect(page).toHaveURL(/cur%3AUSD%7C%5C%24/);
-    await expect(row.locator('a.current')).toHaveText(['$', 'USD']);
+    await expect(box.locator('a.current')).toHaveText(['$', 'USD']);
     expect(pageErrors).toEqual([]);
   });
 

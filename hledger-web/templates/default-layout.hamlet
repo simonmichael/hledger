@@ -134,6 +134,38 @@ $if elem ViewPermission perms
       d.addEventListener('toggle', function () {
         try { localStorage.setItem('controlsOpen', d.open ? '1' : '0'); } catch (e) {}
       });
+      // The commodity list's disclosure and scroll position are remembered
+      // too, and the page's scroll survives a click on a control, so
+      // reshaping the view keeps your place.
+      var cd = d.querySelector('div.commodities details');
+      if (cd) {
+        try { if (localStorage.getItem('commoditiesOpen') === '1') { cd.open = true; } } catch (e) {}
+        cd.addEventListener('toggle', function () {
+          try { localStorage.setItem('commoditiesOpen', cd.open ? '1' : '0'); } catch (e) {}
+        });
+        var cl = cd.querySelector('.report-links');
+        if (cl) {
+          try {
+            var ct = parseInt(sessionStorage.getItem('commodityScrollTop'), 10);
+            if (!isNaN(ct)) { cl.scrollTop = ct; }
+          } catch (e) {}
+          cl.addEventListener('scroll', function () {
+            try { sessionStorage.setItem('commodityScrollTop', cl.scrollTop); } catch (e) {}
+          });
+        }
+      }
+      try {
+        var st = sessionStorage.getItem('pageScrollTop');
+        if (st !== null) {
+          sessionStorage.removeItem('pageScrollTop');
+          document.documentElement.scrollTop = parseInt(st, 10) || 0;
+        }
+      } catch (e) {}
+      document.addEventListener('click', function (ev) {
+        var a = ev.target.closest('a');
+        if (!a || !a.closest('details.report-controls, p.years')) { return; }
+        try { sessionStorage.setItem('pageScrollTop', document.documentElement.scrollTop); } catch (e) {}
+      });
     })();
 
 <dialog #helpmodal tabindex=-1 aria-labelledby="helpLabel">
