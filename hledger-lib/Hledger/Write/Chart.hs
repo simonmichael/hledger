@@ -34,6 +34,7 @@ module Hledger.Write.Chart (
   Colouring(..),
   chartColouring,
   stableSlots,
+  stableSlotsFavouringFirst,
   seriesSize,
   maxTints,
   mainAccountType,
@@ -257,7 +258,13 @@ seriesSize = sum . map abs . catMaybes . seValues
 -- (or removing the largest) disturbs few others; positions don't matter.
 -- When there are more names than slots, some slots are shared.
 stableSlots :: Ord a => Int -> [(Text, a)] -> [Int]
-stableSlots n items
+stableSlots = stableSlotsFavouringFirst 0
+
+-- | Like 'stableSlots', but with each name's preferences biased towards the first slots, by this much
+-- (0: not at all; 1: fully, so that every name has the same order of preference).
+-- Eg with 0.5, the last of 4 slots is never a name's first choice, and the first is its first choice most often.
+stableSlotsFavouringFirst :: Ord a => Double -> Int -> [(Text, a)] -> [Int]
+stableSlotsFavouringFirst bias n items
   | n <= 0    = map (const 0) items
   | otherwise = [ fromMaybe 0 $ M.lookup i assigned | i <- [0 .. length items - 1] ]
   where
@@ -267,7 +274,8 @@ stableSlots n items
           slot = fromMaybe (fromMaybe 0 $ listToMaybe prefs) $ find (`S.notMember` used) prefs
       in (S.insert slot used, M.insert i slot m)
     -- a name's slots, in its order of preference
-    preferences nm = sortOn (\k -> hash (nm <> "/" <> T.pack (show k))) [0 .. n - 1]
+    -- (by the slot's position, if biased, plus a pseudo-random fraction from the name)
+    preferences nm = sortOn (\k -> bias * fromIntegral k + fromIntegral (hash (nm <> "/" <> T.pack (show k))) / 2 ^ (32 :: Int)) [0 .. n - 1]
     -- a simple, stable hash: FNV-1a (32 bit), with murmur3's finaliser to mix in the last characters well
     -- (which here are the slot number; without it, names had only a few dozen orders of preference)
     hash :: Text -> Word32

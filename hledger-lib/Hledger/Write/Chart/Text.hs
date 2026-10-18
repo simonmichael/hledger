@@ -143,7 +143,8 @@ panelLines TextChartOpts{tcWidth, tcUnicode} xaxis colouring showheading Panel{p
     mtotal = find ((== SeriesTotal) . seRole) pnSeries
     single = length drawn == 1
     -- each series' style, fill character (chosen by its name, like its colour, so that it stays the same in other charts) and values
-    styled = zipWith3 seriesStyle (stableSlots (length fillchars) [(lbFull $ seLabel s, seriesSize s) | s <- drawn]) (seriesColours colouring drawn) drawn
+    -- (favouring the denser fill characters, which look better, so that the sparser ones are used mainly when there are more series)
+    styled = zipWith3 seriesStyle (stableSlotsFavouringFirst 0.5 (length fillchars) [(lbFull $ seLabel s, seriesSize s) | s <- drawn]) (seriesColours colouring drawn) drawn
     styledseries = zip styled drawn
     -- The groups of series (see 'seGroup'), in order, and each group's name and usual sign (if its series have one; otherwise 1).
     groups = nub $ map seGroup drawn

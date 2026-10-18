@@ -13,10 +13,10 @@
 $ hledger -f - activity --postings -w 40
 Posting counts in 2022-12-26..2023-01-08:
 
-▓ a  █ b
+█ a  ▓ b
 
-2022-W52  1  ▓
-2023-W01  2  ▓█
+2022-W52  1  █
+2023-W01  2  █▓
 
 # ** 2. With a report interval, and -0 to show just the total count.
 $ hledger -f - activity --postings -D -0 -w 40
@@ -94,9 +94,9 @@ W52  30  █████████████████████
 $ hledger -f - activity --postings -S -w 40
 Posting counts in 2022-W52:
 
-▓ b  █ a
+█ b  ▓ a
 
-W52  3  ▓▓█
+W52  3  ██▓
 
 # ** 7. In SVG, the total isn't marked, since it would be just the top of each stack.
 $ hledger -f - activity --postings -O svg | grep -c 'class="mark'

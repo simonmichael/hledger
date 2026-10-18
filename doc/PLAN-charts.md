@@ -107,7 +107,9 @@ Sections take an account type from their query, which their accounts inherit if 
   Always using type hues was considered and rejected: 4 tints (2 shades in basic ANSI) can't tell apart a one-type chart's accounts.
   "other" is grey, totals ink; a lone series that isn't an account (eg a total, or "..." for all accounts) is cyan, a hue no account type uses.
 - Chosen by account name, not position or count (`stableSlots`): each name has a hashed order of preference, names choose largest first.
-  So -S changes nothing, and removing the largest account (drilling down) disturbs only accounts it had displaced. Text fill characters likewise.
+  So -S changes nothing, and removing the largest account (drilling down) disturbs only accounts it had displaced. Text fill characters likewise,
+  but with preferences biased towards the denser ones (`stableSlotsFavouringFirst 0.5`: █ ▓ ▒ ░, best looking first), so that the sparse,
+  stippled ones are used mainly when there are more series.
 - Palette: the dataviz skill's validated reference palette; type hues validated on the pairs that co-occur (green/red is in the CVD warn band,
   so legends and positions matter). Tints mix with white/black ([0, 0.4, -0.3, 0.65]).
 - Text: exact colours with `COLORTERM=truecolor` (dark variants when the background is known dark), else basic ANSI colours.

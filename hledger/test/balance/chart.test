@@ -168,10 +168,10 @@ Feb  100  ███████████████████████�
 $ hledger -f - bal -M --chart -w 50
 Balance changes in 2024-01-01..2024-02-29:
 
-▓ assets:cash  ░ expenses:food
-▒ expenses:food:dining  █ expenses:rent
+▓ assets:cash  ▒ expenses:food
+░ expenses:food:dining  █ expenses:rent
 
-Jan  0                   ▓▓▓│░░▒
+Jan  0                   ▓▓▓│▒▒░
 Feb  0  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓│████████████████████
 
 # ** 13. A single-period chart has a bar per account, indented in tree mode.
@@ -228,9 +228,9 @@ table
 $ hledger -f - bal -M a b --chart -w 40
 Balance changes in 2024-01:
 
-▓ b
+█ b
 
-Jan  1001  ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
+Jan  1001  █████████████████████████████
 
 <
 2024-01-01
