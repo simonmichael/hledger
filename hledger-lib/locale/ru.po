@@ -161,17 +161,12 @@ msgid "Report details"
 msgstr "Подробности отчёта"
 
 #: hledger/Hledger/Cli/Chart.hs
-#, fuzzy
-#| msgctxt "column heading"
-#| msgid "Total"
 msgid "Total"
 msgstr "Итого"
 
 #: hledger/Hledger/Cli/Chart.hs
-#, fuzzy
-#| msgid "Balance Sheet"
 msgid "Balance"
-msgstr "Баланс"
+msgstr "Сальдо"
 
 #: hledger/Hledger/Cli/Chart.hs hledger/Hledger/Cli/CompoundBalanceCommand.hs
 msgid "Net:"
@@ -181,17 +176,17 @@ msgstr "Чистый итог:"
 #, python-brace-format
 msgid "other {parent} ({n} account)"
 msgid_plural "other {parent} ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "прочие {parent} ({n} счёт)"
+msgstr[1] "прочие {parent} ({n} счёта)"
+msgstr[2] "прочие {parent} ({n} счетов)"
 
 #: hledger/Hledger/Cli/Chart.hs
 #, python-brace-format
 msgid "other ({n} account)"
 msgid_plural "other ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
-msgstr[2] ""
+msgstr[0] "прочие ({n} счёт)"
+msgstr[1] "прочие ({n} счёта)"
+msgstr[2] "прочие ({n} счетов)"
 
 #. the report title, eg "Monthly Balance Sheet 2024 (Historical Ending Balances), valued at period ends". {clarification} brings its own leading space when present.
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
@@ -301,28 +296,20 @@ msgid "Historical gain"
 msgstr "Исторический прирост"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Missing account"
 msgid "Posting counts"
-msgstr "Отсутствует счёт"
+msgstr "Количество проводок"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Cumulative gain"
 msgid "Cumulative posting counts"
-msgstr "Накопленный прирост"
+msgstr "Накопленное количество проводок"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Historical gain"
 msgid "Historical posting counts"
-msgstr "Исторический прирост"
+msgstr "Историческое количество проводок"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Transactions in {account}"
 msgid "Transaction counts"
-msgstr "Транзакции по счёту {account}"
+msgstr "Количество транзакций"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger/Hledger/Cli/Commands/Balance.hs

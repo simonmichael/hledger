@@ -1,7 +1,6 @@
 # Translation template for hledger.
 # This file is distributed under the same license as hledger.
 #
-#, fuzzy
 msgid ""
 msgstr ""
 "Project-Id-Version: hledger\n"
@@ -14,6 +13,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Poedit 3.9\n"
 
 #. stand-alone (nominative) month names, as used in a column heading.
@@ -165,9 +165,6 @@ msgid "Report details"
 msgstr "报表明细"
 
 #: hledger/Hledger/Cli/Chart.hs
-#, fuzzy
-#| msgctxt "column heading"
-#| msgid "Total"
 msgid "Total"
 msgstr "总计"
 
@@ -183,15 +180,13 @@ msgstr "净值："
 #, python-brace-format
 msgid "other {parent} ({n} account)"
 msgid_plural "other {parent} ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "其他 {parent}（{n} 个账户）"
 
 #: hledger/Hledger/Cli/Chart.hs
 #, python-brace-format
 msgid "other ({n} account)"
 msgid_plural "other ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "其他（{n} 个账户）"
 
 #. the report title, eg "Monthly Balance Sheet 2024 (Historical Ending Balances), valued at period ends". {clarification} brings its own leading space when present.
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
@@ -301,28 +296,20 @@ msgid "Historical gain"
 msgstr "历史收益"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Missing account"
 msgid "Posting counts"
-msgstr "账户丢失"
+msgstr "分录数"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Cumulative gain"
 msgid "Cumulative posting counts"
-msgstr "累积增益"
+msgstr "累计分录数"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Historical gain"
 msgid "Historical posting counts"
-msgstr "历史收益"
+msgstr "历史分录数"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Transactions in {account}"
 msgid "Transaction counts"
-msgstr "{account} 的交易"
+msgstr "交易数"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger/Hledger/Cli/Commands/Balance.hs

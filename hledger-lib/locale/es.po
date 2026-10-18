@@ -162,17 +162,12 @@ msgid "Report details"
 msgstr "Detalles del informe"
 
 #: hledger/Hledger/Cli/Chart.hs
-#, fuzzy
-#| msgctxt "column heading"
-#| msgid "Total"
 msgid "Total"
 msgstr "Total"
 
 #: hledger/Hledger/Cli/Chart.hs
-#, fuzzy
-#| msgid "Balance Sheet"
 msgid "Balance"
-msgstr "Balance general"
+msgstr "Saldo"
 
 #: hledger/Hledger/Cli/Chart.hs hledger/Hledger/Cli/CompoundBalanceCommand.hs
 msgid "Net:"
@@ -182,15 +177,15 @@ msgstr "Neto:"
 #, python-brace-format
 msgid "other {parent} ({n} account)"
 msgid_plural "other {parent} ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "otras {parent} ({n} cuenta)"
+msgstr[1] "otras {parent} ({n} cuentas)"
 
 #: hledger/Hledger/Cli/Chart.hs
 #, python-brace-format
 msgid "other ({n} account)"
 msgid_plural "other ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "otras ({n} cuenta)"
+msgstr[1] "otras ({n} cuentas)"
 
 #. the report title, eg "Monthly Balance Sheet 2024 (Historical Ending Balances), valued at period ends". {clarification} brings its own leading space when present.
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
@@ -300,28 +295,20 @@ msgid "Historical gain"
 msgstr "Ganancia histórica"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Missing account"
 msgid "Posting counts"
-msgstr "Falta la cuenta"
+msgstr "Número de movimientos"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Cumulative gain"
 msgid "Cumulative posting counts"
-msgstr "Ganancia acumulada"
+msgstr "Número acumulado de movimientos"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Historical gain"
 msgid "Historical posting counts"
-msgstr "Ganancia histórica"
+msgstr "Número histórico de movimientos"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Transactions in {account}"
 msgid "Transaction counts"
-msgstr "Transacciones en {account}"
+msgstr "Número de transacciones"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger/Hledger/Cli/Commands/Balance.hs

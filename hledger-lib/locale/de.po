@@ -160,17 +160,12 @@ msgid "Report details"
 msgstr "Berichtsdetails"
 
 #: hledger/Hledger/Cli/Chart.hs
-#, fuzzy
-#| msgctxt "column heading"
-#| msgid "Total"
 msgid "Total"
 msgstr "Gesamt"
 
 #: hledger/Hledger/Cli/Chart.hs
-#, fuzzy
-#| msgid "Balance Sheet"
 msgid "Balance"
-msgstr "Bilanz"
+msgstr "Saldo"
 
 #: hledger/Hledger/Cli/Chart.hs hledger/Hledger/Cli/CompoundBalanceCommand.hs
 msgid "Net:"
@@ -180,15 +175,15 @@ msgstr "Überschuss:"
 #, python-brace-format
 msgid "other {parent} ({n} account)"
 msgid_plural "other {parent} ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "sonstige {parent} ({n} Konto)"
+msgstr[1] "sonstige {parent} ({n} Konten)"
 
 #: hledger/Hledger/Cli/Chart.hs
 #, python-brace-format
 msgid "other ({n} account)"
 msgid_plural "other ({n} accounts)"
-msgstr[0] ""
-msgstr[1] ""
+msgstr[0] "sonstige ({n} Konto)"
+msgstr[1] "sonstige ({n} Konten)"
 
 #. the report title, eg "Monthly Balance Sheet 2024 (Historical Ending Balances), valued at period ends". {clarification} brings its own leading space when present.
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
@@ -298,28 +293,20 @@ msgid "Historical gain"
 msgstr "Historischer Gewinn"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Missing account"
 msgid "Posting counts"
-msgstr "Konto fehlt"
+msgstr "Anzahl der Buchungszeilen"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Cumulative gain"
 msgid "Cumulative posting counts"
-msgstr "Kumulierter Gewinn"
+msgstr "Kumulierte Anzahl der Buchungszeilen"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Historical gain"
 msgid "Historical posting counts"
-msgstr "Historischer Gewinn"
+msgstr "Historische Anzahl der Buchungszeilen"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
-#, fuzzy
-#| msgid "Transactions in {account}"
 msgid "Transaction counts"
-msgstr "Buchungen in {account}"
+msgstr "Anzahl der Buchungen"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger/Hledger/Cli/Commands/Balance.hs
