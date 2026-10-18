@@ -16,10 +16,7 @@ These tests don't exactly match the production code path, eg these bits are miss
 
   withJournal copts (web wopts)  -- extra withJournal logic (journalTransform..)
   ...
-  -- query logic, more options logic
-  let depthlessinitialq = filterQuery (not . queryIsDepth) . _rsQuery . reportspec_ $ cliopts_ wopts
-      j' = filterJournalTransactions depthlessinitialq j
-      h = host_ wopts
+  let h = host_ wopts
       p = port_ wopts
       u = base_url_ wopts
       staticRoot = T.pack <$> file_url_ wopts
@@ -64,6 +61,7 @@ import Yesod.Test
 
 import Hledger.Web.Application ( makeAppWith )
 import Hledger.Web.Paging (pageNumbers)
+import Hledger.Web.ReportPage (startupUrlState)
 import Hledger.Web.WebOptions  -- ( WebOpts(..), defwebopts, prognameandversion )
 import Hledger.Web.Import hiding (get, j)
 import Hledger.Web.Widget.Common (transactionFragment)
@@ -194,6 +192,36 @@ hledgerWebTest = do
       pageNumbers 12 17 `shouldBe` [8 .. 17]
       pageNumbers 17 17 `shouldBe` [8 .. 17]
       pageNumbers 15 30 `shouldBe` [11 .. 20]
+
+  -- Startup report options and query arguments become the url parameters
+  -- browse mode opens, and the server's own report spec is rebuilt to
+  -- stock defaults (#2771).
+  hspec $ describe "startupUrlState" $ do
+    it "renders options as page parameters, queries and query-like options as search terms, and rebuilds the spec to stock" $ do
+      let ropts = defreportopts
+            { period_ = YearPeriod 2026, interval_ = Months 1
+            , value_ = Just (AtEnd Nothing), accountlistmode_ = ALTree
+            , empty_ = True, statuses_ = [Cleared], real_ = True
+            , depth_ = DepthSpec (Just 3) []
+            , querystring_ = ["assets", "two words"]
+            }
+          (params, rspec') = startupUrlState defreportspec{_rsReportOpts = ropts}
+      lookup "period" params `shouldBe` Just "monthly"
+      lookup "value" params `shouldBe` Just "end"
+      lookup "list" params `shouldBe` Just "tree"
+      -- -E means the opposite in the web ui: hide the zero balances shown by default
+      lookup "empty" params `shouldBe` Just "0"
+      lookup "q" params `shouldBe` Just "assets \"two words\" date:2026 status:* real:1 depth:3"
+      _rsQuery rspec' `shouldBe` Any
+      period_ (_rsReportOpts rspec') `shouldBe` PeriodAll
+      interval_ (_rsReportOpts rspec') `shouldBe` NoInterval
+      value_ (_rsReportOpts rspec') `shouldBe` Nothing
+      empty_ (_rsReportOpts rspec') `shouldBe` False
+    it "spells intervals as period expressions and valuations as value words" $ do
+      let p ropts = fst $ startupUrlState defreportspec{_rsReportOpts = ropts}
+      lookup "period" (p defreportopts{interval_ = Weeks 2}) `shouldBe` Just "every 2 weeks"
+      lookup "value" (p defreportopts{value_ = Just (AtEnd (Just "EUR"))}) `shouldBe` Just "end,EUR"
+      lookup "value" (p defreportopts{conversionop_ = Just ToCost}) `shouldBe` Just "cost"
 
   runTests "hledger-web" [] nulljournal $ do
 
@@ -659,13 +687,21 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "<h2>Saldoänderungen in 2025-01-01..2025-02-28</h2>"
 
-    yit "keeps the period parameter off the other pages' search forms" $ do
+    yit "passes the period parameter through the journal and register, keeping an interval across pages" $ do
       request $ do
         setMethod "GET"
         setUrl JournalR
         addGetParam "period" "monthly"
       statusIs 200
-      bodyNotContains "name=\"period\""
+      bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
+      -- the sidebar's report links carry it on
+      bodyContains "/balancesheet?period=monthly"
+      request $ do
+        setMethod "GET"
+        setUrl RegisterR
+        addGetParam "period" "monthly"
+      statusIs 200
+      bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
 
     yit "shows balance changes for a period, and says so" $ do
       request $ do
@@ -1155,22 +1191,14 @@ hledgerWebTest = do
 
   runTests "hledger-web amount conversion with -V" [("V","")] vj $ do
 
-    yit "shows market values by default, and amounts as recorded with value=none, asking the figures' registers for those" $ do
+    yit "shows amounts as recorded on a bare url, despite startup -V" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
         addGetParam "period" "2025-01"
-      statusIs 200
-      bodyContains "$1,000.00"
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?period=2025-01\"")
-      request $ do
-        setMethod "GET"
-        setUrl BalanceR
-        addGetParam "period" "2025-01"
-        addGetParam "value" "none"
       statusIs 200
       bodyContains "10 AAPL"
-      bodyContains "href=\"register?q=inacct:assets:broker+date:2025-01&amp;value=none\""
+      bodyNotContains "$1,000.00"
 
   -- A journal whose accounts have no recognizable types has empty statements.
   uj <- fmap (either error' id) . runExceptT . journalFinalise biopts "untyped.journal" "" =<<
@@ -1209,8 +1237,17 @@ hledgerWebTest = do
             ,"    liabilities:loan"])
   runTests "hledger-web financial statements with -E" [("empty","")] zj $ do
 
-    yit "says when the accounts are all hidden zero balances" $ do
+    yit "shows the zero balances on a bare url, despite startup -E" $ do
       get BalancesheetR
+      statusIs 200
+      bodyContains "assets:bank"
+      bodyNotContains "which are hidden"
+
+    yit "says when the accounts are all hidden zero balances" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalancesheetR
+        addGetParam "empty" "0"
       statusIs 200
       bodyContains "All the accounts this report shows have zero balances, which are hidden."
       bodyNotContains "account-types"
@@ -1270,34 +1307,47 @@ hledgerWebTest = do
 
   runTests "hledger-web with -E" [("empty","")] ej $ do
 
-    yit "hides zero items by default, the opposite of the command line, and empty=1 shows them" $ do
+    yit "shows zero items on a bare url, despite startup -E, and empty=0 hides them" $ do
       get BalanceR
       statusIs 200
-      bodyContains "href=\"register?q=inacct:assets:kept\""
-      bodyNotContains "href=\"register?q=inacct:assets:zeroed"
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?empty=1\" title=\"Show accounts whose balances are zero\"")
+      bodyContains "href=\"register?q=inacct:assets:zeroed\""
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?empty=0\" title=\"Hide accounts whose balances are zero\"")
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "empty" "1"
+        addGetParam "empty" "0"
       statusIs 200
-      bodyContains "href=\"register?q=inacct:assets:zeroed&amp;empty=1\""
+      bodyContains "href=\"register?q=inacct:assets:kept&amp;empty=0\""
+      bodyNotContains "href=\"register?q=inacct:assets:zeroed"
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show accounts whose balances are zero\"")
 
+  -- Startup report options are url state only: the server itself keeps
+  -- stock defaults (#2771).
   runTests "hledger-web with --monthly" [("monthly","")] bj $ do
 
-    yit "keeps the interval the server was started with" $ do
+    yit "serves the stock view on a bare url, despite startup options" $ do
       get BalanceR
+      statusIs 200
+      bodyContains "Balance report"
+      bodyNotContains ">2025-01<"
+
+    yit "takes the startup interval from the url instead" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "period" "monthly"
       statusIs 200
       bodyContains ">2025-01<"
       bodyContains ">2025-02<"
 
-    yit "and still takes a period parameter over it" $ do
+    yit "shows a single-period report from a column heading's link" $ do
+      -- a heading link's target: the column's span as a date: search, no period
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "yearly"
+        addGetParam "q" "date:2025"
       statusIs 200
-      bodyContains ">2025<"
+      bodyContains "Balance changes in 2025"
       bodyNotContains ">2025-01<"
 
   -- #2127

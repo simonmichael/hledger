@@ -133,9 +133,15 @@ If you see accounts which appear to have a zero balance, but cannot be hidden wi
 it's because they have a mixed-cost balance, which looks like zero when costs are hidden.
 (hledger-web does not show costs.)
 
-Reporting options and/or query arguments can be used to set an initial query,
-which although not shown in the UI, will restrict the data shown
-(in addition to any search query entered in the UI).
+Report options and query arguments given at startup become url state:
+hledger-web translates them into the url that browse mode opens, and
+that `--serve` prints, eg `hledger-web -V -M` opens
+`/journal?period=monthly&value=end`, and `hledger-web --cleared -3 assets`
+opens `/journal?q=assets status:* depth:3` (url-encoded). The server
+itself keeps stock defaults, so every view is fully described by its
+url: a bare url shows the stock view, and editing the url (or the
+search and the links above each page) changes the view. Report options
+the web UI has no equivalent for are ignored.
 
 If you use the bash shell, you can auto-complete flags by pressing TAB in the command line.
 If this is not working see [Install > Shell completions](install.html#shell-completions).
@@ -244,8 +250,7 @@ the interval and/or the period, eg `/balancesheet?period=monthly` or
 report offer the usual intervals, and column headings link to the
 report for that period.
 The search box filters the reports like the other pages, including
-`depth:` terms, and the general report options given at startup, such
-as `--depth`, `-B`, or `-V`, apply. A `date:` term can set the interval
+`depth:` terms. A `date:` term can set the interval
 too, as on the command line (`date:monthly`, or
 `"date:quarterly in 2025"`), and wins over the `period` parameter.
 
@@ -253,7 +258,7 @@ The links above each report also set its depth, which they write as a
 `depth:` term in the search; how amounts are shown, as recorded, at
 cost (like `-B`), or at market value at the end of each period (like
 `-V`), with a `value` parameter (`none`, `cost`, or `end`) that
-overrides the startup options and is carried to the other reports; and
+is carried to the other reports; and
 whether accounts with zero balances are shown, with an `empty`
 parameter that the `e` key toggles and the pages' links carry.
 

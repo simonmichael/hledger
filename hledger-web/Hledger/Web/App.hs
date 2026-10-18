@@ -74,8 +74,7 @@ data App = App
       --
     , appOpts    :: WebOpts
     , appJournal :: IORef Journal
-        -- ^ the current journal, filtered by the initial command line query
-        --   but ignoring any depth limit.
+        -- ^ the current journal, reloaded from its files when they change.
     , appTranslations :: M.Map Text Translations
         -- ^ the translation catalogs available to viewers, by language tag
         --   (built-in and from the user's config directory), loaded at startup.
@@ -370,7 +369,7 @@ instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
 getViewData :: Handler ViewData
 getViewData = do
   App{
-    appOpts=opts0@WebOpts{ cliopts_=copts@CliOpts{ reportspec_=rspec@ReportSpec{_rsReportOpts, _rsQuery} } },
+    appOpts=opts0@WebOpts{ cliopts_=copts@CliOpts{ reportspec_=rspec@ReportSpec{_rsReportOpts} } },
     appJournal
   } <- getYesod
   -- With --debug, show each request's url as received
@@ -391,14 +390,10 @@ getViewData = do
 
   -- Get the query specified by the q request parameter, or no query if this fails.
   qparam <- fromMaybe "" <$> lookupGetParam "q"
-  (q1, qopts, mqerr) <- do
+  (q, qopts, mqerr) <- do
     case parseQuery today qparam of
       Right (q0, qopts) -> return (q0, qopts, Nothing)
       Left err         -> return (Any, [], Just err)
-  -- To this, add any depth limit from the initial startup query, preserving that.
-  let
-    initialdepthq = filterQuery queryIsDepth _rsQuery
-    q = simplifyQuery $ And [q1, initialdepthq]
   dbg1IO "q parameter" qparam
   dbg1IO "query" q
 
@@ -468,12 +463,15 @@ keptAccums route =
     _ | route == RegisterR -> ["historical"]
     _                      -> []
 
--- | The query parameters a page's own links keep.
+-- | The query parameters a page's own links keep. The journal and
+-- register keep the period parameter although it shapes nothing there,
+-- so that a report interval survives visiting them: the journal is the
+-- landing page, and the url hledger-web opens for its startup options.
 keptParamNames :: Route App -> [Text]
 keptParamNames route
   | route `elem` reportRoutes = ["period", "accum", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty"]
-  | route == RegisterR        = ["accum", "value", "costs", "infer", "date2", "empty", "list"]
-  | route == JournalR         = ["value", "list", "infer", "empty"]
+  | route == RegisterR        = ["period", "accum", "value", "costs", "infer", "date2", "empty", "list"]
+  | route == JournalR         = ["period", "value", "list", "infer", "empty"]
   | otherwise                 = []
 
 -- | Are zero-balance accounts hidden ? The empty parameter says (1
@@ -504,8 +502,6 @@ shouldShowSidebar = do
 -- ui message.
 getCurrentJournal :: IORef Journal -> CliOpts -> Day -> Handler (Journal, Maybe String)
 getCurrentJournal jref opts d = do
-  -- re-apply any initial filter specified at startup
-  let depthlessinitialq = filterQuery (not . queryIsDepth) $ _rsQuery $ reportspec_ opts
   -- XXX put this inside atomicModifyIORef' for thread safety
   j <- liftIO (readIORef jref)
   ej <- liftIO . runExceptT $ journalReloadIfChanged opts d j
@@ -514,7 +510,7 @@ getCurrentJournal jref opts d = do
       setMessage "error while reading journal"
       return (j, Just e)
     Right (j', True) -> do
-      liftIO . writeIORef jref $ filterJournalTransactions depthlessinitialq j'
+      liftIO $ writeIORef jref j'
       return (j',Nothing)
     Right (_, False) -> return (j, Nothing)
 

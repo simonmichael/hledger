@@ -62,7 +62,7 @@ statementPage here tabtitle spec = do
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
       menu = reportLinkItems reportMenu
-      deepest = deepestDepth rspecOrig j
+      deepest = deepestDepth j
 
   defaultLayout $ do
     setTitleI (HMsg tabtitle)

@@ -1,7 +1,7 @@
 {-|
-What hledger-web's report pages share: resolving their parameters
-against the startup options, and rendering a report's cells as the
-page's table.
+What hledger-web's report pages share: resolving their parameters into
+report options, translating the startup options into url state, and
+rendering a report's cells as the page's table.
 -}
 
 {-# LANGUAGE LambdaCase        #-}
@@ -13,6 +13,7 @@ module Hledger.Web.ReportPage (
   ReportParams(..),
   ReportParamError(..),
   reportParams,
+  startupUrlState,
   paramError,
   AmountMode(..),
   parseValue,
@@ -65,7 +66,7 @@ data ReportParams = ReportParams {
       -- ^ The period parameter's date span, or the unbounded span.
     rpInterval :: Interval,
       -- ^ The reporting interval: from a date: search term, else the period
-      --   parameter, else startup.
+      --   parameter, else none.
     rpPeriod   :: Maybe Text,
       -- ^ The period parameter as given, for links that keep it.
     rpAccum    :: Maybe BalanceAccumulation,
@@ -89,7 +90,7 @@ data ReportParamError
 -- The period parameter is a period expression as for -p: an interval
 -- ("monthly"), a date span ("2024"), or both ("monthly in 2024"). An
 -- empty one is no period at all, as from a search form with nothing in
--- it; then the startup interval applies. A date: search term can carry
+-- it. A date: search term can carry
 -- an interval too (date:monthly), and as on the command line it wins
 -- over the period; cf reportOptsToSpec. The period's date span restricts
 -- the report like a date: search term would, and the report's links
@@ -172,6 +173,94 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
           _rsReportOpts = rpRopts
         }
   Right ReportParams{..}
+
+-- | The startup report options and query arguments, expressed as url
+-- state: the parameters for the url that browse mode opens and --serve
+-- prints, and the report spec rebuilt to stock defaults, which is what
+-- the server keeps. Query arguments and query-expressible options
+-- (periods, depths, statuses, -R) become the q parameter's search
+-- terms; the other options the pages know become their parameters.
+-- Display preferences without a url spelling (the language, period
+-- title style, report titles) stay in the spec; report options the web
+-- ui has no vocabulary for (--invert, --transpose, ...) are dropped.
+startupUrlState :: ReportSpec -> ([(Text, Text)], ReportSpec)
+startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
+  where
+    params =
+      [("period", p)          | Just p <- [intervalPeriodExpr $ interval_ ropts]] ++
+      [("accum", accumWord a) | let a = balanceaccum_ ropts, a /= PerPeriod] ++
+      [("value", valueWord m) | Just m <- [amountModeOf ropts], m /= AsRecorded] ++
+      [("list", "tree")       | accountlistmode_ ropts == ALTree] ++
+      [("total", "1")         | row_total_ ropts] ++
+      [("avg", "1")           | average_ ropts] ++
+      [("sort", "amount")     | sort_amount_ ropts] ++
+      [("pct", "1")           | percent_ ropts] ++
+      [("calc", c)            | Just c <- [calcWord $ balancecalc_ ropts]] ++
+      [("costs", "1")         | show_costs_ ropts] ++
+      [("infer", "1")         | infer_prices_ ropts] ++
+      [("date2", "1")         | date2_ ropts] ++
+      -- -E means the opposite here: hide the zero balances the web ui
+      -- shows by default (cf hideEmptyAccounts).
+      [("empty", "0")         | empty_ ropts] ++
+      [("q", T.unwords qterms) | not (null qterms)]
+    qterms =
+      map textQuoteIfNeeded (querystring_ ropts) ++
+      dateTerm (date2_ ropts) (periodAsDateSpan $ period_ ropts) ++
+      map statusTerm (statuses_ ropts) ++
+      ["real:1" | real_ ropts] ++
+      depthTerms (depth_ ropts)
+    statusTerm s = "status:" <> case s of
+      Unmarked -> ""
+      Pending  -> "!"
+      Cleared  -> "*"
+    depthTerms (DepthSpec mflat regexps) =
+      ["depth:" <> T.pack (show n) | Just n <- [mflat]] ++
+      ["depth:" <> reString r <> "=" <> T.pack (show n) | (r, n) <- regexps]
+    rspec' = rspec{
+      _rsQuery = Any,
+      _rsQueryOpts = [],
+      _rsReportOpts = ropts{
+        period_ = PeriodAll, interval_ = NoInterval, statuses_ = [],
+        conversionop_ = Nothing, value_ = Nothing, infer_prices_ = False,
+        depth_ = mempty, date2_ = False, empty_ = False, no_elide_ = False,
+        full_names_ = False, real_ = False, querystring_ = [],
+        average_ = False, related_ = False, txn_dates_ = False,
+        balancecalc_ = CalcChange, balanceaccum_ = PerPeriod, budgetpat_ = Nothing,
+        accountlistmode_ = ALFlat, drop_ = 0, declared_ = False,
+        row_total_ = False, no_total_ = False, summary_only_ = False,
+        show_costs_ = False, sort_amount_ = False, percent_ = False,
+        invert_ = False, normalbalance_ = Nothing, transpose_ = False
+      }
+    }
+
+-- | A period expression naming the given reporting interval, none for
+-- NoInterval: the inverse of parsePeriodExpr's interval part.
+intervalPeriodExpr :: Interval -> Maybe Text
+intervalPeriodExpr = \case
+  NoInterval -> Nothing
+  Days 1     -> Just "daily"
+  Weeks 1    -> Just "weekly"
+  Months 1   -> Just "monthly"
+  Quarters 1 -> Just "quarterly"
+  Years 1    -> Just "yearly"
+  Days n     -> Just $ every n "days"
+  Weeks n    -> Just $ every n "weeks"
+  Months n   -> Just $ every n "months"
+  Quarters n -> Just $ every n "quarters"
+  Years n    -> Just $ every n "years"
+  MonthDay n             -> Just $ "every " <> ordinal n <> " day of month"
+  NthWeekdayOfMonth n wd -> Just $ "every " <> ordinal n <> " " <> weekdayName wd <> " of month"
+  MonthAndDay m d        -> Just $ "every " <> T.pack (show m) <> "/" <> T.pack (show d)
+  DaysOfWeek [1,2,3,4,5] -> Just "every weekday"
+  DaysOfWeek [6,7]       -> Just "every weekendday"
+  DaysOfWeek ds          -> Just $ "every " <> T.intercalate "," (map weekdayName ds)
+  where
+    every n unit = "every " <> T.pack (show n) <> " " <> unit
+    ordinal n = T.pack (show n) <> suffix
+      where
+        suffix | n `mod` 100 `elem` [11, 12, 13] = "th"
+               | otherwise = case n `mod` 10 of 1 -> "st"; 2 -> "nd"; 3 -> "rd"; _ -> "th"
+    weekdayName d = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] !! (d - 1)
 
 -- | The accum parameter: "historical" for ending balances, "change" for
 -- balance changes, "cumulative" for totals since the report's start, or
@@ -314,12 +403,9 @@ paramError trs = \case
       H.toHtml $ tr trs "Gains compare market value against cost, so they do not combine with value=cost."
 
 -- | The deepest account depth a report page can show: that of the
--- journal's deepest account, or the startup depth limit if that is less,
--- as it applies whatever the search says.
-deepestDepth :: ReportSpec -> Journal -> Int
-deepestDepth rspecOrig j =
-  maybe id min (dsFlatDepth $ queryDepth $ _rsQuery rspecOrig) $
-    maximum (0 : map accountNameLevel (journalAccountNames j))
+-- journal's deepest account.
+deepestDepth :: Journal -> Int
+deepestDepth j = maximum (0 : map accountNameLevel (journalAccountNames j))
 
 -- | A column's heading: its period, or for ending balances and
 -- cumulative totals the period's end date, which is what those are at.

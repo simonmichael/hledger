@@ -37,7 +37,7 @@ getBalanceR = do
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
-      deepest = deepestDepth rspecOrig j
+      deepest = deepestDepth j
 
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.

@@ -50,6 +50,7 @@ getRegisterR = do
   costsOn <- (== Just "1") <$> lookupGetParam "costs"
   inferOn <- (== Just "1") <$> lookupGetParam "infer"
   date2On <- (== Just "1") <$> lookupGetParam "date2"
+  mperiod <- lookupGetParam "period"
   hideEmpty <- hideEmptyAccounts
   pagereq <- pageRequest
 
@@ -77,9 +78,12 @@ getRegisterR = do
       emptyParams = [("empty", if hideEmpty then "0" else "1") | hideEmpty /= dfltHidden]
       elist = fromMaybe (accountlistmode_ $ _rsReportOpts rspec0) mlist
       listParams = [("list", listWord elist) | elist /= accountlistmode_ (_rsReportOpts rspec0)]
+      -- The period parameter shapes nothing here, but it is passed
+      -- along, so a report interval survives visiting a register.
+      periodParams = [("period", p) | Just p <- [mperiod], not (T.null p)]
       modeParams =
         dbg1 "register modeParams" $
-        accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams
+        periodParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams
       -- the rows of links above the chart: the filters (status,
       -- realness, type, tag, commodity, and depth), and the accounts,
       -- amounts, and costs modes
@@ -89,7 +93,7 @@ getRegisterR = do
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports; the register's rows always
       -- show in full.
-      deepest = deepestDepth rspec0 j
+      deepest = deepestDepth j
       depthRow = depthLinks trs RegisterR modeParams qparam deepest
       -- Tree mode adds the sidebar's fold carets.
       listRow = listModeLinks trs RegisterR (qParams qparam ++ filter ((/= "list") . fst) modeParams) (accountlistmode_ $ _rsReportOpts rspec0) elist

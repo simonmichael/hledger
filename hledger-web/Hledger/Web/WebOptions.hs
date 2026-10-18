@@ -18,6 +18,7 @@ import Safe (lastMay)
 
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
 import Hledger.Cli.GitInfo (gitInfo)
+import Hledger.Web.ReportPage (startupUrlState)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
 import Data.Text qualified as T
 import Data.Char (toLower)
@@ -149,6 +150,11 @@ data WebOpts = WebOpts
   , allow_              :: !AccessLevel
   , cliopts_            :: !CliOpts
   , socket_             :: !(Maybe String)
+  , startup_params_     :: ![(Text, Text)]
+      -- ^ the startup report options and query arguments as url
+      --   parameters, for the url browse mode opens and --serve prints.
+      --   The server itself keeps stock report options (see
+      --   'startupUrlState').
   } deriving (Show)
 
 defwebopts :: WebOpts
@@ -162,6 +168,7 @@ defwebopts = WebOpts
   , allow_              = ViewAccess
   , cliopts_            = def
   , socket_             = Nothing
+  , startup_params_     = []
   }
 
 instance Default WebOpts where def = defwebopts
@@ -171,6 +178,11 @@ rawOptsToWebOpts rawopts =
   checkWebOpts <$> do
     cliopts <- rawOptsToCliOpts rawopts
     let
+      -- Startup report options and query arguments become url state
+      -- (the url browse mode opens, --serve prints); the server itself
+      -- runs with stock report options, so that a url fully describes
+      -- its view and a bare url shows the stock view.
+      (startupparams, stockrspec) = startupUrlState $ reportspec_ cliopts
       h = fromMaybe defhost $ maybestringopt "host" rawopts
       p = fromMaybe defport $ maybeposintopt "port" rawopts
       -- Always set a base-url, constructing it from host and port if not specified.
@@ -200,8 +212,9 @@ rawOptsToWebOpts rawopts =
       , base_url_ = b
       , file_url_ = stripTrailingSlash <$> maybestringopt "file-url" rawopts
       , allow_ = access
-      , cliopts_ = cliopts
+      , cliopts_ = cliopts{reportspec_ = stockrspec}
       , socket_ = sock
+      , startup_params_ = startupparams
       }
   where
     stripTrailingSlash = reverse . dropWhile (== '/') . reverse -- yesod don't like it

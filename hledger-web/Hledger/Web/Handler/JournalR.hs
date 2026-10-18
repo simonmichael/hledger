@@ -31,6 +31,7 @@ getJournalR = do
   mmode <- either (const Nothing) id . parseValue <$> lookupGetParam "value"
   mlist <- either (const Nothing) id . parseListMode <$> lookupGetParam "list"
   inferOn <- (== Just "1") <$> lookupGetParam "infer"
+  mperiod <- lookupGetParam "period"
   pagereq <- pageRequest
   let title = case inAccount qopts of
         Nothing         -> tr trs "General Journal"
@@ -61,7 +62,12 @@ getJournalR = do
       elist = fromMaybe (accountlistmode_ roptsStartup) mlist
       listParams = [("list", listWord elist) | elist /= accountlistmode_ roptsStartup]
       inferParams = [("infer", "1") | inferOn]
-      carried = dbg1 "journal carried params" $ valParams ++ listParams ++ inferParams ++ emptyParams
+      -- The period parameter shapes nothing here, but it is passed
+      -- along, so a report interval survives visiting the journal: this
+      -- is the landing page, and the url hledger-web opens for its
+      -- startup options.
+      periodParams = [("period", p) | Just p <- [mperiod], not (T.null p)]
+      carried = dbg1 "journal carried params" $ periodParams ++ valParams ++ listParams ++ inferParams ++ emptyParams
       qps = [("q", qparam) | not (T.null qparam)]
       -- the rows of links above the entries: the filters (status,
       -- realness, type, tag, commodity, and depth), and the sidebar's
@@ -71,14 +77,14 @@ getJournalR = do
       typeRow = typeLinks trs JournalR carried qparam
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports.
-      deepest = deepestDepth (reportspec_ $ cliopts_ opts) j
+      deepest = deepestDepth j
       depthRow = depthLinks trs JournalR carried qparam deepest
       -- The amounts mode converts the sidebar's amounts, and tree mode
       -- adds its fold carets; the journal's entries always show as written.
-      listRow = listModeLinks trs JournalR (qps ++ valParams ++ inferParams ++ emptyParams) (accountlistmode_ roptsStartup) elist
-      amountsRow = amountLinks trs JournalR (qps ++ listParams ++ inferParams ++ emptyParams)
+      listRow = listModeLinks trs JournalR (qps ++ periodParams ++ valParams ++ inferParams ++ emptyParams) (accountlistmode_ roptsStartup) elist
+      amountsRow = amountLinks trs JournalR (qps ++ periodParams ++ listParams ++ inferParams ++ emptyParams)
         (amountModeOf roptsStartup) (amountModeOf $ maybe id setAmountMode mmode roptsStartup)
-      zeroRow = zeroBalanceLinks trs JournalR (qps ++ valParams ++ listParams ++ inferParams) dfltHidden hideEmpty
+      zeroRow = zeroBalanceLinks trs JournalR (qps ++ periodParams ++ valParams ++ listParams ++ inferParams) dfltHidden hideEmpty
 
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.
