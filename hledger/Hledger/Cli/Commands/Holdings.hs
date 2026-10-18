@@ -211,6 +211,10 @@ data HoldingsReport = HoldingsReport {
      --   report row it belongs to for rendering the account cell (a row
      --   holding several commodities repeats on several lines)
   ,hrTotals          :: HoldingsTotals  -- ^ the grand totals row's components
+  ,hrAccountTotals   :: AccountName -> HoldingsTotals
+     -- ^ the totals of the lots at or under any one account, computed
+     --   like the grand totals row (eg for an account heading row);
+     --   Weight is relative to the whole portfolio's value
   ,hrUnitCostHeading :: T.Text  -- ^ what the unit cost column shows: "Unit cost", "Avg cost", or "Unit/Avg cost"
   ,hrStyles          :: M.Map CommoditySymbol AmountStyle
      -- ^ the journal's display styles with hroRounding applied, plus a
@@ -233,6 +237,7 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     { hrDate            = reportdate
     , hrRows            = rowlines
     , hrTotals          = totals
+    , hrAccountTotals   = accountTotals
     , hrUnitCostHeading = unitcostheading
     , hrStyles          = pctstyles
     }
@@ -353,6 +358,7 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
 
     ownFlowIx    = ownIx flowmap
     ownRgainIx   = ownIx rgainmap
+    underFlowIx  = underIx flowmap
     underRgainIx = underIx rgainmap
 
     -- Narrow an indexed group to one held commodity, if specified.
@@ -362,6 +368,10 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     -- The cashflows of the lots in a row account's own scope.
     flowsOf :: AccountName -> Maybe CommoditySymbol -> [(Day, Amount)]
     flowsOf acct mc = concat $ inComm mc $ M.findWithDefault [] acct ownFlowIx
+
+    -- The cashflows of the lots at or under an account.
+    flowsUnder :: AccountName -> [(Day, Amount)]
+    flowsUnder acct = concat $ map snd $ M.findWithDefault [] acct underFlowIx
 
     -- The realised gains of the lots at or under an account, optionally of one held commodity.
     rgainsUnder :: AccountName -> Maybe CommoditySymbol -> [Amount]
@@ -760,6 +770,37 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
         totcosts = [ rowCostValuer r $ multiplyAmount (aquantity a) c
                    | r <- toprows, (a, mcb) <- lotsUnder (prrFullName r), Just c <- [cbCost =<< mcb] ]
         mtotgains = mportfoliovalue >>= \totvalue -> gainAmounts totvalue totcosts
+
+    -- The totals of the lots at or under one account, computed like the
+    -- grand totals row: an account heading row's figures. Like those,
+    -- RGain and XIRR cover all the subtree's lots within the query and
+    -- end date, including fully disposed ones with no row (#2769), and
+    -- Weight is relative to the whole portfolio's value.
+    accountTotals :: AccountName -> HoldingsTotals
+    accountTotals acct = HoldingsTotals
+      { htUnits    = case units of [u] -> Just u; _ -> Nothing
+      , htAvgCost  = case (units, sumAmounts costs) of
+          ([u], [c]) -> Just $ avgcost u c
+          _          -> Nothing
+      , htCost     = sumAmounts costs
+      , htValue    = msubvalue
+      , htWeight   = weightPct =<< msubvalue
+      , htUgain    = mgains
+      , htUgainPct = gainPct (fromMaybe [] mgains) costs
+      , htRgain    = sumAmounts $ map (costValuerTo msubvaluecomm) $ rgainsUnder acct Nothing
+      , htXirr     = do
+          [v] <- msubvalue
+          xirrOf (flowsUnder acct) v
+      }
+      where
+        units = filter (not . amountLooksZero) $ sumAmounts $ map fst $ lotsUnder acct
+        costs = [ costValuerTo msubvaluecomm $ multiplyAmount (aquantity a) c
+                | (a, mcb) <- lotsUnder acct, Just c <- [cbCost =<< mcb] ]
+        msubvalue = mvalueUnder acct
+        msubvaluecomm = case msubvalue of
+          Just [v] -> Just $ acommodity v
+          _        -> Nothing
+        mgains = msubvalue >>= \subvalue -> gainAmounts subvalue costs
 
     -- An average cost: total cost / total units, shown like other amounts
     -- in the cost commodity's display precision - but with at least 2
