@@ -230,7 +230,7 @@ msgstr "(Исторические конечные сальдо)"
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
 #: hledger/Hledger/Cli/Commands/Balance.hs
 msgid ", converted to cost"
-msgstr ", по себестоимости"
+msgstr ", в ценах сделки"
 
 #. the budget report title, eg "Budget performance in 2024, valued at period ends:".
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
@@ -248,7 +248,7 @@ msgstr ", по курсу на конец периода"
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
 #: hledger/Hledger/Cli/Commands/Balance.hs
 msgid ", current value"
-msgstr ", текущая стоимость"
+msgstr ", по текущей стоимости"
 
 #. the budget report title, eg "Budget performance in 2024, valued at period ends:".
 #: hledger/Hledger/Cli/CompoundBalanceCommand.hs
@@ -335,7 +335,7 @@ msgstr "Исполнение бюджета за {dates}{valuation}:"
 #: hledger/Hledger/Cli/Commands/Balance/Internal.hs
 msgctxt "column heading"
 msgid "Commodity"
-msgstr "Единица"
+msgstr "Единица учёта"
 
 #: hledger/Hledger/Cli/Commands/Balance.hs
 #: hledger/Hledger/Cli/Commands/Balance/Internal.hs
@@ -535,7 +535,7 @@ msgstr "Периодический отчёт о движении денежны
 #. the report title, with its reporting interval if any. Each is a whole phrase, so put the words in the order and form your language needs.
 #: hledger/Hledger/Cli/Commands/Cashflow.hs
 msgid "Cash flows"
-msgstr "Денежные потоки"
+msgstr "Движение денежных средств"
 
 #. the report title, with its reporting interval if any. Each is a whole phrase, so put the words in the order and form your language needs.
 #: hledger/Hledger/Cli/Commands/Incomestatement.hs
@@ -629,7 +629,7 @@ msgstr "сальдо счетов"
 
 #: hledger-ui/Hledger/UI/AccountsScreen.hs
 msgid "account changes"
-msgstr "изменения счетов"
+msgstr "изменения сальдо счетов"
 
 #: hledger-ui/Hledger/UI/AccountsScreen.hs
 msgid "cash balances"
@@ -641,7 +641,7 @@ msgstr "сальдо баланса"
 
 #: hledger-ui/Hledger/UI/AccountsScreen.hs
 msgid "income statement changes"
-msgstr "изменения отчёта о прибылях"
+msgstr "изменения отчёта о прибылях и убытках"
 
 #. the menu screen's entries; translated when drawn.
 #: hledger-ui/Hledger/UI/UIScreens.hs
@@ -656,7 +656,7 @@ msgstr "Счета баланса"
 #. the menu screen's entries; translated when drawn.
 #: hledger-ui/Hledger/UI/UIScreens.hs
 msgid "Income statement accounts"
-msgstr "Счета отчёта о прибылях"
+msgstr "Счета отчёта о прибылях и убытках"
 
 #. the menu screen's entries; translated when drawn.
 #: hledger-ui/Hledger/UI/UIScreens.hs
@@ -671,7 +671,7 @@ msgstr "Баланс"
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/App.hs
 msgid "Show assets, liabilities, and net worth"
-msgstr "Показать активы, обязательства и чистую стоимость"
+msgstr "Показать активы, обязательства и чистые активы"
 
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/App.hs
@@ -747,7 +747,7 @@ msgstr "Интервал:"
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show one column for the whole period"
-msgstr "Показывать один столбец для всего периода"
+msgstr "Показать один столбец для всего периода"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
@@ -763,7 +763,7 @@ msgstr "Годовой"
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show a column per year"
-msgstr "Показывать столбец на каждый год"
+msgstr "Показать столбец на каждый год"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
@@ -773,7 +773,7 @@ msgstr "Квартальный"
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show a column per quarter"
-msgstr "Показывать столбец на каждый квартал"
+msgstr "Показать столбец на каждый квартал"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
@@ -783,7 +783,7 @@ msgstr "Ежемесячный"
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show a column per month"
-msgstr "Показывать столбец на каждый месяц"
+msgstr "Показать столбец на каждый месяц"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
@@ -793,7 +793,7 @@ msgstr "Еженедельный"
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show a column per week"
-msgstr "Показывать столбец на каждую неделю"
+msgstr "Показать столбец на каждую неделю"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
@@ -803,7 +803,7 @@ msgstr "Ежедневный"
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Show a column per day"
-msgstr "Показывать столбец на каждый день"
+msgstr "Показать столбец на каждый день"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/ReportPage.hs
@@ -961,7 +961,7 @@ msgstr "Как hledger определяет типы счетов"
 
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid "Nothing matches this search in this period."
-msgstr "В этом периоде ничего не соответствует этому поиску."
+msgstr "За этот период ничего не найдено."
 
 #: hledger-web/Hledger/Web/Handler/UploadR.hs
 #, python-brace-format
@@ -1153,7 +1153,7 @@ msgid ""
 "movements of money (or other commodity) between hierarchical accounts"
 msgstr ""
 "Вид журнала показывает записи общего журнала — сбалансированные перемещения "
-"денег (или других ценностей) между иерархическими счетами"
+"денег (или других единиц учёта) между иерархическими счетами"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "The sidebar shows the resulting accounts and their final balances"
@@ -1264,15 +1264,15 @@ msgid ""
 "match unsigned magnitudes, or with signed N, signed amounts. For single-"
 "commodity amounts only."
 msgstr ""
-"найти суммы по величине, а с N со знаком — по знаку. Только для сумм с одной "
-"единицей измерения."
+"найти суммы по величине, а с N со знаком — с учётом знака. Только для сумм с "
+"одной единицей учёта."
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
 "match currencies/commodities. Must match the whole symbol/name. To match "
 "dollar sign, write"
 msgstr ""
-"найти валюты/единицы измерения. Должно совпадать с полным символом/"
+"найти валюты/единицы учёта. Должно совпадать с полным символом/"
 "названием. Для поиска знака доллара напишите"
 
 #: hledger-web/templates/default-layout.hamlet
@@ -1310,7 +1310,7 @@ msgstr "Редактировать файл"
 #: hledger-web/templates/edit-form.hamlet
 #: hledger-web/templates/upload-form.hamlet
 msgid "Are you sure? This will overwrite your journal!"
-msgstr "Подтвердите операцию. Журнал будет презаписан!"
+msgstr "Подтвердите операцию. Журнал будет перезаписан!"
 
 #: hledger-web/templates/edit-form.hamlet
 msgid "File format help"
@@ -1393,7 +1393,7 @@ msgstr "Счёт получателя/отправителя"
 #: hledger-web/templates/register.hamlet
 msgctxt "column heading"
 msgid "Amount Out/In"
-msgstr "Сумма расход/приход"
+msgstr "Расход/приход"
 
 #: hledger-web/templates/register.hamlet
 msgid "Show this entry and the other journal entries on its date"

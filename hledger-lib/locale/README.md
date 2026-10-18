@@ -107,7 +107,8 @@ Notes on the choices:
 
 ## Russian
 
-Contributed by Daniil Iaitskov (#2773). Regional tags like `ru-RU` or `ru_RU` select it too.
+Contributed by Daniil Iaitskov (#2773), with some fixes from Dmitry Astapov.
+Regional tags like `ru-RU` or `ru_RU` select it too.
 
 | English | Russian |
 |---|---|
@@ -118,7 +119,10 @@ Contributed by Daniil Iaitskov (#2773). Regional tags like `ru-RU` or `ru_RU` se
 | Revenues / Expenses | Доходы / Расходы |
 | Net: | Чистый итог: |
 | Total / Average | Итого / Среднее |
-| Commodity | Единица |
+| Cash flows | Движение денежных средств |
+| Commodity | Единица учёта |
+| Net worth | Чистые активы |
+| converted to cost / current value | в ценах сделки / по текущей стоимости |
 | Account / Amount | Счёт / Сумма |
 | Journal (hledger-web's view) | Журнал |
 | Balance changes / Ending balances | Изменения сальдо / Конечные сальдо |
