@@ -262,6 +262,9 @@ cost (like `-B`), or at market value at the end of each period (like
 is carried to the other reports; and
 whether accounts with zero balances are shown, with an `empty`
 parameter that the `e` key toggles and the pages' links carry.
+Other rows filter what every page shows, each rewriting its own search
+term: transaction status, posting realness, account type, and
+commodity, the last two selecting several at once with shift-click.
 
 Every page shows and preserves the report state its url carries: a
 link changes only the control it names, and controls that take effect

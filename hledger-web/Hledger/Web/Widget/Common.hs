@@ -12,6 +12,7 @@ module Hledger.Web.Widget.Common
   , inertControls
   , linksRow
   , pricesLinks
+  , commodityLinks
   , depthLinks
   , amountLinks
   , zeroBalanceLinks
@@ -48,6 +49,7 @@ import Control.Monad.Except (ExceptT, mapExceptT)
 import Data.Char (isDigit)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
+import Data.Set qualified as Set
 import Data.Maybe (isNothing, mapMaybe, maybeToList)
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -369,22 +371,87 @@ costsLinks trs route kept on =
     , (trc trs "costs" "Shown", tr trs "Show amounts with the costs recorded in the journal", (route, kept ++ [("costs", "1")]), on)
     ]
 
--- | Links filtering to accounts of one type: each rewrites the type:
--- term in the search. Not for the statement pages, which choose their
--- own types.
+-- | Links filtering to accounts of one or more types: a link rewrites
+-- the type: term in the search to its own type, and shift-clicking adds
+-- or removes a type (hledger.js), the selection carried as one
+-- type:AL.. term, whose letters mark their links. Not for the statement
+-- pages, which choose their own types.
 typeLinks :: Translations -> r -> [(Text, Text)] -> Text -> HtmlUrl r
-typeLinks trs route kept qparam =
-  -- TRANSLATORS: the label before the balance report's account type links, and the links' text and tooltips.
-  queryTermRow route kept qparam (T.isPrefixOf "type:") (tr trs "Type:")
-    [ (trc trs "account type" "All", tr trs "Show accounts of every type", Nothing)
-    , (tr trs "Asset",      tr trs "Show only asset accounts (type:A)",      Just "type:A")
-    , (tr trs "Liability",  tr trs "Show only liability accounts (type:L)",  Just "type:L")
-    , (tr trs "Equity",     tr trs "Show only equity accounts (type:E)",     Just "type:E")
-    , (tr trs "Revenue",    tr trs "Show only revenue accounts (type:R)",    Just "type:R")
-    , (tr trs "Expense",    tr trs "Show only expense accounts (type:X)",    Just "type:X")
-    , (tr trs "Cash",       tr trs "Show only cash accounts (type:C)",       Just "type:C")
-    , (tr trs "Conversion", tr trs "Show only conversion accounts (type:V)", Just "type:V")
-    ]
+typeLinks trs route kept qparam renderUrl =
+  H.div ! A.class_ "types" $ do
+    -- TRANSLATORS: the label before the account type filter links, and the links' text and tooltips.
+    linksRow (tr trs "Type:")
+      ( (trc trs "account type" "All", tr trs "Show accounts of every type", link Nothing, null selected)
+      : [ (label, title, link (Just letter), letter `elem` selected)
+        | (label, title, letter) <- types ]) renderUrl
+    -- TRANSLATORS: the hint below the account type filter links.
+    H.p ! A.class_ "controls-hint" $ H.toHtml $ tr trs "Shift-click selects multiple types."
+  where
+    types =
+      [ (tr trs "Asset",      tr trs "Show only asset accounts (type:A)",      'A')
+      , (tr trs "Liability",  tr trs "Show only liability accounts (type:L)",  'L')
+      , (tr trs "Equity",     tr trs "Show only equity accounts (type:E)",     'E')
+      , (tr trs "Revenue",    tr trs "Show only revenue accounts (type:R)",    'R')
+      , (tr trs "Expense",    tr trs "Show only expense accounts (type:X)",    'X')
+      , (tr trs "Cash",       tr trs "Show only cash accounts (type:C)",       'C')
+      , (tr trs "Conversion", tr trs "Show only conversion accounts (type:V)", 'V')
+      ]
+    terms = searchTerms qparam
+    rest = map quoteIfSpaced $ filter (not . T.isPrefixOf "type:") terms
+    -- the letters of the search's type: terms
+    selected = [c | t <- terms, Just ls <- [T.stripPrefix "type:" t], c <- T.unpack (T.toUpper ls)]
+    link mletter =
+      (route, [("q", t) | let t = T.unwords $ rest ++ ["type:" <> T.singleton l | Just l <- [mletter]], not (T.null t)] ++ kept)
+
+-- | Links filtering to one or more of the journal's commodities: a link
+-- rewrites the cur: term in the search to its own commodity, and
+-- shift-clicking adds or removes one (hledger.js), the selection
+-- carried as a single cur:A|B term, whose alternatives mark their
+-- links. The symbols are regex-escaped, since cur: matches whole
+-- symbols as regular expressions. Each link carries its pattern, and
+-- the row the search's other terms, as data attributes, so the script
+-- composes selections without parsing the search: any symbol works,
+-- spaces included, a composed term containing one being quoted whole.
+-- Fewer than two commodities render nothing.
+commodityLinks :: Translations -> r -> [(Text, Text)] -> Text -> Journal -> HtmlUrl r
+commodityLinks trs route kept qparam j renderUrl
+  | length syms < 2 = mempty
+  | otherwise =
+      H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $ do
+        H.p ! A.class_ "report-links" $ do
+          -- TRANSLATORS: the label before a page's commodity filter links, and the links' text and tooltips.
+          H.toHtml $ tr trs "Commodity:"
+          H.a !? (null selected, A.class_ "current")
+              ! A.href (H.toValue $ uncurry renderUrl alllink)
+              ! A.title (H.toValue $ tr trs "Show amounts in every commodity") $
+            H.toHtml $ trc trs "commodity" "All"
+          for_ syms $ \sym -> do
+            let pat = regexEscape sym
+            H.a !? (pat `elem` selected, A.class_ "current")
+                ! A.href (H.toValue $ uncurry renderUrl $ symlink pat)
+                ! A.title (H.toValue $ trf trs "Show only amounts in {commodity}" [("commodity", sym)])
+                ! H.dataAttribute "cur" (H.toValue pat) $
+              H.toHtml sym
+        -- TRANSLATORS: the hint below the commodity filter links.
+        H.p ! A.class_ "controls-hint" $ H.toHtml $ tr trs "Shift-click selects multiple commodities."
+  where
+    syms = filter (not . T.null) $ Set.toAscList $ journalCommodities j
+    terms = searchTerms qparam
+    rest = map quoteIfSpaced $ filter (not . T.isPrefixOf "cur:") terms
+    restText = T.unwords rest
+    -- the alternatives of the search's cur: term(s), marking their links
+    selected = concatMap (splitAlternatives . T.drop 4) $ filter (T.isPrefixOf "cur:") terms
+    symlink pat = (route, ("q", T.unwords $ rest ++ [quoteIfSpaced $ "cur:" <> pat]) : kept)
+    alllink = (route, [("q", restText) | not (T.null restText)] ++ kept)
+    -- Split a cur: pattern on its unescaped |s, regex alternation.
+    splitAlternatives = map T.pack . go . T.unpack
+      where
+        go s = case break (== '|') s of
+          (a, '|':b)
+            | odd (length (takeWhile (== '\\') (reverse a))) ->
+                case go b of (c:cs) -> (a ++ "|" ++ c) : cs; [] -> [a ++ "|"]
+            | otherwise -> a : go b
+          (a, _) -> [a]
 
 accountQuery :: AccountName -> Text
 accountQuery = ("inacct:" <>) .  quoteIfSpaced

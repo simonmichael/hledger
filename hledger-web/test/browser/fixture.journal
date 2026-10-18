@@ -5,6 +5,11 @@
 ; description, an account name and a comment. security.spec.js asserts that
 ; every view renders them as text. Please keep them here.
 
+; Two declared commodities give the commodity filter row something to
+; list; webui.spec.js tests its shift-click multi-select.
+commodity $1000.00
+commodity 1000.00 USD
+
 2025-01-01 opening balances
     assets:bank:checking          1000.00
     equity:opening

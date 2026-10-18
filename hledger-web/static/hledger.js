@@ -37,8 +37,11 @@ document.addEventListener('DOMContentLoaded', function() {
   // (default-layout.hamlet), so it never paints unfolded.
   reportTreeInit();
 
-  // Shift-clicking in the years row selects a range of years.
+  // Shift-clicking in the years row selects a range of years, and in
+  // the account type and commodity rows, several of them.
   yearsRangeInit();
+  typesMultiInit();
+  commoditiesMultiInit();
 
   // Typing in the last amount field adds another posting row. Delegating from
   // the form means the handler does not have to be moved as rows come and go.
@@ -241,6 +244,73 @@ function yearsRangeInit() {
       var url = new URL(a.href);
       url.searchParams.set('q',
         (url.searchParams.get('q') || '').replace(/date:\S+/, 'date:' + lo + '..' + (hi + 1)));
+      location.href = url.toString();
+    });
+  });
+}
+
+// Shift-clicking in the account type row adds the clicked type to the
+// selected ones, or removes it, as a single type:AL.. search term; the
+// row marks each selected type (see Widget.Common.typeLinks).
+function typesMultiInit() {
+  document.querySelectorAll('div.types').forEach(function (box) {
+    box.addEventListener('click', function (ev) {
+      if (!ev.shiftKey) { return; }
+      var a = ev.target.closest('a');
+      if (!a) { return; }
+      var typeOf = function (link) {
+        var m = (new URL(link.href).searchParams.get('q') || '').match(/type:(\w+)/);
+        return m && m[1].toUpperCase();
+      };
+      var clicked = typeOf(a);
+      if (!clicked) { return; }  // the All link
+      var letters = [];
+      box.querySelectorAll('a.current').forEach(function (c) {
+        var t = typeOf(c);
+        if (t && letters.indexOf(t) < 0) { letters.push(t); }
+      });
+      var i = letters.indexOf(clicked);
+      if (i >= 0) { letters.splice(i, 1); } else { letters.push(clicked); }
+      ev.preventDefault();
+      var url = new URL(a.href);
+      var q = url.searchParams.get('q') || '';
+      q = letters.length
+        ? q.replace(/type:\w+/, 'type:' + letters.sort().join(''))
+        : q.replace(/ ?type:\w+/, '').trim();
+      if (q) { url.searchParams.set('q', q); } else { url.searchParams.delete('q'); }
+      location.href = url.toString();
+    });
+  });
+}
+
+// Shift-clicking in the commodity row adds the clicked commodity to the
+// selected ones, or removes it, as a single cur:A|B search term. The
+// links carry their regex-escaped patterns, and the row the search's
+// other terms, as data attributes (Widget.Common.commodityLinks), so no
+// query parsing happens here and any symbol works, spaces included: a
+// composed term containing one is quoted whole.
+function commoditiesMultiInit() {
+  document.querySelectorAll('div.commodities').forEach(function (box) {
+    box.addEventListener('click', function (ev) {
+      if (!ev.shiftKey) { return; }
+      var a = ev.target.closest('a');
+      var clicked = a && a.getAttribute('data-cur');
+      if (!clicked) { return; }  // the All link
+      var pats = [];
+      box.querySelectorAll('a.current[data-cur]').forEach(function (c) {
+        pats.push(c.getAttribute('data-cur'));
+      });
+      var i = pats.indexOf(clicked);
+      if (i >= 0) { pats.splice(i, 1); } else { pats.push(clicked); }
+      ev.preventDefault();
+      var q = box.getAttribute('data-rest') || '';
+      if (pats.length) {
+        var term = 'cur:' + pats.join('|');
+        if (/\s/.test(term)) { term = '"' + term + '"'; }
+        q = (q + ' ' + term).trim();
+      }
+      var url = new URL(a.href);
+      if (q) { url.searchParams.set('q', q); } else { url.searchParams.delete('q'); }
       location.href = url.toString();
     });
   });

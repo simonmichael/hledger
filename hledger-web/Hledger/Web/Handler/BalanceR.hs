@@ -19,7 +19,7 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (amountLinks, calcLinks, columnsLinks, controlsToggle,
+  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsToggle,
    depthLinks, listModeLinks,
    percentLinks, pricesLinks, realLinks, removeInacct, sortLinks,
    statusLinks, typeLinks, zeroBalanceLinks)
@@ -132,7 +132,8 @@ getBalanceR = do
               , intervalLinks trs BalanceR (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
               , statusLinks trs BalanceR pageParams qparam
               , realLinks trs BalanceR pageParams qparam
-              , typeLinks trs BalanceR pageParams qparam ] ++
+              , typeLinks trs BalanceR pageParams qparam
+              , commodityLinks trs BalanceR pageParams qparam j ] ++
               [ depthLinks trs BalanceR pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs BalanceR (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , amountLinks trs BalanceR (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)

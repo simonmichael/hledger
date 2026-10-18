@@ -25,7 +25,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
-              controlsToggle, costsLinks, depthLinks,
+              commodityLinks, controlsToggle, costsLinks, depthLinks,
               inertControls, listModeLinks, mixedAmountAsHtml,
               mixedAmountAsHtmlWith, percentLinks, pricesLinks, realLinks,
               sortLinks, statusLinks, typeLinks,
@@ -108,6 +108,7 @@ getRegisterR = do
       statusRow = statusLinks trs RegisterR modeParams qparam
       realRow = realLinks trs RegisterR modeParams qparam
       typeRow = typeLinks trs RegisterR modeParams qparam
+      commodityRow = commodityLinks trs RegisterR modeParams qparam j
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports; the register's rows always
       -- show in full.
@@ -142,7 +143,7 @@ getRegisterR = do
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs $ mconcat $
-        [intervalRow, statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
+        [intervalRow, statusRow, realRow, typeRow, commodityRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, costsRow, pricesRow, zeroRow, inertRows]
       -- the amount column's display format: with costs when asked
       amtfmt = noCostFmt{displayZeroCommodity = True, displayCost = costsOn}

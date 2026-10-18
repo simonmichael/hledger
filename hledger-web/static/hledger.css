@@ -241,6 +241,13 @@ details.report-controls > summary {
    widen the column much, and the leaf stays glued to its path. */
 .report-table td.account.acct-split { white-space: nowrap; }
 
+/* The commodity row lists every commodity in the journal; past a few
+   lines it scrolls instead of growing. */
+div.commodities .report-links {
+  max-height: 7.5em;
+  overflow-y: auto;
+}
+
 /* A short usage hint below a row of controls, eg the years row's
    shift-click range selection. */
 .controls-hint {

@@ -17,7 +17,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
-            (accountQuery, amountLinks, calcLinks, columnsLinks, controlsToggle,
+            (accountQuery, amountLinks, calcLinks, columnsLinks, commodityLinks, controlsToggle,
              depthLinks, inertControls, listModeLinks,
              mixedAmountAsHtml, percentLinks, pricesLinks, realLinks, sortLinks,
              statusLinks, typeLinks,
@@ -92,6 +92,7 @@ getJournalR = do
       statusRow = statusLinks trs JournalR carried qparam
       realRow = realLinks trs JournalR carried qparam
       typeRow = typeLinks trs JournalR carried qparam
+      commodityRow = commodityLinks trs JournalR carried qparam j
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports.
       deepest = deepestDepth j
@@ -125,7 +126,7 @@ getJournalR = do
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs $ mconcat $
-        [intervalRow, statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
+        [intervalRow, statusRow, realRow, typeRow, commodityRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, pricesRow, zeroRow, inertRows]
 
   defaultLayout $ do

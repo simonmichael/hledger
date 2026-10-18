@@ -685,9 +685,23 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "<details class=\"report-controls\">"
       bodyContains ">Controls</summary>"
+      -- a single-commodity journal gets no commodity row (positive
+      -- control: the amount conversion group's multi-commodity journal)
+      bodyNotContains ">Commodity:"
       get JournalR
       statusIs 200
       bodyContains "<details class=\"report-controls\">"
+
+    yit "marks each type a type: term selects, as a shift-click builds them" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "q" "type:AL"
+      statusIs 200
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=type%3AA\" title=\"Show only asset accounts (type:A)\"")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=type%3AL\" title=\"Show only liability accounts (type:L)\"")
+      bodyContains ("<a href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show accounts of every type\"")
+      bodyContains "Shift-click selects multiple types."
 
     yit "uses --title for the heading, unaltered" $ do
       get BalanceR
@@ -1132,6 +1146,7 @@ hledgerWebTest = do
   vj <- fmap (either error' id) . runExceptT . journalFinalise biopts "valued.journal" "" =<<
           readJournal'' (T.pack $ unlines  -- PARTIAL: readJournal'' should not fail
             ["commodity $1,000.00"
+            ,"commodity 1000.00 \"AAA UU\""  -- a spaced symbol, for the commodity row
             ,"P 2024-12-01 AAPL $80"
             ,"P 2025-01-01 AAPL $100"
             ,"P 2025-02-01 AAPL $120"
@@ -1228,6 +1243,39 @@ hledgerWebTest = do
         addGetParam "value" "end"
       statusIs 200
       bodyContains "Unbooked gains:"
+
+    yit "offers the journal's commodities as filters, escaping their symbols" $ do
+      get BalanceR
+      statusIs 200
+      bodyContains ">Commodity:"
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=cur%3AAAPL\" title=\"Show only amounts in AAPL\"")
+      bodyContains "q=cur%3A%5C%24\""
+      -- a spaced symbol's term is quoted whole, and its pattern is in its link's data
+      bodyContains "q=%22cur%3AAAA%20UU%22"
+      bodyContains "data-cur=\"AAA UU\""
+      bodyContains "Shift-click selects multiple commodities."
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "q" "cur:AAPL"
+      statusIs 200
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=cur%3AAAPL\"")
+
+    yit "marks each commodity a cur: alternation selects, as a shift-click builds them" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "q" "cur:AAPL|\\$"
+      statusIs 200
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=cur%3AAAPL\"")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=cur%3A%5C%24\"")
+      -- the search's other terms ride along for the script, pre-quoted
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "q" "assets cur:AAPL"
+      statusIs 200
+      bodyContains "data-rest=\"assets\""
 
   runTests "hledger-web amount conversion with -V" [("V","")] vj $ do
 

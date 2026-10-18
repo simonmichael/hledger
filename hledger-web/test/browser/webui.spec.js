@@ -238,6 +238,34 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  // Shift-clicking account types composes a type:AL.. search term; the
+  // row marks each selected type.
+  test('shift-clicking account types selects several', async ({ page }) => {
+    await page.goto('/journal');
+    await page.locator('#main-content details.report-controls > summary').click();
+    const types = page.locator('#main-content div.types');
+    await types.locator('a', { hasText: 'Asset' }).click();
+    await expect(page).toHaveURL(/type%3AA/);
+    await types.locator('a', { hasText: 'Liability' }).click({ modifiers: ['Shift'] });
+    await expect(page).toHaveURL(/type%3AAL/);
+    await expect(types.locator('a.current')).toHaveText(['Asset', 'Liability']);
+    expect(pageErrors).toEqual([]);
+  });
+
+  // Shift-clicking commodities composes a cur:A|B search term from the
+  // links' data attributes; the row marks each selected one.
+  test('shift-clicking commodities selects several', async ({ page }) => {
+    await page.goto('/journal');
+    await page.locator('#main-content details.report-controls > summary').click();
+    const row = page.locator('#main-content div.commodities');
+    await row.locator('a', { hasText: 'USD' }).click();
+    await expect(page).toHaveURL(/cur%3AUSD/);
+    await row.locator('a', { hasText: '$' }).click({ modifiers: ['Shift'] });
+    await expect(page).toHaveURL(/cur%3AUSD%7C%5C%24/);
+    await expect(row.locator('a.current')).toHaveText(['$', 'USD']);
+    expect(pageErrors).toEqual([]);
+  });
+
   // Zero balances state is the empty parameter; the row's links set it,
   // and the "e" key presses the row's other link.
   test('"e" and the Zero balances links switch a page between showing and hiding zero balances', async ({ page }) => {
