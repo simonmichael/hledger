@@ -31,6 +31,8 @@ getJournalR = do
   VD{perms, j, q, opts, qparam, qopts, today, trs} <- getViewData
   require ViewPermission
   hideEmpty <- hideEmptyAccounts
+  controlsOpen <- showControls
+  commoditiesOpen <- showCommodities
   mmode <- either (const Nothing) id . parseValue <$> lookupGetParam "value"
   mlist <- either (const Nothing) id . parseListMode <$> lookupGetParam "list"
   inferOn <- (== Just "1") <$> lookupGetParam "infer"
@@ -93,7 +95,7 @@ getJournalR = do
       statusRow = statusLinks trs JournalR carried qparam
       realRow = realLinks trs JournalR carried qparam
       typeRow = typeLinks trs JournalR carried qparam
-      commodityRow = commodityLinks trs JournalR carried qparam j
+      commodityRow = commodityLinks trs JournalR carried qparam commoditiesOpen j
       -- TRANSLATORS: the hint below the account type and commodity filter rows.
       hintRow = controlsHint $ tr trs "Shift-click selects several types or commodities."
       -- The depth links clip the sidebar's accounts, or in tree mode
@@ -128,7 +130,7 @@ getJournalR = do
         ]
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
-      controlsRows = controlsToggle trs $ mconcat $
+      controlsRows = controlsToggle trs controlsOpen $ mconcat $
         [intervalRow, yearsNav, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, pricesRow, zeroRow, inertRows]
 

@@ -58,6 +58,7 @@ import Test.Hspec (describe, expectationFailure, hspec, it, shouldBe)
 import Text.Printf (printf)
 import Yesod.Default.Config
 import Yesod.Test
+import Web.Cookie (defaultSetCookie, setCookieName, setCookieValue)
 
 import Hledger.Web.Application ( makeAppWith )
 import Hledger.Web.Paging (pageNumbers)
@@ -692,6 +693,15 @@ hledgerWebTest = do
       get JournalR
       statusIs 200
       bodyContains "<details class=\"report-controls\">"
+
+    -- The open state travels in a cookie, written by the browser when
+    -- the disclosure is toggled, so the page is born as it was left
+    -- and nothing moves after paint.
+    yit "renders the controls open when the showcontrols cookie says so" $ do
+      testSetCookie defaultSetCookie{setCookieName = "showcontrols", setCookieValue = "1"}
+      get JournalR
+      statusIs 200
+      bodyContains "<details class=\"report-controls\" open>"
 
     yit "marks each type a type: term selects, as a shift-click builds them" $ do
       request $ do
@@ -1357,6 +1367,18 @@ hledgerWebTest = do
         addGetParam "q" "cur:CCA|CCC"
       statusIs 200
       bodyContains "class=\"sel\">CCA, CCC<"
+
+    -- Like the controls disclosure's open state, the list's travels in
+    -- a cookie the server reads, so it is born open, with no script
+    -- moving it after paint.
+    yit "renders the commodity list open when the showcommodities cookie says so" $ do
+      get BalanceR
+      statusIs 200
+      bodyNotContains "<details open=\"open\">"
+      testSetCookie defaultSetCookie{setCookieName = "showcommodities", setCookieValue = "1"}
+      get BalanceR
+      statusIs 200
+      bodyContains "<details open=\"open\">"
 
   -- A journal whose accounts have no recognizable types has empty statements.
   uj <- fmap (either error' id) . runExceptT . journalFinalise biopts "untyped.journal" "" =<<

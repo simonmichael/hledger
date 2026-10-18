@@ -59,6 +59,8 @@ getRegisterR = do
   pctOn   <- (== Just "1") <$> lookupGetParam "pct"
   mcalc   <- lookupGetParam "calc"
   hideEmpty <- hideEmptyAccounts
+  controlsOpen <- showControls
+  commoditiesOpen <- showCommodities
   pagereq <- pageRequest
 
   let title = case inAccount qopts of
@@ -108,7 +110,7 @@ getRegisterR = do
       statusRow = statusLinks trs RegisterR modeParams qparam
       realRow = realLinks trs RegisterR modeParams qparam
       typeRow = typeLinks trs RegisterR modeParams qparam
-      commodityRow = commodityLinks trs RegisterR modeParams qparam j
+      commodityRow = commodityLinks trs RegisterR modeParams qparam commoditiesOpen j
       -- TRANSLATORS: the hint below the account type and commodity filter rows.
       hintRow = controlsHint $ tr trs "Shift-click selects several types or commodities."
       -- The depth links clip the sidebar's accounts, or in tree mode
@@ -144,7 +146,7 @@ getRegisterR = do
         ]
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
-      controlsRows = controlsToggle trs $ mconcat $
+      controlsRows = controlsToggle trs controlsOpen $ mconcat $
         [intervalRow, yearsNav, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, costsRow, pricesRow, zeroRow, inertRows]
       -- the amount column's display format: with costs when asked

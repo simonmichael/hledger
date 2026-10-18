@@ -152,14 +152,15 @@ linksRow rowlabel items renderUrl =
           H.toHtml label
 
 -- | A page's rows of report controls behind a disclosure, closed by
--- default so the page stays uncluttered; opening it is remembered per
--- browser, by the inline script after the page content in
--- default-layout.hamlet.
-controlsToggle :: Translations -> HtmlUrl r -> HtmlUrl r
-controlsToggle trs rows =
+-- default so the page stays uncluttered. Opening it is remembered per
+-- browser in the showcontrols cookie (hledger.js), which the server
+-- reads (App.showControls), so each page is born the way the last one
+-- was left and nothing moves after paint.
+controlsToggle :: Translations -> Bool -> HtmlUrl r -> HtmlUrl r
+controlsToggle trs open rows =
   -- TRANSLATORS: the disclosure hiding each page's rows of report controls: its text, and its tooltip.
   [hamlet|
-<details .report-controls>
+<details .report-controls :open:open>
   <summary title=#{tr trs "Show the controls that reshape this view"}>#{tr trs "Controls"}
   ^{rows}
 |]
@@ -418,8 +419,11 @@ typeLinks trs route kept qparam renderUrl =
 -- composes selections without parsing the search: any symbol works,
 -- spaces included, a composed term containing one being quoted whole.
 -- Fewer than two commodities render nothing.
-commodityLinks :: Translations -> r -> [(Text, Text)] -> Text -> Journal -> HtmlUrl r
-commodityLinks trs route kept qparam j renderUrl
+-- The collapsed list's open state is remembered per browser in the
+-- showcommodities cookie (hledger.js), rendered here server side like
+-- the controls disclosure's.
+commodityLinks :: Translations -> r -> [(Text, Text)] -> Text -> Bool -> Journal -> HtmlUrl r
+commodityLinks trs route kept qparam open j renderUrl
   | length syms < 2 = mempty
   -- A few commodities are a row like any other; many collapse to a
   -- line showing the selection, the full list opening on demand.
@@ -428,7 +432,7 @@ commodityLinks trs route kept qparam j renderUrl
         links True
   | otherwise =
       H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $
-        H.details $ do
+        H.details !? (open, A.open "open") $ do
           H.summary ! A.title (H.toValue $ tr trs "List all the commodities") $ do
             -- TRANSLATORS: the label before a page's commodity filter links, and the links' text and tooltips.
             H.span ! A.class_ "row-label" $ H.toHtml $ tr trs "Commodity:"

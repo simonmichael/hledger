@@ -57,6 +57,8 @@ statementPage here tabtitle spec = do
   require ViewPermission
   params <- reqGetParams <$> getRequest
   hideEmpty <- hideEmptyAccounts
+  controlsOpen <- showControls
+  commoditiesOpen <- showCommodities
   urlrender <- getUrlRenderParams
   let dateless = filterQuery (not . queryIsDateOrDate2)
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
@@ -161,13 +163,13 @@ statementPage here tabtitle spec = do
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
             yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
             yearsNav = yearsRow trs here qparam today rpSpan yearsKept yearsDays
-            controlRows = controlsToggle trs $ \render -> foldMap ($ render) $
+            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
               [ accumulationLinks trs here (qParams ++ removeAttributes ["accum"] pageParams) (cbcaccum spec) accum
               , intervalLinks trs here (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
               , yearsNav
               , statusLinks trs here pageParams qparam
               , realLinks trs here pageParams qparam
-              , commodityLinks trs here pageParams qparam j
+              , commodityLinks trs here pageParams qparam commoditiesOpen j
               -- TRANSLATORS: the hint below the commodity filter row.
               , controlsHint $ tr trs "Shift-click selects several commodities." ] ++
               [ depthLinks trs here pageParams qparam deepest | deepest > 1 ] ++

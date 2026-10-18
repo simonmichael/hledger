@@ -222,17 +222,17 @@ test.describe('keyboard shortcuts', () => {
   });
 
   // The rows of report controls sit behind a disclosure, closed by default;
-  // opening it is remembered per browser, restored inline before the page
-  // below paints.
+  // opening it is remembered in a cookie the server reads, so the next
+  // page renders it already open.
   test('the controls disclosure starts closed, and stays open across pages', async ({ page }) => {
     await page.goto('/balance');
     const details = page.locator('#main-content details.report-controls');
     await expect(details.locator('p.report-links').first()).toBeHidden();
     await details.locator('> summary').click();
     await expect(details.locator('p.report-links').first()).toBeVisible();
-    // the open state is saved from the toggle event, which fires
-    // asynchronously; wait for the save before navigating away
-    await page.waitForFunction(() => localStorage.getItem('controlsOpen') === '1');
+    // the cookie is saved from the toggle event, which fires
+    // asynchronously; wait for it before navigating away
+    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
     await page.goto('/journal');
     await expect(page.locator('#main-content details.report-controls p.report-links').first()).toBeVisible();
     expect(pageErrors).toEqual([]);
@@ -262,11 +262,14 @@ test.describe('keyboard shortcuts', () => {
     const box = page.locator('#main-content div.commodities');
     await expect(box.locator('summary .sel')).toHaveText('All');
     await box.locator('summary').click();
+    // its cookie too is saved from the asynchronous toggle event
+    await page.waitForFunction(() => document.cookie.includes('showcommodities=1'));
     await box.locator('a', { hasText: 'USD' }).click();
     await expect(page).toHaveURL(/cur%3AUSD/);
     // the selection reads back, and the opened list is remembered
+    // (the server renders it open, from the cookie)
     await expect(box.locator('summary .sel')).toHaveText('USD');
-    await expect(box.locator('details')).toHaveAttribute('open', '');
+    await expect(box.locator('details')).toHaveAttribute('open', 'open');
     await box.locator('a', { hasText: '$' }).click({ modifiers: ['Shift'] });
     await expect(page).toHaveURL(/cur%3AUSD%7C%5C%24/);
     await expect(box.locator('a.current')).toHaveText(['$', 'USD']);

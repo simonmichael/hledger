@@ -43,6 +43,10 @@ document.addEventListener('DOMContentLoaded', function() {
   typesMultiInit();
   commoditiesMultiInit();
 
+  // The controls and commodity disclosures save their state, and control
+  // clicks save the page's scroll position.
+  controlsInit();
+
   // Typing in the last amount field adds another posting row. Delegating from
   // the form means the handler does not have to be moved as rows come and go.
   var addform = document.getElementById('addform');
@@ -374,6 +378,42 @@ function reportTreeInit() {
       }
       if (rows.length) { apply(); }
     });
+  });
+}
+
+// The report controls disclosure, and the commodity filter's collapsed
+// list inside it, remember their state in cookies (showcontrols,
+// showcommodities), which the server reads to render the next page the
+// way this one was left — nothing moves after paint. The commodity
+// list's scroll position is remembered per tab, and clicking a control
+// link saves the page's scroll position, which the inline script in
+// default-layout.hamlet restores on the next page before it paints.
+function controlsInit() {
+  var d = document.querySelector('#main-content details.report-controls');
+  if (!d) { return; }
+  d.addEventListener('toggle', function () {
+    setCookie('showcontrols', d.open ? '1' : '0');
+  });
+  var cd = d.querySelector('div.commodities details');
+  if (cd) {
+    cd.addEventListener('toggle', function () {
+      setCookie('showcommodities', cd.open ? '1' : '0');
+    });
+    var cl = cd.querySelector('.report-links');
+    if (cl) {
+      try {
+        var ct = parseInt(sessionStorage.getItem('commodityScrollTop'), 10);
+        if (!isNaN(ct)) { cl.scrollTop = ct; }
+      } catch (e) {}
+      cl.addEventListener('scroll', function () {
+        try { sessionStorage.setItem('commodityScrollTop', cl.scrollTop); } catch (e) {}
+      });
+    }
+  }
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest('a');
+    if (!a || !a.closest('details.report-controls')) { return; }
+    try { sessionStorage.setItem('pageScrollTop', document.documentElement.scrollTop); } catch (e) {}
   });
 }
 

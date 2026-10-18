@@ -499,6 +499,18 @@ shouldShowSidebar = do
     let disablevalues = ["","0"]
     in maybe True (`notElem` disablevalues) $ msidebarparam <|> msidebarcookie
 
+-- | Is the report controls disclosure open? Only when the showcontrols
+-- cookie, which the browser sets when it is toggled (hledger.js), says
+-- so. Read server side, so each page is born the way the last one was
+-- left and nothing moves after paint.
+showControls :: Handler Bool
+showControls = (== Just "1") . lookup "showcontrols" . reqCookies <$> getRequest
+
+-- | Is the commodity filter's collapsed list open? Like showControls,
+-- via the showcommodities cookie.
+showCommodities :: Handler Bool
+showCommodities = (== Just "1") . lookup "showcommodities" . reqCookies <$> getRequest
+
 -- | Update our copy of the journal if the file changed. If there is an
 -- error while reloading, keep the old one and return the error, and set a
 -- ui message.

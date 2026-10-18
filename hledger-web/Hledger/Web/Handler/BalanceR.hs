@@ -33,6 +33,8 @@ getBalanceR = do
   require ViewPermission
   params <- reqGetParams <$> getRequest
   hideEmpty <- hideEmptyAccounts
+  controlsOpen <- showControls
+  commoditiesOpen <- showCommodities
   urlrender <- getUrlRenderParams
   let dateless = filterQuery (not . queryIsDateOrDate2)
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
@@ -138,14 +140,14 @@ getBalanceR = do
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
             yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
             yearsNav = yearsRow trs BalanceR qparam today rpSpan yearsKept yearsDays
-            controlRows = controlsToggle trs $ \render -> foldMap ($ render) $
+            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
               [ accumulationLinks trs BalanceR (qParams ++ removeAttributes ["accum"] pageParams) PerPeriod accum
               , intervalLinks trs BalanceR (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
               , yearsNav
               , statusLinks trs BalanceR pageParams qparam
               , realLinks trs BalanceR pageParams qparam
               , typeLinks trs BalanceR pageParams qparam
-              , commodityLinks trs BalanceR pageParams qparam j
+              , commodityLinks trs BalanceR pageParams qparam commoditiesOpen j
               -- TRANSLATORS: the hint below the account type and commodity filter rows.
               , controlsHint $ tr trs "Shift-click selects several types or commodities." ] ++
               [ depthLinks trs BalanceR pageParams qparam deepest | deepest > 1 ] ++
