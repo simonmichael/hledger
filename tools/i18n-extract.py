@@ -2,7 +2,7 @@
 """Collect hledger's translatable strings into a gettext .pot template.
 
 Usage:
-  tools/i18n-extract.py [-o FILE] [DIR|FILE ...]
+  tools/i18n-extract.py [-o FILE] [--reorder] [DIR|FILE ...]
   tools/i18n-extract.py --pseudo [-o FILE] [DIR|FILE ...]
   tools/i18n-extract.py --check PO... [-- DIR|FILE ...]
 
@@ -25,6 +25,13 @@ translation keeps them. Each entry's #: line names the source files the
 text appears in, without line numbers (like xgettext --add-location=file),
 so that the template changes only when strings are added, removed, or move
 to another file, and branches that regenerate it rarely conflict.
+
+Entries keep their order in the existing template (FILE, or else
+hledger-lib/locale/hledger.pot), and a new entry goes after the entry
+that precedes it in the sources. So moving code between files changes
+only the #: lines, not the order of the template and of the catalogs,
+which msgmerge orders like the template. --reorder ignores the existing
+order and writes the entries in source order.
 
 --pseudo writes a pseudo-locale catalog instead, translating every entry
 to "[TEXT]"; running hledger with it shows which output is still English.
@@ -224,6 +231,28 @@ def extract(paths):
     return [entries[k] for k in order]
 
 
+def keep_order(entries, previous):
+    """Order entries (given in source order) as in previous, a list of an
+    existing template's keys; each new entry goes after the entry that
+    precedes it in source order, or first if none does."""
+    by_key_ = {(e.ctx, e.msgid): e for e in entries}
+    keys = [k for k in previous if k in by_key_]
+    placed = set(keys)
+    before = None
+    for e in entries:
+        k = (e.ctx, e.msgid)
+        if k not in placed:
+            keys.insert(keys.index(before) + 1 if before else 0, k)
+            placed.add(k)
+        before = k
+    return [by_key_[k] for k in keys]
+
+
+def template_keys(path):
+    """The keys of the template at path, in order, or [] if there is none."""
+    return list(read_po_keys(path)) if path and os.path.isfile(path) else []
+
+
 HEADER = '''# Translation template for hledger.
 # This file is distributed under the same license as hledger.
 #
@@ -391,7 +420,7 @@ def check_template(pot, entries, wanted):
     reporting the entries it lacks or should no longer have. Returns 1 if
     it is out of date."""
     with open(pot, encoding='utf-8') as f:
-        if f.read() == render(entries):
+        if f.read() == render(keep_order(entries, template_keys(pot))):
             print("%s: up to date" % pot)
             return 0
     have = set(read_po_keys(pot))
@@ -410,6 +439,7 @@ def check_template(pot, entries, wanted):
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LOCALE_DIR = os.path.join(REPO, 'hledger-lib', 'locale')
+TEMPLATE = os.path.join(LOCALE_DIR, 'hledger.pot')
 
 
 def registration_problems(po):
@@ -443,12 +473,17 @@ def main():
     ap.add_argument('-o', '--output', help='write here instead of stdout')
     ap.add_argument('--pseudo', action='store_true', help='write a pseudo-locale catalog (xx) instead of a template')
     ap.add_argument('--check', nargs='+', metavar='PO', help='check these catalogs against the sources')
+    ap.add_argument('--reorder', action='store_true', help="write entries in source order, not the existing template's order")
     ap.add_argument('paths', nargs='*', help='directories or files to scan (default: the four packages)')
     args = ap.parse_args()
     paths = args.paths or DEFAULT_DIRS
     if args.check:
         sys.exit(check(args.check, paths))
-    text = render(extract(paths), pseudo=args.pseudo)
+    entries = extract(paths)
+    if not args.reorder:
+        previous = args.output if args.output and os.path.isfile(args.output) and not args.pseudo else TEMPLATE
+        entries = keep_order(entries, template_keys(previous))
+    text = render(entries, pseudo=args.pseudo)
     if args.output:
         with open(args.output, 'w', encoding='utf-8') as f:
             f.write(text)

@@ -345,7 +345,10 @@ translatable:
   template with the change. Translators work from the template on main,
   so one left behind gives them an incomplete list.
 - Tooling: `just i18n-pot` regenerates `hledger-lib/locale/hledger.pot`
-  from the sources with `tools/i18n-extract.py`; `just i18n-check`
+  from the sources with `tools/i18n-extract.py`, keeping existing
+  entries in their order so that moving code between files doesn't
+  reorder the template and catalogs (`--reorder` re-sorts them in source
+  order); `just i18n-check`
   fails if the template differs from what `i18n-pot` would write, if a
   catalog has stale entries, or if a catalog file is not built in, and
   counts untranslated entries; `just i18n-merge` runs msgmerge on the
