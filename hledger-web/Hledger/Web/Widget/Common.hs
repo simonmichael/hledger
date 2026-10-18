@@ -9,7 +9,9 @@ module Hledger.Web.Widget.Common
   , accountOnlyQuery
   , balanceReportAsHtml
   , controlsToggle
+  , inertControls
   , linksRow
+  , pricesLinks
   , reportLinks
   , intervalLinks
   , accumulationLinks
@@ -154,6 +156,28 @@ controlsToggle trs rows =
   <summary title=#{tr trs "Show the controls that reshape this view"}>#{tr trs "Controls"}
   ^{rows}
 |]
+
+-- | Rows of controls that take effect on other pages, shown dimmed:
+-- they show and preserve the url's report state here too, so it is
+-- never invisible, and never lost by following a link.
+inertControls :: Translations -> HtmlUrl r -> HtmlUrl r
+inertControls trs rows =
+  -- TRANSLATORS: the tooltip on the dimmed control rows of the journal and register pages.
+  [hamlet|
+<div .controls-inert title=#{tr trs "These controls take effect on the report pages"}>
+  ^{rows}
+|]
+
+-- | Links choosing where market prices come from: declared ones only,
+-- or inferred from transaction costs too, keeping the given parameters;
+-- the source being used is marked.
+pricesLinks :: Translations -> r -> [(Text, Text)] -> Bool -> HtmlUrl r
+pricesLinks trs route kept inferOn =
+  -- TRANSLATORS: the label before a page's market price source links, and the links' text and tooltips.
+  linksRow (tr trs "Prices:")
+    [ (tr trs "Declared", tr trs "Value amounts using declared market prices (P directives) only", (route, kept), not inferOn)
+    , (tr trs "Inferred too", tr trs "Infer market prices from transaction costs too (--infer-market-prices)", (route, kept ++ [("infer", "1")]), inferOn)
+    ]
 
 -- | Links to the report pages, given as route, label, and title,
 -- keeping the given parameters; the page being shown is marked.

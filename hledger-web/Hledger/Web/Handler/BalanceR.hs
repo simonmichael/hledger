@@ -20,8 +20,8 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (accumulationLinks, amountLinks, calcLinks, columnsLinks, controlsToggle,
    depthLinks, intervalLinks, listModeLinks,
-   percentLinks, realLinks, removeInacct, reportLinks, sortLinks, statusLinks,
-   typeLinks, zeroBalanceLinks)
+   percentLinks, pricesLinks, realLinks, removeInacct, reportLinks, sortLinks,
+   statusLinks, typeLinks, zeroBalanceLinks)
 
 
 -- | The balance or multi-period balance view, with sidebar.
@@ -80,12 +80,15 @@ getBalanceR = do
             menuParams = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ removeAttributes ["accum"] pageParams
             -- The figures' registers convert amounts as the report does. One
             -- showing them as recorded must say so when the register's
-            -- default, the startup options', converts them.
+            -- default, the startup options', converts them. The sticky
+            -- report state travels along too; the link rewrites only the
+            -- dates, so of the period it keeps just the interval.
             registerParams =
               [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
-              inferParams ++ date2Params ++ emptyParams
+              [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++
+              removeAttributes ["period", "accum", "value"] pageParams
             relink = map (map (addLinkParams registerParams))
-            headinglink = urlrender BalanceR . headingParams qparam params
+            headinglink = urlrender BalanceR . headingParams rpInterval qparam params
             -- The heading, and the report's rows in three parts, for the
             -- table's thead, tbody, and tfoot.
             (title, header, body, totals) = case rpInterval of
@@ -118,6 +121,7 @@ getBalanceR = do
               [ depthLinks trs BalanceR pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs BalanceR (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , amountLinks trs BalanceR (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)
+              , pricesLinks trs BalanceR (qParams ++ removeAttributes ["infer"] pageParams) (infer_prices_ ropts)
               , zeroBalanceLinks trs BalanceR (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty ] ++
               [ columnsLinks trs BalanceR (qParams ++ removeAttributes ["total", "avg"] pageParams) (row_total_ ropts) (average_ ropts)
               | rpInterval /= NoInterval ] ++

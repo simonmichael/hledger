@@ -595,7 +595,8 @@ hledgerWebTest = do
       bodyContains "class=\"account depth-0\""
       -- the rows below the fold are served too, for the page to unfold
       bodyContains "class=\"account depth-2\""
-      bodyContains "href=\"register?q=inacct:assets:bank:checking+depth:1\""
+      -- the figure's register keeps the sticky state, tree mode included
+      bodyContains "href=\"register?q=inacct:assets:bank:checking+depth:1&amp;list=tree\""
 
     yit "offers the depth links on the journal page, where they clip the sidebar" $ do
       request $ do
@@ -696,21 +697,26 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "<h2>Saldoänderungen in 2025-01-01..2025-02-28</h2>"
 
-    yit "passes the period parameter through the journal and register, keeping an interval across pages" $ do
+    yit "shows and passes the report state through the journal and register" $ do
       request $ do
         setMethod "GET"
         setUrl JournalR
         addGetParam "period" "monthly"
+        addGetParam "total" "1"
       statusIs 200
+      -- kept by the search form, and carried on by the sidebar's report links
       bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
-      -- the sidebar's report links carry it on
-      bodyContains "/balancesheet?period=monthly"
+      bodyContains "/balancesheet?period=monthly&amp;total=1"
+      -- and shown, dimmed: these controls take effect on the report pages
+      bodyContains "controls-inert"
+      bodyContains ">Interval:"
       request $ do
         setMethod "GET"
         setUrl RegisterR
         addGetParam "period" "monthly"
       statusIs 200
       bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
+      bodyContains "controls-inert"
 
     yit "shows balance changes for a period, and says so" $ do
       request $ do
@@ -747,7 +753,8 @@ hledgerWebTest = do
       statusIs 200
       bodyContains ">2025-01-31<"
       bodyContains ">2025-02-28<"
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;accum=historical\" title=\"Show this report for this period\"")
+      -- the drilled view keeps the interval: one monthly column
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;period=monthly&amp;accum=historical\" title=\"Show this report for this period\"")
 
     yit "links a balance change column's heading to this report for the period" $ do
       request $ do
@@ -757,8 +764,8 @@ hledgerWebTest = do
         addGetParam "q" "date:2025"
       statusIs 200
       bodyContains ">2025-01<"
-      -- the column's period replaces the search's date term
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01\" title=\"Show this report for this period\"")
+      -- the column's period replaces the search's date term; the interval is kept
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;period=monthly\" title=\"Show this report for this period\"")
 
     yit "reports an accumulation mode it does not know" $ do
       request $ do
@@ -962,7 +969,7 @@ hledgerWebTest = do
       bodyContains "<h2>Monthly Balance Sheet 2025-01-31..2025-02-28</h2>"
       bodyContains ">2025-01-31<"
       bodyContains ">2025-02-28<"
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=date%3A2025-01\" title=\"Show this report for this period\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=date%3A2025-01&amp;period=monthly\" title=\"Show this report for this period\"")
       bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
 
     yit "shows balance changes instead when asked, and says so" $ do

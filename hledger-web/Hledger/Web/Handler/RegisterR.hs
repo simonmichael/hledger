@@ -20,13 +20,15 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.Paging
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseListMode, parseValue, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
-             (accountQuery, accountOnlyQuery, amountLinks, controlsToggle, costsLinks, depthLinks,
-              listModeLinks, mixedAmountAsHtml,
-              mixedAmountAsHtmlWith, realLinks, statusLinks, typeLinks,
+             (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
+              controlsToggle, costsLinks, depthLinks,
+              inertControls, intervalLinks, listModeLinks, mixedAmountAsHtml,
+              mixedAmountAsHtmlWith, percentLinks, pricesLinks, realLinks,
+              sortLinks, statusLinks, typeLinks,
               zeroBalanceLinks, transactionFragment, removeDates, removeInacct, replaceInacct, journalDayQuery)
 
 -- | The main journal/account register view, with accounts sidebar.
@@ -51,6 +53,11 @@ getRegisterR = do
   inferOn <- (== Just "1") <$> lookupGetParam "infer"
   date2On <- (== Just "1") <$> lookupGetParam "date2"
   mperiod <- lookupGetParam "period"
+  totalOn <- (== Just "1") <$> lookupGetParam "total"
+  avgOn   <- (== Just "1") <$> lookupGetParam "avg"
+  sortAmt <- (== Just "amount") <$> lookupGetParam "sort"
+  pctOn   <- (== Just "1") <$> lookupGetParam "pct"
+  mcalc   <- lookupGetParam "calc"
   hideEmpty <- hideEmptyAccounts
   pagereq <- pageRequest
 
@@ -78,12 +85,23 @@ getRegisterR = do
       emptyParams = [("empty", if hideEmpty then "0" else "1") | hideEmpty /= dfltHidden]
       elist = fromMaybe (accountlistmode_ $ _rsReportOpts rspec0) mlist
       listParams = [("list", listWord elist) | elist /= accountlistmode_ (_rsReportOpts rspec0)]
-      -- The period parameter shapes nothing here, but it is passed
-      -- along, so a report interval survives visiting a register.
-      periodParams = [("period", p) | Just p <- [mperiod], not (T.null p)]
+      -- The report-shaping state shapes nothing here, but it is passed
+      -- along and shown dimmed below, so it survives visiting a register.
+      stickyParams =
+        [("period", p) | Just p <- [mperiod], not (T.null p)] ++
+        [("total", "1") | totalOn] ++
+        [("avg", "1") | avgOn] ++
+        [("sort", "amount") | sortAmt] ++
+        [("pct", "1") | pctOn] ++
+        [("calc", c) | Just c <- [mcalc], not (T.null c)]
       modeParams =
         dbg1 "register modeParams" $
-        periodParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams
+        stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams
+      -- Links to the journal carry the sticky state; the accumulation
+      -- mode and the costs toggle are this page's own.
+      journalCarry = filter ((`notElem` ["accum", "costs"]) . fst) modeParams
+      -- An entry's date link: the journal on that date, same modes.
+      dayParams t = ("q", journalDayQuery qparam (tdate t)) : journalCarry
       -- the rows of links above the chart: the filters (status,
       -- realness, type, tag, commodity, and depth), and the accounts,
       -- amounts, and costs modes
@@ -100,11 +118,28 @@ getRegisterR = do
       amountsRow = amountLinks trs RegisterR (qParams qparam ++ filter ((/= "value") . fst) modeParams)
         (amountModeOf $ _rsReportOpts rspec0) (amountModeOf ropts)
       costsRow = costsLinks trs RegisterR (qParams qparam ++ filter ((/= "costs") . fst) modeParams) costsOn
+      pricesRow = pricesLinks trs RegisterR (qParams qparam ++ filter ((/= "infer") . fst) modeParams) inferOn
       zeroRow = zeroBalanceLinks trs RegisterR (qParams qparam ++ filter ((/= "empty") . fst) modeParams) dfltHidden hideEmpty
-      -- All of them behind the controls disclosure, closed by default.
+      -- The report-shaping controls, operative on the report pages,
+      -- shown dimmed with the url's state marked.
+      (pivl, pspan) = case mperiod of
+        Just p | not (T.null p), Right r <- parsePeriodExpr today p -> r
+        _ -> (NoInterval, nulldatespan)
+      rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
+      calcCur = either (const CalcChange) id $ parseCalc mcalc
+      intervalRow = inertControls trs $
+        intervalLinks trs RegisterR (filter ((/= "period") . fst) modeParams) qparam pspan rpInterval
+      inertRows = inertControls trs $ mconcat
+        [ columnsLinks trs RegisterR (qParams qparam ++ filter ((`notElem` ["total", "avg"]) . fst) modeParams) totalOn avgOn
+        , sortLinks trs RegisterR (qParams qparam ++ filter ((/= "sort") . fst) modeParams) sortAmt
+        , percentLinks trs RegisterR (qParams qparam ++ filter ((/= "pct") . fst) modeParams) pctOn
+        , calcLinks trs RegisterR (qParams qparam ++ filter ((/= "calc") . fst) modeParams) calcCur
+        ]
+      -- All of them behind the controls disclosure, closed by default,
+      -- in the same order as on the report pages.
       controlsRows = controlsToggle trs $ mconcat $
-        [statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
-        [listRow, amountsRow, costsRow, zeroRow]
+        [intervalRow, statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
+        [listRow, amountsRow, costsRow, pricesRow, zeroRow, inertRows]
       -- the amount column's display format: with costs when asked
       amtfmt = noCostFmt{displayZeroCommodity = True, displayCost = costsOn}
       qParams t = [("q", t) | not (T.null t)]

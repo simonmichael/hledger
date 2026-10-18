@@ -15,10 +15,12 @@ import Hledger.Web.Import
 import Hledger.Web.Paging
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseListMode, parseValue, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
-            (accountQuery, amountLinks, controlsToggle, depthLinks,
-             listModeLinks, mixedAmountAsHtml, realLinks, statusLinks, typeLinks,
+            (accountQuery, amountLinks, calcLinks, columnsLinks, controlsToggle,
+             depthLinks, inertControls, intervalLinks, listModeLinks,
+             mixedAmountAsHtml, percentLinks, pricesLinks, realLinks, sortLinks,
+             statusLinks, typeLinks,
              transactionFragment, replaceInacct, journalDayQuery, zeroBalanceLinks)
 
 -- | The formatted journal view, with sidebar.
@@ -32,6 +34,12 @@ getJournalR = do
   mlist <- either (const Nothing) id . parseListMode <$> lookupGetParam "list"
   inferOn <- (== Just "1") <$> lookupGetParam "infer"
   mperiod <- lookupGetParam "period"
+  totalOn <- (== Just "1") <$> lookupGetParam "total"
+  avgOn   <- (== Just "1") <$> lookupGetParam "avg"
+  sortAmt <- (== Just "amount") <$> lookupGetParam "sort"
+  pctOn   <- (== Just "1") <$> lookupGetParam "pct"
+  mcalc   <- lookupGetParam "calc"
+  date2On <- (== Just "1") <$> lookupGetParam "date2"
   pagereq <- pageRequest
   let title = case inAccount qopts of
         Nothing         -> tr trs "General Journal"
@@ -62,13 +70,22 @@ getJournalR = do
       elist = fromMaybe (accountlistmode_ roptsStartup) mlist
       listParams = [("list", listWord elist) | elist /= accountlistmode_ roptsStartup]
       inferParams = [("infer", "1") | inferOn]
-      -- The period parameter shapes nothing here, but it is passed
-      -- along, so a report interval survives visiting the journal: this
-      -- is the landing page, and the url hledger-web opens for its
-      -- startup options.
-      periodParams = [("period", p) | Just p <- [mperiod], not (T.null p)]
-      carried = dbg1 "journal carried params" $ periodParams ++ valParams ++ listParams ++ inferParams ++ emptyParams
+      -- The report-shaping state shapes nothing here, but it is passed
+      -- along and shown dimmed below, so the startup options' url
+      -- survives this landing page and the url's state is never
+      -- invisible.
+      stickyParams =
+        [("period", p) | Just p <- [mperiod], not (T.null p)] ++
+        [("total", "1") | totalOn] ++
+        [("avg", "1") | avgOn] ++
+        [("sort", "amount") | sortAmt] ++
+        [("pct", "1") | pctOn] ++
+        [("calc", c) | Just c <- [mcalc], not (T.null c)] ++
+        [("date2", "1") | date2On]
+      carried = dbg1 "journal carried params" $ stickyParams ++ valParams ++ listParams ++ inferParams ++ emptyParams
       qps = [("q", qparam) | not (T.null qparam)]
+      -- An entry's date link: the journal on that date, same modes.
+      dayParams t = ("q", journalDayQuery qparam (tdate t)) : carried
       -- the rows of links above the entries: the filters (status,
       -- realness, type, tag, commodity, and depth), and the sidebar's
       -- accounts and amounts modes
@@ -81,14 +98,31 @@ getJournalR = do
       depthRow = depthLinks trs JournalR carried qparam deepest
       -- The amounts mode converts the sidebar's amounts, and tree mode
       -- adds its fold carets; the journal's entries always show as written.
-      listRow = listModeLinks trs JournalR (qps ++ periodParams ++ valParams ++ inferParams ++ emptyParams) (accountlistmode_ roptsStartup) elist
-      amountsRow = amountLinks trs JournalR (qps ++ periodParams ++ listParams ++ inferParams ++ emptyParams)
+      listRow = listModeLinks trs JournalR (qps ++ removeAttributes ["list"] carried) (accountlistmode_ roptsStartup) elist
+      amountsRow = amountLinks trs JournalR (qps ++ removeAttributes ["value"] carried)
         (amountModeOf roptsStartup) (amountModeOf $ maybe id setAmountMode mmode roptsStartup)
-      zeroRow = zeroBalanceLinks trs JournalR (qps ++ periodParams ++ valParams ++ listParams ++ inferParams) dfltHidden hideEmpty
-      -- All of them behind the controls disclosure, closed by default.
+      pricesRow = pricesLinks trs JournalR (qps ++ removeAttributes ["infer"] carried) inferOn
+      zeroRow = zeroBalanceLinks trs JournalR (qps ++ removeAttributes ["empty"] carried) dfltHidden hideEmpty
+      -- The report-shaping controls, operative on the report pages,
+      -- shown dimmed with the url's state marked.
+      (pivl, pspan) = case mperiod of
+        Just p | not (T.null p), Right r <- parsePeriodExpr today p -> r
+        _ -> (NoInterval, nulldatespan)
+      rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
+      calcCur = either (const CalcChange) id $ parseCalc mcalc
+      intervalRow = inertControls trs $
+        intervalLinks trs JournalR (removeAttributes ["period"] carried) qparam pspan rpInterval
+      inertRows = inertControls trs $ mconcat
+        [ columnsLinks trs JournalR (qps ++ removeAttributes ["total", "avg"] carried) totalOn avgOn
+        , sortLinks trs JournalR (qps ++ removeAttributes ["sort"] carried) sortAmt
+        , percentLinks trs JournalR (qps ++ removeAttributes ["pct"] carried) pctOn
+        , calcLinks trs JournalR (qps ++ removeAttributes ["calc"] carried) calcCur
+        ]
+      -- All of them behind the controls disclosure, closed by default,
+      -- in the same order as on the report pages.
       controlsRows = controlsToggle trs $ mconcat $
-        [statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
-        [listRow, amountsRow, zeroRow]
+        [intervalRow, statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
+        [listRow, amountsRow, pricesRow, zeroRow, inertRows]
 
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.

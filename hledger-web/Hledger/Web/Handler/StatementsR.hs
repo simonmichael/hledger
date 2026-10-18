@@ -34,8 +34,8 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (accumulationLinks, amountLinks, calcLinks, columnsLinks, controlsToggle,
    depthLinks, helplink, intervalLinks,
-   listModeLinks, percentLinks, realLinks, removeInacct, reportLinks,
-   sortLinks, statusLinks, zeroBalanceLinks)
+   listModeLinks, percentLinks, pricesLinks, realLinks, removeInacct,
+   reportLinks, sortLinks, statusLinks, zeroBalanceLinks)
 
 getBalancesheetR, getBalancesheetequityR, getIncomestatementR, getCashflowR :: Handler Html
 -- TRANSLATORS: the browser tab titles of the statement pages.
@@ -112,9 +112,10 @@ statementPage here tabtitle spec = do
             -- default, the startup options', converts them.
             registerParams =
               [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
-              inferParams ++ date2Params ++ emptyParams
+              [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++
+              removeAttributes ["period", "accum", "value"] pageParams
             relink = map (map (addLinkParams registerParams))
-            headinglink = urlrender here . headingParams qparam params
+            headinglink = urlrender here . headingParams rpInterval qparam params
             CompoundBalanceReportParts{cbrpLeadingHeaders, cbrpDataHeaders, cbrpSections, cbrpNetRows} =
               compoundBalanceReportAsSpreadsheetParts oneLineNoCostFmt "account" ropts (cbcqueries spec) cbr
             -- The heading row with the classes the stylesheet aligns the
@@ -143,6 +144,7 @@ statementPage here tabtitle spec = do
               [ depthLinks trs here pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs here (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , amountLinks trs here (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)
+              , pricesLinks trs here (qParams ++ removeAttributes ["infer"] pageParams) (infer_prices_ ropts)
               , zeroBalanceLinks trs here (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty ] ++
               [ columnsLinks trs here (qParams ++ removeAttributes ["total", "avg"] pageParams) (row_total_ ropts) (average_ ropts)
               | rpInterval /= NoInterval ] ++

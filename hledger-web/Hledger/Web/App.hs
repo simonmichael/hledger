@@ -207,17 +207,14 @@ instance Yesod App where
 
     hideEmptyAccts <- hideEmptyAccounts
 
-    -- The sidebar's report links keep the search, minus any account term,
-    -- which the reports ignore, and a report page's period and amount
-    -- conversion, as the report pages' own Report row does.
+    -- The sidebar's links keep the search, minus any account term,
+    -- which the reports ignore, and the sticky report state the page
+    -- keeps; the page-local parameters (accum, costs) stay behind.
     let sidebarReports = reportLinkItems $ filter rmInSidebar reportMenu
         sidebarParams =
           [p | p@("period", _) <- keptParams] ++
           [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
-          [p | p@("value", _) <- keptParams] ++
-          [p | p@("empty", _) <- keptParams] ++
-          [p | p@("list", _) <- keptParams] ++
-          [p | p@("infer", _) <- keptParams]
+          [p | p@(k, _) <- keptParams, k /= "period", k `elem` stickyParamNames]
         -- What the sidebar's bottom row is, in the current amounts mode:
         -- the whole journal's net. Label it by what that means.
         (totlabel, tottitle) = case amountModeOf ropts' of
@@ -463,16 +460,24 @@ keptAccums route =
     _ | route == RegisterR -> ["historical"]
     _                      -> []
 
--- | The query parameters a page's own links keep. The journal and
--- register keep the period parameter although it shapes nothing there,
--- so that a report interval survives visiting them: the journal is the
--- landing page, and the url hledger-web opens for its startup options.
+-- | The query parameters a page's own links keep: the sticky report
+-- state, which every page shows and preserves even where it shapes
+-- nothing (the journal is the landing page, and the url hledger-web
+-- opens for its startup options), plus the page-local parameters, the
+-- accumulation mode (each page has its own default) and the register's
+-- costs.
 keptParamNames :: Route App -> [Text]
 keptParamNames route
-  | route `elem` reportRoutes = ["period", "accum", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty"]
-  | route == RegisterR        = ["period", "accum", "value", "costs", "infer", "date2", "empty", "list"]
-  | route == JournalR         = ["period", "value", "list", "infer", "empty"]
+  | route `elem` reportRoutes = "accum" : stickyParamNames
+  | route == RegisterR        = "accum" : "costs" : stickyParamNames
+  | route == JournalR         = stickyParamNames
   | otherwise                 = []
+
+-- | The report-state parameters every page preserves: a link changes
+-- only the control it names. date2 has no control, being deprecated,
+-- but is preserved like the rest.
+stickyParamNames :: [Text]
+stickyParamNames = ["period", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty"]
 
 -- | Are zero-balance accounts hidden ? The empty parameter says (1
 -- shows them, 0 hides them, the direction of the command line's

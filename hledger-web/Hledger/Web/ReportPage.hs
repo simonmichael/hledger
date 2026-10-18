@@ -14,10 +14,12 @@ module Hledger.Web.ReportPage (
   ReportParamError(..),
   reportParams,
   startupUrlState,
+  intervalPeriodExpr,
   paramError,
   AmountMode(..),
   parseValue,
   parseListMode,
+  parseCalc,
   listWord,
   valueWord,
   amountModeOf,
@@ -176,10 +178,9 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
 
 -- | The startup report options and query arguments, expressed as url
 -- state: the parameters for the url that browse mode opens and --serve
--- prints, and the report spec rebuilt to stock defaults, which is what
--- the server keeps. Query arguments and query-expressible options
+-- prints. Query arguments and query-expressible options
 -- (periods, depths, statuses, -R) become the q parameter's search
--- terms; the other options the pages know become their parameters.
+-- terms the other options the pages know become their parameters.
 -- Display preferences without a url spelling (the language, period
 -- title style, report titles) stay in the spec; report options the web
 -- ui has no vocabulary for (--invert, --transpose, ...) are dropped.
@@ -415,13 +416,16 @@ columnHeading ropts colspans spn =
     PerPeriod -> renderPeriodHeading (period_titles_ ropts) spn
     _         -> reportPeriodName ropts colspans spn
 
--- A column heading opens this report for that column's period,
--- in place of any date terms in the search, which the column narrows anyway.
-headingParams :: Text -> [(Text, Text)] -> DateSpan -> [(Text, Text)]
-headingParams qparam params spn =
+-- A column heading opens this report for that column's period, in
+-- place of any date terms in the search, which the column narrows
+-- anyway. The interval is kept (the drilled view is one column of it),
+-- so the report's subdivision survives navigating on from there.
+headingParams :: Interval -> Text -> [(Text, Text)] -> DateSpan -> [(Text, Text)]
+headingParams ivl qparam params spn =
   [("q", T.unwords qt) |
       let qt = dateTerm False spn ++ removeDates qparam,
       not (null qt)] ++
+  [("period", w) | Just w <- [intervalPeriodExpr ivl]] ++
   removeAttributes ["q", "period"] params
 
 removeAttributes :: [Text] -> [(Text, Text)] -> [(Text, Text)]

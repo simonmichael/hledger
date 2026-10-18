@@ -117,7 +117,7 @@ Note this affects url generation but not route parsing.
 `--file-url=URL`
 : set a different base url for static files (default: `BASEURL/static/`)
 
-hledger-web normally serves static files itself, 
+hledger-web normally serves static files itself,
 but if you wanted to serve them from another server,
 eg for better caching or cookie-less serving on high performance websites,
 you can customise their urls with this.
@@ -138,8 +138,8 @@ hledger-web translates them into the url that browse mode opens, and
 that `--serve` prints, eg `hledger-web -V -M` opens
 `/journal?period=monthly&value=end`, and `hledger-web --cleared -3 assets`
 opens `/journal?q=assets status:* depth:3` (url-encoded). The server
-itself keeps stock defaults, so every view is fully described by its
-url: a bare url shows the stock view, and editing the url (or the
+itself keeps the defaults, so every view is fully described by its
+url: a bare url shows the default view, and editing the url (or the
 search and the links above each page) changes the view. Report options
 the web UI has no equivalent for are ignored.
 
@@ -262,6 +262,12 @@ is carried to the other reports; and
 whether accounts with zero balances are shown, with an `empty`
 parameter that the `e` key toggles and the pages' links carry.
 
+Every page shows and preserves the report state its url carries: a
+link changes only the control it names, and controls that take effect
+on another page (the report-shaping rows, on the journal and register)
+are shown dimmed, their state marked all the same. Only the
+accumulation mode and the register's costs toggle are page-local.
+
 The balance sheets show ending balances and the income statement and
 cashflow statement show changes, as their commands do; an `accum`
 parameter (`historical` or `change`) overrides that, and the heading
@@ -299,7 +305,7 @@ both machines have roughly the same idea of what time it is.)
 
 # JSON API
 
-In addition to the web UI, hledger-web also serves a JSON API that can be 
+In addition to the web UI, hledger-web also serves a JSON API that can be
 used to get data or add new transactions.
 If you want the JSON API only, you can use the `--serve-api` flag. Eg:
 
@@ -368,7 +374,7 @@ $ curl -s http://127.0.0.1:5000/transactions | python3 -m json.tool
 
 Most of the JSON corresponds to hledger's data types; for details of what the fields mean, see the
 [Hledger.Data.Json haddock docs](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Json.html)
-and click on the various data types, eg 
+and click on the various data types, eg
 [Transaction](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Transaction).
 And for a higher level understanding, see the [journal docs](hledger.md#journal).
 There is also a basic [OpenAPI specification][openapi.yaml], also served at `/openapi.json`.

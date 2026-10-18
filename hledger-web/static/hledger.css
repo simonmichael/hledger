@@ -209,6 +209,14 @@ details.report-controls > summary {
   cursor: pointer;
   width: max-content;
 }
+/* Controls that take effect on other pages are muted by desaturating
+   (Widget.Common.inertControls); they still mark and carry their state.
+   Not by opacity: the links sit near the AA contrast floor, so any
+   real dimming would push their text below 4.5:1 (see the dark-scheme
+   browser test). Grayscale preserves luminance, so contrast is kept. */
+.controls-inert {
+  filter: grayscale(1);
+}
 /* The pages row keeps its shape from page to page: the newer and older
    links hold their places when absent, and each page number has a cell
    of its own, so the numbers do not shift when a link or a digit
