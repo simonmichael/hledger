@@ -27,6 +27,7 @@ import Data.Text.Lazy qualified as TL
 import System.Console.CmdArgs.Explicit as C ( Mode )
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Utils.I18n qualified as I18n
 import Hledger.Cli.Conf (CommandAlias, CommandLine, ResolvedCommand(..), expandCommandAlias, getConf, confAliases)
 
 import Control.Exception
@@ -123,7 +124,8 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
         runFromFiles jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect args
   forM_ mcollect $ \ref -> do
     sections <- reverse <$> readIORef ref
-    writeOutputLazyText cliopts $ runPageHtml sections
+    let tr = I18n.tr (translations_ $ _rsReportOpts $ reportspec_ cliopts)
+    writeOutputLazyText cliopts $ runPageHtml (tr "Show:", tr "Titles", tr "Charts", tr "All") sections
 
 -- | The actual repl command. mconfinfo is the active config file and the raw options
 -- needed to re-read it, used to auto-reload command aliases when the config file changes.
@@ -191,20 +193,35 @@ withPartFile act = do
 -- and for each command, its command line and its output (html as is, text preformatted),
 -- in a collapsible section (open). Each section's SVG ids get a suffix, so that charts
 -- don't share eg a hatch pattern (which browsers won't draw from a hidden chart).
-runPageHtml :: [(String, Maybe TL.Text)] -> TL.Text
-runPageHtml sections = TL.unlines $
+-- Links at the top, with the given labels, show more or less detail: just the sections' titles (all folded),
+-- the charts (the sections open, as at first), or all (with the report details shown too).
+runPageHtml :: (T.Text, T.Text, T.Text, T.Text) -> [(String, Maybe TL.Text)] -> TL.Text
+runPageHtml (showlabel, titleslabel, chartslabel, alllabel) sections = TL.unlines $
   [ "<!doctype html>"
   , "<html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
   , "<title>hledger run</title>"
   , "<style>"
   , "body{margin:0 auto;max-width:980px;padding:24px 16px 48px;background:#f3f2ee;color:#0b0b0b;font:15px/1.5 system-ui,-apple-system,\"Segoe UI\",sans-serif}"
   , "h2{margin:24px 0 8px;font-size:18px;font-weight:650}"
+  , ".hledger-run-show{margin:0 0 8px;text-align:right;font-size:13px;color:#898781}"
+  , ".hledger-run-show a{margin-left:10px;color:#52514e}.hledger-run-show a.current{color:#0b0b0b;font-weight:600;text-decoration:none}"
   , "details.hledger-run{margin:0 0 8px;background:#fcfcfb;border:1px solid #e1e0d9;border-radius:8px}"
   , "details.hledger-run>summary{padding:10px 14px;cursor:pointer;color:#52514e;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}"
   , "details.hledger-run>div{padding:8px 14px 14px;border-top:1px solid #e1e0d9;overflow-x:auto}"
   , "details.hledger-run table{font-size:13px;font-variant-numeric:tabular-nums}"
   , "details.hledger-run svg{max-width:100%;height:auto}"
   , "</style>"
+  , "<p class=\"hledger-run-show\">" <> escape (T.unpack showlabel)
+    <> TL.concat [ "<a href=\"#\" data-level=\"" <> TL.pack (show n) <> "\"" <> (if n == 1 then " class=\"current\"" else "") <> ">"
+                   <> escape (T.unpack l) <> "</a>"
+                 | (n, l) <- zip [0 :: Int ..] [titleslabel, chartslabel, alllabel] ]
+    <> "</p>"
+  -- level 0: sections folded; 1: sections open (as at first); 2: report details open too
+  , "<script>document.querySelectorAll('.hledger-run-show a').forEach(a => a.onclick = e => { e.preventDefault();"
+    <> " const level = +a.dataset.level;"
+    <> " document.querySelectorAll('details.hledger-run').forEach(d => d.open = level > 0);"
+    <> " document.querySelectorAll('details.hledger-details').forEach(d => d.open = level > 1);"
+    <> " document.querySelectorAll('.hledger-run-show a').forEach(b => b.classList.toggle('current', b === a)); });</script>"
   ] ++ concat (zipWith section [1 :: Int ..] sections)
   where
     section _ (heading, Nothing) = ["<h2>" <> escape heading <> "</h2>"]
