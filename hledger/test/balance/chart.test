@@ -324,3 +324,35 @@ No data
 # ** 29. Likewise in SVG.
 $ hledger -f - bal -M -p 2099 -O svg | sed -n 's/.*class="label".*>\(.*\)<.*/\1/p'
 No data
+
+# ** 30. In SVG, account names that don't fit below vertical bars are angled,
+# with room made for the first one inside the chart. (Showing the angled labels' x positions and text.)
+<
+2024-01-01
+  expenses:household:groceries:supermarket   10 USD
+  expenses:household:utilities:electricity   20 USD
+  expenses:transport:public:monthly-passes   30 USD
+  expenses:entertainment:streaming:services  40 USD
+  assets
+
+$ hledger -f - bal expenses -O svg | sed -n 's/.*class="label" x="\([0-9.]*\)".*transform="rotate.*>\(.*\)<.*/\1 \2/p'
+180 expenses:entertainment:stream…
+376.6 expenses:household:groceries:…
+573.1 expenses:household:utilities:…
+769.7 expenses:transport:public:mon…
+
+# ** 31. In SVG, the y axis shows the unit only on its top label.
+<
+2024-01-01
+  expenses:food  10 USD
+  expenses:rent  20 USD
+  assets
+
+$ hledger -f - bal -M expenses -O svg | sed -n 's/.*class="tick".*text-anchor="end">\(.*\)<.*/\1/p'
+0
+5
+10
+15
+20
+25
+30 USD

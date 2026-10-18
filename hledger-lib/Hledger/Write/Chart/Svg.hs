@@ -25,6 +25,7 @@ module Hledger.Write.Chart.Svg (
 ) where
 
 import Control.Monad (forM_, unless, when)
+import Data.Char (isDigit, isUpper)
 import Data.Function (on)
 import Data.List (find, groupBy, nub, sortOn)
 #if !MIN_VERSION_base(4,20,0)
@@ -44,7 +45,7 @@ import Text.Blaze.Svg.Renderer.Text (renderSvg)
 import Text.Blaze.Svg11 ((!), Svg)
 import Text.Blaze.Svg11 qualified as S
 import Text.Blaze.Svg11.Attributes qualified as A
-import Text.DocLayout (realLength)
+import Text.DocLayout qualified as DL
 import Text.Printf (printf)
 
 import Hledger.Data.Amount (oneLineNoCostFmt, showAmountWith)
@@ -81,12 +82,12 @@ chartSvgMarkup dark Chart{chTitle, chXAxis, chPanels} =
       S.style (S.toMarkup $ stylesheet dark)
       S.rect ! A.class_ "bg" ! A.width "100%" ! A.height "100%"
       unless (T.null chTitle) $
-        S.text_ ! A.class_ "title" ! A.x (toValue $ num pad) ! A.y (toValue $ num (pad + 14)) $ S.toMarkup chTitle
+        S.text_ ! A.class_ "title" ! A.x (toValue $ num pad) ! A.y (toValue $ num (pad + 17)) $ S.toMarkup chTitle
       sequence_ panelmarkups
       when (null chPanels) $
-        S.text_ ! A.class_ "label" ! A.x (toValue $ num pad) ! A.y (toValue $ num (pad + titleheight + 14)) $ "No data"
+        S.text_ ! A.class_ "label" ! A.x (toValue $ num pad) ! A.y (toValue $ num (pad + titleheight + 16)) $ "No data"
   where
-    titleheight = if T.null chTitle then 0 else 32
+    titleheight = if T.null chTitle then 0 else 38
     showheadings = length chPanels > 1
     (panelsbottom, panelmarkups) = foldl stackPanel (pad + titleheight, []) chPanels
     totalheight = if null chPanels then panelsbottom + 14 + pad else panelsbottom
@@ -95,18 +96,28 @@ chartSvgMarkup dark Chart{chTitle, chXAxis, chPanels} =
       in (top + h + panelGap, ms ++ [m])
 
 -- Layout constants, in pixels.
-chartWidth, pad, panelGap, charWidth, legendRowHeight, plotHeight, rowHeight :: Double
-chartWidth      = 760
+chartWidth, pad, panelGap, legendRowHeight, plotHeight, rowHeight :: Double
+chartWidth      = 880
 pad             = 16
 panelGap        = 16
-charWidth       = 7    -- estimated average width of a character in the 12px system sans font
-legendRowHeight = 20
-plotHeight      = 220  -- height of a vertical-bar or line plot
-rowHeight       = 22   -- height of a row in a horizontal bar chart
+legendRowHeight = 24
+plotHeight      = 260  -- height of a vertical-bar or line plot
+rowHeight       = 28   -- height of a row in a horizontal bar chart
 
--- | Estimated rendered width of some text.
+-- | Estimated rendered width of some text, in the 14px system sans font (fonts are not known),
+-- from the widths of kinds of character (measured with SF Pro; Segoe UI and others are similar or narrower).
 textWidth :: Text -> Double
-textWidth t = fromIntegral (realLength t) * charWidth
+textWidth = T.foldl' (\w c -> w + glyphWidth c) 0
+  where
+    glyphWidth c
+      | DL.charWidth c == 2               = 14
+      | DL.charWidth c == 0               = 0
+      | isDigit c                         = 8.7  -- tabular digits, as in ticks and values
+      | c `elem` ("mwMW" :: String)       = 12
+      | isUpper c                         = 9.5
+      | c `elem` ("fijlrt" :: String)     = 4.2
+      | c `elem` (" .,:;'|!()" :: String) = 3.8
+      | otherwise                         = 7.9
 
 -- | A series to draw, with its CSS class and the values it draws.
 data DrawSeries = DrawSeries
@@ -120,15 +131,15 @@ panelSvg :: XAxis -> Bool -> Double -> Panel -> (Double, Svg)
 panelSvg xaxis showheading top Panel{pnUnit, pnSeries, pnGroupNames, pnScale, pnLayout, pnCounts, pnSummary} =
   (headingh + legendh + bodyh + summaryh, do
     when (headingh > 0) $
-      S.text_ ! A.class_ "heading" ! A.x (toValue $ num pad) ! A.y (toValue $ num (top + 14)) $ S.toMarkup (acommodity pnUnit)
+      S.text_ ! A.class_ "heading" ! A.x (toValue $ num pad) ! A.y (toValue $ num (top + 16)) $ S.toMarkup (acommodity pnUnit)
     legendm
     bodym
     when (summaryh > 0) $
-      S.text_ ! A.class_ "label" ! A.x (toValue $ num pad) ! A.y (toValue $ num (top + headingh + legendh + bodyh + 14)) $ S.toMarkup summarytext)
+      S.text_ ! A.class_ "label" ! A.x (toValue $ num pad) ! A.y (toValue $ num (top + headingh + legendh + bodyh + 16)) $ S.toMarkup summarytext)
   where
-    headingh = if showheading && not (T.null $ acommodity pnUnit) then 24 else 0
+    headingh = if showheading && not (T.null $ acommodity pnUnit) then 28 else 0
     -- the summary values, on a line below the plot, eg "Total 11, Average 0.9"
-    summaryh = if null pnSummary then 0 else 22
+    summaryh = if null pnSummary then 0 else 26
     summarytext = T.intercalate ", " [suLabel su <> " " <> showSummary su | su <- pnSummary]
     showSummary = T.pack . showAmountWith oneLineNoCostFmt . suValue
     -- the average, drawn as a line across a chart of periods
@@ -157,7 +168,7 @@ legendSvg top entries mtotal hascontra
     allentries = entries ++ [("total", if seMark t == MarkLine || all (\(_, mk, _) -> mk == MarkLine) entries then MarkLine else MarkMarker, lbFull (seLabel t)) | Just t <- [mtotal]]
                  ++ [(contraClass, MarkBar, "contra") | hascontra]
     contraClass = "contra"
-    itemWidth (_, _, lbl) = 18 + textWidth lbl + 16
+    itemWidth (_, _, lbl) = 20 + textWidth lbl + 18
     rows = reverse $ map reverse $ foldl place [] allentries
     place [] e = [[e]]
     place (r:rs) e
@@ -177,8 +188,8 @@ legendSvg top entries mtotal hascontra
                           swatch x y ! A.class_ ("fill " <> toValue (colourClass NeutralColour))
                           swatch x y ! A.fill (toValue $ "url(#" <> hatchId <> ")")
           MarkBar    -> swatch x y ! A.class_ ("fill " <> toValue cls)
-        S.text_ ! A.class_ "label" ! A.x (toValue $ num (x + 18)) ! A.y (toValue $ num (y + 4)) $ S.toMarkup lbl
-    swatch x y = S.rect ! A.x (toValue $ num x) ! A.y (toValue $ num (y - 5)) ! A.width "10" ! A.height "10" ! A.rx "2"
+        S.text_ ! A.class_ "label" ! A.x (toValue $ num (x + 20)) ! A.y (toValue $ num (y + 5)) $ S.toMarkup lbl
+    swatch x y = S.rect ! A.x (toValue $ num x) ! A.y (toValue $ num (y - 6)) ! A.width "12" ! A.height "12" ! A.rx "3"
 
 -- | How x positions are placed along a time axis: evenly, with these labels (eg report periods),
 -- or by date, on a time scale (eg a register's transactions; lines are then drawn as steps).
@@ -187,17 +198,15 @@ data XScale = EvenScale [Text] | DateScale [Day]
 -- | Draw series over time, along the given x scale:
 -- vertical stacked bars (with the grouped layout, a stack per group, side by side), lines, and total marks or lines.
 timeSvg :: Double -> Maybe Quantity -> BarLayout -> Amount -> [DrawSeries] -> Maybe Series -> Maybe (Text, Quantity) -> XScale -> (Double, Svg)
-timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 28, do
+timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 32, do
     -- gridlines and y tick labels
     forM_ ticks $ \t -> do
       S.line ! A.class_ (if t == 0 then "axis" else "grid")
         ! A.x1 (toValue $ num plotleft) ! A.x2 (toValue $ num plotright) ! A.y1 (toValue $ num (yof t)) ! A.y2 (toValue $ num (yof t))
-      S.text_ ! A.class_ "tick" ! A.x (toValue $ num (plotleft - 8)) ! A.y (toValue $ num (yof t + 4)) ! A.textAnchor "end" $ S.toMarkup (ticklabel t)
+      S.text_ ! A.class_ "tick" ! A.x (toValue $ num (plotleft - 8)) ! A.y (toValue $ num (yof t + 5)) ! A.textAnchor "end" $ S.toMarkup (ticklabel t)
     -- x labels: periods' labels, thinned to avoid overlap; or ticks at calendar boundaries
-    case xscale of
-      EvenScale _ -> forM_ (zip [0 :: Int ..] xlabels) $ \(j, lbl) ->
-        when (j `mod` labelevery == 0) $ xlabel (xcenter j) lbl
-      DateScale _ -> forM_ (dateTicks d0 d1) $ \(d, lbl) -> xlabel (xofday d) lbl
+    forM_ (placeXLabels shownxlabels) $ \(x, lbl) ->
+      S.text_ ! A.class_ "tick" ! A.x (toValue $ num x) ! A.y (toValue $ num (plotbottom + 21)) ! A.textAnchor "middle" $ S.toMarkup lbl
     -- bars: the stacks side by side (2px apart), each with its positive segments stacked upward and negative ones downward
     forM_ (zip [0 ..] xlabels) $ \(j, lbl) ->
       forM_ (zip [0 :: Int ..] stacks) $ \(k, stk) -> do
@@ -233,11 +242,13 @@ timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 28, 
       EvenScale ls -> ls
       DateScale ds -> map showDate ds
     n = length xlabels
-    -- an x axis label centred at x, but kept within the chart
-    xlabel x lbl =
-      let halfw = textWidth lbl / 2
-          x' = max (pad + halfw) $ min (chartWidth - pad - halfw) x
-      in S.text_ ! A.class_ "tick" ! A.x (toValue $ num x') ! A.y (toValue $ num (plotbottom + 18)) ! A.textAnchor "middle" $ S.toMarkup lbl
+    -- the x labels shown: for periods, every k'th label, with the smallest k that leaves them all room
+    -- (keeping them evenly spaced, even when the end ones are moved inward)
+    shownxlabels = case xscale of
+      EvenScale _ -> fromMaybe [] $ find fitsall [everykth k | k <- [labelevery .. max labelevery n]]
+      DateScale _ -> [(xofday d, lbl) | (d, lbl) <- dateTicks d0 d1]
+    everykth k = [(xcenter j, lbl) | (j, lbl) <- zip [0 :: Int ..] xlabels, j `mod` k == 0]
+    fitsall ls = length (placeXLabels ls) == length ls
     -- the date scale, if any: its dates (as an array, for fast lookup), first and last dates, and a date's x position (inset a little from the plot's edges)
     datearray = case xscale of
       DateScale ds -> Just $ Arr.listArray (0, length ds - 1) ds
@@ -262,7 +273,7 @@ timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 28, 
     datamax = maximumDef 0 (stackedsums 1 ++ pointvalues)
     datamin = minimumDef 0 (stackedsums (-1) ++ pointvalues)
     (lo, hi, ticks, tickdecimals) = panelScale mscale (min 0 datamin) (max 0 datamax)
-    ticklabel t = showValue (withPrecision tickdecimals unit) (tickQuantity tickdecimals t)
+    ticklabel = tickLabel unit tickdecimals ticks
     plotleft = pad + maximumDef 0 (map (textWidth . ticklabel) ticks) + 12
     plotright = chartWidth - pad
     plottop = top + 6
@@ -280,7 +291,7 @@ timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 28, 
     -- each bar's width, and the width of a group of side-by-side bars (2px apart)
     barwidth
       | band < 4  = max 1 (band * 0.9 / fromIntegral nbars)
-      | otherwise = max 1 $ min 24 ((band * 0.8 - 2 * fromIntegral (nbars - 1)) / fromIntegral nbars)
+      | otherwise = max 1 $ min 56 ((band * 0.75 - 2 * fromIntegral (nbars - 1)) / fromIntegral nbars)
     groupwidth = fromIntegral nbars * barwidth + 2 * fromIntegral (nbars - 1)
     labelevery = max 1 $ ceiling ((maximumDef 0 (map textWidth xlabels) + 12) / band) :: Int
     stack :: Text -> Double -> [(DrawSeries, Quantity)] -> Double -> Svg
@@ -298,7 +309,18 @@ timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 28, 
     tooltip :: Text -> Series -> Quantity -> Text
     tooltip lbl s q = T.intercalate " · " (filter (not . T.null) [lbl, lbFull (seLabel s), showValue unit q])
 
--- | Draw series of categories as horizontal bars (stacked if several), with labels and a value column.
+-- | Place x axis labels: centred at their x positions, but kept within the chart,
+-- leaving out any that would overlap the previous one (eg after being moved inward from the chart's edge).
+placeXLabels :: [(Double, Text)] -> [(Double, Text)]
+placeXLabels = reverse . foldl' place []
+  where
+    place kept (x, lbl) =
+      let halfw = textWidth lbl / 2
+          x' = max (pad + halfw) $ min (chartWidth - pad - halfw) x
+      in case kept of
+           (px, plbl) : _ | x' - halfw < px + textWidth plbl / 2 + 12 -> kept
+           _ -> (x', lbl) : kept
+
 -- | Draw series of categories (eg accounts): as vertical bars, or as horizontal bars when there are more than 'maxColumns' categories.
 -- Categories with no values at all (eg accounts without this commodity) are left out.
 -- With a single series, each category's bar has its own account type's colour, if known.
@@ -331,7 +353,7 @@ columnsSvg top mscale unit rows rowValue = (plotHeight + 22 + negroom + labelhei
     forM_ ticks $ \t -> do
       S.line ! A.class_ (if t == 0 then "axis" else "grid")
         ! A.x1 (toValue $ num plotleft) ! A.x2 (toValue $ num plotright) ! A.y1 (toValue $ num (yof t)) ! A.y2 (toValue $ num (yof t))
-      S.text_ ! A.class_ "tick" ! A.x (toValue $ num (plotleft - 8)) ! A.y (toValue $ num (yof t + 4)) ! A.textAnchor "end" $ S.toMarkup (ticklabel t)
+      S.text_ ! A.class_ "tick" ! A.x (toValue $ num (plotleft - 8)) ! A.y (toValue $ num (yof t + 5)) ! A.textAnchor "end" $ S.toMarkup (ticklabel t)
     forM_ (zip [0 :: Int ..] rows) $ \(i, (lbl, j, segs)) -> do
       let x = xcenter i
           name = shortName lbl
@@ -360,19 +382,26 @@ columnsSvg top mscale unit rows rowValue = (plotHeight + 22 + negroom + labelhei
     n = length rows
     stackedsums sign = [sum [toD q | (_, q) <- segs, signum q == sign] | (_, _, segs) <- rows]
     (lo, hi, ticks, tickdecimals) = panelScale mscale (minimumDef 0 $ stackedsums (-1)) (maximumDef 0 $ stackedsums 1)
-    ticklabel t = showValue (withPrecision tickdecimals unit) (tickQuantity tickdecimals t)
-    plotleft = pad + maximumDef 0 (map (textWidth . ticklabel) ticks) + 12
+    ticklabel = tickLabel unit tickdecimals ticks
+    -- the plot's left edge: after the tick labels, and far enough right that angled names don't extend beyond the chart's left edge
+    ticksright = pad + maximumDef 0 (map (textWidth . ticklabel) ticks) + 12
+    plotleft
+      | angled    = max ticksright $ maximumDef 0 [pad + 0.71 * textWidth (shortName l) - 4 - bandwith ticksright * (fromIntegral i + 0.5) | (i, (l, _, _)) <- zip [0 :: Int ..] rows]
+      | otherwise = ticksright
     plotright = chartWidth - pad
     plottop = top + 20  -- leaving room for values above the bars
     plotbottom = plottop + plotHeight
     yof v = plottop + plotHeight * (hi - clamp lo hi v) / (hi - lo)
-    band = (plotright - plotleft) / fromIntegral (max 1 n)
+    -- the width of each category's band, with the plot starting at this x position
+    bandwith left = (plotright - left) / fromIntegral (max 1 n)
+    band = bandwith plotleft
     xcenter i = plotleft + band * (fromIntegral i + 0.5)
-    barwidth = max 1 $ min 24 (band * 0.7)
+    barwidth = max 1 $ min 64 (band * 0.6)
     -- names: full account names (since there's no indentation), shortened if very long
     shortName l = let t = lbFull l in if T.length t > 30 then T.take 29 t <> "…" else t
     namewidth = maximumDef 0 [textWidth (shortName l) | (l, _, _) <- rows]
-    angled = namewidth > band - 4
+    -- whether names are angled: decided with the widest band (before any room is made for angled names), to avoid a cycle
+    angled = namewidth > bandwith ticksright - 4
     labelheight = if angled then namewidth * 0.71 + 16 else 24
     -- room below the plot for the values of negative bars, which may reach its bottom
     negroom = if any (any ((< 0) . snd) . (\(_, _, segs) -> segs)) rows then (if isJust mscale then 22 else 16) else 0
@@ -380,19 +409,19 @@ columnsSvg top mscale unit rows rowValue = (plotHeight + 22 + negroom + labelhei
 -- | Draw categories as horizontal bars (rows; stacked if several series), with their names on the left (indented as in the report)
 -- and an aligned value column on the right.
 barsSvg :: Double -> Maybe Quantity -> Amount -> [(ChartLabel, Int, [(DrawSeries, Quantity)])] -> (Int -> Maybe Quantity) -> (Double, Svg)
-barsSvg top mscale unit rows rowValue = (fromIntegral (length rows) * rowHeight + 28, do
+barsSvg top mscale unit rows rowValue = (fromIntegral (length rows) * rowHeight + 32, do
     -- gridlines and x tick labels (labels thinned to avoid overlap, always including zero)
     forM_ ticks $ \t -> do
       S.line ! A.class_ (if t == 0 then "axis" else "grid")
         ! A.x1 (toValue $ num (xof t)) ! A.x2 (toValue $ num (xof t)) ! A.y1 (toValue $ num plottop) ! A.y2 (toValue $ num plotbottom)
       when (round (t / tickstep) `mod` labelevery == (0 :: Integer)) $
-        S.text_ ! A.class_ "tick" ! A.x (toValue $ num (xof t)) ! A.y (toValue $ num (plotbottom + 18)) ! A.textAnchor "middle" $ S.toMarkup (ticklabel t)
+        S.text_ ! A.class_ "tick" ! A.x (toValue $ num (xof t)) ! A.y (toValue $ num (plotbottom + 21)) ! A.textAnchor "middle" $ S.toMarkup (ticklabel t)
     forM_ (zip [0 :: Int ..] rows) $ \(i, (lbl, j, segs)) -> do
       let ymid = plottop + rowHeight * (fromIntegral i + 0.5)
-      S.text_ ! A.class_ "label" ! A.x (toValue $ num (pad + 12 * fromIntegral (lbIndent lbl))) ! A.y (toValue $ num (ymid + 4))
+      S.text_ ! A.class_ "label" ! A.x (toValue $ num (pad + 12 * fromIntegral (lbIndent lbl))) ! A.y (toValue $ num (ymid + 5))
         $ S.toMarkup (lbShort lbl)
       forM_ (rowValue j) $ \q ->
-        S.text_ ! A.class_ "value" ! A.x (toValue $ num (chartWidth - pad)) ! A.y (toValue $ num (ymid + 4)) ! A.textAnchor "end"
+        S.text_ ! A.class_ "value" ! A.x (toValue $ num (chartWidth - pad)) ! A.y (toValue $ num (ymid + 5)) ! A.textAnchor "end"
           $ S.toMarkup (showValue unit q)
       stack lbl ymid [(d, q) | (d, q) <- segs, q > 0] 1
       stack lbl ymid [(d, q) | (d, q) <- segs, q < 0] (-1)
@@ -400,7 +429,7 @@ barsSvg top mscale unit rows rowValue = (fromIntegral (length rows) * rowHeight 
   where
     stackedsums sign = [sum [toD q | (_, q) <- segs, signum q == sign] | (_, _, segs) <- rows]
     (lo, hi, ticks, tickdecimals) = panelScale mscale (minimumDef 0 $ stackedsums (-1)) (maximumDef 0 $ stackedsums 1)
-    ticklabel t = showValue (withPrecision tickdecimals unit) (tickQuantity tickdecimals t)
+    ticklabel = tickLabel unit{acommodity = ""} tickdecimals []
     labelwidth = min (chartWidth * 0.4) $ maximumDef 0 [12 * fromIntegral (lbIndent l) + textWidth (lbShort l) | (l, _, _) <- rows]
     valuewidth = maximumDef 0 [textWidth (showValue unit q) | (_, j, _) <- rows, Just q <- [rowValue j]]
     -- leave room for half of a tick label at each end
@@ -412,7 +441,7 @@ barsSvg top mscale unit rows rowValue = (fromIntegral (length rows) * rowHeight 
     xof v = plotleft + (plotright - plotleft) * (clamp lo hi v - lo) / (hi - lo)
     tickstep = case ticks of t1:t2:_ -> t2 - t1; _ -> 1
     labelevery = max 1 $ ceiling ((maximumDef 0 (map (textWidth . ticklabel) ticks) + 12) / max 1 (xof tickstep - xof 0)) :: Integer
-    thickness = 12
+    thickness = 16
     stack :: ChartLabel -> Double -> [(DrawSeries, Quantity)] -> Double -> Svg
     stack lbl ymid segs sign = do
       let cums = scanl1 (+) (map (toD . snd) segs)
@@ -571,6 +600,17 @@ niceScale lo0 hi0 = (lo, hi, ticks, decimals)
     decimals = max 0 $ negate (floor (logBase 10 step + 1e-9) :: Int)
 
 -- | The value of a tick, as a quantity with the given number of decimal places.
+-- | A y axis tick's label: its value in the unit's style, with this many decimal places.
+-- To reduce clutter, the unit's commodity is shown only on the outermost of these ticks
+-- (the top one, or the bottom one if the top one is zero).
+tickLabel :: Amount -> Int -> [Double] -> Double -> Text
+tickLabel unit decimals ticks t = showValue (withPrecision decimals u) (tickQuantity decimals t)
+  where
+    u = if Just t == unittick then unit else unit{acommodity = ""}
+    unittick = case lastMay ticks of
+      Just top | top /= 0 -> Just top
+      _                   -> headMay ticks
+
 tickQuantity :: Int -> Double -> Quantity
 tickQuantity decimals = realFracToDecimal (fromIntegral decimals)
 
@@ -624,14 +664,14 @@ typeCode at = case at of
 -- since some SVG renderers (eg librsvg, used by many image viewers) don't support those.
 stylesheet :: Bool -> Text
 stylesheet dark = T.unlines $
-  [ ".hledger-chart{font-family:system-ui,-apple-system,\"Segoe UI\",sans-serif;font-size:12px}"
-  , ".hledger-chart .title{font-size:14px;font-weight:600}"
-  , ".hledger-chart .heading{font-size:13px;font-weight:600}"
+  [ ".hledger-chart{max-width:100%;height:auto;font-family:system-ui,-apple-system,\"Segoe UI\",sans-serif;font-size:14px}"
+  , ".hledger-chart .title{font-size:17px;font-weight:600}"
+  , ".hledger-chart .heading{font-size:15px;font-weight:600}"
   , ".hledger-chart .value,.hledger-chart .tick{font-variant-numeric:tabular-nums}"
   , ".hledger-chart .grid,.hledger-chart .axis{stroke-width:1}"
-  , ".hledger-chart .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}"
-  , ".hledger-chart .mark{stroke-width:1.5}"
-  , ".hledger-chart .average{stroke-width:1.5;stroke-dasharray:5 4}"
+  , ".hledger-chart .line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}"
+  , ".hledger-chart .mark{stroke-width:2.5}"
+  , ".hledger-chart .average{stroke-width:2;stroke-dasharray:5 4}"
   , ".hledger-chart .hit{fill:transparent}"
   , ".hledger-chart .hatch{stroke-width:2.5}"
   ]

@@ -1,12 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="hledger-chart" width="760" height="298" viewBox="0 0 760 298" role="img">
-<style>.hledger-chart{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:12px}
-.hledger-chart .title{font-size:14px;font-weight:600}
-.hledger-chart .heading{font-size:13px;font-weight:600}
+<svg xmlns="http://www.w3.org/2000/svg" class="hledger-chart" width="880" height="338" viewBox="0 0 880 338" role="img">
+<style>.hledger-chart{max-width:100%;height:auto;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px}
+.hledger-chart .title{font-size:17px;font-weight:600}
+.hledger-chart .heading{font-size:15px;font-weight:600}
 .hledger-chart .value,.hledger-chart .tick{font-variant-numeric:tabular-nums}
 .hledger-chart .grid,.hledger-chart .axis{stroke-width:1}
-.hledger-chart .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
-.hledger-chart .mark{stroke-width:1.5}
-.hledger-chart .average{stroke-width:1.5;stroke-dasharray:5 4}
+.hledger-chart .line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.hledger-chart .mark{stroke-width:2.5}
+.hledger-chart .average{stroke-width:2;stroke-dasharray:5 4}
 .hledger-chart .hit{fill:transparent}
 .hledger-chart .hatch{stroke-width:2.5}
 .hledger-chart .bg{fill:#fcfcfb}
@@ -163,34 +163,34 @@
 }
 </style>
 <rect class="bg" width="100%" height="100%" />
-<line class="axis" x1="49" x2="744" y1="256" y2="256" />
-<text class="tick" x="41" y="260" text-anchor="end">0</text>
-<line class="grid" x1="49" x2="744" y1="212" y2="212" />
-<text class="tick" x="41" y="216" text-anchor="end">20</text>
-<line class="grid" x1="49" x2="744" y1="168" y2="168" />
-<text class="tick" x="41" y="172" text-anchor="end">40</text>
-<line class="grid" x1="49" x2="744" y1="124" y2="124" />
-<text class="tick" x="41" y="128" text-anchor="end">60</text>
-<line class="grid" x1="49" x2="744" y1="80" y2="80" />
-<text class="tick" x="41" y="84" text-anchor="end">80</text>
-<line class="grid" x1="49" x2="744" y1="36" y2="36" />
-<text class="tick" x="41" y="40" text-anchor="end">100</text>
-<text class="label" x="164.8" y="272" text-anchor="middle">expenses:food</text>
+<line class="axis" x1="54.1" x2="864" y1="296" y2="296" />
+<text class="tick" x="46.1" y="301" text-anchor="end">0</text>
+<line class="grid" x1="54.1" x2="864" y1="244" y2="244" />
+<text class="tick" x="46.1" y="249" text-anchor="end">20</text>
+<line class="grid" x1="54.1" x2="864" y1="192" y2="192" />
+<text class="tick" x="46.1" y="197" text-anchor="end">40</text>
+<line class="grid" x1="54.1" x2="864" y1="140" y2="140" />
+<text class="tick" x="46.1" y="145" text-anchor="end">60</text>
+<line class="grid" x1="54.1" x2="864" y1="88" y2="88" />
+<text class="tick" x="46.1" y="93" text-anchor="end">80</text>
+<line class="grid" x1="54.1" x2="864" y1="36" y2="36" />
+<text class="tick" x="46.1" y="41" text-anchor="end">100</text>
+<text class="label" x="189.1" y="312" text-anchor="middle">expenses:food</text>
 <g>
 <title>expenses:food · Balance · 10</title>
-<path class="fill tx0" d="M 152.8 256 V 238 Q 152.8 234 156.8 234 H 172.8 Q 176.8 234 176.8 238 V 256 Z" />
+<path class="fill tx0" d="M 157.1 296 V 274 Q 157.1 270 161.1 270 H 217.1 Q 221.1 270 221.1 274 V 296 Z" />
 </g>
-<text class="value" x="164.8" y="228" text-anchor="middle">10</text>
-<text class="label" x="396.5" y="272" text-anchor="middle">expenses:food:dining</text>
+<text class="value" x="189.1" y="264" text-anchor="middle">10</text>
+<text class="label" x="459" y="312" text-anchor="middle">expenses:food:dining</text>
 <g>
 <title>expenses:food:dining · Balance · 5</title>
-<path class="fill tx0" d="M 384.5 256 V 249 Q 384.5 245 388.5 245 H 404.5 Q 408.5 245 408.5 249 V 256 Z" />
+<path class="fill tx0" d="M 427 296 V 287 Q 427 283 431 283 H 487 Q 491 283 491 287 V 296 Z" />
 </g>
-<text class="value" x="396.5" y="239" text-anchor="middle">5</text>
-<text class="label" x="628.2" y="272" text-anchor="middle">expenses:rent</text>
+<text class="value" x="459" y="277" text-anchor="middle">5</text>
+<text class="label" x="729" y="312" text-anchor="middle">expenses:rent</text>
 <g>
 <title>expenses:rent · Balance · 100</title>
-<path class="fill tx0" d="M 616.2 256 V 40 Q 616.2 36 620.2 36 H 636.2 Q 640.2 36 640.2 40 V 256 Z" />
+<path class="fill tx0" d="M 697 296 V 40 Q 697 36 701 36 H 757 Q 761 36 761 40 V 296 Z" />
 </g>
-<text class="value" x="628.2" y="30" text-anchor="middle">100</text>
+<text class="value" x="729" y="30" text-anchor="middle">100</text>
 </svg>

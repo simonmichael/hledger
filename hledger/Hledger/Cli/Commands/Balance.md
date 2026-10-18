@@ -1082,6 +1082,8 @@ With [SVG output](#svg-output) (`-o FILE.svg` or `-O svg`), `balance` always sho
 Time runs along the x axis, and end balances are drawn as lines.
 A single-period report is drawn as vertical bars, one per account, with the account names below (angled if needed)
 and values above the bars (where they fit); or with more than 30 accounts, as horizontal bars.
+The y axis shows the unit only on its top (or bottom) label.
+In an HTML page, the chart shrinks to fit a narrower window.
 
 With [HTML output](#html-output), `--chart` shows the chart (as SVG), with the report's table collapsed below it (click Report details to show it).
 

@@ -123,7 +123,10 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 - SVG: self-contained, deterministic (one-decimal coordinates, one element per line, for golden tests), system fonts, literal colours in CSS
   (librsvg doesn't support `var()`), a `prefers-color-scheme` dark variant (omitted when embedded in html, which is light).
   Ticks by d3's 1-2-5 rule. Tooltips as `<title>` (marks wrapped in `<g>`, as blaze-svg leaf elements can't have children).
-  Bars at most 24px, 4px rounded ends, 2px gaps; lines 2px, thinned to 4 points per pixel column (a 100k-posting register: 286s to 44s).
+  880px wide (shrinking to fit narrower pages), 14px text (estimated widths per kind of character, measured in Chrome with SF Pro);
+  bars at most 56px (64px for single-period columns), 4px rounded ends, 2px gaps; lines 3px, thinned to 4 points per pixel column
+  (a 100k-posting register: 286s to 44s). The unit is shown only on the outermost y tick. x labels are thinned to an even stride
+  that leaves room for all of them, after the end ones are moved inward.
 - Tests: shelltest; SVG goldens are separate files compared with diff, since shelltest treats lines starting with `<` as input.
 
 ## Decisions and rejected alternatives
@@ -145,6 +148,9 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   terminals draw block characters differently (Ghostty and Terminal draw them filling the cell, but tile the shaded fills `▓▒░` seamlessly;
   VS Code with `customGlyphs` off uses the font's glyphs, with gaps around every block), so the gaps were an inconsistent cue.
   Shorter (`▇`) or square (`■`) characters vary similarly. A text note of the scale (eg "One character per transaction") would be reliable.
+- SVG sizes were at first small (12px text, bars at most 24px wide, 760px), leaving much empty space; enlarged to look friendlier (2026-10).
+  Switching to horizontal bars whenever category names don't fit below vertical bars was tried and rejected:
+  a consistent bar direction is better. Names are angled instead (as before), with room made for the first one.
 - Automatic date grouping of long text register charts (by day/week/.. to fit 50 rows) was dropped as unpredictable.
 - activity was reimplemented on `balance --count --chart` rather than removed; its old `*` output and daily default are gone.
 - Repeatable `-o` (several outputs, eg table on stdout plus an SVG file) is deferred: useful independently of charts,
