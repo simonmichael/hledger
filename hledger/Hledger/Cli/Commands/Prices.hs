@@ -11,11 +11,10 @@ where
 import Data.List
 import Data.Set qualified as S
 import Data.Text qualified as T
-import Data.Text.IO qualified as T
 import Data.Time.Calendar (Day, DayOfWeek(..), dayOfWeek)
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printTitle)
+import Hledger.Cli.Utils (writeOutputWithTitle)
 import System.Console.CmdArgs.Explicit
 import Data.Maybe (mapMaybe)
 import Data.Function ((&))
@@ -41,7 +40,6 @@ instance HasAmounts PriceDirective where
 
 -- List market prices.
 prices opts j = do
-  printTitle $ _rsReportOpts $ reportspec_ opts
   let
     q       = _rsQuery $ reportspec_ opts
     showloc = boolopt "locations" (rawopts_ opts)
@@ -99,9 +97,10 @@ prices opts j = do
       -- dbg0 "filtered unsorted" $
       filter (matchesPriceDirective q) allprices
 
-  if boolopt "summary" (rawopts_ opts)
-    then printSummary j q (filter (matchesPriceDirective q) declaredprices)
-    else mapM_ (T.putStrLn . render) $ sortOn pddate filteredprices
+  writeOutputWithTitle opts $
+    if boolopt "summary" (rawopts_ opts)
+    then pricesSummary j q (filter (matchesPriceDirective q) declaredprices)
+    else T.unlines $ map render $ sortOn pddate filteredprices
 
 -- | Like 'postingPriceDirectivesFromCost', but tags each inferred
 -- price directive with the source position of the parent transaction
@@ -188,8 +187,8 @@ periodAndCoverage _ = ("", "")
 -- normalised to ISO codes and deduplicated. The 'cur:' portion of the
 -- query (if any) narrows the listed commodities. The supplied price
 -- directives (already query-filtered by the caller) drive the counts.
-printSummary :: Journal -> Query -> [PriceDirective] -> IO ()
-printSummary j q pds = do
+pricesSummary :: Journal -> Query -> [PriceDirective] -> T.Text
+pricesSummary j q pds =
   let
     base    = journalBaseCurrencyCode j
     -- Just the cur: terms of the query; non-cur terms become Any so
@@ -201,7 +200,7 @@ printSummary j q pds = do
     rows    = map (statsRow . priceStatsFor pds) codes
     header  = ["Commodity", "Prices", "Earliest", "Latest", "Period", "Coverage"]
     aligns  = [AlignL, AlignR, AlignL, AlignL, AlignR, AlignR]
-  T.putStr $ renderColumns aligns (header : rows)
+  in renderColumns aligns (header : rows)
 
 statsRow :: PriceStats -> [T.Text]
 statsRow ps =

@@ -434,7 +434,33 @@ table
 summary>hledger stats
 pre
 
-# ** 38. run can write only html output.
+# ** 38. Commands without an -o flag, like accounts, are also collected.
+# (Showing each section's command line and first line of output.)
+<
+P 2026-01-01 A 1 B
+
+2026-01-01 (C1) p | n  ; t:v
+  a  1 A
+  b
+$ hledger run -f- -O html -- accounts -- codes -- commodities -- descriptions -- notes -- payees -- prices -- tags | grep -A1 '<summary>' | grep -v '^--' | sed 's/<[^>]*>//g'
+hledger accounts
+a
+hledger codes
+C1
+hledger commodities
+A
+hledger descriptions
+p | n
+hledger notes
+n
+hledger payees
+p
+hledger prices
+P 2026-01-01 A 1 B
+hledger tags
+t
+
+# ** 39. run can write only html output.
 $ hledger run -f- -O csv -- bal
 >2 /run can write only html output/
 >= 1

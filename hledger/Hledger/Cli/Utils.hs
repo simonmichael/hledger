@@ -17,7 +17,7 @@ module Hledger.Cli.Utils
      writeOutputLazyText,
      warnIfLargeMultiPeriodReport,
      withTitle,
-     printTitle,
+     writeOutputWithTitle,
      journalTransform,
      journalReload,
      journalReloadIfChanged,
@@ -306,14 +306,11 @@ withTitle ropts body =
   in if T.null h then body
      else TL.fromStrict h <> "\n\n" <> body
 
--- | Print the effective report heading (followed by a blank line) to stdout
--- if non-empty. For commands whose output is written directly via putStrLn,
--- call this before producing the main output.
-printTitle :: ReportOpts -> IO ()
-printTitle ropts =
-  let h = effectiveTitle ropts ""
-  in if T.null h then pure ()
-     else T.putStrLn h >> putStrLn ""
+-- | Write some text output with 'writeOutput', after the effective report heading
+-- if any (see 'withTitle'). For commands producing simple text, like lists of names.
+writeOutputWithTitle :: CliOpts -> T.Text -> IO ()
+writeOutputWithTitle opts =
+  writeOutput opts . TL.unpack . withTitle (_rsReportOpts $ reportspec_ opts) . TL.fromStrict
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal

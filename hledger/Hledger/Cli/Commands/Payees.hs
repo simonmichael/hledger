@@ -15,12 +15,12 @@ module Hledger.Cli.Commands.Payees (
 ) where
 
 import Data.Text qualified as Text
-import Data.Text.IO qualified as T
+import Data.Text qualified as T
 import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printTitle)
+import Hledger.Cli.Utils (writeOutputWithTitle)
 import Data.List ((\\))
 import Data.List.Extra (nubSort)
 
@@ -41,8 +41,7 @@ payeesmode = hledgerCommandMode
 
 -- | The payees command.
 payees :: CliOpts -> Journal -> IO ()
-payees opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query, _rsReportOpts=ropts}} j = do
-  printTitle ropts
+payees opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
   let
     matchedused       = dbg5 "matchedused"       $ nubSort $ map transactionPayee $ filter (matchesTransaction query) $ jtxns j
     matcheddeclared   = dbg5 "matcheddeclared"   $ nubSort $ filter (matchesPayee query) $ journalPayeesDeclared j
@@ -58,7 +57,7 @@ payees opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query, _rs
     showp p
       | boolopt "directives" rawopts = "payee " <> if Text.any (==';') p then "\"" <> p <> "\"" else p
       | otherwise = p
-  mapM_ (T.putStrLn . showp) $ case declarablesSelectorFromOpts opts of
+  writeOutputWithTitle opts $ T.unlines $ map showp $ case declarablesSelectorFromOpts opts of
     Nothing         -> matchedall
     Just Used       -> matchedused
     Just Declared   -> matcheddeclared

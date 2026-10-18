@@ -17,12 +17,12 @@ import Data.Map qualified as M
 import Data.Maybe (fromMaybe)
 import Data.Set qualified as S
 import Data.Text qualified as Text
-import Data.Text.IO qualified as T
+import Data.Text qualified as T
 import System.Console.CmdArgs.Explicit
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printTitle)
+import Hledger.Cli.Utils (writeOutputWithTitle)
 import Data.List.Extra (nubSort)
 import Data.List ((\\))
 
@@ -43,8 +43,7 @@ commoditiesmode = hledgerCommandMode
   ([], Just $ argsFlag "[QUERY..]")
 
 commodities :: CliOpts -> Journal -> IO ()
-commodities opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query, _rsReportOpts=ropts}} j = do
-  printTitle ropts
+commodities opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query}} j = do
   let
     -- The "used" set is commodities appearing in transactions (postings and
     -- their costs). The "priced" set is commodities appearing in P (price)
@@ -98,7 +97,7 @@ commodities opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query
 
   -- --priced is specific to commodities, not part of the shared DeclarablesSelector.
   -- Enforce the mutex with the other selectors locally.
-  mapM_ (T.putStrLn . showc) $
+  writeOutputWithTitle opts $ T.unlines $ map showc $
     case (boolopt "priced" rawopts, declarablesSelectorFromOpts opts) of
       (True,  Nothing)         -> filt pricedmatched
       (True,  Just _)          -> error' "please pick at most one of --used, --priced, --declared, --undeclared, --unused, --find"

@@ -35,7 +35,7 @@ import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (writeOutput, withTitle, warnIfLargeMultiPeriodReport)
+import Hledger.Cli.Utils (writeOutputWithTitle, warnIfLargeMultiPeriodReport)
 import Hledger.Cli.Version (packageversion, versionStringWith)
 
 
@@ -117,7 +117,7 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
     tabstops = intercalate (replicate 7 ' ') (replicate 21 ".") <> "\n"
 
   -- write all of the output at once, so that eg -o FILE gets all of it
-  writeOutput opts $ TL.unpack $ withTitle (_rsReportOpts rspec) $ TL.pack $
+  writeOutputWithTitle opts $ T.pack $
     out1
     <> (if oneline && debugLevel>0 then tabstops else "")
     <> (if ismultiperiod then "\n" else "")

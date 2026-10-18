@@ -18,12 +18,12 @@ import Data.Ord (comparing)
 import Data.Maybe (fromJust)
 import Data.Time (diffDays)
 import Data.Either (partitionEithers)
-import Data.Text.IO qualified as T
 import Lens.Micro (set)
 import Safe (headDef)
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (writeOutputWithTitle)
 
 -- | Command line options for this command.
 diffmode = hledgerCommandMode
@@ -94,7 +94,7 @@ unmatchedtxns s pp m =
 
 -- | The diff command.
 diff :: CliOpts -> Journal -> IO ()
-diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{_rsQuery=Acct acctRe}} _ = do
+diff opts@CliOpts{file_=[f1, f2], reportspec_=ReportSpec{_rsQuery=Acct acctRe}} _ = do
   j1 <- orDieTrying $ readJournalFile (set ignore_assertions True definputopts) f1
   j2 <- orDieTrying $ readJournalFile (set ignore_assertions True definputopts) f2
 
@@ -107,10 +107,10 @@ diff CliOpts{file_=[f1, f2], reportspec_=ReportSpec{_rsQuery=Acct acctRe}} _ = d
   let unmatchedtxn1 = unmatchedtxns L pp1 m
   let unmatchedtxn2 = unmatchedtxns R pp2 m
 
-  putStrLn "These transactions are in the first file only:\n"
-  mapM_ (T.putStr . showTransaction) unmatchedtxn1
-
-  putStrLn "These transactions are in the second file only:\n"
-  mapM_ (T.putStr . showTransaction) unmatchedtxn2
+  writeOutputWithTitle opts $
+    "These transactions are in the first file only:\n\n"
+    <> foldMap showTransaction unmatchedtxn1
+    <> "These transactions are in the second file only:\n\n"
+    <> foldMap showTransaction unmatchedtxn2
 
 diff _ _ = error' "Please specify two input files. Usage: hledger diff -f FILE1 -f FILE2 FULLACCOUNTNAME"

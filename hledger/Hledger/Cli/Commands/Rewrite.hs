@@ -16,9 +16,9 @@ import Data.Map qualified as M
 import Data.Maybe (isJust)
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Text.IO qualified as T
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (writeOutput)
 import Hledger.Cli.Commands.Print
 import System.Console.CmdArgs.Explicit
 import System.IO (hPutStr, stderr)
@@ -68,7 +68,7 @@ transactionModifierFromOpts CliOpts{rawopts_=rawopts} =
 
 printOrDiff :: RawOpts -> (CliOpts -> Journal -> Journal -> IO ())
 printOrDiff opts
-    | boolopt "diff" opts = const (diffOutput (layoutFromRawOpts opts))
+    | boolopt "diff" opts = diffOutput (layoutFromRawOpts opts)
     | otherwise = flip (const print')
 
 -- | How many lines of unchanged context to show around each change,
@@ -87,10 +87,10 @@ type Edit = (Int, Int, [Text])
 -- patched. Changed transactions which don't - ones generated from CSV
 -- or timeclock data, or by a periodic transaction rule - are left out
 -- of the diff, and reported on stderr.
-diffOutput :: PostingLayout -> Journal -> Journal -> IO ()
-diffOutput postinglayout j j' = do
+diffOutput :: PostingLayout -> CliOpts -> Journal -> Journal -> IO ()
+diffOutput postinglayout opts j j' = do
     unless (null unpatchable) . hPutStr stderr $ unpatchableWarning unpatchable
-    T.putStr . foldMap fileDiff $ M.toAscList editsbyfile
+    writeOutput opts . T.unpack . foldMap fileDiff $ M.toAscList editsbyfile
   where
     changed = [(transactionWithMostlyOriginalPostings False t, transactionWithMostlyOriginalPostings False t')
               | (t, t') <- zip (jtxns j) (jtxns j'), t /= t']
