@@ -409,20 +409,38 @@ test.describe('report tree folding', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  // A depth limit opens the sidebar to it, like the report tables,
-  // overriding any folds saved in the browser; the accounts below the
-  // limit are served folded, and their carets open them in place.
-  test('a depth limit opens the sidebar to it, past saved folds', async ({ page }) => {
+  // A depth limit is each page's baseline: the sidebar starts folded to
+  // it, groups opened or closed by hand are remembered over it, and a
+  // caret clicked back to its page's baseline is forgotten.
+  test('a depth limit folds the sidebar, and caret choices are remembered over it', async ({ page }) => {
+    await page.goto('/journal?list=tree&q=depth:2');
+    const food = () => page.locator('#sidebar-menu tr[data-acct="expenses:food"]');
+    const groceries = () => page.locator('#sidebar-menu tr[data-acct="expenses:food:groceries"]');
+    await expect(food()).toBeVisible();
+    await expect(groceries()).toBeHidden();
+    // opening past the limit is remembered on the next page
+    await food().locator('.tree-caret').click();
+    await expect(groceries()).toBeVisible();
+    await page.goto('/balance?list=tree&q=depth:2');
+    await expect(groceries()).toBeVisible();
+    // closing it again returns it to the baseline, so a page without a
+    // depth limit, whose baseline is fully open, shows it open
+    await food().locator('.tree-caret').click();
+    await expect(groceries()).toBeHidden();
+    await page.goto('/journal?list=tree');
+    await expect(groceries()).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // The other direction: a group folded by hand stays folded on a page
+  // whose depth limit would open it.
+  test('a fold made by hand holds against a depth limit', async ({ page }) => {
     await page.goto('/journal?list=tree');
     const food = () => page.locator('#sidebar-menu tr[data-acct="expenses:food"]');
     await page.locator('#sidebar-menu tr[data-acct="expenses"] .tree-caret').click();
     await expect(food()).toBeHidden();
-    await page.goto('/journal?list=tree&q=depth:2');
-    await expect(food()).toBeVisible();
-    const groceries = () => page.locator('#sidebar-menu tr[data-acct="expenses:food:groceries"]');
-    await expect(groceries()).toBeHidden();
-    await food().locator('.tree-caret').click();
-    await expect(groceries()).toBeVisible();
+    await page.goto('/journal?list=tree&q=depth:3');
+    await expect(food()).toBeHidden();
     expect(pageErrors).toEqual([]);
   });
 

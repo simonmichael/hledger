@@ -167,6 +167,12 @@ When they span more than twenty years, the years are shown one row per decade.
 
 The **sidebar** lists accounts and their balances (parent balances include subaccounts,
 and multiple commodities are shown one above the other).
+When a report shows its accounts as a tree (the Accounts row), the sidebar does too,
+with carets that fold and open each group in place. Folds are remembered in the browser,
+as choices laid over each page's baseline: a page with a `depth:` limit starts folded
+to it, one without starts fully open, and either way the groups you have opened or
+closed by hand stay as you left them. A caret clicked back to its page's baseline
+is forgotten.
 Click an account name to see its register, or an amount to see the transactions it is
 made of. In the journal and register views, click a date to see that day's journal entries.
 
