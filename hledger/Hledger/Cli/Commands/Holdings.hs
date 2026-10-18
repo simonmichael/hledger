@@ -33,8 +33,9 @@ import Control.Monad (guard)
 import Data.Aeson (Value, object, (.=))
 import Data.Decimal (roundTo)
 import Data.Default (def)
-import Data.List.Extra (intercalate, intersperse, minimumBy, nubSort, nubSortOn, sortOn)
+import Data.List.Extra (find, intercalate, intersperse, minimumBy, nubSort, nubSortOn, sortOn)
 import Data.Map.Strict qualified as M
+import Data.Set qualified as S
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..), comparing)
 import Data.Text qualified as T
@@ -311,46 +312,64 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     poolavgmap = M.map (\(units, costtot) -> styleAmounts styles $ avgcost nullamt{aquantity=units} costtot)
                        (journalAveragePoolTotals j mend)
 
-    -- Which accounts (lot subaccounts, or the keys of the per-lot maps)
-    -- belong to a displayed row's own scope: those at or under the row's
-    -- account - excluding, in list mode, those at or under a deeper
-    -- candidate row, which displays them itself. (In tree mode, and for
-    -- totals, a row includes everything at or under it; see the *Under
-    -- helpers.) This is what makes overlapping list-mode rows disjoint,
-    -- eg when lots are held in both an account and its subaccount (each
-    -- of which then gets its own row).
-    rowScope :: AccountName -> (AccountName -> Bool)
-    rowScope acct = \sub -> covers acct sub && not (any (`covers` sub) deeper)
-      where
-        covers p s = p == s || p `isAccountNamePrefixOf` s
-        deeper | tree = []
-               | otherwise = [c | c <- candaccts, c /= acct, acct `isAccountNamePrefixOf` c]
+    -- The per-row lookups below (lotsOf, rgainsOf, flowsOf and the
+    -- *Under forms) used to scan a whole per-lot map for every displayed
+    -- row, making the report roughly O(rows × lots) (#2779). Instead,
+    -- each map is indexed by account up front, in two groupings:
+    --
+    -- "under": a key's data appears under its account and every ancestor,
+    -- answering "at or under this account" queries directly.
+    --
+    -- "own": a key's data appears under its owning row account - the
+    -- deepest candidate row account at or above it, if any - answering
+    -- "in this row's own scope" queries. This is what makes overlapping
+    -- list-mode rows disjoint, eg when lots are held in both an account
+    -- and its subaccount (each of which then gets its own row). In tree
+    -- mode a row's scope is its whole subtree, so the under index serves.
+    --
+    -- Each group keeps the map's ascending (account, commodity) key
+    -- order, as the full scans produced.
 
-    -- The values in a map whose keys are at or under the given account
-    -- (and in the given held commodity, if specified).
-    underIn :: M.Map (AccountName, CommoditySymbol) v -> AccountName -> Maybe CommoditySymbol -> [v]
-    underIn m acct = scopedIn m (\sub -> acct == sub || acct `isAccountNamePrefixOf` sub)
+    underIx :: M.Map (AccountName, CommoditySymbol) v -> M.Map AccountName [(CommoditySymbol, v)]
+    underIx m = groupIx [(anc, (c, v)) | ((sub, c), v) <- M.toAscList m
+                                       , anc <- sub : parentAccountNames sub]
 
-    -- The values in a map whose keys satisfy the given account test
-    -- (and are in the given held commodity, if specified).
-    scopedIn :: M.Map (AccountName, CommoditySymbol) v -> (AccountName -> Bool) -> Maybe CommoditySymbol -> [v]
-    scopedIn m intest mc =
-      [ v | ((sub, c), v) <- M.toAscList m
-      , intest sub
-      , maybe True (== c) mc
-      ]
+    ownIx :: M.Map (AccountName, CommoditySymbol) v -> M.Map AccountName [(CommoditySymbol, v)]
+    ownIx m
+      | tree = underIx m
+      | otherwise = groupIx [(owner, (c, v)) | ((sub, c), v) <- M.toAscList m
+                                             , Just owner <- [ownerOf sub]]
+
+    -- Group an ascending association list by account, each group keeping
+    -- the input order (fromListWith prepends, hence the reverse).
+    groupIx :: [(AccountName, a)] -> M.Map AccountName [a]
+    groupIx = M.fromListWith (++) . reverse . map (fmap (:[]))
+
+    -- A lot subaccount's owning row account: the deepest candidate row
+    -- account at or above it, if any.
+    ownerOf :: AccountName -> Maybe AccountName
+    ownerOf sub = find (`S.member` candaccset) (sub : parentAccountNames sub)
+    candaccset = S.fromList candaccts
+
+    ownFlowIx    = ownIx flowmap
+    ownRgainIx   = ownIx rgainmap
+    underRgainIx = underIx rgainmap
+
+    -- Narrow an indexed group to one held commodity, if specified.
+    inComm :: Maybe CommoditySymbol -> [(CommoditySymbol, v)] -> [v]
+    inComm mc kvs = [v | (c, v) <- kvs, maybe True (== c) mc]
 
     -- The cashflows of the lots in a row account's own scope.
     flowsOf :: AccountName -> Maybe CommoditySymbol -> [(Day, Amount)]
-    flowsOf acct mc = concat $ scopedIn flowmap (rowScope acct) mc
+    flowsOf acct mc = concat $ inComm mc $ M.findWithDefault [] acct ownFlowIx
 
     -- The realised gains of the lots at or under an account, optionally of one held commodity.
     rgainsUnder :: AccountName -> Maybe CommoditySymbol -> [Amount]
-    rgainsUnder = underIn rgainmap
+    rgainsUnder acct mc = inComm mc $ M.findWithDefault [] acct underRgainIx
 
     -- The realised gains of the lots in a row account's own scope.
     rgainsOf :: AccountName -> Maybe CommoditySymbol -> [Amount]
-    rgainsOf acct = scopedIn rgainmap (rowScope acct)
+    rgainsOf acct mc = inComm mc $ M.findWithDefault [] acct ownRgainIx
 
     -- A lot subaccount's cost basis, parsed from its name
     -- (which by construction contains the acquisition date and unit cost).
@@ -534,28 +553,29 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
       filter (not . amountLooksZero) $ sumAmounts $
       map fst $ lotsOf $ prrFullName r
 
-    -- The lots held at or under the given account, excluding empty ones.
-    lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
-    lotsUnder acct = lotsWhere (\sub -> acct == sub || acct `isAccountNamePrefixOf` sub)
-
-    -- The lots in a row account's own scope, excluding empty ones.
-    lotsOf :: AccountName -> [(Amount, Maybe CostBasis)]
-    lotsOf acct = lotsWhere (rowScope acct)
-
-    -- The nonempty lots whose subaccounts satisfy the given test.
-    -- A lot's cost basis comes from its subaccount name; when the name has
-    -- no cost part (AVERAGE lots' names omit it, staying stable across
-    -- re-averaging), the pool's current average cost is filled in instead.
-    lotsWhere :: (AccountName -> Bool) -> [(Amount, Maybe CostBasis)]
-    lotsWhere intest =
-      [ (a, addPoolAvg sub a <$> lotBasis sub) | ((sub, _), a) <- M.toAscList lotmap
-      , intest sub
-      , not $ amountLooksZero a
-      ]
+    -- The nonempty lots as (units, cost basis), keyed like lotmap.
+    -- A lot's cost basis comes from its subaccount name, parsed once
+    -- here; when the name has no cost part (AVERAGE lots' names omit it,
+    -- staying stable across re-averaging), the pool's current average
+    -- cost is filled in instead.
+    lotbases :: M.Map (AccountName, CommoditySymbol) (Amount, Maybe CostBasis)
+    lotbases = M.mapWithKey mklot $ M.filter (not . amountLooksZero) lotmap
       where
+        mklot (sub, _) a = (a, addPoolAvg sub a <$> lotBasis sub)
         addPoolAvg sub a cb@CostBasis{cbCost=Nothing} =
           cb{cbCost = M.lookup (lotBaseAccount sub, acommodity a) poolavgmap}
         addPoolAvg _ _ cb = cb
+
+    underLotIx = underIx lotbases
+    ownLotIx   = ownIx lotbases
+
+    -- The lots held at or under the given account, excluding empty ones.
+    lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
+    lotsUnder acct = map snd $ M.findWithDefault [] acct underLotIx
+
+    -- The lots in a row account's own scope, excluding empty ones.
+    lotsOf :: AccountName -> [(Amount, Maybe CostBasis)]
+    lotsOf acct = map snd $ M.findWithDefault [] acct ownLotIx
 
     -- Report rows come from a single-period, end-balances multiBalanceReport:
     -- on the lot-detailed journal with --lots (rows are lot subaccounts),
@@ -583,7 +603,7 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     -- nothing in their own scope (eg a base account row whose lots all
     -- appear in displayed lot subaccount rows); in tree mode all are
     -- wanted. A row holding lots directly is kept even when a deeper row
-    -- also displays; it shows just its own lots (see rowScope).
+    -- also displays; it shows just its own lots (see ownIx).
     rows = filter keeprow candidates
       where
         keeprow r = tree || not (null (lotsOf acct))
@@ -601,7 +621,8 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     -- The topmost displayed rows: those not contained in another displayed
     -- row. Totals are computed from these, to avoid double counting.
     toprows = [ r | r <- rows
-              , not $ any (\r2 -> prrFullName r2 `isAccountNamePrefixOf` prrFullName r) rows ]
+              , not $ any (`S.member` rowaccset) (parentAccountNames $ prrFullName r) ]
+      where rowaccset = S.fromList $ map prrFullName rows
 
     -- The display order: by account name, or with -S by each row's Value
     -- (falling back to Cost), largest first. Sorting compares the keys
@@ -667,8 +688,7 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
           | not $ empty_ ropts = []
           | otherwise =
               [ nullamt{acommodity=c}
-              | c <- nubSort [ c2 | ((sub, c2), g) <- M.toAscList rgainmap
-                                  , rowScope acct sub
+              | c <- nubSort [ c2 | (c2, g) <- M.findWithDefault [] acct ownRgainIx
                                   , not $ amountLooksZero g ]
               , c `notElem` map acommodity heldamts
               ]
