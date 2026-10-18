@@ -374,7 +374,8 @@ test.describe('report tree folding', () => {
   // changing the URL.
   test('folds to the depth in the search, and carets unfold groups in place', async ({ page }) => {
     await page.goto('/balance?list=tree&q=depth:1');
-    const top = page.locator('td.account.depth-0').first();
+    // expenses is the branching group; the boring chains squash to leaves
+    const top = page.locator('td.account.depth-0', { hasText: 'expenses' });
     const deep = page.locator('td.account.depth-1').first();
     await expect(top).toBeVisible();
     await expect(deep).toBeHidden();
@@ -423,7 +424,7 @@ test.describe('report tree folding', () => {
     await page.goto('/balance?list=tree');
     const deep = page.locator('td.account.depth-1').first();
     await expect(deep).toBeVisible();
-    await page.locator('td.account.depth-0 .tree-caret').first().click();
+    await page.locator('td.account.depth-0', { hasText: 'expenses' }).locator('.tree-caret').click();
     await expect(deep).toBeHidden();
     expect(pageErrors).toEqual([]);
   });

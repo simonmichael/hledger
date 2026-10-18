@@ -154,9 +154,6 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
       rpRopts = ropts1 {
           value_           = value',
           accountlistmode_ = fromMaybe (accountlistmode_ roptsOrig) mlist,
-          -- In tree mode every level is a row of its own, so that each
-          -- is a fold point on the page.
-          no_elide_        = no_elide_ roptsOrig || tree,
           depth_           = if tree then mempty else depth_ ropts1,
           row_total_       = total,
           average_         = avg,

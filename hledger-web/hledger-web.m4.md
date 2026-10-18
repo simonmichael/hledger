@@ -269,7 +269,7 @@ commodity, the last two selecting several at once with shift-click.
 Every page shows and preserves the report state its url carries: a
 link changes only the control it names, and controls that take effect
 on another page (the report-shaping rows, on the journal and register)
-are shown dimmed, their state marked all the same. Only the
+show muted labels, their state marked all the same. Only the
 accumulation mode and the register's costs toggle are page-local.
 
 The balance sheets show ending balances and the income statement and

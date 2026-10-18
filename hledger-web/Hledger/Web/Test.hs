@@ -584,7 +584,7 @@ hledgerWebTest = do
       -- assets:bank:checking is at depth 3, the same as All
       bodyNotContains "depth%3A3"
 
-    yit "serves a tree-mode report at full depth, marked for folding to the search's depth" $ do
+    yit "squashes boring parents in tree mode, as the cli does" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
@@ -592,9 +592,10 @@ hledgerWebTest = do
         addGetParam "q" "depth:1"
       statusIs 200
       bodyContains "data-depth-fold=\"1\""
+      -- every account chain here is boring, so each is one depth-0 row
+      bodyContains ">assets:bank:checking</a>"
       bodyContains "class=\"account depth-0\""
-      -- the rows below the fold are served too, for the page to unfold
-      bodyContains "class=\"account depth-2\""
+      bodyNotContains "class=\"account depth-1\""
       -- the figure's register keeps the sticky state, tree mode included
       bodyContains "href=\"register?q=inacct:assets:bank:checking+depth:1&amp;list=tree\""
 
@@ -701,7 +702,7 @@ hledgerWebTest = do
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=type%3AA\" title=\"Show only asset accounts (type:A)\"")
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=type%3AL\" title=\"Show only liability accounts (type:L)\"")
       bodyContains ("<a href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show accounts of every type\"")
-      bodyContains "Shift-click selects multiple types."
+      bodyContains "Shift-click selects several types or commodities."
 
     yit "uses --title for the heading, unaltered" $ do
       get BalanceR
@@ -811,6 +812,33 @@ hledgerWebTest = do
         addGetParam "accum" "historical"
       statusIs 200
       bodyNotContains "name=\"accum\""
+
+  -- A journal whose accounts branch, so tree mode has real fold points
+  -- (bj's chains all squash to single rows).
+  fj <- fmap (either error' id) . runExceptT . journalFinalise biopts "branching.journal" "" =<<
+          readJournal'' (T.pack $ unlines  -- PARTIAL: readJournal'' should not fail
+            ["2025-01-05 pay"
+            ,"    assets:bank:checking   100"
+            ,"    income:salary"
+            ,"2025-02-05 save"
+            ,"    assets:bank:savings     50"
+            ,"    assets:bank:checking"])
+  runTests "hledger-web tree mode" [] fj $ do
+
+    yit "serves a tree-mode report at full depth, marked for folding to the search's depth" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "list" "tree"
+        addGetParam "q" "depth:1"
+      statusIs 200
+      bodyContains "data-depth-fold=\"1\""
+      -- assets is boring and squashed into its branching child
+      bodyContains ">assets:bank</a>"
+      bodyContains "class=\"account depth-0\""
+      -- the rows below the fold are served too, for the page to unfold
+      bodyContains "class=\"account depth-1\""
+      bodyContains ">checking</a>"
 
   -- The journal, register, and sidebar link to one another: a date to that
   -- day's journal entries, an account to its register, an amount to the
@@ -1253,7 +1281,6 @@ hledgerWebTest = do
       -- a spaced symbol's term is quoted whole, and its pattern is in its link's data
       bodyContains "q=%22cur%3AAAA%20UU%22"
       bodyContains "data-cur=\"AAA UU\""
-      bodyContains "Shift-click selects multiple commodities."
       request $ do
         setMethod "GET"
         setUrl BalanceR
@@ -1287,6 +1314,25 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "10 AAPL"
       bodyNotContains "$1,000.00"
+
+  -- Many commodities: the row collapses to a line showing the selection.
+  cj <- fmap (either error' id) . runExceptT . journalFinalise biopts "commodities.journal" "" =<<
+          readJournal'' (T.pack $ unlines  -- PARTIAL: readJournal'' should not fail
+            ["commodity 1.00 CC" ++ [c] | c <- "ABCDEFG"])
+  runTests "hledger-web with many commodities" [] cj $ do
+
+    yit "collapses the commodity row to its selection, opening to the list" $ do
+      get BalanceR
+      statusIs 200
+      bodyContains "<summary title=\"List all the commodities\">"
+      bodyContains "class=\"sel\">All<"
+      bodyContains "data-cur=\"CCG\""
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "q" "cur:CCA|CCC"
+      statusIs 200
+      bodyContains "class=\"sel\">CCA, CCC<"
 
   -- A journal whose accounts have no recognizable types has empty statements.
   uj <- fmap (either error' id) . runExceptT . journalFinalise biopts "untyped.journal" "" =<<
@@ -1927,7 +1973,7 @@ hledgerWebTest = do
       rows <- map (TL.toStrict . TLE.decodeUtf8) <$> htmlQuery "p.years"
       assertEq "the All row, then one row per decade" (length rows) 4
       let row2010s = rows !! 2
-      assertEq "the 2010s row is labelled" (T.isInfixOf "<span>2010s:</span>" row2010s) True
+      assertEq "the 2010s row is labelled" (T.isInfixOf "<span class=\"row-label\">2010s:</span>" row2010s) True
       assertEq "2010 opens the 2010s row" (T.isInfixOf "date%3A2010\"" row2010s) True
       assertEq "2019 ends the 2010s row" (T.isInfixOf "date%3A2019\"" row2010s) True
       assertEq "2009 is not in the 2010s row" (T.isInfixOf "date%3A2009\"" row2010s) False

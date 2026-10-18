@@ -8,6 +8,7 @@ module Hledger.Web.Widget.Common
   ( accountQuery
   , accountOnlyQuery
   , balanceReportAsHtml
+  , controlsHint
   , controlsToggle
   , inertControls
   , linksRow
@@ -143,7 +144,7 @@ balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty to
 linksRow :: Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
 linksRow rowlabel items renderUrl =
     H.p ! A.class_ "report-links" $ do
-      H.toHtml rowlabel
+      H.span ! A.class_ "row-label" $ H.toHtml rowlabel
       for_ items $ \(label, title, link, current) ->
         H.a !? (current, A.class_ "current")
             ! A.href (H.toValue $ uncurry renderUrl link)
@@ -163,16 +164,20 @@ controlsToggle trs rows =
   ^{rows}
 |]
 
--- | Rows of controls that take effect on other pages, shown dimmed:
--- they show and preserve the url's report state here too, so it is
--- never invisible, and never lost by following a link.
+-- | Rows of controls that take effect on other pages, their labels
+-- muted: they show and preserve the url's report state here too, so it
+-- is never invisible, and never lost by following a link.
 inertControls :: Translations -> HtmlUrl r -> HtmlUrl r
 inertControls trs rows =
-  -- TRANSLATORS: the tooltip on the dimmed control rows of the journal and register pages.
+  -- TRANSLATORS: the tooltip on the muted control rows of the journal and register pages.
   [hamlet|
 <div .controls-inert title=#{tr trs "These controls take effect on the report pages"}>
   ^{rows}
 |]
+
+-- | A short usage hint below a row of controls, in muted small text.
+controlsHint :: Translations -> Text -> HtmlUrl r
+controlsHint trs t _ = H.p ! A.class_ "controls-hint" $ H.toHtml $ tr trs t
 
 -- | Links choosing where market prices come from: declared ones only,
 -- or inferred from transaction costs too, keeping the given parameters;
@@ -384,8 +389,6 @@ typeLinks trs route kept qparam renderUrl =
       ( (trc trs "account type" "All", tr trs "Show accounts of every type", link Nothing, null selected)
       : [ (label, title, link (Just letter), letter `elem` selected)
         | (label, title, letter) <- types ]) renderUrl
-    -- TRANSLATORS: the hint below the account type filter links.
-    H.p ! A.class_ "controls-hint" $ H.toHtml $ tr trs "Shift-click selects multiple types."
   where
     types =
       [ (tr trs "Asset",      tr trs "Show only asset accounts (type:A)",      'A')
@@ -416,25 +419,39 @@ typeLinks trs route kept qparam renderUrl =
 commodityLinks :: Translations -> r -> [(Text, Text)] -> Text -> Journal -> HtmlUrl r
 commodityLinks trs route kept qparam j renderUrl
   | length syms < 2 = mempty
+  -- A few commodities are a row like any other; many collapse to a
+  -- line showing the selection, the full list opening on demand.
+  | length syms <= 6 =
+      H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $
+        links True
   | otherwise =
-      H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $ do
-        H.p ! A.class_ "report-links" $ do
-          -- TRANSLATORS: the label before a page's commodity filter links, and the links' text and tooltips.
-          H.toHtml $ tr trs "Commodity:"
-          H.a !? (null selected, A.class_ "current")
-              ! A.href (H.toValue $ uncurry renderUrl alllink)
-              ! A.title (H.toValue $ tr trs "Show amounts in every commodity") $
-            H.toHtml $ trc trs "commodity" "All"
-          for_ syms $ \sym -> do
-            let pat = regexEscape sym
-            H.a !? (pat `elem` selected, A.class_ "current")
-                ! A.href (H.toValue $ uncurry renderUrl $ symlink pat)
-                ! A.title (H.toValue $ trf trs "Show only amounts in {commodity}" [("commodity", sym)])
-                ! H.dataAttribute "cur" (H.toValue pat) $
-              H.toHtml sym
-        -- TRANSLATORS: the hint below the commodity filter links.
-        H.p ! A.class_ "controls-hint" $ H.toHtml $ tr trs "Shift-click selects multiple commodities."
+      H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $
+        H.details $ do
+          H.summary ! A.title (H.toValue $ tr trs "List all the commodities") $ do
+            -- TRANSLATORS: the label before a page's commodity filter links, and the links' text and tooltips.
+            H.span ! A.class_ "row-label" $ H.toHtml $ tr trs "Commodity:"
+            H.span ! A.class_ "sel" $ H.toHtml selectionText
+          links False
   where
+    links withLabel =
+      H.p ! A.class_ "report-links" $ do
+        H.span ! A.class_ "row-label" $
+          if withLabel then H.toHtml $ tr trs "Commodity:" else mempty
+        H.a !? (null selected, A.class_ "current")
+            ! A.href (H.toValue $ uncurry renderUrl alllink)
+            ! A.title (H.toValue $ tr trs "Show amounts in every commodity") $
+          H.toHtml $ trc trs "commodity" "All"
+        for_ syms $ \sym -> do
+          let pat = regexEscape sym
+          H.a !? (pat `elem` selected, A.class_ "current")
+              ! A.href (H.toValue $ uncurry renderUrl $ symlink pat)
+              ! A.title (H.toValue $ trf trs "Show only amounts in {commodity}" [("commodity", sym)])
+              ! H.dataAttribute "cur" (H.toValue pat) $
+            H.toHtml sym
+    chosen = [sym | sym <- syms, regexEscape sym `elem` selected]
+    selectionText
+      | null chosen = trc trs "commodity" "All"
+      | otherwise = T.intercalate ", " chosen
     syms = filter (not . T.null) $ Set.toAscList $ journalCommodities j
     terms = searchTerms qparam
     rest = map quoteIfSpaced $ filter (not . T.isPrefixOf "cur:") terms

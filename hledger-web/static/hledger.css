@@ -197,11 +197,21 @@ td.date {
   margin-left: 0.5em;
   white-space: nowrap;
 }
+/* The state being shown reads as state, not as another link: bold, in
+   the text color. */
 .report-links .current {
-  font-weight: bold;
+  font-weight: 600;
+  color: inherit;
+}
+/* The rows' labels share a width, so the links start in one column. */
+.report-links > .row-label {
+  display: inline-block;
+  min-width: 8.5em;
 }
 /* The rows of report controls sit behind this disclosure, closed by
-   default; opening it is remembered per browser (default-layout.hamlet). */
+   default; opening it is remembered per browser (default-layout.hamlet).
+   Bootstrap removes summary's native marker, so it gets its own caret,
+   like the account trees'. */
 details.report-controls {
   margin: 10px 0;
 }
@@ -209,13 +219,25 @@ details.report-controls > summary {
   cursor: pointer;
   width: max-content;
 }
-/* Controls that take effect on other pages are muted by desaturating
-   (Widget.Common.inertControls); they still mark and carry their state.
-   Not by opacity: the links sit near the AA contrast floor, so any
-   real dimming would push their text below 4.5:1 (see the dark-scheme
-   browser test). Grayscale preserves luminance, so contrast is kept. */
-.controls-inert {
-  filter: grayscale(1);
+details.report-controls > summary::before {
+  content: "▸";
+  display: inline-block;
+  width: 1.1em;
+  color: var(--link, #337ab7);
+}
+details.report-controls[open] > summary::before {
+  content: "▾";
+}
+details.report-controls[open] > summary {
+  margin-bottom: 8px;
+}
+/* Controls that take effect on other pages (Widget.Common.inertControls)
+   mute only their labels: the links work, setting state for the report
+   pages, and the wrapper's tooltip says so. Not by dimming the links:
+   they sit near the AA contrast floor (see the dark-scheme browser
+   test), and they are not disabled. */
+.controls-inert .row-label {
+  color: var(--muted);
 }
 
 /* Flat-mode account cells marked acct-split (reportTable) show the parent
@@ -242,18 +264,33 @@ details.report-controls > summary {
 .report-table td.account.acct-split { white-space: nowrap; }
 
 /* The commodity row lists every commodity in the journal; past a few
-   lines it scrolls instead of growing. */
+   lines it scrolls instead of growing, and many commodities collapse
+   to one line showing the selection (Widget.Common.commodityLinks). */
 div.commodities .report-links {
   max-height: 7.5em;
   overflow-y: auto;
 }
+div.commodities summary {
+  cursor: pointer;
+  width: max-content;
+}
+div.commodities summary .sel {
+  color: var(--link, #337ab7);
+  margin-left: 0.5em;
+}
+div.commodities summary .sel::before {
+  content: "▸ ";
+}
+div.commodities details[open] summary .sel::before {
+  content: "▾ ";
+}
 
 /* A short usage hint below a row of controls, eg the years row's
-   shift-click range selection. */
+   shift-click range selection, indented to the links column. */
 .controls-hint {
   color: var(--muted);
   font-size: 0.85em;
-  margin: -8px 0 10px;
+  margin: -8px 0 10px 10.6em;
 }
 /* The pages row keeps its shape from page to page: the newer and older
    links hold their places when absent, and each page number has a cell
@@ -756,7 +793,12 @@ ul {
 .tree-fold-hide { display: none; }
 .more-commodities { opacity: .55; white-space: nowrap; }
 #sidebar-menu tr.total > td.total-label { text-align: right; padding-right: 6px; opacity: .7; white-space: nowrap; }
-.tree-caret { display: inline-block; width: 1.1em; cursor: pointer; color: var(--link, #337ab7); user-select: none; }
+/* The caret absorbs the indent to its left rather than adding width, so
+   the account names sit exactly where list mode puts them; the glyph
+   hugs the name. */
+.tree-caret { display: inline-block; width: 1.1em; margin-left: -1.1em; text-align: right; padding-right: 0.15em; cursor: pointer; color: var(--link, #337ab7); user-select: none; }
+/* Depth 0 has no indent to absorb, so it gets one caret-width of its own. */
+.report-table td.account.depth-0  { padding-left: 1.1em; }
 .report-table td.account.depth-1  { padding-left: 1.6em; }
 .report-table td.account.depth-2  { padding-left: 3.0em; }
 .report-table td.account.depth-3  { padding-left: 4.4em; }

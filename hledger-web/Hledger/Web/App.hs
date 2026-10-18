@@ -180,9 +180,6 @@ instance Yesod App where
           ,empty_           = True    -- show zero items by default
           ,interval_        = NoInterval  -- one balance per account, over the search's own span
           ,infer_prices_    = infer_prices_ (_rsReportOpts rspec) || inferparam
-          -- In tree mode every level is a row of its own, so that each
-          -- is a fold point, as in the report tables.
-          ,no_elide_        = no_elide_ (_rsReportOpts rspec) || sidebarFold
           }
         -- A depth limit clips the sidebar's accounts, except in tree
         -- mode, where the sidebar is served at full depth and the limit
