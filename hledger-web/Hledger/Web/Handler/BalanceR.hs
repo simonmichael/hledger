@@ -53,7 +53,18 @@ getBalanceR = do
             ropts = rpRopts{balanceaccum_ = accum}
             rspec = rpRspec{_rsReportOpts = ropts}
             styles = journalCommodityStylesWith HardRounding j
-            mbr = styleAmounts styles $ multiBalanceReport rspec j
+            mbrAsked = styleAmounts styles $ multiBalanceReport rspec j
+        -- Percentages divide each amount by its column's total, which
+        -- needs them in one commodity; whether they are is in the data,
+        -- so the report, not reportParams, raises the error. Probe for
+        -- it, and show plain amounts with an explanation instead of an
+        -- error page. Only the report falls back: the links and the
+        -- Numbers row keep the url's percent state.
+        pctErr <- if percent_ ropts then liftIO $ reportProbe mbrAsked else pure Nothing
+        let roptsR = if isJust pctErr then ropts{percent_ = False} else ropts
+            rspecR = rspec{_rsReportOpts = roptsR}
+            mbr | isJust pctErr = styleAmounts styles $ multiBalanceReport rspecR j
+                | otherwise = mbrAsked
             colspans = prDates mbr
             -- What links staying on this page keep: the period as given, and each
             -- report-shaping parameter that is not at its default.
@@ -95,17 +106,17 @@ getBalanceR = do
             (title, header, body, totals) = case rpInterval of
               NoInterval ->
                 let (h, b, t) =
-                      Balance.balanceReportAsSpreadsheetParts oneLineNoCostFmt ropts $
-                        styleAmounts styles $ balanceReport rspec j
+                      Balance.balanceReportAsSpreadsheetParts oneLineNoCostFmt roptsR $
+                        styleAmounts styles $ balanceReport rspecR j
                     -- The plain page has its own name; one narrowed to a
                     -- period, or showing ending balances, says so like the
                     -- multi-period page does.
                     dflt | queryDateSpan (date2_ ropts) (_rsQuery rspec) == nulldatespan && accum == PerPeriod = tr trs "Balance report"
-                         | otherwise = trimColon $ Balance.multiBalanceReportTitle ropts mbr
+                         | otherwise = trimColon $ Balance.multiBalanceReportTitle roptsR mbr
                 in (reportTitle ropts dflt, [toList h], relink $ map toList b, relink $ map toList t)
               _ ->
-                let (h, b, t) = Balance.multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt ropts mbr
-                in ( reportTitle ropts $ trimColon $ Balance.multiBalanceReportTitle ropts mbr
+                let (h, b, t) = Balance.multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt roptsR mbr
+                in ( reportTitle ropts $ trimColon $ Balance.multiBalanceReportTitle roptsR mbr
                    , map (relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans) h, relink b, relink t)
         let isTree = accountlistmode_ ropts == ALTree
             mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
@@ -150,6 +161,7 @@ getBalanceR = do
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
         Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
+        for_ pctErr $ Yesod.toWidget . pctError trs
         Yesod.toWidget $ reportTable isTree mfold header [(acctsPrefix, body', [])] totals
 
 -- | The heading for a report: --title if one was given, otherwise the

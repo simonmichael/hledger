@@ -1214,6 +1214,30 @@ hledgerWebTest = do
       bodyContains "$900.00"
       bodyContains "href=\"register?q=inacct:assets:broker+date:2025-01&amp;value=cost\""
 
+    -- Percentages need the amounts in one commodity, which depends on
+    -- the data: the page explains and shows plain amounts, instead of
+    -- the error page the report's error used to become (the url keeps
+    -- pct=1, so the links and the Numbers row keep the state).
+    yit "explains percentages it cannot calculate, showing amounts instead" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "pct" "1"
+      statusIs 200
+      bodyContains "Could not calculate percentages:"
+      bodyContains "16 AAPL"
+      bodyContains "pct=1"
+
+    yit "shows percentages when a conversion yields one commodity" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "pct" "1"
+        addGetParam "value" "end"
+      statusIs 200
+      bodyContains "100.0 %"
+      bodyNotContains "Could not calculate percentages"
+
     yit "reports an amount conversion it does not know" $ do
       request $ do
         setMethod "GET"

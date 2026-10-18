@@ -16,6 +16,8 @@ module Hledger.Web.ReportPage (
   startupUrlState,
   intervalPeriodExpr,
   paramError,
+  reportProbe,
+  pctError,
   AmountMode(..),
   parseValue,
   parseListMode,
@@ -40,8 +42,10 @@ module Hledger.Web.ReportPage (
   splitAccountNames,
 ) where
 
+import Control.Exception qualified as E
 import Control.Monad (mfilter, unless)
 import Data.Foldable (for_, traverse_)
+import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -434,6 +438,23 @@ addLinkParams [] c = c
 addLinkParams params c
   | T.null (cellAnchor c) = c
   | otherwise = c {cellAnchor = cellAnchor c <> T.concat ["&" <> k <> "=" <> v | (k, v) <- params]}
+
+-- | Force a report enough to surface the error a percentage report
+-- raises when its amounts span commodities: that depends on the data,
+-- not the parameters, so reportParams cannot catch it. Nothing when
+-- the report calculates.
+reportProbe :: Show r => r -> IO (Maybe String)
+reportProbe r =
+  E.handle (\(E.ErrorCall e) -> pure $ Just e) $
+    Nothing <$ E.evaluate (length $ show r)
+
+-- | Explain percentages falling back to plain amounts, showing the
+-- report's own message.
+pctError :: Translations -> String -> Html
+pctError trs e =
+  H.div ! A.class_ "alert alert-danger" $ do
+    H.toHtml $ tr trs "Could not calculate percentages:"
+    H.pre $ H.toHtml $ fromMaybe e $ stripPrefix "Error: " e
 
 -- | Explain a parameter the page could not use.
 paramError :: Translations -> ReportParamError -> Html

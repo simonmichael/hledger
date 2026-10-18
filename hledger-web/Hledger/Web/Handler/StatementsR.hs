@@ -76,9 +76,17 @@ statementPage here tabtitle spec = do
             override = mfilter (/= cbcaccum spec) rpAccum
             ropts = rpRopts{balanceaccum_ = accum}
             rspec = rpRspec{_rsReportOpts = ropts}
-            cbr0 =
-              styleAmounts (journalCommodityStylesWith HardRounding j) $
-                compoundBalanceReport rspec j (cbcqueries spec)
+            styles = journalCommodityStylesWith HardRounding j
+            cbrAsked = styleAmounts styles $ compoundBalanceReport rspec j (cbcqueries spec)
+        -- Percentages can be impossible in the data (amounts in mixed
+        -- commodities); probe the report for that error and show plain
+        -- amounts with an explanation instead of an error page, keeping
+        -- the url's percent state. See BalanceR.
+        pctErr <- if percent_ ropts then liftIO $ reportProbe cbrAsked else pure Nothing
+        let roptsR = if isJust pctErr then ropts{percent_ = False} else ropts
+            rspecR = rspec{_rsReportOpts = roptsR}
+            cbr0 | isJust pctErr = styleAmounts styles $ compoundBalanceReport rspecR j (cbcqueries spec)
+                 | otherwise = cbrAsked
             cbr =
               applySubreportTitles ropts $
                 cbr0{cbrTitle = effectiveTitle ropts $ compoundBalanceReportTitle spec rpRopts override cbr0}
@@ -118,7 +126,7 @@ statementPage here tabtitle spec = do
             relink = map (map (addLinkParams registerParams))
             headinglink = urlrender here . headingParams rpInterval qparam params
             CompoundBalanceReportParts{cbrpLeadingHeaders, cbrpDataHeaders, cbrpSections, cbrpNetRows} =
-              compoundBalanceReportAsSpreadsheetParts oneLineNoCostFmt "account" ropts (cbcqueries spec) cbr
+              compoundBalanceReportAsSpreadsheetParts oneLineNoCostFmt "account" roptsR (cbcqueries spec) cbr
             -- The heading row with the classes the stylesheet aligns the
             -- columns by, and this page's column headings and links.
             withClass c cell = cell{Spr.cellClass = Spr.Class c}
@@ -137,7 +145,7 @@ statementPage here tabtitle spec = do
             noRows = all (\(_, r, _) -> null $ prRows r) . cbrSubreports
             empty = noRows cbr
             -- An empty report with zero balances hidden may have them all: look again showing them.
-            zerosHidden = hideEmpty && not (noRows $ compoundBalanceReport rspec{_rsReportOpts = ropts{empty_ = True}} j (cbcqueries spec))
+            zerosHidden = hideEmpty && not (noRows $ compoundBalanceReport rspecR{_rsReportOpts = roptsR{empty_ = True}} j (cbcqueries spec))
         let isTree = accountlistmode_ ropts == ALTree
             mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
             -- The links to the other reports stay visible; every other
@@ -175,6 +183,7 @@ statementPage here tabtitle spec = do
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
         Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
+        for_ pctErr $ Yesod.toWidget . pctError trs
         if empty
           then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)
           else Yesod.toWidget $ reportTable isTree mfold [header] sections (relink cbrpNetRows)

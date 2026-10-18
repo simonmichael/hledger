@@ -849,6 +849,10 @@ msgid "Show each balance's change since the start of the report (--cumulative)"
 msgstr ""
 
 #: hledger-web/Hledger/Web/ReportPage.hs
+msgid "Could not calculate percentages:"
+msgstr ""
+
+#: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Could not parse the period expression:"
 msgstr ""
 
