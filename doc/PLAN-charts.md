@@ -112,7 +112,8 @@ Sections take an account type from their query, which their accounts inherit if 
   stippled ones are used mainly when there are more series; accounts choose first, then "other" series (grey, so their texture
   matters less), whose preferences are reversed, favouring the stippled ones (the palest, ░, also separates the grey from the coloured segments well).
 - Palette: the dataviz skill's validated reference palette; type hues validated on the pairs that co-occur (green/red is in the CVD warn band,
-  so legends and positions matter). Tints mix with white/black ([0, 0.4, -0.3, 0.65]).
+  so legends and positions matter). Tints mix with white/black ([0, -0.3, 0.4, 0.65], most saturated first),
+  and are chosen favouring the first (`stableSlotsFavouringFirst 0.5`), since the pale ones looked washed out when chosen for a lone account.
 - Text: exact colours with `COLORTERM=truecolor` (dark variants when the background is known dark), else basic ANSI colours.
   Negative values stay ANSI red, like other output.
 

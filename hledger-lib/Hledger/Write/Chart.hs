@@ -235,10 +235,13 @@ seriesColours colouring series = zipWith colour series' slots
     -- each series' slot among the other ordinary series of its type (or with no type)
     slots = [ fromMaybe 0 $ M.lookup i slotmap | i <- [0 .. length series' - 1] ]
     slotmap = M.fromList $ concat
-      [ zip is $ stableSlots (if isJust t then maxTints else categoricalColours) [(lbFull $ seLabel s, seriesSize s) | s <- ss]
+      [ zip is $ slotsfor t [(lbFull $ seLabel s, seriesSize s) | s <- ss]
       | t <- nub $ map typeOf ordinary
       , let (is, ss) = unzip [(i, s) | (i, s) <- zip [0 :: Int ..] series', seRole s == SeriesItem, typeOf s == t] ]
     ordinary = [s | s <- series', seRole s == SeriesItem]
+    -- a type's tints are chosen favouring the first, most saturated ones (the paler ones look washed out),
+    -- so that they are used mainly when several accounts of the type need telling apart; categorical colours, without bias
+    slotsfor t = if isJust t then stableSlotsFavouringFirst 0.5 maxTints else stableSlots categoricalColours
     colour s k = case (seRole s, typeOf s) of
       (SeriesTotal, _) -> TotalColour
       (SeriesOther, _) -> OtherColour
@@ -391,7 +394,7 @@ tests_Hledger_Write_Chart = testGroup "Write.Chart" [
      seriesColours ByName [(ser "o" Nothing){seRole = SeriesOther}, (ser "t" Nothing){seRole = SeriesTotal}]
        @?= [OtherColour, TotalColour]
      -- in a chart of single accounts, a lone account has its type's hue, or if unknown the lone colour
-     seriesColours Single [ser "e" (Just Expense)] @?= map (TypeColour Expense) (stableSlots maxTints [("e", 1 :: Quantity)])
+     seriesColours Single [ser "e" (Just Expense)] @?= map (TypeColour Expense) (stableSlotsFavouringFirst 0.5 maxTints [("e", 1 :: Quantity)])
      seriesColours Single [ser "u" Nothing] @?= [LoneColour]
   ,testCase "stableSlots" $ do
      let items = [("a", 3), ("b", 2), ("c", 1)] :: [(Text, Int)]

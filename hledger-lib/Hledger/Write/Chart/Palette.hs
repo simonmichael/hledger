@@ -55,9 +55,10 @@ categorical =
   , ("#e87ba4", "#d55181"), ("#008300", "#008300"), ("#4a3aa7", "#9085e9"), ("#e34948", "#e66767") ]
 
 -- | How the Nth tint of a type's colour differs from it ('maxTints' of them, repeating):
--- the colour itself, then lighter, darker, and lighter still (the fraction to mix with white (positive) or black (negative)).
+-- the colour itself, then darker, lighter, and lighter still (the fraction to mix with white (positive) or black (negative));
+-- most saturated first, since accounts prefer the first ones (see 'seriesColours').
 tintFraction :: Int -> Double
-tintFraction k = fromMaybe 0 $ take maxTints [0, 0.4, -0.3, 0.65] `atMay` (k `mod` maxTints)
+tintFraction k = fromMaybe 0 $ take maxTints [0, -0.3, 0.4, 0.65] `atMay` (k `mod` maxTints)
 
 -- | Mix a #rrggbb colour with white (by a positive fraction) or black (by a negative fraction).
 tint :: Double -> Text -> Text
