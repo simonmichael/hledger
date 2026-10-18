@@ -20,13 +20,13 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.Paging
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
               controlsToggle, costsLinks, depthLinks,
-              inertControls, intervalLinks, listModeLinks, mixedAmountAsHtml,
+              inertControls, listModeLinks, mixedAmountAsHtml,
               mixedAmountAsHtmlWith, percentLinks, pricesLinks, realLinks,
               sortLinks, statusLinks, typeLinks,
               zeroBalanceLinks, transactionFragment, removeDates, removeInacct, replaceInacct, journalDayQuery)

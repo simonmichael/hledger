@@ -33,10 +33,10 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (accumulationLinks, amountLinks, calcLinks, columnsLinks, controlsToggle,
-   depthLinks, helplink, intervalLinks,
+  (amountLinks, calcLinks, columnsLinks, controlsToggle,
+   depthLinks, helplink,
    listModeLinks, percentLinks, pricesLinks, realLinks, removeInacct,
-   reportLinks, sortLinks, statusLinks, zeroBalanceLinks)
+   sortLinks, statusLinks, zeroBalanceLinks)
 
 getBalancesheetR, getBalancesheetequityR, getIncomestatementR, getCashflowR :: Handler Html
 -- TRANSLATORS: the browser tab titles of the statement pages.
