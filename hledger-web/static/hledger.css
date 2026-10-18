@@ -217,6 +217,14 @@ details.report-controls > summary {
 .controls-inert {
   filter: grayscale(1);
 }
+
+/* A short usage hint below a row of controls, eg the years row's
+   shift-click range selection. */
+.controls-hint {
+  color: var(--muted);
+  font-size: 0.85em;
+  margin: -8px 0 10px;
+}
 /* The pages row keeps its shape from page to page: the newer and older
    links hold their places when absent, and each page number has a cell
    of its own, so the numbers do not shift when a link or a digit

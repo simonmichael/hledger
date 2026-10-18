@@ -15,6 +15,7 @@ import Data.Text qualified as T
 import Hledger.Utils.I18n (tr, trf)
 
 import Hledger.Web.Import
+import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
@@ -112,6 +113,14 @@ getBalanceR = do
             -- control the page responds to, one row of links each, sits
             -- behind the controls disclosure.
             reportsRow = reportLinks trs BalanceR menuParams $ reportLinkItems reportMenu
+            -- The years the search matches in, ignoring all date
+            -- narrowing, as a row of links staying visible like the
+            -- report links; the year links rewrite the date narrowing
+            -- themselves, so they reduce the period to its interval.
+            yearsDays = map tdate $
+              entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
+            yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
+            yearsNav = yearsRow trs BalanceR qparam today rpSpan yearsKept yearsDays
             controlRows = controlsToggle trs $ \render -> foldMap ($ render) $
               [ accumulationLinks trs BalanceR (qParams ++ removeAttributes ["accum"] pageParams) PerPeriod accum
               , intervalLinks trs BalanceR (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
@@ -130,6 +139,7 @@ getBalanceR = do
               , calcLinks trs BalanceR (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
         Yesod.toWidget reportsRow
+        Yesod.toWidget yearsNav
         Yesod.toWidget controlRows
         Yesod.toWidget $ reportTable isTree mfold header [(Nothing, body, [])] totals
 

@@ -20,7 +20,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.Paging
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
@@ -127,6 +127,10 @@ getRegisterR = do
         _ -> (NoInterval, nulldatespan)
       rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
       calcCur = either (const CalcChange) id $ parseCalc mcalc
+      -- The years row; its links rewrite the date narrowing themselves,
+      -- so they reduce the period parameter to its interval.
+      yearsKept = [("period", w) | Just w <- [intervalPeriodExpr pivl]] ++ filter ((/= "period") . fst) modeParams
+      yearsNav = yearsRow trs RegisterR qparam today pspan yearsKept years
       intervalRow = inertControls trs $
         intervalLinks trs RegisterR (filter ((/= "period") . fst) modeParams) qparam pspan rpInterval
       inertRows = inertControls trs $ mconcat

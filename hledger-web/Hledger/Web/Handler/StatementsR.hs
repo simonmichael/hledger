@@ -29,6 +29,7 @@ import Hledger.Utils.I18n (Translations, i18n, tr, trf)
 import Hledger.Write.Spreadsheet qualified as Spr
 
 import Hledger.Web.Import
+import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
@@ -136,6 +137,14 @@ statementPage here tabtitle spec = do
             -- behind the controls disclosure.
             -- No type row: the statements choose their own account types.
             reportsRow = reportLinks trs here menuParams menu
+            -- The years the search matches in, ignoring all date
+            -- narrowing, as a row of links staying visible like the
+            -- report links; the year links rewrite the date narrowing
+            -- themselves, so they reduce the period to its interval.
+            yearsDays = map tdate $
+              entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
+            yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
+            yearsNav = yearsRow trs here qparam today rpSpan yearsKept yearsDays
             controlRows = controlsToggle trs $ \render -> foldMap ($ render) $
               [ accumulationLinks trs here (qParams ++ removeAttributes ["accum"] pageParams) (cbcaccum spec) accum
               , intervalLinks trs here (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
@@ -153,6 +162,7 @@ statementPage here tabtitle spec = do
               , calcLinks trs here (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
         Yesod.toWidget reportsRow
+        Yesod.toWidget yearsNav
         Yesod.toWidget controlRows
         if empty
           then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)

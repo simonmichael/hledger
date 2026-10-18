@@ -1704,7 +1704,8 @@ hledgerWebTest = do
     yit "lists the years the search matches, each linking to that year" $ do
       get JournalR
       statusIs 200
-      bodyContains "<span>Years:</span>"
+      bodyContains ">Years:</span>"
+      bodyContains "Shift-click selects a range of years."
       bodyContains ("<a class=\"current\" href=\"" ++ base ++ "/journal\" aria-current=\"page\" title=\"Show all years\">All</a>")
       bodyContains "/journal?q=date%3A2023\" title=\"Show only 2023\">2023</a>"
       bodyContains "/journal?q=date%3A2024\" title=\"Show only 2024\">2024</a>"
@@ -1756,6 +1757,27 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "txn 731</td>"  -- 2024-01-01
       bodyNotContains "Years:"
+
+    yit "shows the years row on the report pages too, the year links keeping only the period's interval" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "period" "monthly in 2024"
+      statusIs 200
+      bodyContains ">Years:</span>"
+      bodyContains "/balance?q=date%3A2023&amp;period=monthly\" title=\"Show only 2023\""
+      -- the period parameter's span marks its year
+      bodyContains "aria-current=\"page\" title=\"Show only 2024\""
+
+    yit "marks each year a range search covers, as a shift-click selects" $ do
+      request $ do
+        setMethod "GET"
+        setUrl JournalR
+        addGetParam "q" "date:2023..2026"
+      statusIs 200
+      bodyContains "aria-current=\"page\" title=\"Show only 2023\""
+      bodyContains "aria-current=\"page\" title=\"Show only 2025\""
+      bodyNotContains "aria-current=\"page\" title=\"Show only 2026\""
 
     yit "pages the register, with the running balance carried across pages" $ do
       request $ do

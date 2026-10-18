@@ -15,7 +15,7 @@ import Hledger.Web.Import
 import Hledger.Web.Paging
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
             (accountQuery, amountLinks, calcLinks, columnsLinks, controlsToggle,
              depthLinks, inertControls, intervalLinks, listModeLinks,
@@ -110,6 +110,10 @@ getJournalR = do
         _ -> (NoInterval, nulldatespan)
       rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
       calcCur = either (const CalcChange) id $ parseCalc mcalc
+      -- The years row; its links rewrite the date narrowing themselves,
+      -- so they reduce the period parameter to its interval.
+      yearsKept = [("period", w) | Just w <- [intervalPeriodExpr pivl]] ++ removeAttributes ["period"] carried
+      yearsNav = yearsRow trs JournalR qparam today pspan yearsKept years
       intervalRow = inertControls trs $
         intervalLinks trs JournalR (removeAttributes ["period"] carried) qparam pspan rpInterval
       inertRows = inertControls trs $ mconcat

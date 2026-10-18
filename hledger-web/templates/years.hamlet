@@ -10,3 +10,4 @@ $if manyYears
       <span>#{decade}:
       $forall y <- decadeYears
         <a href=@?{yearlink y} :isCurrent y:.current :isCurrent y:aria-current="page" title=#{showOnly y}>#{y}
+  <p .controls-hint>#{rangeHint}

@@ -37,6 +37,9 @@ document.addEventListener('DOMContentLoaded', function() {
   // (default-layout.hamlet), so it never paints unfolded.
   reportTreeInit();
 
+  // Shift-clicking in the years row selects a range of years.
+  yearsRangeInit();
+
   // Typing in the last amount field adds another posting row. Delegating from
   // the form means the handler does not have to be moved as rows come and go.
   var addform = document.getElementById('addform');
@@ -211,6 +214,36 @@ function addformAddPosting() {
 function journalGo() {
   var a = document.getElementById('sidebar-journal-link');
   location.href = a ? a.href : document.hledgerWebBaseurl + '/journal';
+}
+
+// Shift-clicking a year in the years row extends the selection: from the
+// years marked current (a plain click's single year, or an earlier range)
+// to the clicked one, as an end-exclusive date:FIRST..LAST+1 search term,
+// which the row marks year by year. With no year marked (All current), a
+// shift-click selects the clicked year like a plain click.
+function yearsRangeInit() {
+  document.querySelectorAll('p.years').forEach(function (row) {
+    row.addEventListener('click', function (ev) {
+      if (!ev.shiftKey) { return; }
+      var a = ev.target.closest('a');
+      var clicked = a && parseInt(a.textContent, 10);
+      if (!clicked || isNaN(clicked)) { return; }  // the All link, or no link
+      var years = [clicked];
+      document.querySelectorAll('p.years a.current').forEach(function (c) {
+        var y = parseInt(c.textContent, 10);
+        if (!isNaN(y)) { years.push(y); }
+      });
+      if (years.length < 2) { return; }  // nothing to extend from
+      ev.preventDefault();
+      var lo = Math.min.apply(null, years);
+      var hi = Math.max.apply(null, years);
+      // the clicked link's url, with its date term widened to the range
+      var url = new URL(a.href);
+      url.searchParams.set('q',
+        (url.searchParams.get('q') || '').replace(/date:\S+/, 'date:' + lo + '..' + (hi + 1)));
+      location.href = url.toString();
+    });
+  });
 }
 
 function sidebarToggle() {

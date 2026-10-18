@@ -24,7 +24,7 @@ import Data.List (findIndex, groupBy, intercalate)
 import Data.Set qualified as S
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Time (Day, toGregorian)
+import Data.Time (Day, fromGregorian, toGregorian)
 import Text.Hamlet (hamletFile)
 import Text.Read (readMaybe)
 import Yesod (HtmlUrl, MonadHandler, lookupGetParam)
@@ -132,11 +132,17 @@ datelessQuery today qparam
 -- search narrowed to that year, after an All link that widens it again.
 -- Nothing when there is only one year, which has nowhere to go. More than
 -- twenty years are grouped by decade, a row each. The links keep the
--- given parameters.
-yearsRow :: Translations -> r -> Text -> [(Text, Text)] -> [Day] -> HtmlUrl r
-yearsRow trs here qparam kept days = $(hamletFile "templates/years.hamlet")
+-- given parameters. Takes today's date (for parsing the search's date
+-- terms) and the period parameter's date span, which narrows the view
+-- when the search does not: the years the shown span covers in full are
+-- marked, so a range search (date:2023..2026, as a shift-click makes)
+-- marks each of its years.
+yearsRow :: Translations -> r -> Text -> Day -> DateSpan -> [(Text, Text)] -> [Day] -> HtmlUrl r
+yearsRow trs here qparam today periodspan kept days = $(hamletFile "templates/years.hamlet")
   where
     showOnly y = trf trs "Show only {year}" [("year", T.pack (show y))]
+    -- TRANSLATORS: the hint below the years row.
+    rangeHint = tr trs "Shift-click selects a range of years."
     years :: [Integer]
     years = S.toAscList $ S.fromList [y | d <- days, let (y, _, _) = toGregorian d]
     manyYears = length years > 1
@@ -148,10 +154,19 @@ yearsRow trs here qparam kept days = $(hamletFile "templates/years.hamlet")
     isDateTerm t = any (`T.isPrefixOf` t) ["date:", "date2:"]
     -- the search without its date terms, which each year link replaces
     rest = removeDates qparam
-    -- A year is current when the search names it as a whole, in the form
-    -- the year links use; a year written another way is not recognized.
-    isCurrent y = ("date:" <> T.pack (show y)) `elem` terms
-    allCurrent = not $ any isDateTerm terms
+    -- The span being shown: the search's own date terms, or the period
+    -- parameter's span when the search has none.
+    shownSpan
+      | any isDateTerm terms =
+          either (const nulldatespan) (queryDateSpan False . fst) $
+            parseQuery today (T.unwords $ filter isDateTerm terms)
+      | otherwise = periodspan
+    -- A year is current when the shown span covers all of it.
+    isCurrent y =
+      shownSpan /= nulldatespan
+      && maybe True (<= fromGregorian y 1 1) (spanStart shownSpan)
+      && maybe True (fromGregorian (y + 1) 1 1 <=) (spanEnd shownSpan)
+    allCurrent = shownSpan == nulldatespan
     yearlink y = (here, ("q", T.unwords $ ("date:" <> T.pack (show y)) : rest) : kept)
     alllink = (here, [("q", T.unwords rest) | not (null rest)] ++ kept)
 
