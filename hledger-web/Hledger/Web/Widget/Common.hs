@@ -176,8 +176,10 @@ inertControls trs rows =
 |]
 
 -- | A short usage hint below a row of controls, in muted small text.
-controlsHint :: Translations -> Text -> HtmlUrl r
-controlsHint trs t _ = H.p ! A.class_ "controls-hint" $ H.toHtml $ tr trs t
+-- The text arrives already translated, so that the literal at the call
+-- site is what the extraction tool collects.
+controlsHint :: Text -> HtmlUrl r
+controlsHint t _ = H.p ! A.class_ "controls-hint" $ H.toHtml t
 
 -- | Links choosing where market prices come from: declared ones only,
 -- or inferred from transaction costs too, keeping the given parameters;

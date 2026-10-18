@@ -109,7 +109,8 @@ getRegisterR = do
       realRow = realLinks trs RegisterR modeParams qparam
       typeRow = typeLinks trs RegisterR modeParams qparam
       commodityRow = commodityLinks trs RegisterR modeParams qparam j
-      hintRow = controlsHint trs "Shift-click selects several types or commodities."
+      -- TRANSLATORS: the hint below the account type and commodity filter rows.
+      hintRow = controlsHint $ tr trs "Shift-click selects several types or commodities."
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports; the register's rows always
       -- show in full.

@@ -159,7 +159,8 @@ statementPage here tabtitle spec = do
               , statusLinks trs here pageParams qparam
               , realLinks trs here pageParams qparam
               , commodityLinks trs here pageParams qparam j
-              , controlsHint trs "Shift-click selects several commodities." ] ++
+              -- TRANSLATORS: the hint below the commodity filter row.
+              , controlsHint $ tr trs "Shift-click selects several commodities." ] ++
               [ depthLinks trs here pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs here (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , amountLinks trs here (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)

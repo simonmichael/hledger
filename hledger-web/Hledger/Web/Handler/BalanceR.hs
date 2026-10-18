@@ -134,7 +134,8 @@ getBalanceR = do
               , realLinks trs BalanceR pageParams qparam
               , typeLinks trs BalanceR pageParams qparam
               , commodityLinks trs BalanceR pageParams qparam j
-              , controlsHint trs "Shift-click selects several types or commodities." ] ++
+              -- TRANSLATORS: the hint below the account type and commodity filter rows.
+              , controlsHint $ tr trs "Shift-click selects several types or commodities." ] ++
               [ depthLinks trs BalanceR pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs BalanceR (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , amountLinks trs BalanceR (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)

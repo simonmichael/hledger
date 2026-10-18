@@ -94,7 +94,8 @@ getJournalR = do
       realRow = realLinks trs JournalR carried qparam
       typeRow = typeLinks trs JournalR carried qparam
       commodityRow = commodityLinks trs JournalR carried qparam j
-      hintRow = controlsHint trs "Shift-click selects several types or commodities."
+      -- TRANSLATORS: the hint below the account type and commodity filter rows.
+      hintRow = controlsHint $ tr trs "Shift-click selects several types or commodities."
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports.
       deepest = deepestDepth j
