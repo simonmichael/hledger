@@ -21,3 +21,7 @@ P 2026-01-01 AAPL $72
 
 $ hledger -f- stats
 > /Base currency       : \$ \(USD\)/
+
+# ** 4. With -o, all of the output, including the title, goes to the file.
+$ hledger -f- stats --title=T -o stats.txt </dev/null; grep -c '^T$\|^Runtime stats' stats.txt; rm -f stats.txt
+2
