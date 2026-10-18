@@ -295,14 +295,17 @@ usually can not check a language themselves.
 When hledger's English text changes, the template changes with it. To
 refresh your file:
 
+- With the gettext tools: `msgmerge --update --no-fuzzy-matching fr.po hledger.pot`.
+  New entries, and entries whose English changed, appear untranslated.
+  An entry whose English changed keeps its old translation at the end of
+  the file, as an obsolete `#~` entry, for reference.
 - In Poedit: Translation > Update from POT File, choosing the new
-  `hledger.pot`. New entries appear untranslated; entries whose English
-  changed are marked "needs work" (fuzzy) with your old translation kept
-  for reference. Fix those, since fuzzy entries are not used until you
-  clear the flag (the English text, or the built-in translation, shows
-  instead).
-- With the gettext tools: `msgmerge --update --previous fr.po hledger.pot`
-  does the same.
+  `hledger.pot`. Poedit also guesses translations for new and changed
+  entries, from similar-looking ones, marking them "needs work" (fuzzy).
+  These guesses are often translations of unrelated text, so check each
+  one carefully, or clear it and translate afresh. Fuzzy entries are not
+  used until you clear the flag (the English text, or the built-in
+  translation, shows instead).
 
 In the hledger repository, `just i18n-merge` refreshes every built-in
 catalog this way. `just i18n-check` checks that the template is up to
