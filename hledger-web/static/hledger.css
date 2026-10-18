@@ -200,6 +200,15 @@ td.date {
 .report-links .current {
   font-weight: bold;
 }
+/* The rows of report controls sit behind this disclosure, closed by
+   default; opening it is remembered per browser (default-layout.hamlet). */
+details.report-controls {
+  margin: 10px 0;
+}
+details.report-controls > summary {
+  cursor: pointer;
+  width: max-content;
+}
 /* The pages row keeps its shape from page to page: the newer and older
    links hold their places when absent, and each page number has a cell
    of its own, so the numbers do not shift when a link or a digit

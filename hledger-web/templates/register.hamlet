@@ -3,15 +3,7 @@
 
 ^{yearsRow trs RegisterR qparam modeParams years}
 
-^{statusRow}
-^{realRow}
-^{typeRow}
-$if deepest > 1
-  ^{depthRow}
-^{listRow}
-^{amountsRow}
-^{costsRow}
-^{zeroRow}
+^{controlsRows}
 
 ^{pagingLinks trs RegisterR qparam modeParams page}
 

@@ -17,7 +17,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
-            (accountQuery, amountLinks, depthLinks,
+            (accountQuery, amountLinks, controlsToggle, depthLinks,
              listModeLinks, mixedAmountAsHtml, realLinks, statusLinks, typeLinks,
              transactionFragment, replaceInacct, journalDayQuery, zeroBalanceLinks)
 
@@ -85,6 +85,10 @@ getJournalR = do
       amountsRow = amountLinks trs JournalR (qps ++ periodParams ++ listParams ++ inferParams ++ emptyParams)
         (amountModeOf roptsStartup) (amountModeOf $ maybe id setAmountMode mmode roptsStartup)
       zeroRow = zeroBalanceLinks trs JournalR (qps ++ periodParams ++ valParams ++ listParams ++ inferParams) dfltHidden hideEmpty
+      -- All of them behind the controls disclosure, closed by default.
+      controlsRows = controlsToggle trs $ mconcat $
+        [statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
+        [listRow, amountsRow, zeroRow]
 
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.

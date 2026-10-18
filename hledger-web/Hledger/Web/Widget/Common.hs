@@ -8,6 +8,7 @@ module Hledger.Web.Widget.Common
   ( accountQuery
   , accountOnlyQuery
   , balanceReportAsHtml
+  , controlsToggle
   , linksRow
   , reportLinks
   , intervalLinks
@@ -140,6 +141,19 @@ balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty to
 -- another's, so a translation cannot be assembled from parts.
 linksRow :: Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
 linksRow rowlabel items = $(hamletFile "templates/balance-links.hamlet")
+
+-- | A page's rows of report controls behind a disclosure, closed by
+-- default so the page stays uncluttered; opening it is remembered per
+-- browser, by the inline script after the page content in
+-- default-layout.hamlet.
+controlsToggle :: Translations -> HtmlUrl r -> HtmlUrl r
+controlsToggle trs rows =
+  -- TRANSLATORS: the disclosure hiding each page's rows of report controls: its text, and its tooltip.
+  [hamlet|
+<details .report-controls>
+  <summary title=#{tr trs "Show the controls that reshape this view"}>#{tr trs "Controls"}
+  ^{rows}
+|]
 
 -- | Links to the report pages, given as route, label, and title,
 -- keeping the given parameters; the page being shown is marked.

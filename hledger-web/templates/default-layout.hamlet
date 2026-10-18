@@ -121,6 +121,20 @@ $if elem ViewPermission perms
            title=_{HMsg "Show search and general help"}>
           <span .glyphicon .glyphicon-question-sign>
   ^{widget}
+  $# The report controls disclosure (Widget.Common.controlsToggle) is closed
+  $# by default, and opening it is remembered per browser. Restore that here,
+  $# inline right after the page content's markup, for the same reason as the
+  $# sidebar scripts above: restoring at DOMContentLoaded would reopen it
+  $# only after the page below has painted, a visible reflow.
+  <script nonce=#{nonce}>
+    (function () {
+      var d = document.querySelector('#main-content details.report-controls');
+      if (!d) { return; }
+      try { if (localStorage.getItem('controlsOpen') === '1') { d.open = true; } } catch (e) {}
+      d.addEventListener('toggle', function () {
+        try { localStorage.setItem('controlsOpen', d.open ? '1' : '0'); } catch (e) {}
+      });
+    })();
 
 <dialog #helpmodal tabindex=-1 aria-labelledby="helpLabel">
   <div .modal-header>

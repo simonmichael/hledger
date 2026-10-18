@@ -8,14 +8,7 @@ $if elem AddPermission perms
 
 ^{yearsRow trs JournalR qparam carried years}
 
-^{statusRow}
-^{realRow}
-^{typeRow}
-$if deepest > 1
-  ^{depthRow}
-^{listRow}
-^{amountsRow}
-^{zeroRow}
+^{controlsRows}
 
 ^{pagingLinks trs JournalR qparam carried page}
 

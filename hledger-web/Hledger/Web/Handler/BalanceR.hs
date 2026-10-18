@@ -18,8 +18,8 @@ import Hledger.Web.Import
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (accumulationLinks, amountLinks, calcLinks, columnsLinks, depthLinks,
-   intervalLinks, listModeLinks,
+  (accumulationLinks, amountLinks, calcLinks, columnsLinks, controlsToggle,
+   depthLinks, intervalLinks, listModeLinks,
    percentLinks, realLinks, removeInacct, reportLinks, sortLinks, statusLinks,
    typeLinks, zeroBalanceLinks)
 
@@ -105,10 +105,12 @@ getBalanceR = do
                    , map (relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans) h, relink b, relink t)
         let isTree = accountlistmode_ ropts == ALTree
             mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
-            -- Every control the page responds to, one row of links each.
-            controlRows render = foldMap ($ render) $
-              [ reportLinks trs BalanceR menuParams $ reportLinkItems reportMenu
-              , accumulationLinks trs BalanceR (qParams ++ removeAttributes ["accum"] pageParams) PerPeriod accum
+            -- The links to the other reports stay visible; every other
+            -- control the page responds to, one row of links each, sits
+            -- behind the controls disclosure.
+            reportsRow = reportLinks trs BalanceR menuParams $ reportLinkItems reportMenu
+            controlRows = controlsToggle trs $ \render -> foldMap ($ render) $
+              [ accumulationLinks trs BalanceR (qParams ++ removeAttributes ["accum"] pageParams) PerPeriod accum
               , intervalLinks trs BalanceR (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
               , statusLinks trs BalanceR pageParams qparam
               , realLinks trs BalanceR pageParams qparam
@@ -123,6 +125,7 @@ getBalanceR = do
               , percentLinks trs BalanceR (qParams ++ removeAttributes ["pct"] pageParams) (percent_ ropts)
               , calcLinks trs BalanceR (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
+        Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
         Yesod.toWidget $ reportTable isTree mfold header [(Nothing, body, [])] totals
 

@@ -221,12 +221,30 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  // The rows of report controls sit behind a disclosure, closed by default;
+  // opening it is remembered per browser, restored inline before the page
+  // below paints.
+  test('the controls disclosure starts closed, and stays open across pages', async ({ page }) => {
+    await page.goto('/balance');
+    const details = page.locator('#main-content details.report-controls');
+    await expect(details.locator('p.report-links').first()).toBeHidden();
+    await details.locator('summary').click();
+    await expect(details.locator('p.report-links').first()).toBeVisible();
+    // the open state is saved from the toggle event, which fires
+    // asynchronously; wait for the save before navigating away
+    await page.waitForFunction(() => localStorage.getItem('controlsOpen') === '1');
+    await page.goto('/journal');
+    await expect(page.locator('#main-content details.report-controls p.report-links').first()).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
   // Zero balances state is the empty parameter; the row's links set it,
   // and the "e" key presses the row's other link.
   test('"e" and the Zero balances links switch a page between showing and hiding zero balances', async ({ page }) => {
     await page.goto('/balance');
     const current = page.locator('#main-content .zero-balances a.current');
     await expect(current).toHaveText('Shown');
+    await page.locator('#main-content details.report-controls > summary').click();
     await page.locator('#main-content .zero-balances a', { hasText: 'Hidden' }).click();
     await expect(page).toHaveURL(/empty=0/);
     await expect(current).toHaveText('Hidden');

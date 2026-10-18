@@ -32,8 +32,8 @@ import Hledger.Web.Import
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (accumulationLinks, amountLinks, calcLinks, columnsLinks, depthLinks,
-   helplink, intervalLinks,
+  (accumulationLinks, amountLinks, calcLinks, columnsLinks, controlsToggle,
+   depthLinks, helplink, intervalLinks,
    listModeLinks, percentLinks, realLinks, removeInacct, reportLinks,
    sortLinks, statusLinks, zeroBalanceLinks)
 
@@ -130,11 +130,13 @@ statementPage here tabtitle spec = do
             zerosHidden = hideEmpty && not (noRows $ compoundBalanceReport rspec{_rsReportOpts = ropts{empty_ = True}} j (cbcqueries spec))
         let isTree = accountlistmode_ ropts == ALTree
             mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
-            -- Every control the page responds to, one row of links each.
+            -- The links to the other reports stay visible; every other
+            -- control the page responds to, one row of links each, sits
+            -- behind the controls disclosure.
             -- No type row: the statements choose their own account types.
-            controlRows render = foldMap ($ render) $
-              [ reportLinks trs here menuParams menu
-              , accumulationLinks trs here (qParams ++ removeAttributes ["accum"] pageParams) (cbcaccum spec) accum
+            reportsRow = reportLinks trs here menuParams menu
+            controlRows = controlsToggle trs $ \render -> foldMap ($ render) $
+              [ accumulationLinks trs here (qParams ++ removeAttributes ["accum"] pageParams) (cbcaccum spec) accum
               , intervalLinks trs here (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
               , statusLinks trs here pageParams qparam
               , realLinks trs here pageParams qparam ] ++
@@ -148,6 +150,7 @@ statementPage here tabtitle spec = do
               , percentLinks trs here (qParams ++ removeAttributes ["pct"] pageParams) (percent_ ropts)
               , calcLinks trs here (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
+        Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
         if empty
           then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)

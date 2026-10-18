@@ -665,6 +665,15 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "balance?period=yearly%202025"
 
+    yit "keeps the report controls behind a disclosure" $ do
+      get BalanceR
+      statusIs 200
+      bodyContains "<details class=\"report-controls\">"
+      bodyContains ">Controls</summary>"
+      get JournalR
+      statusIs 200
+      bodyContains "<details class=\"report-controls\">"
+
     yit "uses --title for the heading, unaltered" $ do
       get BalanceR
       statusIs 200

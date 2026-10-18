@@ -24,7 +24,7 @@ import Hledger.Web.ReportPage (amountModeOf, deepestDepth, listWord, parseListMo
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
-             (accountQuery, accountOnlyQuery, amountLinks, costsLinks, depthLinks,
+             (accountQuery, accountOnlyQuery, amountLinks, controlsToggle, costsLinks, depthLinks,
               listModeLinks, mixedAmountAsHtml,
               mixedAmountAsHtmlWith, realLinks, statusLinks, typeLinks,
               zeroBalanceLinks, transactionFragment, removeDates, removeInacct, replaceInacct, journalDayQuery)
@@ -101,6 +101,10 @@ getRegisterR = do
         (amountModeOf $ _rsReportOpts rspec0) (amountModeOf ropts)
       costsRow = costsLinks trs RegisterR (qParams qparam ++ filter ((/= "costs") . fst) modeParams) costsOn
       zeroRow = zeroBalanceLinks trs RegisterR (qParams qparam ++ filter ((/= "empty") . fst) modeParams) dfltHidden hideEmpty
+      -- All of them behind the controls disclosure, closed by default.
+      controlsRows = controlsToggle trs $ mconcat $
+        [statusRow, realRow, typeRow] ++ [depthRow | deepest > 1] ++
+        [listRow, amountsRow, costsRow, zeroRow]
       -- the amount column's display format: with costs when asked
       amtfmt = noCostFmt{displayZeroCommodity = True, displayCost = costsOn}
       qParams t = [("q", t) | not (T.null t)]
