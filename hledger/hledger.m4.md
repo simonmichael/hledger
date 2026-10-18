@@ -7759,6 +7759,10 @@ The output format is HTML unless you choose another, with `-O` or the `-o` file'
 $ hledger is -M --chart --view      # see an income statement chart and table in a web browser
 $ hledger reg -O csv --view         # or a register in a spreadsheet
 ```
+To view several reports at once, on one page, use [`run`](#run) with `--view`:
+```cli
+$ hledger run --view -- is -M --chart -- bs -Q --chart -- reg expenses -p thismonth
+```
 
 ## Output format
 

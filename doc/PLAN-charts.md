@@ -153,6 +153,9 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   and opens it with the system's default viewer (reusing openBrowserOn's launchers), only warning if that fails.
   Not a shared temp directory: on Linux, `/tmp` files were readable by other users, and a predictable path invited symlink tricks.
   Not next to the journal, which may be a git repo or synced folder. Inline terminal images would need raster output.
+- `run -O html`/`-o FILE.html`/`--view` collects the commands' outputs into one page (a folding section per command, headed by its
+  command line; echo lines as headings), by giving each command a part file in the cache directory and reading it back;
+  so several charts can be viewed at once, as in the chartsdemo page, without a tab per report.
 
 ## Next?
 

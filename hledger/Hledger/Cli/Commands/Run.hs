@@ -17,11 +17,13 @@ module Hledger.Cli.Commands.Run (
  ,runOrReplStub
 ) where
 
+import Data.List (isInfixOf)
 import Data.List.NonEmpty qualified as NE
 import Data.Map.Strict qualified as Map
 import Data.Semigroup (sconcat)
 import Data.Text qualified as T
 import Data.Text.IO qualified as T
+import Data.Text.Lazy qualified as TL
 import System.Console.CmdArgs.Explicit as C ( Mode )
 import Hledger
 import Hledger.Cli.CliOptions
@@ -32,22 +34,22 @@ import Control.Concurrent.MVar
 import Control.Monad (forM_, void, when)
 import Control.Monad.IO.Class (liftIO)
 import Control.Monad.Extra (concatMapM, anyM)
-import Data.IORef (IORef, newIORef, readIORef, writeIORef)
+import Data.IORef (IORef, modifyIORef, newIORef, readIORef, writeIORef)
 import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 
 import System.Exit (ExitCode(..), exitWith)
-import System.Console.CmdArgs.Explicit (expandArgsAt, modeNames, flagNone)
-import System.IO (stdin, stderr, stdout, hIsTerminalDevice, hIsOpen, hPutStrLn, hFlush)
+import System.Console.CmdArgs.Explicit (expandArgsAt, flagHelp, flagNames, flagNone, modeFlags, modeNames)
+import System.IO (stdin, stderr, stdout, hClose, hIsTerminalDevice, hIsOpen, hPutStrLn, hFlush, openTempFile)
 import System.IO.Unsafe (unsafePerformIO)
 import System.Console.Haskeline
 
 import Data.Maybe (isJust, fromMaybe, catMaybes)
 import Safe (headMay)
 import Hledger.Cli.DocFiles (runTldrForPage, runInfoForTopic, runManForTopic)
-import Hledger.Cli.Utils (journalTransform, journalFileIsNewer, maybeFileModificationTime)
+import Hledger.Cli.Utils (journalTransform, journalFileIsNewer, maybeFileModificationTime, writeOutputLazyText)
 import Text.Printf (printf)
 import System.FilePath (takeBaseName, getSearchPath)
-import System.Directory (doesDirectoryExist, getModificationTime)
+import System.Directory (XdgDirectory(..), createDirectoryIfMissing, doesDirectoryExist, getModificationTime, getXdgDirectory, removeFile)
 import System.Process (system)
 import Hledger.Cli.Version (packageversion)
 
@@ -55,8 +57,10 @@ import Hledger.Cli.Version (packageversion)
 runmode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Run.txt")
   (
-  []
-  )
+  [outputFormatFlag ["html"]
+  ,outputFileFlag
+  ,outputViewFlag
+  ])
   cligeneralflagsgroups1
   -- A hidden marker flag, inserted before run's first -- (see argsMarkRunCommands), letting run
   -- detect it was given inline commands rather than command files. Not for direct use.
@@ -95,10 +99,16 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
     rungeneralopts = generalRawOpts rawopts  -- general flags we will propagate to each command
     addonfileargs = concatMap (\f -> ["-f", f]) $ file_ cliopts  -- the session's explicit -f files, to pass through to addons
   isTerminal <- isStdinTerminal
+  -- With html output (-O html, -o FILE.html or --view), the commands' outputs are collected into one html page.
+  let
+    outputrequested = isJust (output_file_ cliopts) || isJust (output_format_ cliopts) || viewRequested cliopts
+    collecting = outputrequested && outputFormatFromOpts cliopts == "html"
+  when (outputrequested && not collecting) $ error' "run can write only html output; use -O html, -o FILE.html or --view"  -- PARTIAL:
+  mcollect <- if collecting then Just <$> newIORef [] else return Nothing
   if
     -- Inline commands (a -- was present, flagged by the marker): split and run them.
     | boolopt runCommandsMarker rawopts ->
-        runFromArgs jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
+        runFromArgs jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect args
     -- No arguments and stdin is not a terminal: read commands from stdin.
     | args == [] && not isTerminal -> do
         inputFiles <- journalFilePathFromOpts cliopts
@@ -107,10 +117,13 @@ run defaultJournalOverride findBuiltinCommand addons cmdaliases shellaliasesallo
         then error' "'run' can't read commands from stdin, as one of the input files was stdin as well"
         -- watch is False: run never reloads changed files, in any of its modes
         -- (unlike repl). Its other modes don't, since they don't go through runREPL.
-        else runREPL jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing Nothing False
+        else runREPL jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect Nothing Nothing False
     -- Otherwise the arguments are files to read commands from.
     | otherwise ->
-        runFromFiles jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args
+        runFromFiles jpaths rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect args
+  forM_ mcollect $ \ref -> do
+    sections <- reverse <$> readIORef ref
+    writeOutputLazyText cliopts $ runPageHtml sections
 
 -- | The actual repl command. mconfinfo is the active config file and the raw options
 -- needed to re-read it, used to auto-reload command aliases when the config file changes.
@@ -121,25 +134,25 @@ repl findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanA
   jpaths <- DefaultRunJournal <$> journalFilePathFromOptsOrDefault Nothing cliopts
   let watch = not $ boolopt "no-watch" $ rawopts_ cliopts  -- reload changed files/aliases/addons unless --no-watch
       addonfileargs = concatMap (\f -> ["-f", f]) $ file_ cliopts  -- the session's explicit -f files, to pass through to addons
-  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch
+  runREPL jpaths (generalRawOpts $ rawopts_ cliopts) addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed Nothing mconfinfo mrescanAddons watch
 
 -- | Run commands from files given to "run".
-runFromFiles :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
-runFromFiles defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed inputfiles = do
+runFromFiles :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe RunSections -> [String] -> IO ()
+runFromFiles defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect inputfiles = do
   dbg1IO "inputfiles" inputfiles
   -- read commands from all the inputfiles
   commands <- (flip concatMapM) inputfiles $ \f -> do
     dbg1IO "reading commands" f
     lines . T.unpack <$> T.readFile f
 
-  forM_ commands (runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed . parseCommand)
+  forM_ commands (runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect . parseCommand)
 
 -- | Run commands from command line arguments given to "run".
-runFromArgs :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
-runFromArgs defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed args = do
+runFromArgs :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe RunSections -> [String] -> IO ()
+runFromArgs defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect args = do
   -- read commands from all the inputfiles
   let commands = dbg1 "commands from args" $ splitAtElement "--" args
-  forM_ commands (runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed)
+  forM_ commands (runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect)
 
 -- When commands are passed on the command line, shell will parse them for us
 -- When commands are read from file, we need to split the line into command and arguments
@@ -164,6 +177,46 @@ unescape ('\\':c:cs) = case c of
 unescape (c:cs)      = c : unescape cs
 unescape []          = []
 
+-- | Run an action that writes a file, with a temporary part file in hledger's cache directory
+-- (created readable only by the user, and deleted afterwards), and return what it wrote.
+withPartFile :: (FilePath -> IO ()) -> IO TL.Text
+withPartFile act = do
+  d <- getXdgDirectory XdgCache "hledger"
+  createDirectoryIfMissing True d
+  (part, h) <- openTempFile d "part"
+  hClose h
+  (act part >> TL.fromStrict <$> T.readFile part) `finally` removeFile part
+
+-- | An html page showing run's collected sections: a heading for each echo,
+-- and for each command, its command line and its output (html as is, text preformatted),
+-- in a collapsible section (open).
+runPageHtml :: [(String, Maybe TL.Text)] -> TL.Text
+runPageHtml sections = TL.unlines $
+  [ "<!doctype html>"
+  , "<html lang=\"en\"><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\">"
+  , "<title>hledger run</title>"
+  , "<style>"
+  , "body{margin:0 auto;max-width:980px;padding:24px 16px 48px;background:#f3f2ee;color:#0b0b0b;font:15px/1.5 system-ui,-apple-system,\"Segoe UI\",sans-serif}"
+  , "h2{margin:24px 0 8px;font-size:18px;font-weight:650}"
+  , "details.hledger-run{margin:0 0 8px;background:#fcfcfb;border:1px solid #e1e0d9;border-radius:8px}"
+  , "details.hledger-run>summary{padding:10px 14px;cursor:pointer;color:#52514e;font:13px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}"
+  , "details.hledger-run>div{padding:8px 14px 14px;border-top:1px solid #e1e0d9;overflow-x:auto}"
+  , "details.hledger-run table{font-size:13px;font-variant-numeric:tabular-nums}"
+  , "details.hledger-run svg{max-width:100%;height:auto}"
+  , "</style>"
+  ] ++ concatMap section sections
+  where
+    section (heading, Nothing) = ["<h2>" <> escape heading <> "</h2>"]
+    section (cmd, Just out) =
+      [ "<details class=\"hledger-run\" open><summary>" <> escape ("hledger " ++ cmd) <> "</summary><div>"
+      , if | TL.null (TL.strip out) -> "<p>(no output)</p>"
+           | "<" `TL.isPrefixOf` TL.stripStart out -> out
+           | otherwise -> "<pre>" <> escape (TL.unpack out) <> "</pre>"
+      , "</div></details>"
+      ]
+    escape = TL.pack . concatMap (\c -> case c of
+      '&' -> "&amp;"; '<' -> "&lt;"; '>' -> "&gt;"; '"' -> "&quot;"; _ -> [c])
+
 -- | Run a shell command, and if it fails, exit with its exit code; on success just return,
 -- so a sequence of run/repl commands can continue. Flushes stdout first, so that our own
 -- buffered output (eg echo's) appears before the subprocess's output.
@@ -173,13 +226,20 @@ runShellCommandOrExit shcmd = do
   ec <- system shcmd
   when (ec /= ExitSuccess) $ exitWith ec
 
+-- | The sections of an html page being collected by run: for each command, its command line and its output
+-- (or for an echo, just its text), most recent first.
+type RunSections = IORef [(String, Maybe TL.Text)]
+
 -- | Take a single command line (from file, or REPL, or "--"-surrounded block of the args), and run it.
 -- addonfileargs are -f options (the session's explicit input files) to pass through to addon commands.
-runCommand :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> [String] -> IO ()
-runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed cmdline = do
+-- With mcollect, a builtin command's output is collected as a section of an html page instead of being printed
+-- (and so is an echo's text, as a heading).
+runCommand :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe RunSections -> [String] -> IO ()
+runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect cmdline = do
   dbg1IO "runCommand for" cmdline
   case cmdline of
-    "echo":args -> putStrLn $ unescape $ unwords args
+    "echo":args | Just ref <- mcollect -> modifyIORef ref ((unescape $ unwords args, Nothing) :)
+                | otherwise -> putStrLn $ unescape $ unwords args
     cmdname0:args0 ->
       -- The command may be a command alias defined in the config file; expand it.
       case expandCommandAlias (isJust . findBuiltinCommand) cmdaliases cmdname0 of
@@ -204,7 +264,17 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
               args' <- replaceNumericFlags <$> expandArgsAt args
               dbg1IO "runCommand final args" (cmdname,args')
               -- Propagate run/repl's general flags to this command, letting its own flags take precedence
-              opts <- insertRawOpts rungeneralopts =<< getHledgerCliOpts' cmdmode args'
+              opts0 <- insertRawOpts rungeneralopts =<< getHledgerCliOpts' cmdmode args'
+              -- When collecting an html page, write this command's output to a part file, as html if it can produce that
+              -- (otherwise its usual text, shown preformatted), and add it to the page.
+              let
+                collect act = case mcollect of
+                  Nothing  -> act opts0
+                  Just ref -> do
+                    out <- withPartFile $ \part -> act opts0{output_file_ = Just part, output_format_ = if supportsHtml then Just "html" else Nothing}
+                    modifyIORef ref ((unwords $ map quoteForCommandLine cmdline, Just out) :)
+                supportsHtml = any (\f -> "output-format" `elem` flagNames f && "html" `isInfixOf` flagHelp f) $ modeFlags cmdmode
+                opts = opts0
               let
                 rawopts      = rawopts_ opts
                 mmodecmdname = headMay $ modeNames cmdmode
@@ -227,7 +297,7 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
                   withJournalCached (Just defaultJournalOverride) opts $ \(j,jpaths) -> do
                     if cmdname == "run" -- allow "run" to call "run"
                       then run (Just jpaths) findBuiltinCommand addons cmdaliases shellaliasesallowed opts
-                      else cmdaction opts j
+                      else collect $ \o -> cmdaction o j
         Nothing | cmdname `elem` addons ->
           -- Pass the session's explicit input files to the addon, so it uses the same journal
           -- (as the CLI does by forwarding its -f options to addons).
@@ -242,8 +312,8 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
 -- addon command list when PATH's contents change. Either being Nothing disables that reload
 -- (eg for a non-interactive "run").
 -- watch enables the automatic reloading of changed files/aliases/addons (disabled by --no-watch).
-runREPL :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> Bool -> IO ()
-runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mconfinfo mrescanAddons watch = do
+runREPL :: DefaultRunJournal -> [(String,String)] -> [String] -> (String -> Maybe (Mode RawOpts, CliOpts -> Journal -> IO ())) -> [String] -> [(CommandAlias,CommandLine)] -> Bool -> Maybe RunSections -> Maybe (FilePath, RawOpts) -> Maybe (IO [String]) -> Bool -> IO ()
+runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfileargs findBuiltinCommand addons cmdaliases shellaliasesallowed mcollect mconfinfo mrescanAddons watch = do
   isTerminal <- isStdinTerminal
   -- Mutable alias and addon state, so these can be reloaded when their sources change on disk.
   confmtime0 <- maybe (return 0) (fmap (fromMaybe 0) . maybeFileModificationTime . fst) mconfinfo
@@ -299,7 +369,7 @@ runREPL defaultJournalOverride@(DefaultRunJournal jpaths) rungeneralopts addonfi
                 "!"       -> return ()           -- a bare !, do nothing
                 '!':shcmd -> hFlush stdout >> void (system shcmd)  -- !SHELLCMD, run the rest as a shell command
                 -- h is a short alias for the help command.
-                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed $
+                _         -> runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinCommand addons' cmdaliases' shellaliasesallowed mcollect $
                              case parseCommand input of
                                "h":rest -> "help":rest
                                cmd      -> cmd
