@@ -35,7 +35,7 @@ import Hledger.Web.Widget.Common
 getRegisterR :: Handler Html
 getRegisterR = do
   checkServerSideUiEnabled
-  VD{perms, j, q, opts, qparam, qopts, today, trs} <- getViewData
+  VD{perms, j, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   -- With accum=historical the running balance is the account's balance,
   -- starting from before the query's start date, rather than a total of
@@ -58,9 +58,6 @@ getRegisterR = do
   sortAmt <- (== Just "amount") <$> lookupGetParam "sort"
   pctOn   <- (== Just "1") <$> lookupGetParam "pct"
   mcalc   <- lookupGetParam "calc"
-  hideEmpty <- hideEmptyAccounts
-  controlsOpen <- showControls
-  commoditiesOpen <- showCommodities
   pagereq <- pageRequest
 
   let title = case inAccount qopts of

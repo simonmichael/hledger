@@ -28,11 +28,8 @@ import Hledger.Web.Widget.Common
 getJournalR :: Handler Html
 getJournalR = do
   checkServerSideUiEnabled
-  VD{perms, j, q, opts, qparam, qopts, today, trs} <- getViewData
+  VD{perms, j, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
-  hideEmpty <- hideEmptyAccounts
-  controlsOpen <- showControls
-  commoditiesOpen <- showCommodities
   mmode <- either (const Nothing) id . parseValue <$> lookupGetParam "value"
   mlist <- either (const Nothing) id . parseListMode <$> lookupGetParam "list"
   inferOn <- (== Just "1") <$> lookupGetParam "infer"

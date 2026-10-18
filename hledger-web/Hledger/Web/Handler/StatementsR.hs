@@ -53,12 +53,9 @@ getCashflowR           = statementPage CashflowR           (i18n "cashflow state
 statementPage :: AppRoute -> Text -> CompoundBalanceCommandSpec -> Handler Html
 statementPage here tabtitle spec = do
   checkServerSideUiEnabled
-  VD{j, q, qopts, qparam, opts, today, trs} <- getViewData
+  VD{j, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
-  hideEmpty <- hideEmptyAccounts
-  controlsOpen <- showControls
-  commoditiesOpen <- showCommodities
   urlrender <- getUrlRenderParams
   let dateless = filterQuery (not . queryIsDateOrDate2)
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t

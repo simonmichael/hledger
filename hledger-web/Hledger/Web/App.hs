@@ -355,6 +355,9 @@ data ViewData = VD
   , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
   , perms :: [Permission]  -- ^ permissions enabled for this request (by --allow and/or X-Sandstorm-Permissions)
   , trs   :: Translations  -- ^ translations for this request's language
+  , hideEmpty :: Bool      -- ^ hide zero-balance accounts ? (the empty parameter, cf hideEmptyAccounts)
+  , controlsOpen :: Bool   -- ^ is the controls disclosure open ? (the showcontrols cookie)
+  , commoditiesOpen :: Bool -- ^ is the commodity filter's list open ? (the showcommodities cookie)
   } deriving (Show)
 
 instance Show Text.Blaze.Markup where show _ = "<blaze markup>"
@@ -406,7 +409,12 @@ getViewData = do
     -- otherwise take them from the access level specified by --allow's access level
     cliaccess -> pure $ accessLevelToPermissions cliaccess
 
-  return VD{opts, today, j, qparam, q, qopts, perms, trs}
+  -- the view preferences: zero balances hidden, and the disclosures' state
+  hideEmpty <- hideEmptyAccounts
+  controlsOpen <- showControls
+  commoditiesOpen <- showCommodities
+
+  return VD{opts, today, j, qparam, q, qopts, perms, trs, hideEmpty, controlsOpen, commoditiesOpen}
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do
