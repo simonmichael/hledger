@@ -24,7 +24,6 @@ import Data.Text (Text)
 import Data.Map qualified as Map
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
-import Data.Text.Lazy.IO qualified as TL
 import Data.Text.Lazy.Builder qualified as TB
 import Safe (readMay)
 import System.Console.CmdArgs.Explicit (flagNone, flagReq)
@@ -75,6 +74,7 @@ registermode = hledgerCommandMode
   ,flagReq  ["base-url"] (\s opts -> Right $ setopt "base-url" s opts) "URLPREFIX" "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
   ,outputFormatFlag ["txt","csv","tsv","html","fods","json","svg"]
   ,outputFileFlag
+  ,outputViewFlag
   ,chartFlag
   ])
   cligeneralflagsgroups1
@@ -92,7 +92,7 @@ register opts@CliOpts{rawopts_=rawopts, reportspec_=rspec} j
       let ps = [p | (_,_,_,p,_) <- rpt]
       case similarPosting ps desc of
         Nothing -> error' $ "no postings found with description like " <> show desc
-        Just p  -> TL.putStr $ postingsReportAsText opts [pri]
+        Just p  -> writeOutputLazyText opts $ postingsReportAsText opts [pri]
                   where pri = (Just (postingDate p)
                               ,Nothing
                               ,tdescription <$> ptransaction p

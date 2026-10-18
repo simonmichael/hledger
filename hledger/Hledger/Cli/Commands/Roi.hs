@@ -24,14 +24,14 @@ import Numeric.RootFinding
 import Data.Decimal
 import Data.Set qualified as S
 import Data.Text qualified as T
-import Data.Text.Lazy.IO qualified as TL
+import Data.Text.Lazy qualified as TL
 import System.Console.CmdArgs.Explicit as CmdArgs
 
 import Text.Tabular.AsciiWide as Tab
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printTitle, warnIfLargeMultiPeriodReport)
+import Hledger.Cli.Utils (warnIfLargeMultiPeriodReport, withTitle, writeOutput)
 
 
 roimode = hledgerCommandMode
@@ -57,9 +57,8 @@ data OneSpan = OneSpan
  deriving (Show)
 
 roi ::  CliOpts -> Journal -> IO ()
-roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}}} j = do
+roi opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@ReportOpts{..}}} j = do
   warnIfLargeMultiPeriodReport rspec j
-  printTitle ropts
   -- We may be converting posting amounts to value, per hledger_options.m4.md "Effect of --value on reports".
   let
     -- lbl = lbl_ "roi"
@@ -150,11 +149,11 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
               sort . nub . map pddate $
               filter (\pd -> pddate pd >= b && pddate pd < e) $
               jpricedirectives j
-        irr <- internalRateOfReturn styles showCashFlow prettyTables thisSpan
-        (periodTwr, annualizedTwr) <- timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue pDirectiveDates thisSpan
+        (irrdetails, eirr) <- internalRateOfReturn styles showCashFlow prettyTables thisSpan
+        (twrdetails, (periodTwr, annualizedTwr)) <- timeWeightedReturn styles showCashFlow prettyTables investmentsQuery trans mixedAmountValue pDirectiveDates thisSpan
         let cashFlowAmt = maNegate . maSum $ map snd cashFlow
         let smallIsZero x = if abs x < 0.01 then 0.0 else x
-        return [ showDate b
+        let spanrow irr = [ showDate b
                , showDate (addDays (-1) e)
                , T.pack $ showMixedAmountOneLineWithoutCost False $ styleAmounts styles $ valueBefore
                , T.pack $ showMixedAmountOneLineWithoutCost False $ styleAmounts styles $ cashFlowAmt
@@ -170,15 +169,24 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
                , T.pack $ printf "%0.2f%%" $ smallIsZero irr
                , T.pack $ printf "%0.2f%%" $ smallIsZero periodTwr
                , T.pack $ printf "%0.2f%%" $ smallIsZero annualizedTwr ]
+        return (irrdetails <> twrdetails, spanrow <$> eirr)
 
-  periodRows <- forM spans processSpan
-  totalRow <- case periodRows of
-    [singleRow] -> return singleRow
+  (perioddetails, periodRows) <- unzip <$> forM spans processSpan
+  (totaldetails, totalRow) <- case periodRows of
+    [singleRow] -> return ("", singleRow)
     _           -> processSpan fullPeriod
 
   let rowTitles = Tab.Group Tab.NoLine (map (Header . T.pack . show) (take (length periodRows) [1..]))
 
   let isSingleSpan = length spans == 1
+      details = mconcat perioddetails <> totaldetails
+
+  rows <- case sequence $ if isSingleSpan then periodRows else periodRows ++ [totalRow] of
+    Right rows -> return rows
+    Left e -> do
+      -- show any --cashflow details before the error, to help troubleshoot it
+      unless (TL.null details) $ writeOutput opts $ TL.unpack details
+      error' e
 
   let table = Table
               (if isSingleSpan
@@ -190,9 +198,10 @@ roi CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts@R
                , Tab.Group Tab.SingleLine [Header "Value (begin)", Header "Cashflow", Header "Value (end)", Header "PnL"]
                , Tab.Group Tab.SingleLine [Header "IRR"]
                , Tab.Group Tab.SingleLine [Header "TWR/period", Header "TWR/year"]])
-              (if isSingleSpan then periodRows else periodRows ++ [totalRow])
+              rows
 
-  TL.putStrLn $ Tab.render prettyTables id id id table
+  writeOutput opts $ TL.unpack $ withTitle ropts $
+    details <> Tab.render prettyTables id id id table <> "\n"
 
 
 -- One window of the TWR algorithm,
@@ -224,28 +233,27 @@ timeWeightedReturn _styles showCashFlow prettyTables investmentsQuery trans mixe
       periodTWR     = roundTo 2 (100 * realToFrac twr :: Decimal)
       annualizedTWR = 100 * ((1 + twr) ** (1 / years) - 1) :: Double
 
-  when showCashFlow $ do
-    printf "\nTWR activity windows for period %s - %s\n"
-      (showDate begin) (showDate (addDays (-1) end))
-    let showDecimalT = T.pack . showDecimal
-    TL.putStr $ Tab.render prettyTables T.pack id id
-      (Table
-       (Tab.Group Tab.NoLine [Header (show n) | n <- [1..length windows]])
-       (Tab.Group DoubleLine
-         [ Tab.Group Tab.SingleLine [Tab.Header "Begin", Tab.Header "End"]
-         , Tab.Group Tab.SingleLine [Tab.Header "Value (begin)",   Tab.Header "Value (end)"]
-         , Tab.Group Tab.SingleLine [Tab.Header "# flows"]
-         , Tab.Group Tab.SingleLine [Tab.Header "Return, %"]])
-       [ [ showDate (awStart w), showDate (awEnd w)
-         , showDecimalT (roundTo 8 (awVStart w))
-         , showDecimalT (roundTo 8 (awVEnd w))
-         , T.pack (show (length (awCashFlows w)))
-         , showDecimalT (roundTo 2 (realToFrac rate * 100)) ]
-       | (w, rate) <- zip windows windowRets ])
-    printf "Total period TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
-      (showDecimal periodTWR) years annualizedTWR
+      showDecimalT = T.pack . showDecimal
+      details = if not showCashFlow then "" else
+        TL.pack (printf "\nTWR activity windows for period %s - %s\n" (showDate begin) (showDate (addDays (-1) end)))
+        <> Tab.render prettyTables T.pack id id
+          (Table
+           (Tab.Group Tab.NoLine [Header (show n) | n <- [1..length windows]])
+           (Tab.Group DoubleLine
+             [ Tab.Group Tab.SingleLine [Tab.Header "Begin", Tab.Header "End"]
+             , Tab.Group Tab.SingleLine [Tab.Header "Value (begin)",   Tab.Header "Value (end)"]
+             , Tab.Group Tab.SingleLine [Tab.Header "# flows"]
+             , Tab.Group Tab.SingleLine [Tab.Header "Return, %"]])
+           [ [ showDate (awStart w), showDate (awEnd w)
+             , showDecimalT (roundTo 8 (awVStart w))
+             , showDecimalT (roundTo 8 (awVEnd w))
+             , T.pack (show (length (awCashFlows w)))
+             , showDecimalT (roundTo 2 (realToFrac rate * 100)) ]
+           | (w, rate) <- zip windows windowRets ])
+        <> TL.pack (printf "Total period TWR: %s%%.\nPeriod: %.2f years.\nAnnualized TWR: %.2f%%\n\n"
+             (showDecimal periodTWR) years annualizedTWR)
 
-  return ((realToFrac periodTWR) :: Double, annualizedTWR)
+  return (details, ((realToFrac periodTWR) :: Double, annualizedTWR))
 
 internalRateOfReturn styles showCashFlow prettyTables (OneSpan begin end valueBefore valueAfter cashFlow _pnl) = do
   let prefix = (begin, maNegate valueBefore)
@@ -254,25 +262,25 @@ internalRateOfReturn styles showCashFlow prettyTables (OneSpan begin end valueBe
 
       totalCF = filter (maIsNonZero . snd) $ prefix : (sortOn fst cashFlow) ++ [postfix]
 
-  when showCashFlow $ do
-    printf "\nIRR cash flow for %s - %s\n" (showDate begin) (showDate (addDays (-1) end))
-    let (dates, amts) = unzip totalCF
-    TL.putStrLn $ Tab.render prettyTables id id id
-      (Table
-       (Tab.Group Tab.NoLine (map (Header . showDate) dates))
-       (Tab.Group Tab.SingleLine [Header "Amount"])
-       (map ((:[]) . T.pack . showMixedAmountOneLineWithoutCost False . styleAmounts styles) amts))
+      (dates, amts) = unzip totalCF
+      details = if not showCashFlow then "" else
+        TL.pack (printf "\nIRR cash flow for %s - %s\n" (showDate begin) (showDate (addDays (-1) end)))
+        <> Tab.render prettyTables id id id
+          (Table
+           (Tab.Group Tab.NoLine (map (Header . showDate) dates))
+           (Tab.Group Tab.SingleLine [Header "Amount"])
+           (map ((:[]) . T.pack . showMixedAmountOneLineWithoutCost False . styleAmounts styles) amts))
+        <> "\n"
 
   -- 0% is always a solution, so require at least something here
   case totalCF of
-    [] -> return 0
-    _  -> return $
-            (solveIRR (interestSum end totalCF)
+    [] -> return (details, Right 0)
+    _  -> return . (details,) . fmap (\r -> (r - 1) * 100) $
+            solveIRR (interestSum end totalCF)
               "Equation for Internal Rate of Return (IRR) can not be solved.\n\
               \  Possible causes: IRR is huge (>1000000%), balance of investment becomes negative at some point in time."
               "Equation for Internal Rate of Return (IRR) can not be solved.\n\
               \  Either search does not converge to a solution, or converges too slowly."
-            - 1) * 100
 
 type CashFlow = [(Day, MixedAmount)]
 
@@ -283,14 +291,14 @@ interestSum referenceDay cf rate = sum $ map go cf
 -- Note: Holdings.hs's xirrPct duplicates this solver setup and
 -- interestSum's rate convention; keep them in sync, or extract a
 -- shared helper.
-solveIRR :: (Double -> Double) -> String -> String -> Double
+solveIRR :: (Double -> Double) -> String -> String -> Either String Double
 solveIRR npv errNotBracketed errSearchFailed =
   case ridders (RiddersParam 100 (AbsTol 0.00001))
                (0.000000000001, 10000)
                npv of
-    Root s       -> s
-    NotBracketed -> error' errNotBracketed
-    SearchFailed -> error' errSearchFailed
+    Root s       -> Right s
+    NotBracketed -> Left errNotBracketed
+    SearchFailed -> Left errSearchFailed
 
 calculateCashFlow :: WhichDate -> [Transaction] -> Query -> CashFlow
 calculateCashFlow wd trans query =
@@ -364,12 +372,12 @@ windowNPV w r =
 
 windowIRR :: ActivityWindow -> Double
 windowIRR w =
-  solveIRR (windowNPV w)
+  either error' id (solveIRR (windowNPV w)
     ("Cannot compute window IRR for "
      ++ T.unpack (showDate (awStart w)) ++ " - " ++ T.unpack (showDate (awEnd w)) ++ ".\n"
      ++ "  Possible cause: investment balance becomes negative within this window.")
     ("Window IRR search did not converge for "
-     ++ T.unpack (showDate (awStart w)) ++ " - " ++ T.unpack (showDate (awEnd w)) ++ ".")
+     ++ T.unpack (showDate (awStart w)) ++ " - " ++ T.unpack (showDate (awEnd w)) ++ "."))  -- PARTIAL:
   - 1
 
 computeWindowReturn :: ActivityWindow -> Double

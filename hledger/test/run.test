@@ -419,3 +419,48 @@ $ mkdir -p $$d; printf 'date,amount\n2026-01-01,10\n' >$$d/t.csv; printf 'skip 1
 $  printf "reg date:'2026-09-01 to 2026-09-15'\n" >$$f; hledger run -f- $$f; rm -f $$f
 2026-09-05 five                 a                                1             1
                                 b                               -1             0
+
+# ** 37. With html output, run collects the commands' outputs into one html page:
+# a heading for each echo, and a folding section for each command, headed by its command line,
+# holding its html output, or its text output preformatted.
+<
+2026-01-01
+  a  1
+  b
+$ hledger run -f- -O html -- echo Reports -- bal a -- stats | grep -o '<h2>[^<]*\|<summary>[^<]*\|<table\|<pre' | tr -d '<'
+h2>Reports
+summary>hledger bal a
+table
+summary>hledger stats
+pre
+
+# ** 38. Commands without an -o flag, like accounts, are also collected.
+# (Showing each section's command line and first line of output.)
+<
+P 2026-01-01 A 1 B
+
+2026-01-01 (C1) p | n  ; t:v
+  a  1 A
+  b
+$ hledger run -f- -O html -- accounts -- codes -- commodities -- descriptions -- notes -- payees -- prices -- tags | grep -A1 '<summary>' | grep -v '^--' | sed 's/<[^>]*>//g'
+hledger accounts
+a
+hledger codes
+C1
+hledger commodities
+A
+hledger descriptions
+p | n
+hledger notes
+n
+hledger payees
+p
+hledger prices
+P 2026-01-01 A 1 B
+hledger tags
+t
+
+# ** 39. run can write only html output.
+$ hledger run -f- -O csv -- bal
+>2 /run can write only html output/
+>= 1

@@ -68,6 +68,7 @@ printmode = hledgerCommandMode
     "in html output, generate links to hledger-web, with this prefix. (Usually the base url shown by hledger-web; can also be relative.)"
   ,outputFormatFlag ["txt","ledger","beancount","csv","tsv","html","fods","json","sql"]
   ,outputFileFlag
+  ,outputViewFlag
   ])
   cligeneralflagsgroups1
   hiddenflags

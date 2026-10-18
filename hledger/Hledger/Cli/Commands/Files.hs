@@ -16,6 +16,7 @@ import Safe (headMay)
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (writeOutputWithTitle)
 
 
 -- | Command line options for this command.
@@ -28,10 +29,10 @@ filesmode = hledgerCommandMode
 
 -- | The files command.
 files :: CliOpts -> Journal -> IO ()
-files CliOpts{rawopts_=rawopts} j = do
+files opts@CliOpts{rawopts_=rawopts} j = do
   let args = listofstringopt "args" rawopts
   regex <- mapM (either fail pure . toRegex . T.pack) $ headMay args
   let fs = maybe id (filter . regexMatch) regex
               $ map fst
               $ jfiles j
-  mapM_ putStrLn fs
+  writeOutputWithTitle opts $ T.unlines $ map T.pack fs

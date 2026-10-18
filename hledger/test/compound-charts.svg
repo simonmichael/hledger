@@ -1,13 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="hledger-chart" width="760" height="340" viewBox="0 0 760 340" role="img" aria-label="Monthly Income Statement 2024-01-01..2024-02-29">
+<svg xmlns="http://www.w3.org/2000/svg" class="hledger-chart" width="880" height="394" viewBox="0 0 880 394" role="img" aria-label="Monthly Income Statement 2024-01-01..2024-02-29">
 <title>Monthly Income Statement 2024-01-01..2024-02-29</title>
-<style>.hledger-chart{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:12px}
-.hledger-chart .title{font-size:14px;font-weight:600}
-.hledger-chart .heading{font-size:13px;font-weight:600}
+<style>.hledger-chart{max-width:100%;height:auto;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;font-size:14px}
+.hledger-chart .title{font-size:17px;font-weight:600}
+.hledger-chart .heading{font-size:15px;font-weight:600}
 .hledger-chart .value,.hledger-chart .tick{font-variant-numeric:tabular-nums}
 .hledger-chart .grid,.hledger-chart .axis{stroke-width:1}
-.hledger-chart .line{fill:none;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
-.hledger-chart .mark{stroke-width:1.5}
-.hledger-chart .average{stroke-width:1.5;stroke-dasharray:5 4}
+.hledger-chart .line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.hledger-chart .mark{stroke-width:2.5}
+.hledger-chart .average{stroke-width:2;stroke-dasharray:5 4}
 .hledger-chart .hit{fill:transparent}
 .hledger-chart .hatch{stroke-width:2.5}
 .hledger-chart .bg{fill:#fcfcfb}
@@ -164,51 +164,51 @@
 }
 </style>
 <rect class="bg" width="100%" height="100%" />
-<text class="title" x="16" y="30">Monthly Income Statement 2024-01-01..2024-02-29</text>
-<rect x="16" y="53" width="10" height="10" rx="2" class="fill tr1" />
-<text class="label" x="34" y="62">revenues:salary</text>
-<rect x="155" y="53" width="10" height="10" rx="2" class="fill tx3" />
-<text class="label" x="173" y="62">expenses:food</text>
-<rect x="280" y="53" width="10" height="10" rx="2" class="fill tx2" />
-<text class="label" x="298" y="62">expenses:rent</text>
-<line class="mark total" x1="405" x2="417" y1="58" y2="58" />
-<text class="label" x="423" y="62">Net</text>
-<line class="axis" x1="49" x2="744" y1="302" y2="302" />
-<text class="tick" x="41" y="306" text-anchor="end">0</text>
-<line class="grid" x1="49" x2="744" y1="258" y2="258" />
-<text class="tick" x="41" y="262" text-anchor="end">20</text>
-<line class="grid" x1="49" x2="744" y1="214" y2="214" />
-<text class="tick" x="41" y="218" text-anchor="end">40</text>
-<line class="grid" x1="49" x2="744" y1="170" y2="170" />
-<text class="tick" x="41" y="174" text-anchor="end">60</text>
-<line class="grid" x1="49" x2="744" y1="126" y2="126" />
-<text class="tick" x="41" y="130" text-anchor="end">80</text>
-<line class="grid" x1="49" x2="744" y1="82" y2="82" />
-<text class="tick" x="41" y="86" text-anchor="end">100</text>
-<text class="tick" x="222.8" y="320" text-anchor="middle">Jan</text>
-<text class="tick" x="570.2" y="320" text-anchor="middle">Feb</text>
+<text class="title" x="16" y="33">Monthly Income Statement 2024-01-01..2024-02-29</text>
+<rect x="16" y="58" width="12" height="12" rx="3" class="fill tr1" />
+<text class="label" x="36" y="69">revenues:salary</text>
+<rect x="157.3" y="58" width="12" height="12" rx="3" class="fill tx3" />
+<text class="label" x="177.3" y="69">expenses:food</text>
+<rect x="290.2" y="58" width="12" height="12" rx="3" class="fill tx2" />
+<text class="label" x="310.2" y="69">expenses:rent</text>
+<line class="mark total" x1="419.4" x2="431.4" y1="64" y2="64" />
+<text class="label" x="439.4" y="69">Net</text>
+<line class="axis" x1="54.1" x2="864" y1="352" y2="352" />
+<text class="tick" x="46.1" y="357" text-anchor="end">0</text>
+<line class="grid" x1="54.1" x2="864" y1="300" y2="300" />
+<text class="tick" x="46.1" y="305" text-anchor="end">20</text>
+<line class="grid" x1="54.1" x2="864" y1="248" y2="248" />
+<text class="tick" x="46.1" y="253" text-anchor="end">40</text>
+<line class="grid" x1="54.1" x2="864" y1="196" y2="196" />
+<text class="tick" x="46.1" y="201" text-anchor="end">60</text>
+<line class="grid" x1="54.1" x2="864" y1="144" y2="144" />
+<text class="tick" x="46.1" y="149" text-anchor="end">80</text>
+<line class="grid" x1="54.1" x2="864" y1="92" y2="92" />
+<text class="tick" x="46.1" y="97" text-anchor="end">100</text>
+<text class="tick" x="256.6" y="373" text-anchor="middle">Jan</text>
+<text class="tick" x="661.5" y="373" text-anchor="middle">Feb</text>
 <g>
 <title>Jan · revenues:salary · 100</title>
-<path class="fill tr1" d="M 197.8 302 V 86 Q 197.8 82 201.8 82 H 217.8 Q 221.8 82 221.8 86 V 302 Z" />
+<path class="fill tr1" d="M 199.6 352 V 96 Q 199.6 92 203.6 92 H 251.6 Q 255.6 92 255.6 96 V 352 Z" />
 </g>
 <g>
 <title>Jan · expenses:food · 30</title>
-<path class="fill tx3" d="M 223.8 302 V 240 Q 223.8 236 227.8 236 H 243.8 Q 247.8 236 247.8 240 V 302 Z" />
+<path class="fill tx3" d="M 257.6 352 V 278 Q 257.6 274 261.6 274 H 309.6 Q 313.6 274 313.6 278 V 352 Z" />
 </g>
 <g>
 <title>Feb · revenues:salary · 100</title>
-<path class="fill tr1" d="M 545.2 302 V 86 Q 545.2 82 549.2 82 H 565.2 Q 569.2 82 569.2 86 V 302 Z" />
+<path class="fill tr1" d="M 604.5 352 V 96 Q 604.5 92 608.5 92 H 656.5 Q 660.5 92 660.5 96 V 352 Z" />
 </g>
 <g>
 <title>Feb · expenses:rent · 80</title>
-<path class="fill tx2" d="M 571.2 302 V 130 Q 571.2 126 575.2 126 H 591.2 Q 595.2 126 595.2 130 V 302 Z" />
+<path class="fill tx2" d="M 662.5 352 V 148 Q 662.5 144 666.5 144 H 714.5 Q 718.5 144 718.5 148 V 352 Z" />
 </g>
 <g>
 <title>Jan · Net · 70</title>
-<line class="mark total" x1="193.8" x2="251.8" y1="148" y2="148" />
+<line class="mark total" x1="195.6" x2="317.6" y1="170" y2="170" />
 </g>
 <g>
 <title>Feb · Net · 20</title>
-<line class="mark total" x1="541.2" x2="599.2" y1="258" y2="258" />
+<line class="mark total" x1="600.5" x2="722.5" y1="300" y2="300" />
 </g>
 </svg>

@@ -17,7 +17,7 @@ module Hledger.Cli.Utils
      writeOutputLazyText,
      warnIfLargeMultiPeriodReport,
      withTitle,
-     printTitle,
+     writeOutputWithTitle,
      journalTransform,
      journalReload,
      journalReloadIfChanged,
@@ -49,10 +49,11 @@ import Data.Time.Clock.POSIX (POSIXTime, utcTimeToPOSIXSeconds)
 import Lens.Micro ((^.))
 import Safe (readMay, headMay)
 import System.Console.CmdArgs
-import System.Directory (getModificationTime, getDirectoryContents, copyFile, doesFileExist)
+import System.Directory (getModificationTime, getDirectoryContents, copyFile, createDirectoryIfMissing, doesFileExist, getXdgDirectory, renameFile, XdgDirectory(..))
 import System.Exit
 import System.FilePath ((</>), splitFileName, takeDirectory)
 import System.Info (os)
+import System.IO (hClose, openTempFile, hPutStrLn, stderr)
 import System.Process (readProcessWithExitCode)
 import Text.Printf
 import Text.Regex.TDFA ((=~))
@@ -243,10 +244,10 @@ maybeObfuscate opts =
 -- If the file exists it will be overwritten.
 writeOutput :: CliOpts -> String -> IO ()
 writeOutput opts s = do
-  mf <- outputFileFromOpts opts
+  mf <- outputFileOrViewFile opts
   case mf of
     Nothing -> putStr s
-    Just f  -> evaluate (length s) >> writeFile f s  -- generate all output first, see writeOutputLazyText
+    Just f  -> evaluate (length s) >> writeFile f s >> viewIfRequested opts f  -- generate all output first, see writeOutputLazyText
 
 -- | Write some output, to a file specified by --output-file if any,
 -- otherwise to stdout.
@@ -254,12 +255,46 @@ writeOutput opts s = do
 -- If writing to stdout, a pager is used when appropriate and possible.
 writeOutputLazyText :: CliOpts -> TL.Text -> IO ()
 writeOutputLazyText opts s = do
-  mf <- outputFileFromOpts opts
+  mf <- outputFileOrViewFile opts
   case mf of
     Nothing -> runPager $ TL.unpack s
     -- Generate all of the output before opening the file, so that an error while generating it
     -- doesn't leave an empty or truncated file.
-    Just f  -> evaluate (TL.length s) >> TL.writeFile f s
+    Just f  -> evaluate (TL.length s) >> TL.writeFile f s >> viewIfRequested opts f
+
+-- | The file to write output to: the --output-file if any; or with --view, hledger's view file
+-- (see 'viewFile'); or Nothing for stdout.
+outputFileOrViewFile :: CliOpts -> IO (Maybe FilePath)
+outputFileOrViewFile opts = do
+  mf <- outputFileFromOpts opts
+  case mf of
+    Nothing | viewRequested opts -> Just <$> viewFile opts
+    _ -> return mf
+
+-- | Create (or replace) view.FMT in hledger's cache directory (eg ~/.cache/hledger), to write output to,
+-- and return its path. It's in the user's own files, not a shared temporary directory,
+-- so that other users can't interfere with it; and it's created readable only by the user (on unix),
+-- since a home directory may be readable by others.
+-- Since it is in a place the user didn't choose, this always warns where it is, before creating it.
+viewFile :: CliOpts -> IO FilePath
+viewFile opts = do
+  d <- getXdgDirectory XdgCache "hledger"
+  createDirectoryIfMissing True d
+  let f = d </> "view." ++ outputFormatFromOpts opts
+  hPutStrLn stderr $ "writing " ++ f ++ "; if it's sensitive, delete it after viewing."
+  -- openTempFile creates a file with owner-only permissions, which writing it later keeps
+  (tmp, h) <- openTempFile d "view.tmp"
+  hClose h
+  renameFile tmp f
+  return f
+
+-- | With --view, open a written output file in the system's default viewer for it.
+-- If that fails, the file is still there.
+viewIfRequested :: CliOpts -> FilePath -> IO ()
+viewIfRequested opts f = when (viewRequested opts) $
+  launch f >>= either couldnotopen return
+  where
+    couldnotopen tried = warnIO $ printf "could not open a viewer (tried: %s)" (intercalate ", " tried)
 
 -- | Prepend the effective report heading (followed by a blank line) to a
 -- report's lazy text output, if non-empty. Used by reports whose default
@@ -271,14 +306,11 @@ withTitle ropts body =
   in if T.null h then body
      else TL.fromStrict h <> "\n\n" <> body
 
--- | Print the effective report heading (followed by a blank line) to stdout
--- if non-empty. For commands whose output is written directly via putStrLn,
--- call this before producing the main output.
-printTitle :: ReportOpts -> IO ()
-printTitle ropts =
-  let h = effectiveTitle ropts ""
-  in if T.null h then pure ()
-     else T.putStrLn h >> putStrLn ""
+-- | Write some text output with 'writeOutput', after the effective report heading
+-- if any (see 'withTitle'). For commands producing simple text, like lists of names.
+writeOutputWithTitle :: CliOpts -> T.Text -> IO ()
+writeOutputWithTitle opts =
+  writeOutput opts . TL.unpack . withTitle (_rsReportOpts $ reportspec_ opts) . TL.fromStrict
 
 -- -- | Get a journal from the given string and options, or throw an error.
 -- readJournal :: CliOpts -> String -> IO Journal
@@ -347,23 +379,29 @@ maybeFileModificationTime f = do
 -- failing): `open` on mac; `xdg-open` and then some older launchers that
 -- may be installed on Linux. If nothing starts, print the url instead.
 openBrowserOn :: String -> IO ExitCode
-openBrowserOn u
+openBrowserOn u = launch u >>= either couldnotstart (const $ return ExitSuccess)
+  where
+    couldnotstart tried = do
+      putStrLn $ printf "Could not start a web browser (tried: %s)" $ intercalate ", " tried
+      putStrLn $ printf "Please open your browser and visit %s" u
+      return $ ExitFailure 127
+
+-- | Open a url or file with the platform's default application for it, as described for 'openBrowserOn'.
+-- If nothing could be started, return what was tried.
+launch :: String -> IO (Either [String] ())
+launch u
   | os == "mingw32" = do
       ok <- openBrowser u
-      if ok then return ExitSuccess else couldnotstart ["the Win32 API"]
+      return $ if ok then Right () else Left ["the Win32 API"]
   | otherwise = trylaunchers launchers
     where
       trylaunchers (cmd:rest) = do
         r <- try $ readProcessWithExitCode cmd [u] ""
         case r of
-          Right (ExitSuccess,_,_)    -> return ExitSuccess
+          Right (ExitSuccess,_,_)    -> return $ Right ()
           Right (ExitFailure _,_,_)  -> trylaunchers rest
           Left (_ :: IOException)    -> trylaunchers rest
-      trylaunchers [] = couldnotstart launchers
-      couldnotstart tried = do
-        putStrLn $ printf "Could not start a web browser (tried: %s)" $ intercalate ", " tried
-        putStrLn $ printf "Please open your browser and visit %s" u
-        return $ ExitFailure 127
+      trylaunchers [] = return $ Left launchers
       launchers | os == "darwin" = ["open"]
                 | otherwise      = ["xdg-open", "sensible-browser", "gnome-www-browser", "firefox"]
 

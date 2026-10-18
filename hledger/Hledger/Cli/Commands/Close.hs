@@ -13,14 +13,14 @@ import Data.List (groupBy)
 import Control.Monad (guard)
 import Data.List.Extra (nubSort)
 import Data.Map qualified as M
-import Data.Maybe (fromMaybe, isNothing)
+import Data.Maybe (catMaybes, fromMaybe, isNothing)
 import Data.Text qualified as T
-import Data.Text.IO qualified as T
 import Data.Time.Calendar (addDays)
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.Utils (writeOutputWithTitle)
 import Safe (lastDef, readMay, readDef)
 import System.FilePath (takeBaseName)
 import Data.Char (isDigit)
@@ -75,7 +75,7 @@ closeModeFromRawOpts rawopts = lastDef Close $ collectopts (\(name,_) -> readMay
 
 -- Debugger, beware: close is incredibly devious; simple rules combine to make a horrid maze.
 -- Tests are in hledger/test/close.test.
-close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
+close copts@CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
   let
     mode_ = closeModeFromRawOpts rawopts
     defacctsq_    = if mode_ == Retain then Type [Revenue, Expense] else Type [Asset, Liability]
@@ -304,6 +304,5 @@ close CliOpts{rawopts_=rawopts, reportspec_=rspec0} j = do
   let styles = amountStylesSetRoundingFromRawOpts rawopts $ journalCommodityStyles j
       postinglayout = layoutFromRawOpts rawopts
       showtxn = showTransactionWithLayout postinglayout . styleAmounts styles
-  maybe (pure ()) (T.putStr . showtxn) mclosetxn
-  maybe (pure ()) (T.putStr . showtxn) mopentxn
+  writeOutputWithTitle copts $ foldMap showtxn $ catMaybes [mclosetxn, mopentxn]
  

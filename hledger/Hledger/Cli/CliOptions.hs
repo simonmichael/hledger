@@ -34,6 +34,8 @@ module Hledger.Cli.CliOptions (
   -- outputflags,
   outputFormatFlag,
   outputFileFlag,
+  outputViewFlag,
+  viewRequested,
   generalflagsgroup1,
   generalflagsgroup2,
   generalflagsgroup3,
@@ -374,6 +376,11 @@ outputFileFlag :: Flag RawOpts
 outputFileFlag = flagReq
   ["output-file","o"] (\s opts -> Right $ setopt "output-file" s opts) "FILE"
   "write output to FILE. A file extension matching one of the above formats selects that format."
+
+-- | --view: write the output to a file and open it with the system's default viewer for that kind of file.
+outputViewFlag :: Flag RawOpts
+outputViewFlag = flagNone ["view"] (setboolopt "view")
+  "write output to FILE, or to view.FMT in hledger's cache directory, and open it in the system's default viewer for its format (eg a web browser for html). The default format is html."
 
 argsFlag :: FlagHelp -> Arg RawOpts
 argsFlag = flagArg (\s opts -> Right $ setopt "args" s opts)
@@ -872,7 +879,12 @@ outputFormatFromOpts opts =
     Nothing ->
       case filePathExtension <$> output_file_ opts of
         Just ext | ext `elem` outputFormats -> ext
+        _ | viewRequested opts              -> "html"
         _                                   -> defaultOutputFormat
+
+-- | Was --view used, to show the output in the system's default viewer ?
+viewRequested :: CliOpts -> Bool
+viewRequested = boolopt "view" . rawopts_
 
 -- | Like outputFormatFromOpts, but works on RawOpts (before CliOpts are constructed).
 outputFormatFromRawOpts :: RawOpts -> String
@@ -882,6 +894,7 @@ outputFormatFromRawOpts rawopts =
     Nothing ->
       case filePathExtension <$> maybestringopt "output-file" rawopts of
         Just ext | ext `elem` outputFormats -> ext
+        _ | boolopt "view" rawopts          -> "html"
         _                                   -> defaultOutputFormat
 
 -- -- | Get the file name without its last extension, from a file path.

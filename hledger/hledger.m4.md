@@ -7747,6 +7747,23 @@ $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
 ```
 
+These commands (except stats) also provide `--view`, which writes the output to a file
+and opens it in your system's default viewer for that kind of file, eg a web browser for HTML.
+The file is the one given by `-o`, or else `view.FMT` in hledger's cache directory
+(`$XDG_CACHE_HOME/hledger/` or `~/.cache/hledger/`, or `%LOCALAPPDATA%\hledger\` on Windows),
+replaced each time, and readable only by you (on unix systems).
+hledger shows the file's path; if the report is sensitive, you can delete the file when you're done with it,
+or use `-o` to save it somewhere else.
+The output format is HTML unless you choose another, with `-O` or the `-o` file's extension. Eg:
+```cli
+$ hledger is -M --chart --view      # see an income statement chart and table in a web browser
+$ hledger reg -O csv --view         # or a register in a spreadsheet
+```
+To view several reports at once, on one page, use [`run`](#run) with `--view`:
+```cli
+$ hledger run --view -- is -M --chart -- bs -Q --chart -- reg expenses -p thismonth
+```
+
 ## Output format
 
 Some commands offer other kinds of output, not just text on the terminal.
@@ -8093,6 +8110,7 @@ Balance changes in 2008:
 With [SVG output](#svg-output) (eg `-o chart.svg`) it is a graphical chart;
 with [HTML output](#html-output) it is shown with the report's table collapsed below it;
 and with CSV, TSV or JSON output you get the chart's data.
+To see a graphical chart quickly, add [`--view`](#output-destination), eg `hledger is -M --chart --view`.
 `--chart` also accepts a chart kind and a fixed scale, eg to compare charts.
 For the details, see [Balance charts](#balance-charts), [aregister](#aregister) and [Register charts](#register-charts).
 

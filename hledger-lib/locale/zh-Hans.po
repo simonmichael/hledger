@@ -606,6 +606,23 @@ msgstr "支出"
 msgid "Register"
 msgstr "日记账"
 
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger/Hledger/Cli/Commands/Run.hs hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Show:"
+msgstr "显示："
+
+#: hledger/Hledger/Cli/Commands/Run.hs
+msgid "Titles"
+msgstr "标题"
+
+#: hledger/Hledger/Cli/Commands/Run.hs
+msgid "Charts"
+msgstr "图表"
+
+#: hledger/Hledger/Cli/Commands/Run.hs
+msgid "All"
+msgstr "全部"
+
 #: hledger-ui/Hledger/UI/AccountsScreen.hs
 msgid "account balances"
 msgstr "账户余额"
@@ -995,11 +1012,6 @@ msgstr "每日"
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Show a column per day"
 msgstr "按天显示列"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show:"
-msgstr "显示："
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs

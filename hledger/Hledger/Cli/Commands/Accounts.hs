@@ -20,15 +20,13 @@ module Hledger.Cli.Commands.Accounts (
  ,accounts
 ) where
 
-import Control.Monad (forM_)
 import Data.List
 import Data.Text qualified as T
-import Data.Text.IO qualified as T
 import System.Console.CmdArgs.Explicit as C
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printTitle)
+import Hledger.Cli.Utils (writeOutputWithTitle)
 
 
 -- | Command line options for this command.
@@ -56,8 +54,6 @@ accountsmode = hledgerCommandMode
 -- | The accounts command.
 accounts :: CliOpts -> Journal -> IO ()
 accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_rsReportOpts=ropts}} j = do
-  printTitle ropts
-
   -- 1. identify the accounts we'll show
   let tree     = tree_ ropts
       directives = boolopt "directives" rawopts
@@ -143,4 +139,4 @@ accounts opts@CliOpts{rawopts_=rawopts, reportspec_=ReportSpec{_rsQuery=query,_r
     pad a = T.replicate (maxwidth - T.length (showName a)) " "
     maxwidth = maximum $ map (T.length . showName) clippedaccts
 
-  forM_ clippedaccts $ \a -> T.putStrLn $ showKeyword <> showName a <> showComment a
+  writeOutputWithTitle opts $ T.unlines [showKeyword <> showName a <> showComment a | a <- clippedaccts]

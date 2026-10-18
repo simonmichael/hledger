@@ -203,10 +203,10 @@ $ hledger -f - is -M -O svg | grep -c 'url(#hledger-chart-hatch)'
 
 # ** 15. In SVG, --chart=grouped draws the sections' bars side by side: here, revenues' and expenses' bars at different x positions in each period.
 $ hledger -f - is -M --chart=grouped -O svg | sed -n 's/.*class="fill \(t[rx]\)[0-9]" d="M \([0-9]*\).*/\1 \2/p' | uniq
-tr 208
-tx 234
-tr 548
-tx 574
+tr 212
+tx 270
+tr 608
+tx 666
 
 # ** 16. A grouped chart with only one section left (here, revenues are excluded) still has its section and net rows.
 $ hledger -f - is -M 'not:amt:<0' --chart -w 60

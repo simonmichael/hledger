@@ -603,6 +603,23 @@ msgstr "Ausgaben"
 msgid "Register"
 msgstr "Register"
 
+#. the label before a report's accumulation mode links, and the links' text and tooltips.
+#: hledger/Hledger/Cli/Commands/Run.hs hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Show:"
+msgstr "Anzeigen:"
+
+#: hledger/Hledger/Cli/Commands/Run.hs
+msgid "Titles"
+msgstr "Titel"
+
+#: hledger/Hledger/Cli/Commands/Run.hs
+msgid "Charts"
+msgstr "Diagramme"
+
+#: hledger/Hledger/Cli/Commands/Run.hs
+msgid "All"
+msgstr "Alles"
+
 #: hledger-ui/Hledger/UI/AccountsScreen.hs
 msgid "account balances"
 msgstr "Kontosalden"
@@ -995,11 +1012,6 @@ msgstr "Täglich"
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Show a column per day"
 msgstr "Eine Spalte pro Tag anzeigen"
-
-#. the label before a report's accumulation mode links, and the links' text and tooltips.
-#: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show:"
-msgstr "Anzeigen:"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs

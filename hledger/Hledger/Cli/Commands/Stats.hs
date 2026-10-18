@@ -16,7 +16,6 @@ module Hledger.Cli.Commands.Stats (
 where
 
 import Control.Exception (evaluate)
-import Control.Monad (when)
 import Data.Default (def)
 import Data.List (intercalate, sort)
 import Data.List.Extra (nubSort)
@@ -36,7 +35,7 @@ import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (writeOutput, printTitle, warnIfLargeMultiPeriodReport)
+import Hledger.Cli.Utils (writeOutputWithTitle, warnIfLargeMultiPeriodReport)
 import Hledger.Cli.Version (packageversion, versionStringWith)
 
 
@@ -56,7 +55,6 @@ statsmode = hledgerCommandMode
 stats :: CliOpts -> Journal -> IO ()
 stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
   warnIfLargeMultiPeriodReport rspec j
-  printTitle $ _rsReportOpts rspec
   -- the first lines - general journal stats for one or more periods
   let
     today = _rsDay rspec
@@ -67,11 +65,11 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
     intervalspans = snd $ reportSpanBothDates j rspec
     ismultiperiod = length intervalspans > 1
     (txts, tnums) = unzip . map (showLedgerStats verbose l today) $ maybeDayPartitionToDateSpans intervalspans
-    out1 = (if ismultiperiod then id else init) $ unlines txts
-  when (not oneline) $ writeOutput opts out1
-  -- Ensure the stats have been computed even when not printed (in one-line mode),
+    out1 = if oneline then "" else (if ismultiperiod then id else init) $ unlines txts
+  -- Ensure the stats have been computed (even when not printed, in one-line mode),
   -- so that the run time measured below includes computing them.
   tnum <- evaluate $ sum tnums
+  _ <- evaluate $ length out1
 
   -- the last line - overall performance stats, with memory info if available,
   -- in human-friendly or machine-friendly format
@@ -93,8 +91,8 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
   else
     return (0,0)
   -- Measure the run time as late as possible, so that it includes reading the journal,
-  -- computing and printing the stats above, and the memory measurement; only printing
-  -- this line and exiting are left out, so it should agree closely with `time hledger stats`.
+  -- computing the stats above, and the memory measurement; only writing the output
+  -- and exiting are left out, so it should agree closely with `time hledger stats`.
   t <- getPOSIXTime
   let
     (label, sep)
@@ -116,11 +114,14 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
        "(add +RTS -T -RTS for more)"
       ]
     out2 = label <> intercalate sep ss <> "\n"
+    tabstops = intercalate (replicate 7 ' ') (replicate 21 ".") <> "\n"
 
-  when (oneline && debugLevel>0) $ do
-    let tabstops = intercalate (replicate 7 ' ') (replicate 21 ".") <> "\n"
-    writeOutput opts tabstops
-  writeOutput opts $ (if ismultiperiod then "\n" else "") <> out2
+  -- write all of the output at once, so that eg -o FILE gets all of it
+  writeOutputWithTitle opts $ T.pack $
+    out1
+    <> (if oneline && debugLevel>0 then tabstops else "")
+    <> (if ismultiperiod then "\n" else "")
+    <> out2
 
 toMegabytes n = realToFrac n / 1000000 ::Float  -- SI preferred definition, 10^6
 -- toMebibytes n = realToFrac n / 1048576 ::Float  -- traditional computing definition, 2^20

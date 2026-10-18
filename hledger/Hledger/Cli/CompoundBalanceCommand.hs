@@ -127,6 +127,7 @@ compoundBalanceCommandMode CompoundBalanceCommandSpec{..} =
 
     ,outputFormatFlag ["txt","html","csv","tsv","json","svg"]
     ,outputFileFlag
+    ,outputViewFlag
     ,chartFlag
     ,chartWidthFlag
 

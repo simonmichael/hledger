@@ -16,11 +16,11 @@ module Hledger.Cli.Commands.Notes (
 ) where
 
 import Data.List.Extra (nubSort)
-import Data.Text.IO qualified as T
+import Data.Text qualified as T
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printTitle)
+import Hledger.Cli.Utils (writeOutputWithTitle)
 
 
 -- | Command line options for this command.
@@ -33,8 +33,7 @@ notesmode = hledgerCommandMode
 
 -- | The notes command.
 notes :: CliOpts -> Journal -> IO ()
-notes CliOpts{reportspec_=rspec} j = do
-  printTitle $ _rsReportOpts rspec
+notes opts@CliOpts{reportspec_=rspec} j = do
   let ts = entriesReport rspec j
       notes' = nubSort $ map transactionNote ts
-  mapM_ T.putStrLn notes'
+  writeOutputWithTitle opts $ T.unlines notes'

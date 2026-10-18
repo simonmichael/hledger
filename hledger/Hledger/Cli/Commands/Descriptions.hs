@@ -15,11 +15,11 @@ module Hledger.Cli.Commands.Descriptions (
 ) where
 
 import Data.List.Extra (nubSort)
-import Data.Text.IO qualified as T
+import Data.Text qualified as T
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Utils (printTitle)
+import Hledger.Cli.Utils (writeOutputWithTitle)
 
 
 -- | Command line options for this command.
@@ -32,9 +32,7 @@ descriptionsmode = hledgerCommandMode
 
 -- | The descriptions command.
 descriptions :: CliOpts -> Journal -> IO ()
-descriptions CliOpts{reportspec_=rspec} j = do
-  printTitle $ _rsReportOpts rspec
+descriptions opts@CliOpts{reportspec_=rspec} j = do
   let ts = entriesReport rspec j
       descs = nubSort $ map tdescription ts
-
-  mapM_ T.putStrLn descs
+  writeOutputWithTitle opts $ T.unlines descs

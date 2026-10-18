@@ -23,6 +23,7 @@ activitymode = hledgerCommandMode
   $(embedFileRelative "Hledger/Cli/Commands/Activity.txt")
   [ outputFormatFlag ["txt","svg","html","csv","tsv","json"]
   , outputFileFlag
+  , outputViewFlag
   , chartWidthFlag
   , flagNone ["txns"] (setboolopt "txns") "count transactions, showing just the total (default)"
   , flagNone ["postings"] (setboolopt "postings") "count postings, showing each account's count"

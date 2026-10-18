@@ -41,6 +41,16 @@ If that gives an error, use `#!/usr/bin/env -S hledger run`.
 
 It's ok to use the `run` command recursively within a command script.
 
+With `-O html`, `-o FILE.html` or `--view`, `run` collects the commands' outputs into one HTML page
+instead of printing them: a section for each command, headed by its command line, which can be
+folded; and a heading for each `echo`. Commands which can produce HTML (the balance commands,
+`register`, `aregister`, `print`, `holdings`, `activity`) do so, charts included; others' text output is
+shown as is. `--view` then opens the page in your web browser (see [Output destination](#output-destination)),
+which is a convenient way to see several reports, or charts, at once:
+```cli
+$ hledger run --view -- echo Overview -- is -M --chart -- bs -Q --chart -- reg expenses -p thismonth
+```
+
 Command aliases defined in a config file can also be used in command scripts.
 
 You may find some differences in behaviour between `run` command lines and normal hledger command lines.
