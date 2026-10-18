@@ -47,7 +47,7 @@ module Hledger.Write.Chart (
 ) where
 
 import Control.Applicative ((<|>))
-import Data.Bits (xor)
+import Data.Bits (shiftR, xor)
 import Data.Char (ord)
 import Data.List (find, nub, sortOn)
 #if !MIN_VERSION_base(4,20,0)
@@ -249,10 +249,15 @@ stableSlots n items
           slot = fromMaybe (fromMaybe 0 $ listToMaybe prefs) $ find (`S.notMember` used) prefs
       in (S.insert slot used, M.insert i slot m)
     -- a name's slots, in its order of preference
-    preferences nm = sortOn (\k -> fnv1a (nm <> "/" <> T.pack (show k))) [0 .. n - 1]
-    -- a simple, stable hash (FNV-1a, 32 bit)
-    fnv1a :: Text -> Word32
-    fnv1a = T.foldl' (\h c -> (h `xor` fromIntegral (ord c)) * 16777619) 2166136261
+    preferences nm = sortOn (\k -> hash (nm <> "/" <> T.pack (show k))) [0 .. n - 1]
+    -- a simple, stable hash: FNV-1a (32 bit), with murmur3's finaliser to mix in the last characters well
+    -- (which here are the slot number; without it, names had only a few dozen orders of preference)
+    hash :: Text -> Word32
+    hash = fmix32 . T.foldl' (\h c -> (h `xor` fromIntegral (ord c)) * 16777619) 2166136261
+    fmix32 h0 =
+      let h1 = (h0 `xor` (h0 `shiftR` 16)) * 0x85ebca6b
+          h2 = (h1 `xor` (h1 `shiftR` 13)) * 0xc2b2ae35
+      in h2 `xor` (h2 `shiftR` 16)
 
 -- | A series' values, indexed by x position, for fast lookup by renderers.
 type SeriesValues = Array Int (Maybe Quantity)
