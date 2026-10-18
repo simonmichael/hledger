@@ -113,8 +113,8 @@ styledLinesAsText mode = TL.fromChunks . concatMap (\l -> map piece l ++ ["\n"])
 -- A chart of dates (eg a register) has a row per date, however many there are.
 -- A chart with no panels (nothing to show, eg in an empty period) says so.
 chartAsStyledLines :: TextChartOpts -> Chart -> [StyledLine]
-chartAsStyledLines opts Chart{chTitle, chXAxis, chPanels} =
-  titlelines ++ [[(StylePlain, "No data")] | null chPanels] ++ concatMap (\(i, p) -> [[] | i > 0] ++ panelLines opts chXAxis (length chPanels > 1) p) (zip [0 :: Int ..] chPanels)
+chartAsStyledLines opts c@Chart{chTitle, chXAxis, chPanels} =
+  titlelines ++ [[(StylePlain, "No data")] | null chPanels] ++ concatMap (\(i, p) -> [[] | i > 0] ++ panelLines opts chXAxis (chartTypeColoured c) (length chPanels > 1) p) (zip [0 :: Int ..] chPanels)
   where
     titlelines = if T.null chTitle then [] else [[(StylePlain, chTitle)], []]
 
@@ -128,8 +128,8 @@ data Row = Row
   , rowSides    :: (Maybe Quantity, Maybe Quantity)  -- ^ in a diverging chart, the totals of the series usually right and left of the axis
   }
 
-panelLines :: TextChartOpts -> XAxis -> Bool -> Panel -> [StyledLine]
-panelLines TextChartOpts{tcWidth, tcUnicode} xaxis showheading Panel{pnUnit, pnSeries, pnGroupNames, pnScale, pnLayout, pnCounts, pnSummary} =
+panelLines :: TextChartOpts -> XAxis -> Bool -> Bool -> Panel -> [StyledLine]
+panelLines TextChartOpts{tcWidth, tcUnicode} xaxis typecoloured showheading Panel{pnUnit, pnSeries, pnGroupNames, pnScale, pnLayout, pnCounts, pnSummary} =
   [[(StylePlain, acommodity pnUnit)] | showheading, not $ T.null $ acommodity pnUnit]
   ++ legend
   ++ [trimEnd headerline | diverging, not $ all T.null [posname, negname, netname]]
@@ -143,7 +143,7 @@ panelLines TextChartOpts{tcWidth, tcUnicode} xaxis showheading Panel{pnUnit, pnS
     mtotal = find ((== SeriesTotal) . seRole) pnSeries
     single = length drawn == 1
     -- each series' style, fill character (chosen by its name, like its colour, so that it stays the same in other charts) and values
-    styled = zipWith3 seriesStyle (stableSlots (length fillchars) [(lbFull $ seLabel s, seriesSize s) | s <- drawn]) (seriesColours drawn) drawn
+    styled = zipWith3 seriesStyle (stableSlots (length fillchars) [(lbFull $ seLabel s, seriesSize s) | s <- drawn]) (seriesColours typecoloured drawn) drawn
     styledseries = zip styled drawn
     -- The groups of series (see 'seGroup'), in order, and each group's name and usual sign (if its series have one; otherwise 1).
     groups = nub $ map seGroup drawn

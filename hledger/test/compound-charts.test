@@ -263,3 +263,24 @@ $ hledger -f - is -M --chart -T -A -O csv
 "","Net","total","marker","Feb","20"
 "","Total","rowtotal","","","90"
 "","Average","average","","","45"
+
+# ** 19. Whether accounts are coloured by type is decided for the whole chart: here the USD panel mixes assets and liabilities,
+# so the GLD panel's lone asset account also has an asset colour (a tint of blue, class ta*), not a colour by name (class s*).
+<
+2024-01-01
+  assets:bank        100 USD
+  liabilities:card  -40 USD
+  equity
+
+2024-01-01
+  assets:broker:gld  5 GLD
+  equity
+
+$ hledger -f - bs -O svg | sed -n 's/.*class="heading".*>\(.*\)<.*/\1/p; s/.*class="fill \(t[al]\|s\)[0-9]".*/\1/p' | uniq
+USD
+ta
+tl
+ta
+tl
+GLD
+ta

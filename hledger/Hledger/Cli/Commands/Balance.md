@@ -1048,7 +1048,7 @@ Mar  603.32 USD  █████████████████████
 Negative amounts grow left from an axis, positive amounts right.
 Each account has its own colour (when colour is enabled) and fill character; fill characters repeat after four accounts.
 The legend lists the accounts visible in the chart (an account too small to fill a character cell is left out).
-When a chart shows accounts of several [account types](#account-types), they are coloured by type, with conventional colours:
+When a chart shows accounts of several [account types](#account-types) (in any of its panels), they are coloured by type, with conventional colours:
 assets blue, liabilities amber, equity violet, revenues green, expenses red;
 several accounts of one type get different shades of its colour.
 (In terminals which advertise 24-bit colour support, by setting `COLORTERM=truecolor`, these are the same exact colours as in SVG charts;

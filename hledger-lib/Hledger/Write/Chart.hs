@@ -31,6 +31,7 @@ module Hledger.Write.Chart (
   SummaryKind(..),
   Colour(..),
   seriesColours,
+  chartTypeColoured,
   stableSlots,
   seriesSize,
   maxTints,
@@ -197,20 +198,27 @@ maxTints = 4
 categoricalColours :: Int
 categoricalColours = 8
 
--- | Colours for a panel's series, in order. When the panel's accounts are of several known types, each gets its main type's hue,
--- in one of several tints (repeating when there are more than 'maxTints' of a type). Otherwise (when their types are all the same,
--- so the type's hue would tell nothing, or unknown) they get categorical colours.
+-- | Should this chart's accounts be coloured by their types ? Yes when, across all of its panels,
+-- they are of several known main types (eg assets and liabilities); not when they are all of one type (or unknown),
+-- since the type's hue would then tell nothing. Deciding this for the whole chart keeps each type's hue consistent
+-- across its panels (eg a balance sheet's panel for a commodity held in just one asset account).
+chartTypeColoured :: Chart -> Bool
+chartTypeColoured Chart{chPanels} =
+  S.size (S.fromList [mainAccountType t | p <- chPanels, s <- pnSeries p, seRole s == SeriesItem, Just t <- [lbType $ seLabel s]]) > 1
+
+-- | Colours for a panel's series, in order. When the chart is coloured by type (see 'chartTypeColoured'),
+-- each account of known type gets its main type's hue, in one of several tints (repeating when there are more than 'maxTints' of a type).
+-- Otherwise, and for accounts of unknown type, they get categorical colours.
 -- A lone series which is not an account (eg a total, or "..." for all accounts) gets a hue that no account type uses.
 --
 -- The tints and categorical colours are chosen by the series' names, not their positions or number (see 'stableSlots'),
 -- so that an account keeps its colour in other charts: eg after removing other accounts (even down to just one), or sorting differently.
-seriesColours :: [Series] -> [Colour]
-seriesColours series = zipWith colour series' slots
+seriesColours :: Bool -> [Series] -> [Colour]
+seriesColours typecoloured series = zipWith colour series' slots
   where
     series'
-      | M.size typecounts <= 1 = [s{seLabel = (seLabel s){lbType = Nothing}} | s <- series]
-      | otherwise = series
-    typecounts = M.fromListWith (+) [(t, 1 :: Int) | s <- series, seRole s == SeriesItem, Just t <- [typeOf s]]
+      | typecoloured = series
+      | otherwise    = [s{seLabel = (seLabel s){lbType = Nothing}} | s <- series]
     typeOf s = mainAccountType <$> lbType (seLabel s)
     onlyone = length [s | s <- series, seRole s /= SeriesTotal] == 1
     -- each series' slot among the other ordinary series of its type (or with no type)
@@ -348,21 +356,21 @@ tests_Hledger_Write_Chart = testGroup "Write.Chart" [
   ,testCase "seriesColours" $ do
      let ser n t = Series (ChartLabel n n 0 t True) SeriesItem MarkBar [Just 1] 0 0
          tints cs = [k | TypeColour _ k <- cs]
-     -- accounts of several types get their types' hues, in different tints; untyped series get categorical colours
-     let cs = seriesColours [ser "e1" (Just Expense), ser "a" (Just Cash), ser "u1" Nothing, ser "e2" (Just Expense), ser "u2" Nothing]
+     -- in a chart coloured by type, accounts get their types' hues, in different tints; untyped series get categorical colours
+     let cs = seriesColours True [ser "e1" (Just Expense), ser "a" (Just Cash), ser "u1" Nothing, ser "e2" (Just Expense), ser "u2" Nothing]
      length [c | c@(TypeColour Asset _) <- cs] @?= 1
      length (nub $ tints [c | c@(TypeColour Expense _) <- cs]) @?= 2
      length (nub [k | IndexColour k <- cs]) @?= 2
      -- colours follow the accounts, not their positions
-     seriesColours [ser "e2" (Just Expense), ser "e1" (Just Expense)] @?= reverse (seriesColours [ser "e1" (Just Expense), ser "e2" (Just Expense)])
-     -- accounts all of one type get categorical colours, all different
-     let rs = seriesColours [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]
+     seriesColours True [ser "e2" (Just Expense), ser "e1" (Just Expense)] @?= reverse (seriesColours True [ser "e1" (Just Expense), ser "e2" (Just Expense)])
+     -- otherwise (eg when all accounts are of one type) accounts get categorical colours, all different
+     let rs = seriesColours False [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]
      length (nub [k | IndexColour k <- rs]) @?= maxTints + 1
      -- and keep them when fewer are shown, down to one
-     seriesColours (take 1 [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]) @?= take 1 rs
+     seriesColours False (take 1 [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]) @?= take 1 rs
      -- a lone series which is not an account gets the lone colour; others and totals get theirs
-     seriesColours [(ser "u" Nothing){seLabel = ChartLabel "u" "u" 0 Nothing False}] @?= [LoneColour]
-     seriesColours [(ser "o" Nothing){seRole = SeriesOther}, (ser "t" Nothing){seRole = SeriesTotal}]
+     seriesColours False [(ser "u" Nothing){seLabel = ChartLabel "u" "u" 0 Nothing False}] @?= [LoneColour]
+     seriesColours False [(ser "o" Nothing){seRole = SeriesOther}, (ser "t" Nothing){seRole = SeriesTotal}]
        @?= [OtherColour, TotalColour]
   ,testCase "stableSlots" $ do
      let items = [("a", 3), ("b", 2), ("c", 1)] :: [(Text, Int)]
