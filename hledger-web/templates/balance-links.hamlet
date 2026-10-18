@@ -1,0 +1,4 @@
+<p .report-links>
+  #{rowlabel}
+  $forall (label, title, link, current) <- items
+    <a href=@?{link} :current:.current title=#{title}>#{label}
