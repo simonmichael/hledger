@@ -125,7 +125,15 @@ statementPage here tabtitle spec = do
             header =
               map (withClass "account") cbrpLeadingHeaders ++
               relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans (map (withClass "amount") cbrpDataHeaders)
-            sections = [(mfilter (not . T.null) (Just title), relink body, relink subtotals) | (title, body, subtotals) <- cbrpSections]
+            sections =
+              [ (mfilter (not . T.null) (Just title), stripShared $ relink body, relink subtotals)
+              | (title, body, subtotals) <- cbrpSections ]
+            -- In flat mode each subreport's rows drop their shared account
+            -- prefix, which its title names, and dim the remaining parent
+            -- path (see splitAccountNames).
+            stripShared body
+              | accountlistmode_ ropts == ALTree = body
+              | otherwise = snd $ splitAccountNames body
             noRows = all (\(_, r, _) -> null $ prRows r) . cbrSubreports
             empty = noRows cbr
             -- An empty report with zero balances hidden may have them all: look again showing them.

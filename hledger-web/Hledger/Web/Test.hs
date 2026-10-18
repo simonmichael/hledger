@@ -666,6 +666,20 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "balance?period=yearly%202025"
 
+    yit "shows the accounts' shared prefix once, dimming remaining paths" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "q" "assets"
+      statusIs 200
+      -- the one asset account's parents become a group heading over its leaf
+      bodyContains "scope=\"rowgroup\">assets:bank</th>"
+      bodyContains ">checking</a>"
+      get BalanceR
+      statusIs 200
+      -- no shared prefix across all accounts: full names, parent paths dimmed
+      bodyContains "<span class=\"acct-path\"><span>assets:bank</span></span>:<span class=\"acct-leaf\">checking</span>"
+
     yit "keeps the report controls behind a disclosure" $ do
       get BalanceR
       statusIs 200
@@ -1091,10 +1105,20 @@ hledgerWebTest = do
       statusIs 200
       bodyContains ("colspan=\"2\"><a href=\"" ++ defbaseurl defhost defport ++ "/incomestatement?q=date%3A2025\" title=\"Show revenues and expenses\">")
 
+    yit "drops each section's shared account prefix, dimming remaining paths" $ do
+      get BalancesheetR
+      statusIs 200
+      bodyContains "class=\"account acct-split\""
+      -- assets:bank:checking shows as its leaf; the full name heads the tooltip
+      bodyContains "title=\"assets:bank:checking"
+      bodyContains ">checking</a>"
+
     yit "escapes account names and search terms in the statements" $ do
       get IncomestatementR
       statusIs 200
-      bodyContains "title=\"Show transactions affecting this account and subaccounts\">expenses:snacks&lt;i&gt;x</a>"
+      -- the full name heads the tooltip, and the stripped name is the link
+      bodyContains "title=\"expenses:snacks&lt;i&gt;x"
+      bodyContains ">snacks&lt;i&gt;x</a>"
       bodyNotContains "snacks<i>x"
       request $ do
         setMethod "GET"

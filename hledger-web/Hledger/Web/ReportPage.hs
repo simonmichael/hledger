@@ -34,6 +34,7 @@ module Hledger.Web.ReportPage (
   removeAttributes,
   relinkDateHeaders,
   reportTable,
+  splitAccountNames,
 ) where
 
 import Control.Monad (mfilter, unless)
@@ -54,7 +55,7 @@ import Hledger.Cli.Anchor (dateTerm, renderPeriodHeading)
 import Hledger.Web.Widget.Common (AmountMode(..), accumWord, listWord, removeDates, valueWord)
 import Hledger.Query qualified as Query
 import Hledger.Write.Html (Html, formatCell, nl)
-import Hledger.Write.Spreadsheet (Cell(..), NumLines, textFromClass)
+import Hledger.Write.Spreadsheet (Cell(..), Class(..), NumLines, textFromClass)
 
 -- | A report page's parameters, resolved.
 data ReportParams = ReportParams {
@@ -446,6 +447,31 @@ relinkDateHeaders trs heading link = go
     go spns (c:cs) = c : go spns cs
     go _ [] = []
 
+-- | In a flat report's body rows, strip what the account names share
+-- above their leaf names, and mark the account cells for path-dimmed
+-- rendering (acct-split; see reportTable and .acct-path in hledger.css):
+-- the least interesting parents stop repeating down the page. The
+-- register links keep the full names, which also head each cell's
+-- tooltip. Returns the shared prefix, for showing once in a heading.
+splitAccountNames :: [[Cell b Text]] -> (Maybe AccountName, [[Cell b Text]])
+splitAccountNames rws = (mprefix, map (map split) rws)
+  where
+    isAcct c = textFromClass (cellClass c) == "account"
+    names = [cellContent c | r <- rws, c <- r, isAcct c]
+    prefix = case map accountNameComponents names of
+      []    -> []
+      comps -> foldl1 commonPrefix (map init comps)  -- init: each leaf stays in its row
+    commonPrefix (x:xs) (y:ys) | x == y = x : commonPrefix xs ys
+    commonPrefix _ _ = []
+    mprefix = if null prefix then Nothing else Just (accountNameFromComponents prefix)
+    split c
+      | isAcct c = c
+          { cellContent = accountNameFromComponents $ drop (length prefix) $ accountNameComponents $ cellContent c
+          , cellClass = Class "account acct-split"
+          , cellTitle = cellContent c <> "\n" <> cellTitle c
+          }
+      | otherwise = c
+
 -- | A report as a table in the page's own style: the heading rows, then
 -- a table section per report section (a titled row, its rows, then its
 -- subtotal rows), then the total rows as the table's footer. It scrolls
@@ -474,7 +500,22 @@ reportTable isTree mfold header sections footer =
         rows Nothing body
         rows (Just "subtotal") subtotals
     rows mcls = traverse_ $ \r ->
-      maybe id (\cls -> (! A.class_ cls)) mcls H.tr (traverse_ (formatCell . fmap H.toHtml) (stripIndents r)) <> nl
+      maybe id (\cls -> (! A.class_ cls)) mcls H.tr (traverse_ (formatCell . cellHtml) (stripIndents r)) <> nl
+    -- An account cell marked acct-split renders as two spans, the parent
+    -- path and the leaf name, so css can dim the path and shorten it from
+    -- the left (.acct-path in hledger.css). The inner span is a bidi
+    -- isolate there, keeping that css left-shortening trick
+    -- (direction: rtl) from reordering the name.
+    cellHtml c
+      | "acct-split" `elem` T.words (textFromClass (cellClass c))
+      , (path, leaf) <- T.breakOnEnd ":" (cellContent c)
+      , not (T.null path)
+      = (H.toHtml <$> c)
+          { cellContent =
+              (H.span ! A.class_ "acct-path") (H.span $ H.toHtml $ T.init path)
+              <> H.toHtml (":" :: Text)
+              <> (H.span ! A.class_ "acct-leaf") (H.toHtml leaf) }
+      | otherwise = H.toHtml <$> c
     -- The nbsp indent the renderer gives tree-mode account names, as
     -- padding instead (hledger.css indents by the depth class), so the
     -- caret sits at the name.

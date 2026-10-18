@@ -109,6 +109,12 @@ getBalanceR = do
                    , map (relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans) h, relink b, relink t)
         let isTree = accountlistmode_ ropts == ALTree
             mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
+            -- In flat mode the account names' shared prefix is shown once,
+            -- as a group heading, and each row shows only the rest, its
+            -- remaining parent path dimmed (see splitAccountNames).
+            (acctsPrefix, body')
+              | isTree = (Nothing, body)
+              | otherwise = splitAccountNames body
             -- The links to the other reports stay visible; every other
             -- control the page responds to, one row of links each, sits
             -- behind the controls disclosure.
@@ -141,7 +147,7 @@ getBalanceR = do
         Yesod.toWidget reportsRow
         Yesod.toWidget yearsNav
         Yesod.toWidget controlRows
-        Yesod.toWidget $ reportTable isTree mfold header [(Nothing, body, [])] totals
+        Yesod.toWidget $ reportTable isTree mfold header [(acctsPrefix, body', [])] totals
 
 -- | The heading for a report: --title if one was given, otherwise the
 -- given default.
