@@ -111,6 +111,8 @@ Sections take an account type from their query, which their accounts inherit if 
   but with preferences biased towards the best looking ones (`stableSlotsFavouringFirst 0.5`: █ ▓ ▒ ░, best first), so that the
   stippled ones are used mainly when there are more series; accounts choose first, then "other" series (grey, so their texture
   matters less), whose preferences are reversed, favouring the stippled ones (the palest, ░, also separates the grey from the coloured segments well).
+  Chosen among the series in the same bar (each section's, in the grouped layout), and a series alone in its bar gets █;
+  choosing once per panel left the expenses bar of an `is` chart with stippled characters while █ went unused there.
 - Palette: the dataviz skill's validated reference palette; type hues validated on the pairs that co-occur (green/red is in the CVD warn band,
   so legends and positions matter). Tints mix with white/black ([0, -0.3, 0.4, 0.65], most saturated first),
   and are chosen favouring the first (`stableSlotsFavouringFirst 0.5`), since the pale ones looked washed out when chosen for a lone account.

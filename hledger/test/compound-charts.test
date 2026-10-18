@@ -172,14 +172,14 @@ Apr  2700     -1700 ▒▒▒│╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱
 $ hledger -f - is -M --chart -w 60
 Monthly Income Statement 2024-03-01..2024-04-30
 
-▓ revenues:salary  ▒ expenses:food  █ expenses:taxes  ┃ Net
+█ revenues:salary  ▓ expenses:food  █ expenses:taxes  ┃ Net
 ╱ contra
 
-Mar  Revenues   1000                  │▓▓▓▓▓▓▓▓
-     Expenses    300                  │▒▒
+Mar  Revenues   1000                  │███████▉
+     Expenses    300                  │▓▓
      Net         700                  │     ┃
-Apr  Revenues   1000                  │▓▓▓▓▓▓▓▓
-     Expenses  -1700  ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱│▒▒
+Apr  Revenues   1000                  │███████▉
+     Expenses  -1700  ╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱╱│▓▓
      Net        2700                  │                    ┃
 
 # ** 12. With depth 0, each section's single bar is labelled with the section's name.

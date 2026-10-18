@@ -146,10 +146,14 @@ panelLines TextChartOpts{tcWidth, tcUnicode} xaxis colouring showheading Panel{p
     styled = zipWith3 seriesStyle [fromMaybe 0 $ lookup i fillslots | i <- [0 .. length drawn - 1]] (seriesColours colouring drawn) drawn
     -- each series' fill character, chosen by name: for accounts, favouring the first (best looking) characters,
     -- so that the others are used mainly when there are more series; for "other" series, which are grey,
-    -- so their texture matters less, favouring the last ones
-    fillslots = slotsfor id items ++ slotsfor (\k -> length fillchars - 1 - k) others
+    -- so their texture matters less, favouring the last ones.
+    -- Chosen among the series drawn in the same bar (with the grouped layout, each group's); a series alone in its bar gets the first.
+    fillslots = concat
+      [ if length bar == 1 then [(i, 0) | (i, _) <- bar] else slotsfor id items ++ slotsfor (\k -> length fillchars - 1 - k) others
+      | bar <- bars, let (items, others) = partition ((== SeriesItem) . seRole . snd) bar ]
       where
-        (items, others) = partition ((== SeriesItem) . seRole . snd) (zip [0 :: Int ..] drawn)
+        bars = if grouped then [[(i, s) | (i, s) <- indexed, seGroup s == g] | g <- nub $ map (seGroup . snd) indexed] else [indexed]
+        indexed = zip [0 :: Int ..] drawn
         slotsfor f ss = zip (map fst ss) $ map f $ stableSlotsFavouringFirst 0.5 (length fillchars) [(lbFull $ seLabel s, seriesSize s) | (_, s) <- ss]
     styledseries = zip styled drawn
     -- The groups of series (see 'seGroup'), in order, and each group's name and usual sign (if its series have one; otherwise 1).
@@ -179,7 +183,7 @@ panelLines TextChartOpts{tcWidth, tcUnicode} xaxis colouring showheading Panel{p
       _ -> st
     mtotalvals = seriesValues <$> mtotal
     fillchars = if tcUnicode then "█▓▒░" else "#=+:"  -- best looking first
-    fillChar i = if single then cyclicAt ' ' fillchars 0 else cyclicAt ' ' fillchars i
+    fillChar = cyclicAt ' ' fillchars
 
     xlabels = case xaxis of
       XCategories ls -> [T.replicate (2 * lbIndent l) " " <> lbShort l | l <- ls]
