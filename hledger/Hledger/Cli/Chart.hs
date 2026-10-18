@@ -50,6 +50,10 @@ import Hledger.Write.Chart
 import Hledger.Write.Chart.Svg (chartAsSvg, chartAsSvgWith)
 import Hledger.Write.Chart.Text
 import Hledger.Write.Csv (printCSV, printTSV)
+import Hledger.Write.Html (htmlAsLazyText, nl)
+import Text.Blaze.Html5 ((!))
+import Text.Blaze.Html5 qualified as H
+import Text.Blaze.Html5.Attributes qualified as A
 
 
 -- | The chart kinds that --chart accepts: auto (choose the best chart for the report),
@@ -150,14 +154,19 @@ writeChart opts mreporthtml chart = do
 -- | Some html (eg a report's table) in a collapsed section with the given label, which can be clicked to show it.
 -- Its report title is hidden, since the chart above shows the same title.
 collapsedHtml :: Text -> TL.Text -> TL.Text
-collapsedHtml label html =
-  "<style>details.hledger-details{font:14px/1.5 system-ui,-apple-system,\"Segoe UI\",sans-serif;font-variant-numeric:tabular-nums}"
-  <> "details.hledger-details>summary{width:fit-content;margin:8px 0;padding:2px 10px;border:1px solid #e1e0d9;border-radius:6px;color:#52514e;cursor:pointer}"
-  <> "details.hledger-details>summary:hover{background:#f3f2ee;color:#0b0b0b}"
-  <> "details.hledger-details .report-title{display:none}</style>\n"
-  <> "<details class=\"hledger-details\"><summary>" <> TL.fromStrict label <> "</summary>\n"
-  <> html
-  <> "</details>\n"
+collapsedHtml label html = htmlAsLazyText $ do
+  H.style $ H.preEscapedText $ T.concat
+    [ "details.hledger-details{font:14px/1.5 system-ui,-apple-system,\"Segoe UI\",sans-serif;font-variant-numeric:tabular-nums}"
+    , "details.hledger-details>summary{width:fit-content;margin:8px 0;padding:2px 10px;border:1px solid #e1e0d9;border-radius:6px;color:#52514e;cursor:pointer}"
+    , "details.hledger-details>summary:hover{background:#f3f2ee;color:#0b0b0b}"
+    , "details.hledger-details .report-title{display:none}"
+    ]
+  nl
+  H.details ! A.class_ "hledger-details" $ do
+    H.summary $ H.toHtml label
+    nl
+    H.preEscapedLazyText html
+  nl
 
 -- | The most series to show in each section of a compound report chart: as many as can have distinct tints of a type's colour, and "other".
 maxSectionSeries :: Int
