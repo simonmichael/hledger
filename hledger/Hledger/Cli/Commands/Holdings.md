@@ -14,7 +14,8 @@ Flags:
                             (usually zero, hidden without -E)
      --full-names           in tree mode, show full account names instead of
                             indented leaf names
-     --drop=N               in list mode, omit N leading account name parts
+     --drop=N               omit N leading account name parts; in tree mode,
+                            remove the first N levels
   -S --sort-amount          sort by value (or cost) instead of account name,
                             largest first
   -N --no-total             omit the final total row
@@ -98,13 +99,23 @@ Amounts are displayed with their commodity's display precision.
 `--round` can select another rounding strategy.
 The percent columns (Weight, UGain%, XIRR) are shown with the display style configured for the `%` commodity (eg by `-c '0.00 %'`).
 
-Query arguments and report flags like `-t/--tree`, `--depth`, `-S/--sort-amount`, `--title` etc. work as usual.
+Query arguments and report flags like `--depth`, `-S/--sort-amount`, `--title` etc. work as usual.
+
+With `-t/--tree`, positions are grouped into account sections:
+an account with subaccounts or several commodities becomes a heading row,
+showing its subtree's totals computed like the totals row,
+with its own positions beneath it named by their commodity;
+an account holding one commodity with no subaccounts is a single combined row;
+and with `--lots`, each position's lots appear beneath it.
+Boring parent accounts are squashed into their child as usual
+(considering only accounts with holdings), unless `--no-elide` is used.
 
 With `-O html`, an HTML table is produced instead.
 With `-O fods`, a spreadsheet document readable by LibreOffice etc. is produced.
 With `-O csv` or `-O tsv`, machine-readable output is produced:
-one record per displayed row, with full account names, age in days,
-bare units and gain percent numbers, and no totals record.
+one record per holding (or lot, with `--lots`), with full account names,
+age in days, bare units and gain percent numbers, and no totals or
+tree-mode heading records.
 With `-O json`, a JSON array of holding objects is produced.
 In both, the cost and value fields are named
 `unitcost`, `unitprice`, `totalcost` and `totalvalue`.

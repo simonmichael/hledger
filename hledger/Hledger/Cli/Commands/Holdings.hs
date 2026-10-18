@@ -5,7 +5,10 @@ The @holdings@ command shows a report of investment holdings (lot-tracked assets
 Work in progress; see doc/SPEC-holdings.md.
 Currently it shows the Date, Age, Units, Unit/Avg cost, Price, Cost,
 Value, Weight, UGain, UGain%, RGain and XIRR columns, one row per
-account (or lot subaccount, with --lots) and held commodity.
+account (or lot subaccount, with --lots) and held commodity. In tree
+mode, positions are grouped into account sections: a heading row per
+account showing its subtree's totals, its positions beneath it named
+by their commodity, and with --lots each position's lots beneath it.
 
 The report computation (holdingsReport) is exported for reuse by other
 UIs; the holdings command renders it in the usual output formats.
@@ -68,7 +71,7 @@ holdingsmode = hledgerCommandMode
   (flattreeflags True ++
    [flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts; in list mode, also show parent accounts (usually zero, hidden without -E)"
    ,flagNone ["full-names"] (setboolopt "full-names") "in tree mode, show full account names instead of indented leaf names"
-   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in list mode, omit N leading account name parts"
+   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts; in tree mode, remove the first N levels"
    ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by value (or cost) instead of account name, largest first"
    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
    ,flagReq ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
@@ -247,15 +250,97 @@ data HoldingsReport = HoldingsReport {
   }
 
 -- | Compute the holdings report: the assets held in lot-tracked accounts
--- as of the report end date, one row per account (or per lot, with
--- hroLots) and held commodity, plus grand totals.
+-- as of the report end date, one line per account (or per lot, with
+-- hroLots) and held commodity, plus grand totals. In tree mode the
+-- display lines are instead account sections (see holdingsTreeLines),
+-- while the flat records (hrRows) keep the list-mode shape.
 --
 -- The journal must have its lot detail (lot subaccounts and synthetic
 -- postings) uncollapsed, as the holdings command receives it
 -- (see maybeCollapseLotDetail); this report aggregates lots itself.
 -- A --value=then valuation strategy is not supported; callers reject it.
 holdingsReport :: HoldingsReportOpts -> ReportSpec -> Journal -> HoldingsReport
-holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
+holdingsReport hro rspec@ReportSpec{_rsReportOpts=ropts'} j'
+  | accountlistmode_ ropts' == ALTree = treeHoldingsReport hro rspec j'
+  | otherwise                         = flatHoldingsReport hro rspec j'
+
+-- | The tree-mode holdings report: the flat report, with its display
+-- lines grouped into account sections. With hroLots, a second flat
+-- report gives each position's lots, shown beneath it, and provides
+-- the flat records and unit cost heading, as list mode would.
+treeHoldingsReport :: HoldingsReportOpts -> ReportSpec -> Journal -> HoldingsReport
+treeHoldingsReport hro rspec@ReportSpec{_rsReportOpts=ropts'} j' =
+  prpt{ hrLines = holdingsTreeLines (drop_ ropts') (no_elide_ ropts') prpt mlrpt
+      , hrRows  = hrRows mrpt
+      , hrUnitCostHeading = hrUnitCostHeading mrpt
+      }
+  where
+    flatrspec = rspec{_rsReportOpts = ropts'{accountlistmode_ = ALFlat}}
+    prpt = flatHoldingsReport hro{hroLots = False} flatrspec j'
+    mlrpt | hroLots hro = Just $ flatHoldingsReport hro{hroLots = True} flatrspec j'
+          | otherwise   = Nothing
+    mrpt = fromMaybe prpt mlrpt
+
+-- | Group a flat holdings report's lines into account sections, as tree
+-- mode displays them: an account with subaccounts or several
+-- commodities is a heading line showing its subtree's totals, with its
+-- own positions beneath it named by their commodity, then its
+-- subaccounts; an account holding one commodity with no subaccounts is
+-- a single combined line carrying its figures. Boring parents - those
+-- with no positions of their own and a single child - are squashed into
+-- their child like the balance reports' tree mode, unless no-elide is
+-- set; only accounts with holdings exist here, so the squashing
+-- considers holding rows alone (#2779). With a lots report given, each
+-- position's lots are beneath it. Sibling accounts, the top level
+-- included, keep the flat report's order, so with -S they are ordered
+-- by their first (largest) row. --drop removes the first N levels: the
+-- tree's roots are the accounts at level N+1 (a shallower account's
+-- own positions, a rare case, show as top-level rows).
+holdingsTreeLines :: Int -> Bool -> HoldingsReport -> Maybe HoldingsReport -> [HoldingsLine]
+holdingsTreeLines dropn noelide prpt mlrpt =
+    concatMap node $ sortOn ((`M.lookup` subtreeIxMap) . fst) $
+      [(a, False) | a <- allaccts, accountNameLevel a == dropn + 1] ++
+      [(a, True)  | dropn > 0, a <- M.keys posByAcct, accountNameLevel a <= dropn]
+  where
+    node (a, False) = treeNode 0 a
+    node (a, True)  =
+      concat [ HoldingsPosition 0 a (accountNameDrop dropn a) False h : lotLines 1 a h
+             | h <- M.findWithDefault [] a posByAcct ]
+    posByAcct = M.fromListWith (flip (++)) [(hAccount h, [h]) | (_, h) <- hrRows prpt]
+    lotsByPos = case mlrpt of
+      Nothing -> M.empty
+      Just lr -> M.fromListWith (flip (++))
+        [ ((lotBaseAccount a, hCommodity h), [h])
+        | (_, h) <- hrRows lr, let a = hAccount h, isJust (lotSubaccountName a) ]
+    -- each account's subtree's first flat row, ordering subtrees as the
+    -- flat report's sort ordered their rows
+    subtreeIxMap = M.fromListWith min
+      [(a, ix) | (ix, (_, h)) <- zip [0 :: Int ..] (hrRows prpt), a <- expandAccountName (hAccount h)]
+    allaccts = M.keys subtreeIxMap
+    kidsMap = M.map (sortOn (`M.lookup` subtreeIxMap)) $ M.fromListWith (++)
+      [(parentAccountName a, [a]) | a <- allaccts, accountNameLevel a > 1]
+    kidsOf a = M.findWithDefault [] a kidsMap
+    -- squash boring parents into their child
+    elide disp acct
+      | not noelide, M.notMember acct posByAcct, [c] <- kidsOf acct =
+          elide (disp <> ":" <> accountLeafName c) c
+      | otherwise = (disp, acct)
+    treeNode d acct0 = case (M.findWithDefault [] acct posByAcct, kidsOf acct) of
+      ([h], []) -> HoldingsPosition d acct disp False h : lotLines (d+1) acct h
+      (own, kids) ->
+        HoldingsHeading d acct disp (hrAccountTotals prpt acct) :
+        concat [ HoldingsPosition (d+1) acct (hCommodity h) False h : lotLines (d+2) acct h
+               | h <- own ] ++
+        concatMap (treeNode (d+1)) kids
+      where (disp, acct) = elide (accountLeafName acct0) acct0
+    lotLines d acct h =
+      [ HoldingsPosition d (hAccount lh) (fromMaybe (hAccount lh) $ lotSubaccountName $ hAccount lh) True lh
+      | lh <- M.findWithDefault [] (acct, hCommodity h) lotsByPos ]
+
+-- | The flat (list-mode) holdings report; also the building block of
+-- the tree-mode report.
+flatHoldingsReport :: HoldingsReportOpts -> ReportSpec -> Journal -> HoldingsReport
+flatHoldingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
                rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} j =
   HoldingsReport
     { hrDate            = reportdate
@@ -267,8 +352,6 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     , hrStyles          = pctstyles
     }
   where
-    tree = accountlistmode_ ropts == ALTree
-
     -- The date this report shows holdings at: the day before the (exclusive)
     -- report end date if specified, otherwise today.
     mend = queryEndDate False q
@@ -353,9 +436,8 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
     -- "own": a key's data appears under its owning row account - the
     -- deepest candidate row account at or above it, if any - answering
     -- "in this row's own scope" queries. This is what makes overlapping
-    -- list-mode rows disjoint, eg when lots are held in both an account
-    -- and its subaccount (each of which then gets its own row). In tree
-    -- mode a row's scope is its whole subtree, so the under index serves.
+    -- rows disjoint, eg when lots are held in both an account and its
+    -- subaccount (each of which then gets its own row).
     --
     -- Each group keeps the map's ascending (account, commodity) key
     -- order, as the full scans produced.
@@ -365,10 +447,8 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
                                        , anc <- sub : parentAccountNames sub]
 
     ownIx :: M.Map (AccountName, CommoditySymbol) v -> M.Map AccountName [(CommoditySymbol, v)]
-    ownIx m
-      | tree = underIx m
-      | otherwise = groupIx [(owner, (c, v)) | ((sub, c), v) <- M.toAscList m
-                                             , Just owner <- [ownerOf sub]]
+    ownIx m = groupIx [(owner, (c, v)) | ((sub, c), v) <- M.toAscList m
+                                       , Just owner <- [ownerOf sub]]
 
     -- Group an ascending association list by account, each group keeping
     -- the input order (fromListWith prepends, hence the reverse).
@@ -634,14 +714,14 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
           where acct = prrFullName r
     candaccts = map prrFullName candidates
 
-    -- Rows to display: the candidates, except - in list mode - those with
-    -- nothing in their own scope (eg a base account row whose lots all
-    -- appear in displayed lot subaccount rows); in tree mode all are
-    -- wanted. A row holding lots directly is kept even when a deeper row
-    -- also displays; it shows just its own lots (see ownIx).
+    -- Rows to display: the candidates, except those with nothing in
+    -- their own scope (eg a base account row whose lots all appear in
+    -- displayed lot subaccount rows). A row holding lots directly is
+    -- kept even when a deeper row also displays; it shows just its own
+    -- lots (see ownIx).
     rows = filter keeprow candidates
       where
-        keeprow r = tree || not (null (lotsOf acct))
+        keeprow r = not (null (lotsOf acct))
                  || (empty_ ropts && hasRgainsOf acct)
           where acct = prrFullName r
 
@@ -661,9 +741,11 @@ holdingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
 
     -- The display order: by account name, or with -S by each row's Value
     -- (falling back to Cost), largest first. Sorting compares the keys
-    -- along each row's chain of displayed ancestors, so in tree mode each
-    -- level is sorted and subtrees stay together. Ties (and rows mixing
-    -- commodities, which are summed crudely) keep the account name order.
+    -- along each row's chain of displayed ancestors, so an overlapping
+    -- subaccount row sorts with its displayed parent (and tree mode's
+    -- sections, which keep this order, get each level sorted). Ties (and
+    -- rows mixing commodities, which are summed crudely) keep the
+    -- account name order.
     sortedrows
       | not $ sort_amount_ ropts = rows
       | otherwise = sortOn keypath rows
