@@ -5,8 +5,7 @@
 
 module Hledger.Web.Handler.HoldingsR where
 
-import Data.List (sortOn, zipWith4)
-import Data.Map.Strict qualified as M
+import Data.List (zipWith4)
 import Data.Text qualified as T
 import Text.Blaze.Html5 qualified as H
 import Yesod qualified
@@ -68,19 +67,13 @@ getHoldingsR = do
         paramError trs err
       Right ReportParams{rpRopts, rpRspec, rpPeriod, rpValue} -> do
         let ropts = rpRopts{empty_ = closedShown}
-            -- The displayed positions, always computed as the flat report:
-            -- disjoint rows, one per account and commodity (or per lot,
-            -- with lots shown in list mode). Tree mode groups them below.
-            rspec = rpRspec{_rsReportOpts = ropts{accountlistmode_ = ALFlat}}
+            rspec = rpRspec{_rsReportOpts = ropts}
+            -- The report's display lines: flat positions (or lots with
+            -- lots shown), or account sections in tree mode (see
+            -- holdingsTreeLines).
             rpt = holdingsReport
-                    HoldingsReportOpts{hroLots = lotsShown && not isTree, hroRounding = HardRounding}
+                    HoldingsReportOpts{hroLots = lotsShown, hroRounding = HardRounding}
                     rspec jfull
-            -- With lots shown in tree mode, a second report gives each
-            -- position's lots, shown folded under it.
-            mlotsrpt
-              | isTree && lotsShown = Just $ holdingsReport
-                  HoldingsReportOpts{hroLots = True, hroRounding = HardRounding} rspec jfull
-              | otherwise = Nothing
             title = reportTitle ropts $
               -- TRANSLATORS: the holdings page's heading; {date} is the report date.
               trf trs "Holdings on {date}" [("date", showDate (hrDate rpt))]
@@ -113,7 +106,7 @@ getHoldingsR = do
             -- TRANSLATORS: the holdings table's column headings. The cost
             -- heading is "Unit cost", "Avg cost", or "Unit/Avg cost".
             colheadings =
-              [ tr trs "Date", tr trs "Age", tr trs "Units", tr trs (hrUnitCostHeading $ fromMaybe rpt mlotsrpt)
+              [ tr trs "Date", tr trs "Age", tr trs "Units", tr trs (hrUnitCostHeading rpt)
               , tr trs "Unit price", tr trs "Total cost", tr trs "Total value", tr trs "Weight"
               , tr trs "UGain", tr trs "UGain%", tr trs "RGain", tr trs "XIRR" ]
             header = [ addHeaderBorders $ zipWith hcell ("account" : colclasses) (tr trs "Account" : colheadings) ]
@@ -148,13 +141,13 @@ getHoldingsR = do
             mprefixHeading = if null prefix then Nothing else Just (accountNameFromComponents prefix)
             strippedName = accountNameFromComponents . drop (length prefix) . accountNameComponents
 
-            acctcell r =
-              (defaultCell $ strippedName (prrFullName r))
+            acctcell acct =
+              (defaultCell $ strippedName acct)
                 { cellClass = Class $ T.unwords $
                     ["account", "acct-split"] ++
-                    ["lot" | isJust $ lotSubaccountName $ prrFullName r]
-                , cellAnchor = acctlink (prrFullName r)
-                , cellTitle = prrFullName r <> "\n" <>
+                    ["lot" | isJust $ lotSubaccountName acct]
+                , cellAnchor = acctlink acct
+                , cellTitle = acct <> "\n" <>
                     -- TRANSLATORS: the tooltip of a holding's account link.
                     tr trs "Show this account's register"
                 }
@@ -203,112 +196,55 @@ getHoldingsR = do
                 }
               where parts' = filter (not . T.null) parts
 
-            -- Tree mode groups the flat rows by account itself, rather
-            -- than using the CLI tree report, whose account-and-commodity
-            -- rows repeat every commodity at every tree level, multiplying
-            -- the rows beyond use on a many-commodity journal. An account
-            -- with subaccounts or several commodities is a heading row,
-            -- with its own positions beneath it, named by their commodity,
-            -- then its subaccounts; an account with one commodity and no
-            -- subaccounts is a single combined row. With lots shown, each
-            -- position's lots are beneath it, starting folded.
-            posByAcct = M.fromListWith (flip (++)) [(hAccount h, [h]) | (_, h) <- hrRows rpt]
-            lotsByPos = case mlotsrpt of
-              Nothing -> M.empty
-              Just lr -> M.fromListWith (flip (++))
-                [((lotBaseAccount (hAccount h), hCommodity h), [h]) | (_, h) <- hrRows lr]
-            -- each account's subtree's first flat row, ordering subtrees
-            -- as the flat report's sort ordered their rows
-            subtreeIxMap = M.fromListWith min
-              [(a, ix) | (ix, (_, h)) <- zip [0 :: Int ..] (hrRows rpt), a <- expandAccountName (hAccount h)]
-            allaccts = M.keys subtreeIxMap
-            kidsMap = M.map (sortOn (`M.lookup` subtreeIxMap)) $ M.fromListWith (++)
-              [(parentAccountName a, [a]) | a <- allaccts, accountNameLevel a > 1]
-            kidsOf a = M.findWithDefault [] a kidsMap
-            subtreeHoldings a = concat [hs | (a2, hs) <- M.toList posByAcct, a == a2 || a `isAccountNamePrefixOf` a2]
-            -- squash boring parents into their child, as the CLI tree does
-            elide disp acct
-              | not (no_elide_ ropts), M.notMember acct posByAcct, [c] <- kidsOf acct =
-                  elide (disp <> ":" <> accountLeafName c) c
-              | otherwise = (disp, acct)
-            treeRows = concatMap (treeNode 0) [a | a <- allaccts, accountNameLevel a == 1]
-            treeNode d acct0 = case (M.findWithDefault [] acct posByAcct, kidsOf acct) of
-              ([h], []) -> holdingRow (treecell d [] disp acct) h : lotRows (d+1) acct h
-              (own, kids) ->
-                headingRow d disp acct :
-                concat [ holdingRow (treecell (d+1) ["commodity"] (hCommodity h) acct) h
-                           : lotRows (d+2) acct h
-                       | h <- own ] ++
-                concatMap (treeNode (d+1)) kids
-              where (disp, acct) = elide (accountLeafName acct0) acct0
-            lotRows d acct h =
-              [ holdingRow (treecell d ["lot"] (fromMaybe (hAccount lh) $ lotSubaccountName $ hAccount lh) (hAccount lh)) lh
-              | lh <- M.findWithDefault [] (acct, hCommodity h) lotsByPos ]
+            -- A display line's row. In tree mode the lines are account
+            -- sections (see holdingsTreeLines): heading rows showing each
+            -- account's subtree totals, its positions named by their
+            -- commodity beneath it, and with lots shown, each position's
+            -- lots beneath it, starting folded.
+            lineRow (HoldingsHeading d acct disp tot) = headingRow d disp acct tot
+            lineRow (HoldingsPosition d acct disp islot h)
+              | isTree    = holdingRow (treecell d cls disp acct) h
+              | otherwise = holdingRow (acctcell acct) h
+              where
+                cls | islot                 = ["lot"]
+                    | disp == hCommodity h  = ["commodity"]
+                    | otherwise             = []
 
-            -- An account heading row: the summable dollar columns, summed
-            -- over the subtree's rows with the totals row's rules; dates,
-            -- units, unit prices, and XIRR do not aggregate and stay blank.
-            headingRow d disp acct =
+            -- An account heading row: the account's subtree totals,
+            -- computed like the totals row (see hrAccountTotals).
+            headingRow d disp acct tot =
               treecell d ["acctheading"] disp acct :
               zipWith4 datacell coltypes
                 [ "date", "age", "units", "unitcost", "unitprice", "totalcost", "totalvalue", "weight"
-                , "ugain" <> signcls ugainsum, "ugainpct", "rgain" <> signcls rgainsum, "xirr" ]
+                , "ugain" <> signcls (fromMaybe [] $ htUgain tot), "ugainpct", "rgain" <> signcls (htRgain tot), "xirr" ]
                 amountcols
-                [ [], [], [], [], []
-                , map showamt costsum
-                , maybe [] (map showamtz) mvaluesum
-                , [maybe "" showpct mweightsum]
-                , map showamtz ugainsum
-                , [maybe "" showpct mugainpct]
-                , map showamt rgainsum
-                , []
-                ]
-              where
-                hs = subtreeHoldings acct
-                sumAmts as = if null as then [] else amounts (mixed as)
-                costsum  = sumAmts $ concatMap hCost hs
-                rgainsum = sumAmts $ concatMap hRgain hs
-                -- as in the totals row, no value or gains are shown unless
-                -- every position beneath has a market value
-                mvaluesum
-                  | all (not . null . hValue) hs = Just $ sumAmts $ concatMap hValue hs
-                  | otherwise = Nothing
-                mweightsum = sum <$> traverse hWeight hs
-                ugainsum = fromMaybe [] $ do
-                  vs <- mvaluesum
-                  guard $ not (null vs) && map acommodity vs == map acommodity costsum
-                  Just $ zipWith gain1 vs costsum
-                gain1 v c = styleAmounts (hrStyles rpt) $ amountSetFullPrecisionUpTo Nothing
-                  nullamt{acommodity = acommodity v, aquantity = aquantity v - aquantity c}
-                mugainpct = do
-                  [g] <- Just ugainsum
-                  [c] <- Just costsum
-                  guard $ acommodity g == acommodity c && aquantity c /= 0
-                  Just $ 100 * aquantity g / abs (aquantity c)
+                (totalsParts tot)
 
-            body | isTree    = treeRows
-                 | otherwise = [holdingRow (acctcell r) h | (r, h) <- hrRows rpt]
+            -- A totals row's data cell parts: the grand total's, or an
+            -- account heading row's.
+            totalsParts tot =
+              [ []
+              , []
+              , maybe [] ((:[]) . showamt) (htUnits tot)
+              , maybe [] ((:[]) . showamt) (htAvgCost tot)
+              , []
+              , map showamt (htCost tot)
+              , maybe [] (map showamt) (htValue tot)
+              , [maybe "" showpct (htWeight tot)]
+              , maybe [] (map showamtz) (htUgain tot)
+              , [maybe "" showpct (htUgainPct tot)]
+              , map showamt (htRgain tot)
+              , [maybe "" showxirr (htXirr tot)]
+              ]
 
-            tot = hrTotals rpt
+            body = map lineRow (hrLines rpt)
+
             totals =
               [ zipWith4 datacell (TypeString : coltypes)
                   ("account coltotal" : map (<> " coltotal") colclasses)
                   (False : amountcols) $
                   -- TRANSLATORS: the heading of the holdings table's totals row.
-                  [tr trs "Total:"] :
-                  [ []
-                  , []
-                  , maybe [] ((:[]) . showamt) (htUnits tot)
-                  , maybe [] ((:[]) . showamt) (htAvgCost tot)
-                  , []
-                  , map showamt (htCost tot)
-                  , maybe [] (map showamt) (htValue tot)
-                  , [maybe "" showpct (htWeight tot)]
-                  , maybe [] (map showamtz) (htUgain tot)
-                  , [maybe "" showpct (htUgainPct tot)]
-                  , map showamt (htRgain tot)
-                  , [maybe "" showxirr (htXirr tot)]
-                  ]
+                  [tr trs "Total:"] : totalsParts (hrTotals rpt)
               ]
 
             -- Every control the page responds to, one row of links each.
