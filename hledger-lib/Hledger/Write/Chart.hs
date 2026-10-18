@@ -31,7 +31,8 @@ module Hledger.Write.Chart (
   SummaryKind(..),
   Colour(..),
   seriesColours,
-  chartTypeColoured,
+  Colouring(..),
+  chartColouring,
   stableSlots,
   seriesSize,
   maxTints,
@@ -184,7 +185,8 @@ mainAccountType t = fromMaybe t $ find (t `isAccountSubtypeOf`) [Asset, Liabilit
 data Colour
   = TypeColour AccountType Int  -- ^ the conventional hue of this main account type, in its Nth tint (to distinguish several of that type)
   | IndexColour Int             -- ^ the Nth categorical colour, for series with no account type
-  | LoneColour                  -- ^ a hue that no account type uses, for a chart's only series when it is not an account
+  | LoneColour                  -- ^ a hue that no account type uses, for a chart's only series when it is not an account,
+                                --   or for an account of unknown type in a chart with one account per panel
   | NeutralColour               -- ^ a neutral colour, eg for the contra amounts legend swatch
   | OtherColour                 -- ^ a muted colour, for a series combining several items
   | TotalColour                 -- ^ the ink (text) colour, for a total
@@ -198,27 +200,35 @@ maxTints = 4
 categoricalColours :: Int
 categoricalColours = 8
 
--- | Should this chart's accounts be coloured by their types ? Yes when, across all of its panels,
--- they are of several known main types (eg assets and liabilities); not when they are all of one type (or unknown),
--- since the type's hue would then tell nothing. Deciding this for the whole chart keeps each type's hue consistent
--- across its panels (eg a balance sheet's panel for a commodity held in just one asset account).
-chartTypeColoured :: Chart -> Bool
-chartTypeColoured Chart{chPanels} =
-  S.size (S.fromList [mainAccountType t | p <- chPanels, s <- pnSeries p, seRole s == SeriesItem, Just t <- [lbType $ seLabel s]]) > 1
+-- | How a chart's accounts are coloured (decided for the whole chart, so that colours mean the same in all of its panels).
+data Colouring
+  = ByName  -- ^ in distinct colours chosen by name, to tell them apart: when they are all of one type (whose hue would tell nothing), or of unknown type
+  | ByType  -- ^ by main account type (in tints chosen by name): when they are of several types
+  | Single  -- ^ by type, or if unknown in the lone colour: when each panel shows just one account, so there is nothing to tell apart
+  deriving (Show, Eq)
 
--- | Colours for a panel's series, in order. When the chart is coloured by type (see 'chartTypeColoured'),
--- each account of known type gets its main type's hue, in one of several tints (repeating when there are more than 'maxTints' of a type).
--- Otherwise, and for accounts of unknown type, they get categorical colours.
--- A lone series which is not an account (eg a total, or "..." for all accounts) gets a hue that no account type uses.
+-- | How this chart's accounts should be coloured: considering all of its panels, so that eg in a balance sheet,
+-- a commodity's panel with just one asset account shows it in the assets' hue, like the other panels.
+chartColouring :: Chart -> Colouring
+chartColouring Chart{chPanels}
+  | all ((<= 1) . length . filter ((/= SeriesTotal) . seRole) . pnSeries) chPanels = Single
+  | S.size (S.fromList [mainAccountType t | p <- chPanels, s <- pnSeries p, seRole s == SeriesItem, Just t <- [lbType $ seLabel s]]) > 1 = ByType
+  | otherwise = ByName
+
+-- | Colours for a panel's series, in order, for the chart's colouring (see 'chartColouring').
+-- Coloured by type, each account of known type gets its main type's hue, in one of several tints
+-- (repeating when there are more than 'maxTints' of a type). Otherwise, and accounts of unknown type, get categorical colours;
+-- except that a lone series which is not an account (eg a total, or "..." for all accounts), or a lone account of unknown type
+-- in a chart of single accounts, gets a hue that no account type uses.
 --
 -- The tints and categorical colours are chosen by the series' names, not their positions or number (see 'stableSlots'),
 -- so that an account keeps its colour in other charts: eg after removing other accounts (even down to just one), or sorting differently.
-seriesColours :: Bool -> [Series] -> [Colour]
-seriesColours typecoloured series = zipWith colour series' slots
+seriesColours :: Colouring -> [Series] -> [Colour]
+seriesColours colouring series = zipWith colour series' slots
   where
     series'
-      | typecoloured = series
-      | otherwise    = [s{seLabel = (seLabel s){lbType = Nothing}} | s <- series]
+      | colouring == ByName = [s{seLabel = (seLabel s){lbType = Nothing}} | s <- series]
+      | otherwise           = series
     typeOf s = mainAccountType <$> lbType (seLabel s)
     onlyone = length [s | s <- series, seRole s /= SeriesTotal] == 1
     -- each series' slot among the other ordinary series of its type (or with no type)
@@ -233,7 +243,7 @@ seriesColours typecoloured series = zipWith colour series' slots
       (SeriesOther, _) -> OtherColour
       (_, Just t)      -> TypeColour t k
       (_, Nothing)
-        | onlyone && not (lbAccount $ seLabel s) -> LoneColour
+        | onlyone && (colouring == Single || not (lbAccount $ seLabel s)) -> LoneColour
         | otherwise    -> IndexColour k
 
 -- | A series' size, for ranking: the sum of its absolute values.
@@ -357,21 +367,24 @@ tests_Hledger_Write_Chart = testGroup "Write.Chart" [
      let ser n t = Series (ChartLabel n n 0 t True) SeriesItem MarkBar [Just 1] 0 0
          tints cs = [k | TypeColour _ k <- cs]
      -- in a chart coloured by type, accounts get their types' hues, in different tints; untyped series get categorical colours
-     let cs = seriesColours True [ser "e1" (Just Expense), ser "a" (Just Cash), ser "u1" Nothing, ser "e2" (Just Expense), ser "u2" Nothing]
+     let cs = seriesColours ByType [ser "e1" (Just Expense), ser "a" (Just Cash), ser "u1" Nothing, ser "e2" (Just Expense), ser "u2" Nothing]
      length [c | c@(TypeColour Asset _) <- cs] @?= 1
      length (nub $ tints [c | c@(TypeColour Expense _) <- cs]) @?= 2
      length (nub [k | IndexColour k <- cs]) @?= 2
      -- colours follow the accounts, not their positions
-     seriesColours True [ser "e2" (Just Expense), ser "e1" (Just Expense)] @?= reverse (seriesColours True [ser "e1" (Just Expense), ser "e2" (Just Expense)])
+     seriesColours ByType [ser "e2" (Just Expense), ser "e1" (Just Expense)] @?= reverse (seriesColours ByType [ser "e1" (Just Expense), ser "e2" (Just Expense)])
      -- otherwise (eg when all accounts are of one type) accounts get categorical colours, all different
-     let rs = seriesColours False [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]
+     let rs = seriesColours ByName [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]
      length (nub [k | IndexColour k <- rs]) @?= maxTints + 1
      -- and keep them when fewer are shown, down to one
-     seriesColours False (take 1 [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]) @?= take 1 rs
+     seriesColours ByName (take 1 [ser (T.pack $ show i) (Just Revenue) | i <- [0 .. maxTints]]) @?= take 1 rs
      -- a lone series which is not an account gets the lone colour; others and totals get theirs
-     seriesColours False [(ser "u" Nothing){seLabel = ChartLabel "u" "u" 0 Nothing False}] @?= [LoneColour]
-     seriesColours False [(ser "o" Nothing){seRole = SeriesOther}, (ser "t" Nothing){seRole = SeriesTotal}]
+     seriesColours ByName [(ser "u" Nothing){seLabel = ChartLabel "u" "u" 0 Nothing False}] @?= [LoneColour]
+     seriesColours ByName [(ser "o" Nothing){seRole = SeriesOther}, (ser "t" Nothing){seRole = SeriesTotal}]
        @?= [OtherColour, TotalColour]
+     -- in a chart of single accounts, a lone account has its type's hue, or if unknown the lone colour
+     seriesColours Single [ser "e" (Just Expense)] @?= map (TypeColour Expense) (stableSlots maxTints [("e", 1 :: Quantity)])
+     seriesColours Single [ser "u" Nothing] @?= [LoneColour]
   ,testCase "stableSlots" $ do
      let items = [("a", 3), ("b", 2), ("c", 1)] :: [(Text, Int)]
          slots = stableSlots 8 items

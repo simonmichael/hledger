@@ -356,3 +356,19 @@ $ hledger -f - bal -M expenses -O svg | sed -n 's/.*class="tick".*text-anchor="e
 20
 25
 30 USD
+
+# ** 32. When each panel shows just one account, there is nothing to tell apart, so it has its type's colour
+# (here expenses, class tx*), or if its type is unknown, cyan (class lone).
+<
+account e  ; type: X
+
+2024-01-01
+  e   1
+  u  -1
+
+$ hledger -f - bal -M e -O svg | sed -n 's/.*class="fill \([a-z]*\)[0-9]*".*/\1/p' | uniq
+tx
+
+# ** 33. Likewise for an account of unknown type.
+$ hledger -f - bal -M u -O svg | sed -n 's/.*class="fill \([a-z]*\)[0-9]*".*/\1/p' | uniq
+lone

@@ -100,8 +100,11 @@ Sections take an account type from their query, which their accounts inherit if 
 
 - Accounts of several types: conventional type hues (assets blue, liabilities amber, equity violet, revenues green, expenses red),
   with up to 4 tints per type. Accounts all of one type, or untyped: 8 categorical colours (the type hue would tell nothing).
-  Decided for the whole chart (`chartTypeColoured`), not per panel; per panel, a commodity's panel with one asset account
+  Decided for the whole chart (`chartColouring`), not per panel; per panel, a commodity's panel with one asset account
   (eg in bcexample's bs) got a categorical colour while the USD panel's assets were blue.
+  When every panel shows one account, nothing needs telling apart: its type hue, or cyan if untyped (an apparently random
+  categorical colour was confusing). The cost: such an account's colour changes when others join it; a single series has no legend.
+  Always using type hues was considered and rejected: 4 tints (2 shades in basic ANSI) can't tell apart a one-type chart's accounts.
   "other" is grey, totals ink; a lone series that isn't an account (eg a total, or "..." for all accounts) is cyan, a hue no account type uses.
 - Chosen by account name, not position or count (`stableSlots`): each name has a hashed order of preference, names choose largest first.
   So -S changes nothing, and removing the largest account (drilling down) disturbs only accounts it had displaced. Text fill characters likewise.

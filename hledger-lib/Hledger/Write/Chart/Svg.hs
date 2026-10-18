@@ -92,7 +92,7 @@ chartSvgMarkup dark c@Chart{chTitle, chXAxis, chPanels} =
     (panelsbottom, panelmarkups) = foldl stackPanel (pad + titleheight, []) chPanels
     totalheight = if null chPanels then panelsbottom + 14 + pad else panelsbottom
     stackPanel (top, ms) p =
-      let (h, m) = panelSvg chXAxis (chartTypeColoured c) showheadings top p
+      let (h, m) = panelSvg chXAxis (chartColouring c) showheadings top p
       in (top + h + panelGap, ms ++ [m])
 
 -- Layout constants, in pixels.
@@ -127,8 +127,8 @@ data DrawSeries = DrawSeries
   }
 
 -- | Draw one panel with its top at the given y; return its height and markup.
-panelSvg :: XAxis -> Bool -> Bool -> Double -> Panel -> (Double, Svg)
-panelSvg xaxis typecoloured showheading top Panel{pnUnit, pnSeries, pnGroupNames, pnScale, pnLayout, pnCounts, pnSummary} =
+panelSvg :: XAxis -> Colouring -> Bool -> Double -> Panel -> (Double, Svg)
+panelSvg xaxis colouring showheading top Panel{pnUnit, pnSeries, pnGroupNames, pnScale, pnLayout, pnCounts, pnSummary} =
   (headingh + legendh + bodyh + summaryh, do
     when (headingh > 0) $
       S.text_ ! A.class_ "heading" ! A.x (toValue $ num pad) ! A.y (toValue $ num (top + 16)) $ S.toMarkup (acommodity pnUnit)
@@ -149,7 +149,7 @@ panelSvg xaxis typecoloured showheading top Panel{pnUnit, pnSeries, pnGroupNames
     mtotal = find ((== SeriesTotal) . seRole) pnSeries
     -- the total, if it's to be marked: not for counts in one stack, since it would be just the top of the stack
     mtotalmark = if pnCounts && length pnGroupNames <= 1 then Nothing else mtotal
-    drawn = zipWith (\c s -> DrawSeries (colourClass c) s (seriesValues s)) (seriesColours typecoloured items) items
+    drawn = zipWith (\c s -> DrawSeries (colourClass c) s (seriesValues s)) (seriesColours colouring items) items
     (legendh, legendm) = legendSvg (top + headingh) [(dsClass d, seMark (dsSeries d), lbFull $ seLabel $ dsSeries d) | d <- drawn]
                            (if length items > 1 then mtotalmark else Nothing) hascontra
     hascontra = or [isContra s q | s <- items, seMark s == MarkBar, Just q <- seValues s]
