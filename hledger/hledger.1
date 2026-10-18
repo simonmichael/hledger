@@ -42,7 +42,8 @@ You can also open a built\-in copy, at a point of interest, by running
 .PP
 The main function of the hledger CLI is to read plain text files
 describing financial transactions, crunch the numbers, and print a
-useful report on the terminal (or save it as HTML, CSV, JSON or SQL).
+useful report or chart on the terminal (or save it as HTML, CSV, JSON,
+SQL or SVG).
 Many reports are available, as subcommands.
 hledger will also detect other \f[CR]hledger\-*\f[R] executables as
 extra subcommands.
@@ -107,6 +108,7 @@ $ hledger aregister assets
 $ hledger balance
 $ hledger balancesheet
 $ hledger incomestatement
+$ hledger incomestatement \-M \-\-chart
 .EE
 .PP
 Run \f[CR]hledger\f[R] to list the commands.
@@ -987,7 +989,14 @@ Input files are parsed just once, so the commands run faster.
 .IP
 .EX
 Flags:
-no command\-specific flags
+  \-O \-\-output\-format=FMT    select the output format. Supported formats:
+                            html.
+  \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 .EE
 .PP
 You can use \f[CR]run\f[R] in three ways:
@@ -1047,6 +1056,23 @@ If that gives an error, use \f[CR]#!/usr/bin/env \-S hledger run\f[R].
 .PP
 It\(aqs ok to use the \f[CR]run\f[R] command recursively within a
 command script.
+.PP
+With \f[CR]\-O html\f[R], \f[CR]\-o FILE.html\f[R] or
+\f[CR]\-\-view\f[R], \f[CR]run\f[R] collects the commands\(aq outputs
+into one HTML page instead of printing them: a section for each command,
+headed by its command line, which can be folded; and a heading for each
+\f[CR]echo\f[R].
+Commands which can produce HTML (the balance commands,
+\f[CR]register\f[R], \f[CR]aregister\f[R], \f[CR]print\f[R],
+\f[CR]holdings\f[R], \f[CR]activity\f[R]) do so, charts included;
+others\(aq text output is shown as is.
+\f[CR]\-\-view\f[R] then opens the page in your web browser (see Output
+destination), which is a convenient way to see several reports, or
+charts, at once:
+.IP
+.EX
+$ hledger run \-\-view \-\- echo Overview \-\- is \-M \-\-chart \-\- bs \-Q \-\-chart \-\- reg expenses \-p thismonth
+.EE
 .PP
 Command aliases defined in a config file can also be used in command
 scripts.
@@ -2171,6 +2197,10 @@ Flags:
                             sql.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 .EE
 .PP
 The print command displays full journal entries (transactions) from the
@@ -2544,6 +2574,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      \-\-chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart\(aqs data (with csv, tsv or json
@@ -2717,6 +2751,10 @@ Flags:
                             txt, csv, tsv, html, fods, json, svg.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      \-\-chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart\(aqs data (with csv, tsv or json
@@ -2900,7 +2938,7 @@ This command also supports the output destination and output format
 options The output formats supported are \f[CR]txt\f[R], \f[CR]csv\f[R],
 \f[CR]tsv\f[R], \f[CR]html\f[R], \f[CR]fods\f[R], \f[CR]json\f[R], and
 \f[CR]svg\f[R].
-.PP
+.SS Register charts
 With \f[CR]\-\-chart\f[R], or with \f[CR]svg\f[R] output
 (\f[CR]\-o FILE.svg\f[R]), it shows a chart instead.
 Without a report interval, this is the running total (or average) after
@@ -2975,6 +3013,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      \-\-chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart\(aqs data (with csv, tsv or json
@@ -3097,6 +3139,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      \-\-chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart\(aqs data (with csv, tsv or json
@@ -3228,6 +3274,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      \-\-chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart\(aqs data (with csv, tsv or json
@@ -3349,6 +3399,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      \-\-chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart\(aqs data (with csv, tsv or json
@@ -3488,6 +3542,10 @@ Flags:
                             txt, html, csv, tsv, json, fods, svg.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      \-\-chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart\(aqs data (with csv, tsv or json
@@ -4798,6 +4856,8 @@ SVG charts; otherwise they are the terminal\(aqs basic blue, yellow,
 magenta, green and red, whose shades depend on its colour theme.)
 When a chart\(aqs accounts are all of one type, or of unknown type, they
 get distinct colours instead.
+A chart showing just a total (eg with \f[CR]\-0\f[R], or of all
+accounts\(aq transaction counts) is cyan, a colour no account type uses.
 Colours and fill characters are chosen by account name, not by position,
 so an account usually keeps its colour in other charts: with or without
 \f[CR]\-S\f[R], or when you exclude other accounts to see more detail.
@@ -4854,9 +4914,12 @@ Time runs along the x axis, and end balances are drawn as lines.
 A single\-period report is drawn as vertical bars, one per account, with
 the account names below (angled if needed) and values above the bars
 (where they fit); or with more than 30 accounts, as horizontal bars.
+The y axis shows the unit only on its top (or bottom) label.
+In an HTML page, the chart shrinks to fit a narrower window.
 .PP
-With HTML output, \f[CR]\-\-chart\f[R] shows the chart (as SVG) above
-the report\(aqs table.
+With HTML output, \f[CR]\-\-chart\f[R] shows the chart (as SVG), with
+the report\(aqs table collapsed below it (click Report details to show
+it).
 .PP
 With \f[CR]\-O csv\f[R], \f[CR]\-O tsv\f[R] or \f[CR]\-O json\f[R],
 \f[CR]\-\-chart\f[R] shows the chart\(aqs data, eg to inspect it or
@@ -5015,6 +5078,10 @@ Flags:
                             txt, csv, tsv, html, fods, json.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 .EE
 .PP
 This command shows your lot\-tracked assets (see Lots and capital
@@ -5351,6 +5418,10 @@ Flags:
                             txt, svg, html, csv, tsv, json.
   \-o \-\-output\-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     \-\-view                 write output to FILE, or to view.FMT in hledger\(aqs
+                            cache directory, and open it in the system\(aqs
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
   \-w \-\-width=N              with \-\-chart: draw the chart N characters wide
                             (default: the terminal width)
      \-\-txns                 count transactions, showing just the total
@@ -15872,6 +15943,33 @@ Eg:
 $ hledger print \-o foo.txt
 $ hledger print \-o \-        # write to stdout (the default)
 .EE
+.PP
+These commands (except stats) also provide \f[CR]\-\-view\f[R], which
+writes the output to a file and opens it in your system\(aqs default
+viewer for that kind of file, eg a web browser for HTML.
+The file is the one given by \f[CR]\-o\f[R], or else \f[CR]view.FMT\f[R]
+in hledger\(aqs cache directory (\f[CR]$XDG_CACHE_HOME/hledger/\f[R] or
+\f[CR]\(ti/.cache/hledger/\f[R], or
+\f[CR]%LOCALAPPDATA%\(rshledger\(rs\f[R] on Windows), replaced each
+time, and readable only by you (on unix systems).
+hledger shows the file\(aqs path; if the report is sensitive, you can
+delete the file when you\(aqre done with it, or use \f[CR]\-o\f[R] to
+save it somewhere else.
+The output format is HTML unless you choose another, with \f[CR]\-O\f[R]
+or the \f[CR]\-o\f[R] file\(aqs extension.
+Eg:
+.IP
+.EX
+$ hledger is \-M \-\-chart \-\-view      # see an income statement chart and table in a web browser
+$ hledger reg \-O csv \-\-view         # or a register in a spreadsheet
+.EE
+.PP
+To view several reports at once, on one page, use \f[CR]run\f[R] with
+\f[CR]\-\-view\f[R]:
+.IP
+.EX
+$ hledger run \-\-view \-\- is \-M \-\-chart \-\- bs \-Q \-\-chart \-\- reg expenses \-p thismonth
+.EE
 .SS Output format
 Some commands offer other kinds of output, not just text on the
 terminal.
@@ -16187,8 +16285,9 @@ It can be customised (or overridden) by an optional
 \f[CR]hledger.css\f[R] file in the same directory (there is a sample in
 the hledger repo).
 .PP
-With \f[CR]\-\-chart\f[R], commands that can show charts add one (as
-inline SVG) above the table (see Balance charts).
+With \f[CR]\-\-chart\f[R], commands that can show charts show one (as
+inline SVG), with the text report collapsed below it (see Balance
+charts).
 .PP
 HTML output will be a HTML fragment, not a complete HTML document.
 It has a newline after each table row, for readability.
@@ -16398,6 +16497,40 @@ hledger bal \-\-debug=3 2>hledger.log
 .EE
 .PP
 (This option doesn\(aqt work in a config file yet.)
+.SH Charts
+hledger can show many reports as a chart: add \f[CR]\-\-chart\f[R] to a
+\f[CR]balance\f[R], \f[CR]balancesheet\f[R],
+\f[CR]balancesheetequity\f[R], \f[CR]cashflow\f[R],
+\f[CR]incomestatement\f[R], \f[CR]aregister\f[R] or \f[CR]register\f[R]
+report.
+(The \f[CR]activity\f[R] command always shows one.)
+A suitable kind of chart is chosen for the report: eg stacked bars per
+period for balance changes, lines for balances over time, or a bar per
+account for a single period.
+In the terminal the chart is drawn with text characters, filling the
+terminal\(aqs width (or the width set by \f[CR]\-w\f[R]):
+.IP
+.EX
+$ hledger bal \-Q expenses income \-\-chart \-w 50
+Balance changes in 2008:
+
+░ expenses:food  ▒ expenses:supplies
+█ income:gifts  ▓ income:salary
+
+2008Q1  $\-1  ▓▓▓▓▓▓▓▓▓▓▓▓│
+2008Q2   $1  ████████████│░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒
+2008Q3    0              │
+2008Q4    0              │
+.EE
+.PP
+With SVG output (eg \f[CR]\-o chart.svg\f[R]) it is a graphical chart;
+with HTML output it is shown with the report\(aqs table collapsed below
+it; and with CSV, TSV or JSON output you get the chart\(aqs data.
+To see a graphical chart quickly, add \f[CR]\-\-view\f[R], eg
+\f[CR]hledger is \-M \-\-chart \-\-view\f[R].
+\f[CR]\-\-chart\f[R] also accepts a chart kind and a fixed scale, eg to
+compare charts.
+For the details, see Balance charts, aregister and Register charts.
 .SH Command line tips
 Here are some tips for using hledger at the command line; feel free to
 skip these until you need them.

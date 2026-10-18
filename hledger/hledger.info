@@ -37,9 +37,9 @@ copy, at a point of interest, by running
 
    The main function of the hledger CLI is to read plain text files
 describing financial transactions, crunch the numbers, and print a
-useful report on the terminal (or save it as HTML, CSV, JSON or SQL).
-Many reports are available, as subcommands.  hledger will also detect
-other 'hledger-*' executables as extra subcommands.
+useful report or chart on the terminal (or save it as HTML, CSV, JSON,
+SQL or SVG). Many reports are available, as subcommands.  hledger will
+also detect other 'hledger-*' executables as extra subcommands.
 
    hledger usually reads from (and appends to) a journal file specified
 by the 'LEDGER_FILE' environment variable (defaulting to
@@ -95,6 +95,7 @@ $ hledger aregister assets
 $ hledger balance
 $ hledger balancesheet
 $ hledger incomestatement
+$ hledger incomestatement -M --chart
 
    Run 'hledger' to list the commands.
 
@@ -147,6 +148,7 @@ bank, closing a file at end of year, or migrating between hledger 1 and
 * Posting types::
 * PART 5 MORE ABOUT THE COMMAND LINE::
 * Output::
+* Charts::
 * Command line tips::
 * PART 6 COMMON TASKS::
 * Setting LEDGER_FILE::
@@ -992,7 +994,14 @@ arguments.  Input files are parsed just once, so the commands run
 faster.
 
 Flags:
-no command-specific flags
+  -O --output-format=FMT    select the output format. Supported formats:
+                            html.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 
    You can use 'run' in three ways:
 
@@ -1039,6 +1048,17 @@ line of a command file to make it a runnable script.  If that gives an
 error, use '#!/usr/bin/env -S hledger run'.
 
    It's ok to use the 'run' command recursively within a command script.
+
+   With '-O html', '-o FILE.html' or '--view', 'run' collects the
+commands' outputs into one HTML page instead of printing them: a section
+for each command, headed by its command line, which can be folded; and a
+heading for each 'echo'.  Commands which can produce HTML (the balance
+commands, 'register', 'aregister', 'print', 'holdings', 'activity') do
+so, charts included; others' text output is shown as is.  '--view' then
+opens the page in your web browser (see Output destination), which is a
+convenient way to see several reports, or charts, at once:
+
+$ hledger run --view -- echo Overview -- is -M --chart -- bs -Q --chart -- reg expenses -p thismonth
 
    Command aliases defined in a config file can also be used in command
 scripts.
@@ -2205,6 +2225,10 @@ Flags:
                             sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 
    The print command displays full journal entries (transactions) from
 the journal file, sorted by date (or with '--date2', by secondary date).
@@ -2567,6 +2591,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -2737,6 +2765,10 @@ Flags:
                             txt, csv, tsv, html, fods, json, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -2867,9 +2899,10 @@ no posting will be shown and the program exit code will be non-zero.
 * Menu:
 
 * Custom register output::
+* Register charts::
 
 
-File: hledger.info,  Node: Custom register output,  Up: register
+File: hledger.info,  Node: Custom register output,  Next: Register charts,  Up: register
 
 11.3.1 Custom register output
 -----------------------------
@@ -2897,8 +2930,14 @@ $ hledger reg -w 100,40           # set overall width 100, description width 40
 options The output formats supported are 'txt', 'csv', 'tsv', 'html',
 'fods', 'json', and 'svg'.
 
-   With '--chart', or with 'svg' output ('-o FILE.svg'), it shows a
-chart instead.  Without a report interval, this is the running total (or
+
+File: hledger.info,  Node: Register charts,  Prev: Custom register output,  Up: register
+
+11.3.2 Register charts
+----------------------
+
+With '--chart', or with 'svg' output ('-o FILE.svg'), it shows a chart
+instead.  Without a report interval, this is the running total (or
 average) after each posting, as a line over time; with postings to
 several accounts, each account's own running total is shown too, in its
 account type's colour (starting from its balance before the report
@@ -2972,6 +3011,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -3092,6 +3135,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -3221,6 +3268,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -3339,6 +3390,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -3487,6 +3542,10 @@ Flags:
                             txt, html, csv, tsv, json, fods, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -4663,16 +4722,17 @@ red; several accounts of one type get different shades of its colour.
 charts; otherwise they are the terminal's basic blue, yellow, magenta,
 green and red, whose shades depend on its colour theme.)  When a chart's
 accounts are all of one type, or of unknown type, they get distinct
-colours instead.  Colours and fill characters are chosen by account
-name, not by position, so an account usually keeps its colour in other
-charts: with or without '-S', or when you exclude other accounts to see
-more detail.  (Not always, since there are only a few colours: an
-account may get a different one when some accounts are added or
-removed.)  The chart fills the terminal width, or the width set by
-'-w'/'--width' (except for posting counts, with '--count', which use at
-most one character per posting).  It is drawn with unicode block
-characters, or with ASCII characters if the system's text encoding is
-not UTF-8.
+colours instead.  A chart showing just a total (eg with '-0', or of all
+accounts' transaction counts) is cyan, a colour no account type uses.
+Colours and fill characters are chosen by account name, not by position,
+so an account usually keeps its colour in other charts: with or without
+'-S', or when you exclude other accounts to see more detail.  (Not
+always, since there are only a few colours: an account may get a
+different one when some accounts are added or removed.)  The chart fills
+the terminal width, or the width set by '-w'/'--width' (except for
+posting counts, with '--count', which use at most one character per
+posting).  It is drawn with unicode block characters, or with ASCII
+characters if the system's text encoding is not UTF-8.
 
    There is one chart panel per commodity.  You can reduce this by
 converting to one commodity (eg '-X USD') or selecting some (eg
@@ -4708,10 +4768,12 @@ chart, as a graphical image.  Time runs along the x axis, and end
 balances are drawn as lines.  A single-period report is drawn as
 vertical bars, one per account, with the account names below (angled if
 needed) and values above the bars (where they fit); or with more than 30
-accounts, as horizontal bars.
+accounts, as horizontal bars.  The y axis shows the unit only on its top
+(or bottom) label.  In an HTML page, the chart shrinks to fit a narrower
+window.
 
-   With HTML output, '--chart' shows the chart (as SVG) above the
-report's table.
+   With HTML output, '--chart' shows the chart (as SVG), with the
+report's table collapsed below it (click Report details to show it).
 
    With '-O csv', '-O tsv' or '-O json', '--chart' shows the chart's
 data, eg to inspect it or chart it with other tools.
@@ -4842,6 +4904,10 @@ Flags:
                             txt, csv, tsv, html, fods, json.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 
    This command shows your lot-tracked assets (see Lots and capital
 gains), and their performance, as of the report end date.  An example:
@@ -5171,6 +5237,10 @@ Flags:
                             txt, svg, html, csv, tsv, json.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
   -w --width=N              with --chart: draw the chart N characters wide
                             (default: the terminal width)
      --txns                 count transactions, showing just the total
@@ -15281,7 +15351,7 @@ File: hledger.info,  Node: PART 5 MORE ABOUT THE COMMAND LINE,  Next: Output,  P
 **************************************
 
 
-File: hledger.info,  Node: Output,  Next: Command line tips,  Prev: PART 5 MORE ABOUT THE COMMAND LINE,  Up: Top
+File: hledger.info,  Node: Output,  Next: Charts,  Prev: PART 5 MORE ABOUT THE COMMAND LINE,  Up: Top
 
 39 Output
 *********
@@ -15309,6 +15379,25 @@ without needing the shell.  Eg:
 
 $ hledger print -o foo.txt
 $ hledger print -o -        # write to stdout (the default)
+
+   These commands (except stats) also provide '--view', which writes the
+output to a file and opens it in your system's default viewer for that
+kind of file, eg a web browser for HTML. The file is the one given by
+'-o', or else 'view.FMT' in hledger's cache directory
+('$XDG_CACHE_HOME/hledger/' or '~/.cache/hledger/', or
+'%LOCALAPPDATA%\hledger\' on Windows), replaced each time, and readable
+only by you (on unix systems).  hledger shows the file's path; if the
+report is sensitive, you can delete the file when you're done with it,
+or use '-o' to save it somewhere else.  The output format is HTML unless
+you choose another, with '-O' or the '-o' file's extension.  Eg:
+
+$ hledger is -M --chart --view      # see an income statement chart and table in a web browser
+$ hledger reg -O csv --view         # or a register in a spreadsheet
+
+   To view several reports at once, on one page, use 'run' with
+'--view':
+
+$ hledger run --view -- is -M --chart -- bs -Q --chart -- reg expenses -p thismonth
 
 
 File: hledger.info,  Node: Output format,  Next: Debug output,  Prev: Output destination,  Up: Output
@@ -15477,8 +15566,8 @@ within dates and individual commodity amounts.  It can be customised (or
 overridden) by an optional 'hledger.css' file in the same directory
 (there is a sample in the hledger repo).
 
-   With '--chart', commands that can show charts add one (as inline SVG)
-above the table (see Balance charts).
+   With '--chart', commands that can show charts show one (as inline
+SVG), with the text report collapsed below it (see Balance charts).
 
    HTML output will be a HTML fragment, not a complete HTML document.
 It has a newline after each table row, for readability.  Like other
@@ -15698,9 +15787,43 @@ hledger bal --debug=3 2>hledger.log
    (This option doesn't work in a config file yet.)
 
 
-File: hledger.info,  Node: Command line tips,  Next: PART 6 COMMON TASKS,  Prev: Output,  Up: Top
+File: hledger.info,  Node: Charts,  Next: Command line tips,  Prev: Output,  Up: Top
 
-40 Command line tips
+40 Charts
+*********
+
+hledger can show many reports as a chart: add '--chart' to a 'balance',
+'balancesheet', 'balancesheetequity', 'cashflow', 'incomestatement',
+'aregister' or 'register' report.  (The 'activity' command always shows
+one.)  A suitable kind of chart is chosen for the report: eg stacked
+bars per period for balance changes, lines for balances over time, or a
+bar per account for a single period.  In the terminal the chart is drawn
+with text characters, filling the terminal's width (or the width set by
+'-w'):
+
+$ hledger bal -Q expenses income --chart -w 50
+Balance changes in 2008:
+
+░ expenses:food  ▒ expenses:supplies
+█ income:gifts  ▓ income:salary
+
+2008Q1  $-1  ▓▓▓▓▓▓▓▓▓▓▓▓│
+2008Q2   $1  ████████████│░░░░░░░░░░░░▒▒▒▒▒▒▒▒▒▒▒▒
+2008Q3    0              │
+2008Q4    0              │
+
+   With SVG output (eg '-o chart.svg') it is a graphical chart; with
+HTML output it is shown with the report's table collapsed below it; and
+with CSV, TSV or JSON output you get the chart's data.  To see a
+graphical chart quickly, add '--view', eg 'hledger is -M --chart
+--view'.  '--chart' also accepts a chart kind and a fixed scale, eg to
+compare charts.  For the details, see Balance charts, aregister and
+Register charts.
+
+
+File: hledger.info,  Node: Command line tips,  Next: PART 6 COMMON TASKS,  Prev: Charts,  Up: Top
+
+41 Command line tips
 ********************
 
 Here are some tips for using hledger at the command line; feel free to
@@ -15717,7 +15840,7 @@ skip these until you need them.
 
 File: hledger.info,  Node: Special characters,  Next: Unicode characters,  Up: Command line tips
 
-40.1 Special characters
+41.1 Special characters
 =======================
 
 In commands you type at the command line, certain characters have
@@ -15744,7 +15867,7 @@ adapted if you're on Windows.)
 
 File: hledger.info,  Node: Escaping shell special characters,  Next: Escaping regular expression special characters,  Up: Special characters
 
-40.1.1 Escaping shell special characters
+41.1.1 Escaping shell special characters
 ----------------------------------------
 
 These are some characters which may have special meaning to your shell
@@ -15787,7 +15910,7 @@ $ hledger register credit.card
 
 File: hledger.info,  Node: Escaping regular expression special characters,  Next: Escaping in other situations,  Prev: Escaping shell special characters,  Up: Special characters
 
-40.1.2 Escaping regular expression special characters
+41.1.2 Escaping regular expression special characters
 -----------------------------------------------------
 
 Some characters also have special meaning in regular expressions, which
@@ -15825,7 +15948,7 @@ $ hledger balance cur:'\$'
 
 File: hledger.info,  Node: Escaping in other situations,  Prev: Escaping regular expression special characters,  Up: Special characters
 
-40.1.3 Escaping in other situations
+41.1.3 Escaping in other situations
 -----------------------------------
 
 hledger options and arguments are sometimes used in places other than
@@ -15855,7 +15978,7 @@ Haskell REPL)
 
 File: hledger.info,  Node: Unicode characters,  Next: Regular expressions,  Prev: Special characters,  Up: Command line tips
 
-40.2 Unicode characters
+41.2 Unicode characters
 =======================
 
 hledger is expected to handle non-ascii characters correctly:
@@ -15892,7 +16015,7 @@ hledger is expected to handle non-ascii characters correctly:
 
 File: hledger.info,  Node: Regular expressions,  Next: Argument files,  Prev: Unicode characters,  Up: Command line tips
 
-40.3 Regular expressions
+41.3 Regular expressions
 ========================
 
 A regular expression (regexp) is a small piece of text where certain
@@ -15966,7 +16089,7 @@ if %amount \b3\.99
 
 File: hledger.info,  Node: hledger's regular expressions,  Up: Regular expressions
 
-40.3.1 hledger's regular expressions
+41.3.1 hledger's regular expressions
 ------------------------------------
 
 hledger's regular expressions come from the regex-tdfa library.  If
@@ -16005,7 +16128,7 @@ they support:
 
 File: hledger.info,  Node: Argument files,  Next: Shell completions,  Prev: Regular expressions,  Up: Command line tips
 
-40.4 Argument files
+41.4 Argument files
 ===================
 
 You can save a set of command line options and arguments in a file, and
@@ -16035,7 +16158,7 @@ $ hledger bal @cash.args
 
 File: hledger.info,  Node: Shell completions,  Prev: Argument files,  Up: Command line tips
 
-40.5 Shell completions
+41.5 Shell completions
 ======================
 
 If you use the bash, zsh or fish shells, you can optionally set up
@@ -16048,7 +16171,7 @@ names).  If completions aren't working, or for more details, see Install
 
 File: hledger.info,  Node: PART 6 COMMON TASKS,  Next: Setting LEDGER_FILE,  Prev: Command line tips,  Up: Top
 
-41 PART 6: COMMON TASKS
+42 PART 6: COMMON TASKS
 ***********************
 
 For a gentle, step by step introduction to hledger - installing,
@@ -16060,7 +16183,7 @@ there.
 
 File: hledger.info,  Node: Setting LEDGER_FILE,  Next: Reconciling,  Prev: PART 6 COMMON TASKS,  Up: Top
 
-42 Setting LEDGER_FILE
+43 Setting LEDGER_FILE
 **********************
 
 hledger looks for your accounting data in a journal file,
@@ -16077,7 +16200,7 @@ the 'LEDGER_FILE' environment variable (see Environment), eg to
 
 File: hledger.info,  Node: Set LEDGER_FILE on unix,  Next: Set LEDGER_FILE on mac,  Up: Setting LEDGER_FILE
 
-42.1 Set LEDGER_FILE on unix
+43.1 Set LEDGER_FILE on unix
 ============================
 
 It depends on your shell, but running these commands in the terminal
@@ -16094,7 +16217,7 @@ $ source ~/.profile
 
 File: hledger.info,  Node: Set LEDGER_FILE on mac,  Next: Set LEDGER_FILE on Windows,  Prev: Set LEDGER_FILE on unix,  Up: Setting LEDGER_FILE
 
-42.2 Set LEDGER_FILE on mac
+43.2 Set LEDGER_FILE on mac
 ===========================
 
 In a terminal window, follow the unix procedure above.
@@ -16108,7 +16231,7 @@ application).
 
 File: hledger.info,  Node: Set LEDGER_FILE on Windows,  Prev: Set LEDGER_FILE on mac,  Up: Setting LEDGER_FILE
 
-42.3 Set LEDGER_FILE on Windows
+43.3 Set LEDGER_FILE on Windows
 ===============================
 
 It can be easier to create a default file at
@@ -16151,7 +16274,7 @@ windows using powershell doesn't appear to work.
 
 File: hledger.info,  Node: Reconciling,  Next: Closing a journal file,  Prev: Setting LEDGER_FILE,  Up: Top
 
-43 Reconciling
+44 Reconciling
 **************
 
 Periodically you should reconcile - compare your hledger-reported
@@ -16212,7 +16335,7 @@ $ git commit -m 'txns' 2023.journal
 
 File: hledger.info,  Node: Closing a journal file,  Next: hledger 1 and hledger 2,  Prev: Reconciling,  Up: Top
 
-44 Closing a journal file
+45 Closing a journal file
 *************************
 
 At the end of the year, you may want to continue your journal in a new
@@ -16225,7 +16348,7 @@ close command.
 
 File: hledger.info,  Node: hledger 1 and hledger 2,  Next: BUGS,  Prev: Closing a journal file,  Up: Top
 
-45 hledger 1 and hledger 2
+46 hledger 1 and hledger 2
 **************************
 
 hledger 2 (the 1.99.x previews, and 2.0 when released) reads hledger 1
@@ -16250,7 +16373,7 @@ versions.
 
 File: hledger.info,  Node: BUGS,  Prev: hledger 1 and hledger 2,  Up: Top
 
-46 BUGS
+47 BUGS
 *******
 
 We welcome bug reports in the hledger issue tracker
@@ -16300,7 +16423,7 @@ a lot of memory, so that you can cancel it.
 
 File: hledger.info,  Node: Troubleshooting,  Up: BUGS
 
-46.1 Troubleshooting
+47.1 Troubleshooting
 ====================
 
 Here are some common issues you might encounter when you run hledger,
@@ -16338,468 +16461,470 @@ See hledger and Ledger for full details.
 
 Tag Table:
 Node: Top208
-Node: PART 1 USER INTERFACE5294
-Node: Input5433
-Node: Text encoding6525
-Node: Data formats7274
-Node: Standard input9008
-Node: Multiple files9397
-Node: Strict mode10166
-Node: Commands11000
-Node: Add-on commands12537
-Node: Options13967
-Node: Config files22322
-Node: Command aliases23586
-Node: Config file troubleshooting25956
-Node: Environment27012
-Node: PART 2 COMMANDS29027
-Node: Help commands31954
-Node: help32116
-Node: User interface commands34951
-Node: repl35160
-Node: Examples38077
-Node: run38707
-Node: Examples 241482
-Node: ui42504
-Node: web42654
-Node: Data entry commands42790
-Node: add42986
-Node: add and balance assertions46241
-Node: add and balance assignments46772
-Node: import47601
-Node: Default import sources49107
-Node: Fetching new data first50105
-Node: Import dry run50580
-Node: Overlap detection51558
-Node: First import54442
-Node: Importing balance assignments55635
-Node: Import and commodity styles56688
-Node: Import archiving57120
-Node: Import special cases58158
-Node: Multiple journals in the same directory58453
-Node: Import configurations to avoid59149
-Node: Deduplication60123
-Node: Varying file name60651
-Node: Multiple versions61033
-Node: Basic report commands62138
-Node: accounts62456
-Node: codes65155
-Node: commodities66177
-Node: descriptions68315
-Node: files68786
-Node: notes69269
-Node: payees69781
-Node: prices71240
-Node: prices summary73503
-Node: stats74509
-Node: tags76601
-Node: transactions78755
-Node: Standard report commands79533
-Node: print79838
-Node: print explicitness83391
-Node: print layout84545
-Node: print amount style85593
-Node: print parseability86923
-Node: print export mode88990
-Node: print other features92273
-Node: print output format93234
-Node: aregister97263
-Node: aregister and posting dates104578
-Node: register105621
-Node: Custom register output114321
-Node: balancesheet116222
-Node: balancesheetequity122566
-Node: cashflow129278
-Node: incomestatement135450
-Node: Advanced report commands141678
-Node: balance141899
-Node: balance features148743
-Node: Simple balance report150821
-Node: Balance report line format152631
-Node: Filtered balance report155127
-Node: List or tree mode155646
-Node: Depth limiting159132
-Node: Dropping top-level accounts159899
-Node: Showing declared accounts160409
-Node: Sorting by amount161139
-Node: Percentages161993
-Node: Multi-period balance report162700
-Node: Balance change end balance165550
-Node: Balance report modes167187
-Node: Calculation mode167866
-Node: Accumulation mode169247
-Node: Valuation mode170348
-Node: Combining balance report modes171692
-Node: Budget report173651
-Node: Using the budget report175959
-Node: Budget date surprises178617
-Node: Selecting budget goals179981
-Node: Budgeting vs forecasting180929
-Node: Balance report layout182606
-Node: Wide layout184241
-Node: Tall layout186646
-Node: Bare layout187952
-Node: Barewide layout190020
-Node: Tidy layout192150
-Node: Balance report output193698
-Node: Balance charts194979
-Node: Some useful balance reports202973
-Node: holdings204360
-Node: roi211619
-Node: Spaces and special characters in --inv and --pnl214122
-Node: Semantics of --inv and --pnl214856
-Node: Using roi with lots216942
-Node: IRR and TWR explained217397
-Node: Chart commands221016
-Node: activity221197
-Node: Data generation commands224147
-Node: close224361
-Node: close --clopen227658
-Node: close --close229554
-Node: close --open230078
-Node: close --assert230328
-Node: close --assign230655
-Node: close --retain231334
-Node: close customisation232191
-Node: close and balance assertions234530
-Node: close examples236250
-Node: Retain earnings236487
-Node: Migrate balances to a new file236990
-Node: More detailed close examples238352
-Node: get238574
-Node: Phase 1 transactions data239285
-Node: Phase 2 prices239688
-Node: Merging new prices240692
-Node: get's helper scripts241558
-Node: getdata241849
-Node: getprices242530
-Node: rewrite243483
-Node: Re-write rules in a file246475
-Node: Diff output format247776
-Node: rewrite vs print --auto250433
-Node: Maintenance commands251147
-Node: check251366
-Node: Default checks252457
-Node: Strict checks254164
-Node: Other checks255382
-Node: Custom checks257185
-Node: diff257624
-Node: setup258831
-Node: test260821
-Node: PART 3 DATA FORMATS261753
-Node: Journal261907
-Node: Journal cheatsheet264328
-Node: Comments270581
-Node: Transactions271702
-Node: Dates272841
-Node: Simple dates272995
-Node: Posting dates273588
-Node: Status274875
-Node: Code276643
-Node: Description277257
-Node: Payee and note277946
-Node: Transaction comments278960
-Node: Postings279478
-Node: Debits and credits280796
-Node: Account names281357
-Node: Two space delimiter282316
-Node: Account hierarchy283645
-Node: Other account name features284530
-Node: Amounts284950
-Node: Decimal marks285958
-Node: Digit group marks287022
-Node: Commodity287725
-Node: Costs288830
-Node: Cost basis291156
-Node: Balance assertions292532
-Node: Assertions and ordering293825
-Node: Assertions and multiple files294546
-Node: Assertions and costs295469
-Node: Assertions and commodities296118
-Node: Assertions and subaccounts297779
-Node: Assertions and lot subaccounts298450
-Node: Assertions and status299523
-Node: Assertions and virtual postings299949
-Node: Assertions and auto postings300316
-Node: Assertions and precision301193
-Node: Assertions and hledger add301681
-Node: Posting comments302039
-Node: Tags302564
-Node: Tag propagation304096
-Node: Displaying tags305597
-Node: When to use tags ?305992
-Node: Tag names306658
-Node: Tag values309289
-Node: Directives309607
-Node: Directive scopes310084
-Node: Combining file trees311961
-Node: Directives summary313420
-Node: account directive316972
-Node: Account comments318420
-Node: Account tags319009
-Node: Account aliases319480
-Node: Account error checking321290
-Node: Account display order323068
-Node: Account types324268
-Node: alias directive328874
-Node: Basic aliases330172
-Node: Regex aliases331084
-Node: --alias option332130
-Node: Combining aliases333050
-Node: Aliases and multiple files334588
-Node: end aliases directive335649
-Node: Aliases can generate bad account names336053
-Node: Aliases and account types336888
-Node: comment directive337782
-Node: end comment directive338105
-Node: commodity directive338334
-Node: Commodity directive syntax339360
-Node: Commodity tags341372
-Node: Commodity aliases341906
-Node: Commodity error checking345913
-Node: decimal-mark directive346381
-Node: include directive347889
-Node: P directive350978
-Node: payee directive352014
-Node: tag directive352631
-Node: Periodic transactions353237
-Node: Periodic rule syntax354707
-Node: Periodic rules and relative dates355533
-Node: Two spaces between period expression and description!356312
-Node: Auto postings357275
-Node: Auto postings and multiple files360563
-Node: Auto postings and dates360970
-Node: Auto postings and transaction balancing / inferred amounts / balance assertions361413
-Node: Auto posting tags362204
-Node: Auto postings on forecast transactions only363101
-Node: Other syntax363573
-Node: Balance assignments364365
-Node: Balance assignments and costs365935
-Node: Balance assignments and subaccounts366356
-Node: Balance assignments and multiple files367531
-Node: Bracketed posting dates367962
-Node: D directive368662
-Node: apply account directive370507
-Node: Y directive371689
-Node: Secondary dates372682
-Node: Star comments374169
-Node: Valuation expressions374573
-Node: Virtual postings374874
-Node: Other Ledger directives376500
-Node: Ledger virtual costs377260
-Node: Ledger cost basis377604
-Node: CSV378145
-Node: CSV rules cheatsheet380485
-Node: Finding the data382887
-Node: source384384
-Node: Data cleaning / data generating commands385735
-Node: archive387769
-Node: File Extension388749
-Node: Reading CSV from standard input389482
-Node: Reading multiple CSV files389868
-Node: Reading the data390480
-Node: Valid CSV391009
-Node: separator391857
-Node: encoding392534
-Node: skip393301
-Node: date-format393972
-Node: timezone394936
-Node: decimal-mark396081
-Node: newest-first396816
-Node: intra-day-reversed397552
-Node: CSV fields and hledger fields398150
-Node: fields399982
-Node: Field assignment401802
-Node: Functions403402
-Node: Referencing other fields407068
-Node: hledger fields409130
-Node: date field409731
-Node: date2 field409997
-Node: status field410195
-Node: code field410388
-Node: description field410764
-Node: comment field411223
-Node: account field411783
-Node: amount field412505
-Node: Setting amounts415469
-Node: Amount signs417939
-Node: Amount decimal places418998
-Node: currency field420206
-Node: Setting currency/commodity420658
-Node: balance field421983
-Node: balance-type422501
-Node: if423329
-Node: Matchers425137
-Node: Multiple matchers427145
-Node: Match groups427895
-Node: Regular expressions in CSV rules428801
-Node: ifs430252
-Node: end433362
-Node: merge433733
-Node: include436563
-Node: Working with CSV437314
-Node: CSV rules examples437661
-Node: Rapid feedback438050
-Node: Well factored rules438672
-Node: Deduplicating importing439183
-Node: Valid transactions440413
-Node: How CSV rules are evaluated441200
-Node: Timeclock444339
-Node: Timedot448410
-Node: Timedot examples452419
-Node: PART 4 CONCEPTS454499
-Node: Time periods454633
-Node: Report start & end date454878
-Node: Smart dates456354
-Node: Report intervals458725
-Node: Date adjustments459299
-Node: Start date adjustment459522
-Node: End date adjustment460386
-Node: Period expressions461135
-Node: Period expressions with a report interval463270
-Node: More complex report intervals463718
-Node: Multiple weekday intervals465834
-Node: Queries466845
-Node: Query types469678
-Node: acct query470286
-Node: amt query470597
-Node: code query471294
-Node: cur query471489
-Node: desc query472229
-Node: date query472412
-Node: date2 query473026
-Node: depth query473367
-Node: find query473703
-Node: note query474814
-Node: payee query475081
-Node: real query475362
-Node: status query475567
-Node: type query475807
-Node: tag query476409
-Node: Negative queries477245
-Node: not query477427
-Node: Space-separated queries477714
-Node: Boolean queries478402
-Node: expr query479343
-Node: any query480072
-Node: all query481087
-Node: Queries and command options481814
-Node: Queries and account aliases482262
-Node: Queries and valuation482686
-Node: Depth483014
-Node: Combining depth options483982
-Node: Pivoting484932
-Node: Report titles487235
-Node: Languages488600
-Node: Amount arithmetic490941
-Node: Where hledger divides492176
-Node: Transaction balancing496016
-Node: How balancing is checked496759
-Node: Where imbalances come from498184
-Node: Accumulated imbalances498936
-Node: Showing imbalances500060
-Node: Avoiding imbalances502648
-Node: Transaction balancing before 150503343
-Node: Amount formatting504501
-Node: Commodity display style504794
-Node: Commodity style override506667
-Node: Display rounding507764
-Node: Trailing decimal marks508418
-Node: Amount parseability509289
-Node: Cost reporting510898
-Node: Recording costs511690
-Node: Reporting at cost513447
-Node: Equity conversion postings514817
-Node: Inferring equity conversion postings517596
-Node: Combining costs and equity conversion postings519878
-Node: Requirements for detecting equity conversion postings521219
-Node: Value reporting522878
-Node: -X Value in specified commodity523843
-Node: -V Value in default commoditys524969
-Node: Valuation date525706
-Node: Finding market price526538
-Node: --infer-market-prices market prices from transactions528612
-Node: Valuation commodity531636
-Node: --value Flexible valuation533069
-Node: Valuation examples535464
-Node: Interaction of valuation and queries537608
-Node: Effect of valuation on reports538325
-Node: Lots and capital gains546096
-Node: First lots example548093
-Node: Writing lot entries552117
-Node: Cost basis annotations552917
-Node: Lotful commodities554132
-Node: Lot subaccounts554900
-Node: Several ways to write lot entries556168
-Node: Disabling lot tracking557765
-Node: Lot movements559133
-Node: Acquire559705
-Node: Transfer562498
-Node: Transfer fees563704
-Node: Capitalising fees564958
-Node: Dispose565657
-Node: Short positions567081
-Node: Other lot events569605
-Node: Cost basis methods570085
-Node: Changing the cost basis method573739
-Node: Gains575285
-Node: Gain accounts577163
-Node: Recording gains578536
-Node: Lot reports580780
-Node: Realised gains581559
-Node: Unrealised gains582789
-Node: Lot details584965
-Node: Lot labels585245
-Node: Cost basis precision586201
-Node: Lot postings and balance assertions587244
-Node: Troubleshooting lots588279
-Node: Generating data590327
-Node: Forecasting592162
-Node: --forecast592818
-Node: Inspecting forecast transactions593919
-Node: Forecast reports595252
-Node: Forecast tags596361
-Node: Forecast period in detail596981
-Node: Forecast troubleshooting598069
-Node: Budgeting599140
-Node: Posting types599695
-Node: PART 5 MORE ABOUT THE COMMAND LINE602488
-Node: Output602679
-Node: Output destination602884
-Node: Output format603444
-Node: Text output605363
-Node: Box-drawing characters606559
-Node: Colour607061
-Node: Paging607792
-Node: HTML output609335
-Node: CSV / TSV output610095
-Node: FODS output610351
-Node: Ledger output611285
-Node: Beancount output611837
-Node: SQL output616562
-Node: JSON output617303
-Node: SVG output618029
-Node: Debug output618693
-Node: Command line tips619811
-Node: Special characters620180
-Node: Escaping shell special characters621182
-Node: Escaping regular expression special characters622543
-Node: Escaping in other situations624060
-Node: Unicode characters625360
-Node: Regular expressions626793
-Node: hledger's regular expressions629985
-Node: Argument files631658
-Node: Shell completions632572
-Node: PART 6 COMMON TASKS633081
-Node: Setting LEDGER_FILE633529
-Node: Set LEDGER_FILE on unix634045
-Node: Set LEDGER_FILE on mac634560
-Node: Set LEDGER_FILE on Windows635114
-Node: Reconciling636753
-Node: Closing a journal file639537
-Node: hledger 1 and hledger 2640004
-Node: BUGS641081
-Node: Troubleshooting643315
+Node: PART 1 USER INTERFACE5356
+Node: Input5495
+Node: Text encoding6587
+Node: Data formats7336
+Node: Standard input9070
+Node: Multiple files9459
+Node: Strict mode10228
+Node: Commands11062
+Node: Add-on commands12599
+Node: Options14029
+Node: Config files22384
+Node: Command aliases23648
+Node: Config file troubleshooting26018
+Node: Environment27074
+Node: PART 2 COMMANDS29089
+Node: Help commands32016
+Node: help32178
+Node: User interface commands35013
+Node: repl35222
+Node: Examples38139
+Node: run38769
+Node: Examples 242729
+Node: ui43751
+Node: web43901
+Node: Data entry commands44037
+Node: add44233
+Node: add and balance assertions47488
+Node: add and balance assignments48019
+Node: import48848
+Node: Default import sources50354
+Node: Fetching new data first51352
+Node: Import dry run51827
+Node: Overlap detection52805
+Node: First import55689
+Node: Importing balance assignments56882
+Node: Import and commodity styles57935
+Node: Import archiving58367
+Node: Import special cases59405
+Node: Multiple journals in the same directory59700
+Node: Import configurations to avoid60396
+Node: Deduplication61370
+Node: Varying file name61898
+Node: Multiple versions62280
+Node: Basic report commands63385
+Node: accounts63703
+Node: codes66402
+Node: commodities67424
+Node: descriptions69562
+Node: files70033
+Node: notes70516
+Node: payees71028
+Node: prices72487
+Node: prices summary74750
+Node: stats75756
+Node: tags77848
+Node: transactions80002
+Node: Standard report commands80780
+Node: print81085
+Node: print explicitness84932
+Node: print layout86086
+Node: print amount style87134
+Node: print parseability88464
+Node: print export mode90531
+Node: print other features93814
+Node: print output format94775
+Node: aregister98804
+Node: aregister and posting dates106413
+Node: register107456
+Node: Custom register output116470
+Node: Register charts117684
+Node: balancesheet118531
+Node: balancesheetequity125169
+Node: cashflow132175
+Node: incomestatement138641
+Node: Advanced report commands145163
+Node: balance145384
+Node: balance features152522
+Node: Simple balance report154600
+Node: Balance report line format156410
+Node: Filtered balance report158906
+Node: List or tree mode159425
+Node: Depth limiting162911
+Node: Dropping top-level accounts163678
+Node: Showing declared accounts164188
+Node: Sorting by amount164918
+Node: Percentages165772
+Node: Multi-period balance report166479
+Node: Balance change end balance169329
+Node: Balance report modes170966
+Node: Calculation mode171645
+Node: Accumulation mode173026
+Node: Valuation mode174127
+Node: Combining balance report modes175471
+Node: Budget report177430
+Node: Using the budget report179738
+Node: Budget date surprises182396
+Node: Selecting budget goals183760
+Node: Budgeting vs forecasting184708
+Node: Balance report layout186385
+Node: Wide layout188020
+Node: Tall layout190425
+Node: Bare layout191731
+Node: Barewide layout193799
+Node: Tidy layout195929
+Node: Balance report output197477
+Node: Balance charts198758
+Node: Some useful balance reports207053
+Node: holdings208440
+Node: roi215993
+Node: Spaces and special characters in --inv and --pnl218496
+Node: Semantics of --inv and --pnl219230
+Node: Using roi with lots221316
+Node: IRR and TWR explained221771
+Node: Chart commands225390
+Node: activity225571
+Node: Data generation commands228815
+Node: close229029
+Node: close --clopen232326
+Node: close --close234222
+Node: close --open234746
+Node: close --assert234996
+Node: close --assign235323
+Node: close --retain236002
+Node: close customisation236859
+Node: close and balance assertions239198
+Node: close examples240918
+Node: Retain earnings241155
+Node: Migrate balances to a new file241658
+Node: More detailed close examples243020
+Node: get243242
+Node: Phase 1 transactions data243953
+Node: Phase 2 prices244356
+Node: Merging new prices245360
+Node: get's helper scripts246226
+Node: getdata246517
+Node: getprices247198
+Node: rewrite248151
+Node: Re-write rules in a file251143
+Node: Diff output format252444
+Node: rewrite vs print --auto255101
+Node: Maintenance commands255815
+Node: check256034
+Node: Default checks257125
+Node: Strict checks258832
+Node: Other checks260050
+Node: Custom checks261853
+Node: diff262292
+Node: setup263499
+Node: test265489
+Node: PART 3 DATA FORMATS266421
+Node: Journal266575
+Node: Journal cheatsheet268996
+Node: Comments275249
+Node: Transactions276370
+Node: Dates277509
+Node: Simple dates277663
+Node: Posting dates278256
+Node: Status279543
+Node: Code281311
+Node: Description281925
+Node: Payee and note282614
+Node: Transaction comments283628
+Node: Postings284146
+Node: Debits and credits285464
+Node: Account names286025
+Node: Two space delimiter286984
+Node: Account hierarchy288313
+Node: Other account name features289198
+Node: Amounts289618
+Node: Decimal marks290626
+Node: Digit group marks291690
+Node: Commodity292393
+Node: Costs293498
+Node: Cost basis295824
+Node: Balance assertions297200
+Node: Assertions and ordering298493
+Node: Assertions and multiple files299214
+Node: Assertions and costs300137
+Node: Assertions and commodities300786
+Node: Assertions and subaccounts302447
+Node: Assertions and lot subaccounts303118
+Node: Assertions and status304191
+Node: Assertions and virtual postings304617
+Node: Assertions and auto postings304984
+Node: Assertions and precision305861
+Node: Assertions and hledger add306349
+Node: Posting comments306707
+Node: Tags307232
+Node: Tag propagation308764
+Node: Displaying tags310265
+Node: When to use tags ?310660
+Node: Tag names311326
+Node: Tag values313957
+Node: Directives314275
+Node: Directive scopes314752
+Node: Combining file trees316629
+Node: Directives summary318088
+Node: account directive321640
+Node: Account comments323088
+Node: Account tags323677
+Node: Account aliases324148
+Node: Account error checking325958
+Node: Account display order327736
+Node: Account types328936
+Node: alias directive333542
+Node: Basic aliases334840
+Node: Regex aliases335752
+Node: --alias option336798
+Node: Combining aliases337718
+Node: Aliases and multiple files339256
+Node: end aliases directive340317
+Node: Aliases can generate bad account names340721
+Node: Aliases and account types341556
+Node: comment directive342450
+Node: end comment directive342773
+Node: commodity directive343002
+Node: Commodity directive syntax344028
+Node: Commodity tags346040
+Node: Commodity aliases346574
+Node: Commodity error checking350581
+Node: decimal-mark directive351049
+Node: include directive352557
+Node: P directive355646
+Node: payee directive356682
+Node: tag directive357299
+Node: Periodic transactions357905
+Node: Periodic rule syntax359375
+Node: Periodic rules and relative dates360201
+Node: Two spaces between period expression and description!360980
+Node: Auto postings361943
+Node: Auto postings and multiple files365231
+Node: Auto postings and dates365638
+Node: Auto postings and transaction balancing / inferred amounts / balance assertions366081
+Node: Auto posting tags366872
+Node: Auto postings on forecast transactions only367769
+Node: Other syntax368241
+Node: Balance assignments369033
+Node: Balance assignments and costs370603
+Node: Balance assignments and subaccounts371024
+Node: Balance assignments and multiple files372199
+Node: Bracketed posting dates372630
+Node: D directive373330
+Node: apply account directive375175
+Node: Y directive376357
+Node: Secondary dates377350
+Node: Star comments378837
+Node: Valuation expressions379241
+Node: Virtual postings379542
+Node: Other Ledger directives381168
+Node: Ledger virtual costs381928
+Node: Ledger cost basis382272
+Node: CSV382813
+Node: CSV rules cheatsheet385153
+Node: Finding the data387555
+Node: source389052
+Node: Data cleaning / data generating commands390403
+Node: archive392437
+Node: File Extension393417
+Node: Reading CSV from standard input394150
+Node: Reading multiple CSV files394536
+Node: Reading the data395148
+Node: Valid CSV395677
+Node: separator396525
+Node: encoding397202
+Node: skip397969
+Node: date-format398640
+Node: timezone399604
+Node: decimal-mark400749
+Node: newest-first401484
+Node: intra-day-reversed402220
+Node: CSV fields and hledger fields402818
+Node: fields404650
+Node: Field assignment406470
+Node: Functions408070
+Node: Referencing other fields411736
+Node: hledger fields413798
+Node: date field414399
+Node: date2 field414665
+Node: status field414863
+Node: code field415056
+Node: description field415432
+Node: comment field415891
+Node: account field416451
+Node: amount field417173
+Node: Setting amounts420137
+Node: Amount signs422607
+Node: Amount decimal places423666
+Node: currency field424874
+Node: Setting currency/commodity425326
+Node: balance field426651
+Node: balance-type427169
+Node: if427997
+Node: Matchers429805
+Node: Multiple matchers431813
+Node: Match groups432563
+Node: Regular expressions in CSV rules433469
+Node: ifs434920
+Node: end438030
+Node: merge438401
+Node: include441231
+Node: Working with CSV441982
+Node: CSV rules examples442329
+Node: Rapid feedback442718
+Node: Well factored rules443340
+Node: Deduplicating importing443851
+Node: Valid transactions445081
+Node: How CSV rules are evaluated445868
+Node: Timeclock449007
+Node: Timedot453078
+Node: Timedot examples457087
+Node: PART 4 CONCEPTS459167
+Node: Time periods459301
+Node: Report start & end date459546
+Node: Smart dates461022
+Node: Report intervals463393
+Node: Date adjustments463967
+Node: Start date adjustment464190
+Node: End date adjustment465054
+Node: Period expressions465803
+Node: Period expressions with a report interval467938
+Node: More complex report intervals468386
+Node: Multiple weekday intervals470502
+Node: Queries471513
+Node: Query types474346
+Node: acct query474954
+Node: amt query475265
+Node: code query475962
+Node: cur query476157
+Node: desc query476897
+Node: date query477080
+Node: date2 query477694
+Node: depth query478035
+Node: find query478371
+Node: note query479482
+Node: payee query479749
+Node: real query480030
+Node: status query480235
+Node: type query480475
+Node: tag query481077
+Node: Negative queries481913
+Node: not query482095
+Node: Space-separated queries482382
+Node: Boolean queries483070
+Node: expr query484011
+Node: any query484740
+Node: all query485755
+Node: Queries and command options486482
+Node: Queries and account aliases486930
+Node: Queries and valuation487354
+Node: Depth487682
+Node: Combining depth options488650
+Node: Pivoting489600
+Node: Report titles491903
+Node: Languages493268
+Node: Amount arithmetic495609
+Node: Where hledger divides496844
+Node: Transaction balancing500684
+Node: How balancing is checked501427
+Node: Where imbalances come from502852
+Node: Accumulated imbalances503604
+Node: Showing imbalances504728
+Node: Avoiding imbalances507316
+Node: Transaction balancing before 150508011
+Node: Amount formatting509169
+Node: Commodity display style509462
+Node: Commodity style override511335
+Node: Display rounding512432
+Node: Trailing decimal marks513086
+Node: Amount parseability513957
+Node: Cost reporting515566
+Node: Recording costs516358
+Node: Reporting at cost518115
+Node: Equity conversion postings519485
+Node: Inferring equity conversion postings522264
+Node: Combining costs and equity conversion postings524546
+Node: Requirements for detecting equity conversion postings525887
+Node: Value reporting527546
+Node: -X Value in specified commodity528511
+Node: -V Value in default commoditys529637
+Node: Valuation date530374
+Node: Finding market price531206
+Node: --infer-market-prices market prices from transactions533280
+Node: Valuation commodity536304
+Node: --value Flexible valuation537737
+Node: Valuation examples540132
+Node: Interaction of valuation and queries542276
+Node: Effect of valuation on reports542993
+Node: Lots and capital gains550764
+Node: First lots example552761
+Node: Writing lot entries556785
+Node: Cost basis annotations557585
+Node: Lotful commodities558800
+Node: Lot subaccounts559568
+Node: Several ways to write lot entries560836
+Node: Disabling lot tracking562433
+Node: Lot movements563801
+Node: Acquire564373
+Node: Transfer567166
+Node: Transfer fees568372
+Node: Capitalising fees569626
+Node: Dispose570325
+Node: Short positions571749
+Node: Other lot events574273
+Node: Cost basis methods574753
+Node: Changing the cost basis method578407
+Node: Gains579953
+Node: Gain accounts581831
+Node: Recording gains583204
+Node: Lot reports585448
+Node: Realised gains586227
+Node: Unrealised gains587457
+Node: Lot details589633
+Node: Lot labels589913
+Node: Cost basis precision590869
+Node: Lot postings and balance assertions591912
+Node: Troubleshooting lots592947
+Node: Generating data594995
+Node: Forecasting596830
+Node: --forecast597486
+Node: Inspecting forecast transactions598587
+Node: Forecast reports599920
+Node: Forecast tags601029
+Node: Forecast period in detail601649
+Node: Forecast troubleshooting602737
+Node: Budgeting603808
+Node: Posting types604363
+Node: PART 5 MORE ABOUT THE COMMAND LINE607156
+Node: Output607347
+Node: Output destination607541
+Node: Output format609101
+Node: Text output611020
+Node: Box-drawing characters612216
+Node: Colour612718
+Node: Paging613449
+Node: HTML output614992
+Node: CSV / TSV output615778
+Node: FODS output616034
+Node: Ledger output616968
+Node: Beancount output617520
+Node: SQL output622245
+Node: JSON output622986
+Node: SVG output623712
+Node: Debug output624376
+Node: Charts625494
+Node: Command line tips626926
+Node: Special characters627295
+Node: Escaping shell special characters628297
+Node: Escaping regular expression special characters629658
+Node: Escaping in other situations631175
+Node: Unicode characters632475
+Node: Regular expressions633908
+Node: hledger's regular expressions637100
+Node: Argument files638773
+Node: Shell completions639687
+Node: PART 6 COMMON TASKS640196
+Node: Setting LEDGER_FILE640644
+Node: Set LEDGER_FILE on unix641160
+Node: Set LEDGER_FILE on mac641675
+Node: Set LEDGER_FILE on Windows642229
+Node: Reconciling643868
+Node: Closing a journal file646652
+Node: hledger 1 and hledger 2647119
+Node: BUGS648196
+Node: Troubleshooting650430
 
 End Tag Table
 
