@@ -4,7 +4,14 @@ Run a sequence of hledger commands, provided as files or command line
 arguments. Input files are parsed just once, so the commands run faster.
 
 Flags:
-no command-specific flags
+  -O --output-format=FMT    select the output format. Supported formats:
+                            html.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 
 You can use run in three ways:
 
@@ -49,6 +56,17 @@ of a command file to make it a runnable script. If that gives an error,
 use #!/usr/bin/env -S hledger run.
 
 It's ok to use the run command recursively within a command script.
+
+With -O html, -o FILE.html or --view, run collects the commands' outputs
+into one HTML page instead of printing them: a section for each command,
+headed by its command line, which can be folded; and a heading for each
+echo. Commands which can produce HTML (the balance commands, register,
+aregister, print, holdings, activity) do so, charts included; others'
+text output is shown as is. --view then opens the page in your web
+browser (see Output destination), which is a convenient way to see
+several reports, or charts, at once:
+
+$ hledger run --view -- echo Overview -- is -M --chart -- bs -Q --chart -- reg expenses -p thismonth
 
 Command aliases defined in a config file can also be used in command
 scripts.

@@ -28,6 +28,10 @@ Flags:
                             txt, csv, tsv, html, fods, json.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 
 This command shows your lot-tracked assets (see Lots and capital gains),
 and their performance, as of the report end date. An example:

@@ -59,6 +59,10 @@ Flags:
                             txt, html, csv, tsv, json, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json

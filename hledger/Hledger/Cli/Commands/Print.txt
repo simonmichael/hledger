@@ -38,6 +38,10 @@ Flags:
                             sql.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 
 The print command displays full journal entries (transactions) from the
 journal file, sorted by date (or with --date2, by secondary date). (For

@@ -8,6 +8,10 @@ Flags:
                             txt, svg, html, csv, tsv, json.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
   -w --width=N              with --chart: draw the chart N characters wide
                             (default: the terminal width)
      --txns                 count transactions, showing just the total

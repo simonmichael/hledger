@@ -5,7 +5,14 @@ Input files are parsed just once, so the commands run faster.
 
 ```flags
 Flags:
-no command-specific flags
+  -O --output-format=FMT    select the output format. Supported formats:
+                            html.
+  -o --output-file=FILE     write output to FILE. A file extension matching
+                            one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
 ```
 
 You can use `run` in three ways:

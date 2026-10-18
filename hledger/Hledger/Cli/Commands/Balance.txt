@@ -73,6 +73,10 @@ Flags:
                             txt, html, csv, tsv, json, fods, svg.
   -o --output-file=FILE     write output to FILE. A file extension matching
                             one of the above formats selects that format.
+     --view                 write output to FILE, or to view.FMT in hledger's
+                            cache directory, and open it in the system's
+                            default viewer for its format (eg a web browser for
+                            html). The default format is html.
      --chart[=KIND,SCALE]   show a chart instead of the report table (with
                             txt output), a chart above the table (with html
                             output), or the chart's data (with csv, tsv or json
@@ -1077,13 +1081,15 @@ which advertise 24-bit colour support, by setting COLORTERM=truecolor,
 these are the same exact colours as in SVG charts; otherwise they are
 the terminal's basic blue, yellow, magenta, green and red, whose shades
 depend on its colour theme.) When a chart's accounts are all of one
-type, or of unknown type, they get distinct colours instead. Colours and
-fill characters are chosen by account name, not by position, so an
-account usually keeps its colour in other charts: with or without -S, or
-when you exclude other accounts to see more detail. (Not always, since
-there are only a few colours: an account may get a different one when
-some accounts are added or removed.) The chart fills the terminal width,
-or the width set by -w/--width (except for posting counts, with --count,
+type, or of unknown type, they get distinct colours instead. A chart
+showing just a total (eg with -0, or of all accounts' transaction
+counts) is cyan, a colour no account type uses. Colours and fill
+characters are chosen by account name, not by position, so an account
+usually keeps its colour in other charts: with or without -S, or when
+you exclude other accounts to see more detail. (Not always, since there
+are only a few colours: an account may get a different one when some
+accounts are added or removed.) The chart fills the terminal width, or
+the width set by -w/--width (except for posting counts, with --count,
 which use at most one character per posting). It is drawn with unicode
 block characters, or with ASCII characters if the system's text encoding
 is not UTF-8.
@@ -1121,10 +1127,11 @@ as a graphical image. Time runs along the x axis, and end balances are
 drawn as lines. A single-period report is drawn as vertical bars, one
 per account, with the account names below (angled if needed) and values
 above the bars (where they fit); or with more than 30 accounts, as
-horizontal bars.
+horizontal bars. The y axis shows the unit only on its top (or bottom)
+label. In an HTML page, the chart shrinks to fit a narrower window.
 
-With HTML output, --chart shows the chart (as SVG) above the report's
-table.
+With HTML output, --chart shows the chart (as SVG), with the report's
+table collapsed below it (click Report details to show it).
 
 With -O csv, -O tsv or -O json, --chart shows the chart's data, eg to
 inspect it or chart it with other tools.
