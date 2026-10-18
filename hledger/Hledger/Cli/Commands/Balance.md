@@ -1083,7 +1083,7 @@ Time runs along the x axis, and end balances are drawn as lines.
 A single-period report is drawn as vertical bars, one per account, with the account names below (angled if needed)
 and values above the bars (where they fit); or with more than 30 accounts, as horizontal bars.
 
-With [HTML output](#html-output), `--chart` shows the chart (as SVG) above the report's table.
+With [HTML output](#html-output), `--chart` shows the chart (as SVG), with the report's table collapsed below it (click Report details to show it).
 
 With `-O csv`, `-O tsv` or `-O json`, `--chart` shows the chart's data, eg to inspect it or chart it with other tools.
 

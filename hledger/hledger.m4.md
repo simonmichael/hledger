@@ -7891,7 +7891,7 @@ within dates and individual commodity amounts.
 It can be customised (or overridden) by an optional `hledger.css` file in the
 same directory (there is a sample in the hledger repo).
 
-With `--chart`, commands that can show charts add one (as inline SVG) above the table
+With `--chart`, commands that can show charts show one (as inline SVG), with the text report collapsed below it
 (see [Balance charts](#balance-charts)).
 
 HTML output will be a HTML fragment, not a complete HTML document.
@@ -8091,7 +8091,7 @@ Balance changes in 2008:
 ```
 
 With [SVG output](#svg-output) (eg `-o chart.svg`) it is a graphical chart;
-with [HTML output](#html-output) it is shown above the report's table;
+with [HTML output](#html-output) it is shown with the report's table collapsed below it;
 and with CSV, TSV or JSON output you get the chart's data.
 `--chart` also accepts a chart kind and a fixed scale, eg to compare charts.
 For the details, see [Balance charts](#balance-charts), [aregister](#aregister) and [Register charts](#register-charts).

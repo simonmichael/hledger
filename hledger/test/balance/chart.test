@@ -211,9 +211,11 @@ $ hledger -f - bal --chart -O a.svg
 >2 /To write to a file named a.svg, use -o/
 >= 1
 
-# ** 19. With html output, --chart shows the chart (as SVG, always light, like the table) above the report's table.
-$ hledger -f - bal --chart -O html | grep -o -e '<svg' -e '<table' -e 'prefers-color-scheme' | tr -d '<'
+# ** 19. With html output, --chart shows the chart (as SVG, always light, like the table) above the report's table,
+# which is collapsed under "Report details".
+$ hledger -f - bal --chart -O html | grep -o -e '<svg' -e '<summary>Report details' -e '<table' -e 'prefers-color-scheme' | tr -d '<'
 svg
+summary>Report details
 table
 
 <

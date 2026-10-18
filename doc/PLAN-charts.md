@@ -16,7 +16,7 @@ hledger-web's flot register chart, and site/src/charts.md's "export CSV and char
 
 ## User interface
 
-- `--chart[=KIND][,SCALE...]` shows a chart instead of the table (txt), above the table (html), or the chart's data (csv, tsv, json).
+- `--chart[=KIND][,SCALE...]` shows a chart instead of the table (txt), above the table, which is collapsed under Report details (html), or the chart's data (csv, tsv, json).
   Other formats (eg fods) give an error. The `svg` output format always shows a chart. `-O` keeps its existing meaning.
 - KIND: `auto` (default), or for compound reports `grouped` or `diverging`. A kind that doesn't apply (eg grouped for bal) is ignored.
   It must come before any SCALE.

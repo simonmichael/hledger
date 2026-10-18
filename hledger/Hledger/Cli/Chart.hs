@@ -122,7 +122,7 @@ chartAsTextForOpts CliOpts{width_, available_width_, reportspec_} chart = do
 
 -- | Write a chart in the output format and to the destination selected by the command line options:
 -- as text (txt), as an SVG image (svg), as the chart's data (csv, tsv, json),
--- or as an SVG image above the report's html, if that is provided (html).
+-- or as an SVG image above the report's html, collapsed, if that is provided (html).
 -- Other formats give an error (before the chart is computed).
 writeChart :: CliOpts -> Maybe TL.Text -> Chart -> IO ()
 writeChart opts mreporthtml chart = do
@@ -131,7 +131,7 @@ writeChart opts mreporthtml chart = do
     "svg"  -> return $ return . chartAsSvg
     "html" | Just reporthtml <- mreporthtml ->
       -- without the dark variant, since our html is always light
-      return $ \c -> return $ chartAsSvgWith False c <> reporthtml
+      return $ \c -> return $ chartAsSvgWith False c <> collapsedHtml (I18n.tr trans "Report details") reporthtml
     "csv"  -> return $ return . printCSV . chartAsCsv
     "tsv"  -> return $ return . printTSV . chartAsCsv
     "json" -> return $ return . (<>"\n") . toJsonText
@@ -140,11 +140,24 @@ writeChart opts mreporthtml chart = do
   render (setChartLayout barlayout $ setChartScales scales chart) >>= writeOutputLazyText opts
   where
     fmt = outputFormatFromOpts opts
+    trans = translations_ $ _rsReportOpts $ reportspec_ opts
     (kind, scales) = chartArg opts
     barlayout = case kind of
       "grouped"   -> Just Grouped
       "diverging" -> Just Diverging
       _           -> Nothing
+
+-- | Some html (eg a report's table) in a collapsed section with the given label, which can be clicked to show it.
+-- Its report title is hidden, since the chart above shows the same title.
+collapsedHtml :: Text -> TL.Text -> TL.Text
+collapsedHtml label html =
+  "<style>details.hledger-details{font:14px/1.5 system-ui,-apple-system,\"Segoe UI\",sans-serif;font-variant-numeric:tabular-nums}"
+  <> "details.hledger-details>summary{width:fit-content;margin:8px 0;padding:2px 10px;border:1px solid #e1e0d9;border-radius:6px;color:#52514e;cursor:pointer}"
+  <> "details.hledger-details>summary:hover{background:#f3f2ee;color:#0b0b0b}"
+  <> "details.hledger-details .report-title{display:none}</style>\n"
+  <> "<details class=\"hledger-details\"><summary>" <> TL.fromStrict label <> "</summary>\n"
+  <> html
+  <> "</details>\n"
 
 -- | The most series to show in each section of a compound report chart: as many as can have distinct tints of a type's colour, and "other".
 maxSectionSeries :: Int

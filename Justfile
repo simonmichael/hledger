@@ -605,7 +605,6 @@ chartsdemo-html *ARGS:
     .report details { margin: 8px 0 0; background: none; border: none; }
     .report summary { padding: 4px 0; color: var(--ink2); font-size: 14px; }
     .report table { font-size: 13px; font-variant-numeric: tabular-nums; }
-    .report .report-title { display: none; }
     .error { color: #b3261e; white-space: pre-wrap; }
     </style>
     <h1>hledger charts demo</h1>
@@ -624,9 +623,8 @@ chartsdemo-html *ARGS:
         {
             echo "<details id=\"$name\"><summary><span class=n>$n</span><span><span>$(esc "$shows")</span><code class=cmd>$(esc "$cmd")</code></span></summary><div class=report>"
             if report=$($hl -f "$CHARTS_FILE" $args {{ ARGS }} -O html </dev/null 2>&1); then
-                # the chart, then the report's table (and its styles) in a nested collapsed section
-                sed "s/hledger-chart-hatch/&-$n/g; s/hledger-chart-clip-/&$n-/g" <<<"$report" |
-                    awk '{print} /<\/svg>/ && !t {print "<details class=table><summary>Report</summary>"; t=1} END {if (t) print "</details>"}'
+                # the chart, then the report's table, collapsed (by hledger)
+                sed "s/hledger-chart-hatch/&-$n/g; s/hledger-chart-clip-/&$n-/g" <<<"$report"
             else
                 echo "<pre class=error>$(esc "$report")</pre>"
             fi
