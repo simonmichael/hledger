@@ -189,7 +189,8 @@ withPartFile act = do
 
 -- | An html page showing run's collected sections: a heading for each echo,
 -- and for each command, its command line and its output (html as is, text preformatted),
--- in a collapsible section (open).
+-- in a collapsible section (open). Each section's SVG ids get a suffix, so that charts
+-- don't share eg a hatch pattern (which browsers won't draw from a hidden chart).
 runPageHtml :: [(String, Maybe TL.Text)] -> TL.Text
 runPageHtml sections = TL.unlines $
   [ "<!doctype html>"
@@ -204,16 +205,19 @@ runPageHtml sections = TL.unlines $
   , "details.hledger-run table{font-size:13px;font-variant-numeric:tabular-nums}"
   , "details.hledger-run svg{max-width:100%;height:auto}"
   , "</style>"
-  ] ++ concatMap section sections
+  ] ++ concat (zipWith section [1 :: Int ..] sections)
   where
-    section (heading, Nothing) = ["<h2>" <> escape heading <> "</h2>"]
-    section (cmd, Just out) =
+    section _ (heading, Nothing) = ["<h2>" <> escape heading <> "</h2>"]
+    section n (cmd, Just out) =
       [ "<details class=\"hledger-run\" open><summary>" <> escape ("hledger " ++ cmd) <> "</summary><div>"
       , if | TL.null (TL.strip out) -> "<p>(no output)</p>"
-           | "<" `TL.isPrefixOf` TL.stripStart out -> out
+           | "<" `TL.isPrefixOf` TL.stripStart out -> uniqueIds out
            | otherwise -> "<pre>" <> escape (TL.unpack out) <> "</pre>"
       , "</div></details>"
       ]
+      where
+        uniqueIds = TL.replace "hledger-chart-hatch" ("hledger-chart-hatch-" <> suffix) . TL.replace "hledger-chart-clip-" ("hledger-chart-clip-" <> suffix <> "-")
+        suffix = TL.pack (show n)
     escape = TL.pack . concatMap (\c -> case c of
       '&' -> "&amp;"; '<' -> "&lt;"; '>' -> "&gt;"; '"' -> "&quot;"; _ -> [c])
 
