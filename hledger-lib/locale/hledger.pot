@@ -157,6 +157,10 @@ msgid "Dec"
 msgstr ""
 
 #: hledger/Hledger/Cli/Chart.hs
+msgid "Report details"
+msgstr ""
+
+#: hledger/Hledger/Cli/Chart.hs
 msgid "Total"
 msgstr ""
 

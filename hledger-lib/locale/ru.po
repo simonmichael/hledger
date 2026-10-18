@@ -157,6 +157,10 @@ msgid "Dec"
 msgstr "Дек"
 
 #: hledger/Hledger/Cli/Chart.hs
+msgid "Report details"
+msgstr "Подробности отчёта"
+
+#: hledger/Hledger/Cli/Chart.hs
 #, fuzzy
 #| msgctxt "column heading"
 #| msgid "Total"
