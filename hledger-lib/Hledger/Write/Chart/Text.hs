@@ -57,7 +57,7 @@ data Style
   = StylePlain
   | StyleSeries Int  -- ^ the colour of the Nth ordinary series in a panel
   | StyleType AccountType Int  -- ^ the colour of a main account type, in its Nth variant
-  | StyleOther       -- ^ the colour of a series combining several items ("other")
+  | StyleOther (Maybe AccountType)  -- ^ the colour of a series combining several items ("other"), of this main account type if any
   | StyleLone        -- ^ the colour of a chart's only series, when it is not an account
   | StyleNegative    -- ^ a negative value
   deriving (Show, Eq)
@@ -82,14 +82,14 @@ styledLinesAsText mode = TL.fromChunks . concatMap (\l -> map piece l ++ ["\n"])
         StylePlain    -> t
         StyleSeries n -> T.pack $ uncurry color (cyclicAt (Dull, Blue) indexColours n) $ T.unpack t
         StyleType at n -> T.pack $ color (if even n then Dull else Vivid) (typeColour at) $ T.unpack t
-        StyleOther    -> T.pack $ faint' $ T.unpack t
+        StyleOther _  -> T.pack $ faint' $ T.unpack t
         StyleLone     -> T.pack $ color Dull Cyan $ T.unpack t
         StyleNegative -> negative t
       RgbColour dark -> case st of
         StylePlain    -> t
         StyleSeries n -> rgb (colourHex dark $ IndexColour n) t
         StyleType at n -> rgb (colourHex dark $ TypeColour at n) t
-        StyleOther    -> rgb (colourHex dark OtherColour) t
+        StyleOther mt -> rgb (colourHex dark $ OtherColour mt) t
         StyleLone     -> rgb (colourHex dark LoneColour) t
         StyleNegative -> negative t
     -- negative values are red, as elsewhere in hledger's output
@@ -171,7 +171,7 @@ panelLines TextChartOpts{tcWidth, tcUnicode} xaxis colouring showheading Panel{p
       IndexColour k   -> StyleSeries k
       LoneColour      -> StyleLone
       NeutralColour   -> StylePlain
-      OtherColour     -> StyleOther
+      OtherColour mt  -> StyleOther mt
       TotalColour     -> StylePlain
     -- in a chart of categories (eg accounts) with a single series, each category's bar has its own account type's colour, if known
     categoryStyle j st = case (xaxis, single) of

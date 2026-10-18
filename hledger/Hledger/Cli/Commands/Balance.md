@@ -1069,6 +1069,7 @@ hledger suggests this when there are more than 8 panels.
 In tree mode, each account's own amounts are stacked, excluding its subaccounts', so that nothing is counted twice.
 At most 8 accounts are shown per panel; the smallest are combined into "other" series,
 one for each account type (so eg assets and liabilities are never combined), and each type keeps at least its largest account.
+"other" series are grey, or when coloured by type, a greyed version of their type's colour.
 The total is omitted with `-N` or `--percent`.
 
 In a chart of balance changes per period, `-T`/`--row-total` and `-A`/`--average` show the net total's total and average per period

@@ -105,7 +105,7 @@ Sections take an account type from their query, which their accounts inherit if 
   When every panel shows one account, nothing needs telling apart: its type hue, or cyan if untyped (an apparently random
   categorical colour was confusing). The cost: such an account's colour changes when others join it; a single series has no legend.
   Always using type hues was considered and rejected: 4 tints (2 shades in basic ANSI) can't tell apart a one-type chart's accounts.
-  "other" is grey, totals ink; a lone series that isn't an account (eg a total, or "..." for all accounts) is cyan, a hue no account type uses.
+  "other" is grey, or when coloured by type, tinged with its accounts' type hue (60% grey), so that several (one per type) can be told apart; totals ink; a lone series that isn't an account (eg a total, or "..." for all accounts) is cyan, a hue no account type uses.
 - Chosen by account name, not position or count (`stableSlots`): each name has a hashed order of preference, names choose largest first.
   So -S changes nothing, and removing the largest account (drilling down) disturbs only accounts it had displaced. Text fill characters likewise,
   but with preferences biased towards the best looking ones (`stableSlotsFavouringFirst 0.5`: █ ▓ ▒ ░, best first), so that the

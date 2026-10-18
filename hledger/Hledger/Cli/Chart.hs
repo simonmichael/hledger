@@ -38,7 +38,7 @@ import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
 import Data.Time (Day)
 import GHC.IO.Encoding (getLocaleEncoding, textEncodingName)
-import Safe (atMay, readMay)
+import Safe (atMay, headMay, readMay)
 import System.Console.CmdArgs.Explicit (Flag, flagOpt, flagReq)
 import Text.Printf (printf)
 
@@ -374,7 +374,7 @@ postingsReportAsChart accttype startbals ropts@ReportOpts{average_, translations
     -- Each account starts from its balance before the report period, if any.
     accountRunningTotals c =
       [ Series (ChartLabel a a 0 (accttype a) True) SeriesItem MarkLine (runningTotal (== a)) 0 0 | a <- kept ]
-      ++ [ Series (otherLabel translations_ (length othergroups) grp) SeriesOther MarkLine
+      ++ [ Series (otherLabel translations_ (length othergroups) grp){lbType = accttype =<< headMay grp} SeriesOther MarkLine
              (runningTotal (`S.member` S.fromList grp)) 0 0
          | grp <- othergroups ]
       where
@@ -422,7 +422,7 @@ postingsReportAsChart accttype startbals ropts@ReportOpts{average_, translations
 limitSeries :: Int -> I18n.Translations -> Mark -> [(ChartLabel, [Quantity])] -> [Series]
 limitSeries maxn t mark items =
   [ Series l SeriesItem mark (map Just qs) 0 0 | i <- kept, Just (l, qs) <- [items `atMay` i] ]
-  ++ [ Series (otherLabel t (length othergroups) [lbFull l | (l, _) <- grp]) SeriesOther mark
+  ++ [ Series (otherLabel t (length othergroups) [lbFull l | (l, _) <- grp]){lbType = lbType . fst =<< headMay grp} SeriesOther mark
          (map (Just . sum) $ transpose $ map snd grp) 0 0
      | grp <- map (mapMaybe (items `atMay`)) othergroups ]
   where

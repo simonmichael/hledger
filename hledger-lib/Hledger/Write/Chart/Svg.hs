@@ -645,7 +645,8 @@ colourClass c = case c of
   IndexColour k   -> "s" <> T.pack (show (k `mod` 8))
   LoneColour      -> "lone"
   NeutralColour   -> "neutral"
-  OtherColour     -> "other"
+  OtherColour Nothing   -> "other"
+  OtherColour (Just at) -> "o" <> typeCode (mainAccountType at)
   TotalColour     -> "total"
 
 -- | A short code for each main account type, for CSS class names.
@@ -686,7 +687,7 @@ stylesheet dark = T.unlines $
                 | c <- seriescolours, let cls = colourClass c, let hex = colourHex isdark c ]
     seriescolours =
       [TypeColour at k | at <- [Asset, Liability, Equity, Revenue, Expense], k <- [0 .. maxTints - 1]]
-      ++ map IndexColour [0 .. 7] ++ [OtherColour, LoneColour, NeutralColour]
+      ++ map IndexColour [0 .. 7] ++ [OtherColour t | t <- Nothing : map Just [Asset, Liability, Equity, Revenue, Expense]] ++ [LoneColour, NeutralColour]
     rules =
       [ (".bg", "fill", "surface"), (".title", "fill", "ink"), (".heading", "fill", "ink")
       , (".label", "fill", "ink2"), (".value", "fill", "ink2"), (".tick", "fill", "muted")

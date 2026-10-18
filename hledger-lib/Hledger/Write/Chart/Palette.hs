@@ -31,12 +31,14 @@ colourHex :: Bool -> Colour -> Text
 colourHex dark c = case c of
   TypeColour at k -> tint (tintFraction k) $ pick $ typeColour $ mainAccountType at
   IndexColour k   -> pick $ fromMaybe ("#2a78d6", "#3987e5") $ categorical `atMay` (k `mod` length categorical)
-  OtherColour     -> "#898781"
+  OtherColour Nothing   -> grey
+  OtherColour (Just at) -> mixWith 0.6 grey $ pick $ typeColour $ mainAccountType at  -- the type's hue, greyed
   LoneColour      -> pick ("#1597b0", "#22a6be")  -- cyan
   NeutralColour   -> pick ("#52514e", "#c3c2b7")
   TotalColour     -> pick ("#0b0b0b", "#ffffff")
   where
     pick (light, darkc) = if dark then darkc else light
+    grey = "#898781"
 
 -- | Conventional colours for the main account types (light, dark).
 typeColour :: AccountType -> (Text, Text)
@@ -62,14 +64,21 @@ tintFraction k = fromMaybe 0 $ take maxTints [0, -0.3, 0.4, 0.65] `atMay` (k `mo
 
 -- | Mix a #rrggbb colour with white (by a positive fraction) or black (by a negative fraction).
 tint :: Double -> Text -> Text
-tint f hex = case mapM channel [T.take 2 $ T.drop i digits | i <- [0, 2, 4]] of
-    Just cs | T.length digits == 6 -> "#" <> T.concat (map (T.pack . printf "%02x" . mix) cs)
+tint f
+  | f >= 0    = mixWith f "#ffffff"
+  | otherwise = mixWith (negate f) "#000000"
+
+-- | Mix a #rrggbb colour with another, by this fraction of the other (0 to 1).
+mixWith :: Double -> Text -> Text -> Text
+mixWith f other hex = case (rgb hex, rgb other) of
+    (Just cs, Just os) -> "#" <> T.concat (zipWith (\c o -> T.pack $ printf "%02x" (mix c o)) cs os)
     _ -> hex
   where
-    digits = T.drop 1 hex
+    rgb h = let digits = T.drop 1 h in
+      if T.length digits == 6 then mapM channel [T.take 2 $ T.drop i digits | i <- [0, 2, 4]] else Nothing
     channel t = case readHex (T.unpack t) of [(n, "")] -> Just (n :: Int); _ -> Nothing
-    mix :: Int -> Int
-    mix ch = round $ if f >= 0 then fromIntegral ch + (255 - fromIntegral ch) * f else fromIntegral ch * (1 + f)
+    mix :: Int -> Int -> Int
+    mix c o = round $ fromIntegral c + (fromIntegral o - fromIntegral c) * f
 
 tests_Hledger_Write_Chart_Palette :: TestTree
 tests_Hledger_Write_Chart_Palette = testGroup "Write.Chart.Palette" [

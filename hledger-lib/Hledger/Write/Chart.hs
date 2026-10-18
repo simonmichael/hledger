@@ -189,7 +189,7 @@ data Colour
   | LoneColour                  -- ^ a hue that no account type uses, for a chart's only series when it is not an account,
                                 --   or for an account of unknown type in a chart with one account per panel
   | NeutralColour               -- ^ a neutral colour, eg for the contra amounts legend swatch
-  | OtherColour                 -- ^ a muted colour, for a series combining several items
+  | OtherColour (Maybe AccountType)  -- ^ a muted colour, for a series combining several items: grey, tinged with their main account type's hue if any
   | TotalColour                 -- ^ the ink (text) colour, for a total
   deriving (Show, Eq)
 
@@ -244,7 +244,7 @@ seriesColours colouring series = zipWith colour series' slots
     slotsfor t = if isJust t then stableSlotsFavouringFirst 0.5 maxTints else stableSlots categoricalColours
     colour s k = case (seRole s, typeOf s) of
       (SeriesTotal, _) -> TotalColour
-      (SeriesOther, _) -> OtherColour
+      (SeriesOther, t) -> OtherColour t
       (_, Just t)      -> TypeColour t k
       (_, Nothing)
         | onlyone && (colouring == Single || not (lbAccount $ seLabel s)) -> LoneColour
@@ -392,7 +392,7 @@ tests_Hledger_Write_Chart = testGroup "Write.Chart" [
      -- a lone series which is not an account gets the lone colour; others and totals get theirs
      seriesColours ByName [(ser "u" Nothing){seLabel = ChartLabel "u" "u" 0 Nothing False}] @?= [LoneColour]
      seriesColours ByName [(ser "o" Nothing){seRole = SeriesOther}, (ser "t" Nothing){seRole = SeriesTotal}]
-       @?= [OtherColour, TotalColour]
+       @?= [OtherColour Nothing, TotalColour]
      -- in a chart of single accounts, a lone account has its type's hue, or if unknown the lone colour
      seriesColours Single [ser "e" (Just Expense)] @?= map (TypeColour Expense) (stableSlotsFavouringFirst 0.5 maxTints [("e", 1 :: Quantity)])
      seriesColours Single [ser "u" Nothing] @?= [LoneColour]

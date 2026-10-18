@@ -372,3 +372,36 @@ tx
 # ** 33. Likewise for an account of unknown type.
 $ hledger -f - bal -M u -O svg | sed -n 's/.*class="fill \([a-z]*\)[0-9]*".*/\1/p' | uniq
 lone
+
+# ** 34. In SVG, each "other" series has a greyed version of its accounts' type colour (class o + type code),
+# so several of them can be told apart. (Showing the legend's swatch classes, and the "other" labels.)
+<
+2024-01-01
+  assets:a1  1
+  assets:a2  2
+  assets:a3  3
+  assets:a4  4
+  assets:a5  5
+  assets:a6  6
+  equity
+
+2024-01-01
+  expenses:e1  1
+  expenses:e2  2
+  expenses:e3  3
+  expenses:e4  4
+  expenses:e5  5
+  expenses:e6  6
+  equity
+
+$ hledger -f - bal -M assets expenses -O svg | sed -n 's/.*<rect.*class="fill \([a-z0-9]*\)".*/\1/p; s/.*class="label"[^>]*>\(other.*\)<.*/\1/p'
+ta1
+ta2
+ta0
+tx2
+tx0
+tx1
+oa
+other assets (3 accounts)
+ox
+other expenses (3 accounts)
