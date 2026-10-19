@@ -1082,7 +1082,9 @@ If the chart also has negative values, they take the room they need and positive
 Bars that don't fit are clipped, with a mark at the edge (`▸` or `◂` in text, a small triangle in SVG); lines go off the edge.
 A SCALE with a commodity symbol (eg `--chart='5000 USD'`) applies to that commodity's panel, and one without, to the others.
 SCALE can follow KIND, and several SCALEs can be given, separated by commas (eg `--chart='auto,5000 USD,4000 EUR'`);
-so write SCALE without digit group marks.
+so a SCALE can't contain a comma: write it without digit group marks, or with spaces or periods (eg `10 000 EUR`).
+A number like `10.000` is read using that commodity's decimal mark, as it is shown in the report:
+eg in a journal where EUR is written with a decimal comma, `10.000 EUR` is ten thousand.
 For the same scale in text charts, use the same width too (`-w`).
 
 With [SVG output](#svg-output) (`-o FILE.svg` or `-O svg`), `balance` always shows a chart, as a graphical image.

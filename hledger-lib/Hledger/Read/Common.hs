@@ -108,6 +108,7 @@ module Hledger.Read.Common (
   DigitGrp(..),
   isDigitSeparatorChar,
   parseamount,
+  parseamountWithStyles,
   parseamount',
   parsemixedamount,
   parsemixedamount',
@@ -1289,6 +1290,14 @@ simpleamountp kind =
 -- | Try to parse a single-commodity amount from a string
 parseamount :: String -> Either HledgerParseErrors Amount
 parseamount s = runParser (evalStateT (amountp <* eof) nulljournal) "" (T.pack s)
+
+-- | Try to parse a single-commodity amount from a string, using these commodities' styles to read an ambiguous number
+-- (eg 10.000 EUR is ten thousand if EUR's decimal mark is a comma, or if it has no decimal places).
+parseamountWithStyles :: M.Map CommoditySymbol AmountStyle -> String -> Either HledgerParseErrors Amount
+parseamountWithStyles styles s = runParser (evalStateT (amountp <* eof) j) "" (T.pack s)
+  where
+    j = nulljournal{jdeclaredcommodities = M.mapWithKey commodity styles}
+    commodity c st = Commodity{csymbol=c, cformat=Just st, ccomment="", ctags=[], caliases=[], csourcepos=initialPos ""}
 
 -- | Parse a single-commodity amount from a string, or get an error.
 parseamount' :: String -> Amount

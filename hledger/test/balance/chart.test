@@ -266,7 +266,7 @@ Jan  110  ▓▓██████████████
 Feb   20  ▓▓▓
 
 # ** 23. A SCALE with a commodity symbol applies to that commodity's chart; one without, to the others.
-$ hledger -f - bal cash euro --chart='100,10 EUR' -w 30
+$ hledger -f - bal cash euro --chart='100, 10 EUR' -w 30
 assets:c..  -130  ◂██████████│
 
 EUR
@@ -276,9 +276,9 @@ assets:e..  30 EUR  █████████▸
 $ hledger -f - bal -M expenses --chart=50 -O svg | grep -c '<polygon class="clip"'
 1
 
-# ** 25. SCALE must be a non-zero amount, written without digit group marks.
+# ** 25. SCALE must be a non-zero amount, with no comma between digits (commas separate the SCALEs).
 $ hledger -f - bal --chart=1,000
->2 /but this part was not: 000/
+>2 /should be written without a comma/
 >= 1
 
 # ** 26. KIND must come before SCALE.
@@ -428,3 +428,12 @@ Average 30
 $ hledger -f - bal -M expenses:food -A -O svg | sed -n 's/.*class="label"[^>]*>\([^<]*\)<.*/\1/p'
 Average
 Average 20
+
+# ** 37. SCALE amounts are read with their commodity's decimal mark, so here 10.000 EUR is ten thousand.
+<
+2024-01-01
+  a   5.000,00 EUR
+  b
+
+$ hledger -f - bal a --chart='10.000 EUR' -w 30
+a  5.000,00 EUR  ██████▌

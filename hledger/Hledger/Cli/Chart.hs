@@ -32,7 +32,7 @@ import Data.Ord (Down(..))
 import Data.Set qualified as S
 import Control.Applicative ((<|>))
 import Control.Monad (when)
-import Data.Char (toUpper)
+import Data.Char (isDigit, toUpper)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Lazy qualified as TL
@@ -68,25 +68,30 @@ chartFlag = flagOpt "auto" ["chart"] setchart "KIND,SCALE"
   ("show a chart instead of the report table (with txt output), a chart above the table (with html output), or the chart's data (with csv, tsv or json output). svg output always shows a chart. "
   ++ "KIND can be: auto (the default), or for compound reports grouped (sections side by side; the default for changes) or diverging (sections in one bar, above and below zero; the default for end balances). SCALE fixes the chart's scale, so that charts can be compared: it is the amount that fills the chart (eg 1000, or 1000 USD to set it for one commodity's chart; several can be given). Larger amounts are clipped.")
   where
-    setchart s opts = either Left (const $ Right $ setopt "chart" s opts) $ parseChartArg s
+    setchart s opts = either Left (const $ Right $ setopt "chart" s opts) $ parseChartArg M.empty s
 
 -- | Parse the value of --chart: comma-separated parts, which are an optional chart kind (default auto),
--- followed by optional scale amounts (see 'setChartScales').
--- Amounts must be written without digit group marks, since commas separate the parts.
-parseChartArg :: String -> Either String (String, [Amount])
-parseChartArg s = case filter (not . null) $ map trim $ splitOn "," s of
-  k : rest | k `elem` chartKinds -> (k,) <$> mapM scale rest
-  parts                          -> ("auto",) <$> mapM scale parts
+-- followed by optional scale amounts (see 'setChartScales'), read with these commodity styles
+-- (so that eg 10.000 EUR is ten thousand when EUR is written with a decimal comma).
+-- Since commas separate the parts, a comma between digits (a decimal comma, or a digit group mark) is an error.
+parseChartArg :: M.Map CommoditySymbol AmountStyle -> String -> Either String (String, [Amount])
+parseChartArg styles s
+  | or [isDigit a && b == ',' && isDigit c | (a, b, c) <- zip3 s (drop 1 s) (drop 2 s)] = Left $
+      "--chart's SCALE amounts should be written without a comma (commas separate them; use . as decimal mark, eg 2.5 BTC,"
+      ++ " and leave out digit group marks or use spaces, eg 10000 EUR or 10 000 EUR), but this was not: " ++ s
+  | otherwise = case filter (not . null) $ map trim $ splitOn "," s of
+      k : rest | k `elem` chartKinds -> (k,) <$> mapM scale rest
+      parts                          -> ("auto",) <$> mapM scale parts
   where
     scale p
       | p `elem` chartKinds = Left $ "--chart's KIND (" ++ p ++ ") should come before any SCALE amounts"
-      | Right a <- parseamount p, aquantity a /= 0 = Right a
+      | Right a <- parseamountWithStyles styles p, aquantity a /= 0 = Right a
       | otherwise = Left $ "--chart's value should be a chart KIND (" ++ intercalate ", " chartKinds
           ++ "), and/or non-zero SCALE amounts after it, separated by commas (and written without digit group marks), but this part was not: " ++ p
 
--- | The chart kind and scale amounts given with --chart, if any.
-chartArg :: CliOpts -> (String, [Amount])
-chartArg = either (const ("auto", [])) id . parseChartArg . fromMaybe "" . maybestringopt "chart" . rawopts_
+-- | The chart kind and scale amounts given with --chart, if any, reading the amounts with these commodity styles.
+chartArg :: M.Map CommoditySymbol AmountStyle -> CliOpts -> (String, [Amount])
+chartArg styles = either (const ("auto", [])) id . parseChartArg styles . fromMaybe "" . maybestringopt "chart" . rawopts_
 
 -- | Was a chart requested, with --chart or an output format that can only show charts (svg) ?
 chartRequested :: CliOpts -> Bool
@@ -145,7 +150,8 @@ writeChart opts mreporthtml chart = do
   where
     fmt = outputFormatFromOpts opts
     trans = translations_ $ _rsReportOpts $ reportspec_ opts
-    (kind, scales) = chartArg opts
+    -- scale amounts are read with the chart's commodity styles
+    (kind, scales) = chartArg (M.fromList [(acommodity u, astyle u) | Panel{pnUnit = u} <- chPanels chart]) opts
     barlayout = case kind of
       "grouped"   -> Just Grouped
       "diverging" -> Just Diverging

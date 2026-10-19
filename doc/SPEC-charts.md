@@ -22,7 +22,9 @@ hledger-web's flot register chart, and site/src/charts.md's "export CSV and char
 - KIND: `auto` (default), or for compound reports `grouped` or `diverging`. A kind that doesn't apply (eg grouped for bal) is ignored.
   It must come before any SCALE.
 - SCALE: amounts, eg `5000` or `5000 USD`, fixing the scale so successive charts are comparable (see Fixed scale).
-  Written without digit group marks, since commas separate the parts.
+  Commas separate the parts, so a comma between digits (a decimal comma or digit group mark) is an error.
+  Amounts are read with the chart panels' commodity styles (`parseamountWithStyles`), so an ambiguous `10.000 EUR`
+  is ten thousand when EUR has a decimal comma.
 - `-w/--width N` sets a text chart's width (default: the terminal width).
 - `activity` charts transaction counts per week (or other interval) as a single total; with `--postings`,
   it is a shortcut for `balance --count --chart`, weekly by default.
