@@ -418,27 +418,31 @@ typeLinks trs route kept qparam renderUrl =
 -- the row the search's other terms, as data attributes, so the script
 -- composes selections without parsing the search: any symbol works,
 -- spaces included, a composed term containing one being quoted whole.
--- Fewer than two commodities render nothing.
+-- The given pre-translated hint renders below the row, and fewer than
+-- two commodities render nothing, hint included.
 -- The collapsed list's open state is remembered per browser in the
 -- showcommodities cookie (hledger.js), rendered here server side like
 -- the controls disclosure's.
-commodityLinks :: Translations -> r -> [(Text, Text)] -> Text -> Bool -> Journal -> HtmlUrl r
-commodityLinks trs route kept qparam open j renderUrl
+commodityLinks :: Translations -> r -> [(Text, Text)] -> Text -> Bool -> Text -> Journal -> HtmlUrl r
+commodityLinks trs route kept qparam open hint j renderUrl
   | length syms < 2 = mempty
   -- A few commodities are a row like any other; many collapse to a
   -- line showing the selection, the full list opening on demand.
   | length syms <= 6 =
-      H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $
-        links True
+      (H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $
+        links True)
+      <> hinted
   | otherwise =
-      H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $
+      (H.div ! A.class_ "commodities" ! H.dataAttribute "rest" (H.toValue restText) $
         H.details !? (open, A.open "open") $ do
           H.summary ! A.title (H.toValue $ tr trs "List all the commodities") $ do
             -- TRANSLATORS: the label before a page's commodity filter links, and the links' text and tooltips.
             H.span ! A.class_ "row-label" $ H.toHtml $ tr trs "Commodity:"
             H.span ! A.class_ "sel" $ H.toHtml selectionText
-          links False
+          links False)
+      <> hinted
   where
+    hinted = controlsHint hint renderUrl
     links withLabel =
       H.p ! A.class_ "report-links" $ do
         H.span ! A.class_ "row-label" $

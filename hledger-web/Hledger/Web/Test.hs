@@ -714,7 +714,7 @@ hledgerWebTest = do
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=type%3AA\" title=\"Show only asset accounts (type:A)\"")
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=type%3AL\" title=\"Show only liability accounts (type:L)\"")
       bodyContains ("<a href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show accounts of every type\"")
-      bodyContains "Shift-click selects several types or commodities."
+      bodyContains "Shift-click selects several types."
 
     yit "uses --title for the heading, unaltered" $ do
       get BalanceR

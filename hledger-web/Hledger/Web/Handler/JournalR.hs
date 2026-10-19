@@ -92,9 +92,11 @@ getJournalR = do
       statusRow = statusLinks trs JournalR carried qparam
       realRow = realLinks trs JournalR carried qparam
       typeRow = typeLinks trs JournalR carried qparam
-      commodityRow = commodityLinks trs JournalR carried qparam commoditiesOpen j
-      -- TRANSLATORS: the hint below the account type and commodity filter rows.
-      hintRow = controlsHint $ tr trs "Shift-click selects several types or commodities."
+      -- TRANSLATORS: the hint below the account type filter row.
+      typeHintRow = controlsHint $ tr trs "Shift-click selects several types."
+      commodityRow = commodityLinks trs JournalR carried qparam commoditiesOpen
+        -- TRANSLATORS: the hint below the commodity filter row.
+        (tr trs "Shift-click selects several commodities.") j
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports.
       deepest = deepestDepth j
@@ -130,7 +132,7 @@ getJournalR = do
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs controlsOpen $ mconcat $
-        [intervalRow, yearsNav, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
+        [intervalRow, yearsNav, statusRow, realRow, typeRow, typeHintRow, commodityRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, pricesRow, zeroRow, inertRows]
 
   defaultLayout $ do

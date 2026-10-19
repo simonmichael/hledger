@@ -33,7 +33,7 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsHint, controlsToggle,
+  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsToggle,
    depthLinks, helplink,
    listModeLinks, percentLinks, pricesLinks, realLinks, removeInacct,
    sortLinks, statusLinks, zeroBalanceLinks)
@@ -171,9 +171,9 @@ statementPage here tabtitle spec = do
               , yearsNav
               , statusLinks trs here pageParams qparam
               , realLinks trs here pageParams qparam
-              , commodityLinks trs here pageParams qparam commoditiesOpen j
-              -- TRANSLATORS: the hint below the commodity filter row.
-              , controlsHint $ tr trs "Shift-click selects several commodities." ] ++
+              , commodityLinks trs here pageParams qparam commoditiesOpen
+                  -- TRANSLATORS: the hint below the commodity filter row.
+                  (tr trs "Shift-click selects several commodities.") j ] ++
               [ depthLinks trs here pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs here (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , amountLinks trs here (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)

@@ -107,9 +107,11 @@ getRegisterR = do
       statusRow = statusLinks trs RegisterR modeParams qparam
       realRow = realLinks trs RegisterR modeParams qparam
       typeRow = typeLinks trs RegisterR modeParams qparam
-      commodityRow = commodityLinks trs RegisterR modeParams qparam commoditiesOpen j
-      -- TRANSLATORS: the hint below the account type and commodity filter rows.
-      hintRow = controlsHint $ tr trs "Shift-click selects several types or commodities."
+      -- TRANSLATORS: the hint below the account type filter row.
+      typeHintRow = controlsHint $ tr trs "Shift-click selects several types."
+      commodityRow = commodityLinks trs RegisterR modeParams qparam commoditiesOpen
+        -- TRANSLATORS: the hint below the commodity filter row.
+        (tr trs "Shift-click selects several commodities.") j
       -- The depth links clip the sidebar's accounts, or in tree mode
       -- fold them, and carry to the reports; the register's rows always
       -- show in full.
@@ -146,7 +148,7 @@ getRegisterR = do
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
       controlsRows = controlsToggle trs controlsOpen $ mconcat $
-        [intervalRow, yearsNav, statusRow, realRow, typeRow, commodityRow, hintRow] ++ [depthRow | deepest > 1] ++
+        [intervalRow, yearsNav, statusRow, realRow, typeRow, typeHintRow, commodityRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, costsRow, pricesRow, zeroRow, inertRows]
       -- the amount column's display format: with costs when asked
       amtfmt = noCostFmt{displayZeroCommodity = True, displayCost = costsOn}
