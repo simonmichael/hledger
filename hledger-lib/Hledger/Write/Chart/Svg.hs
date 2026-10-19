@@ -446,38 +446,53 @@ barsSvg top mscale unit rows rowValue = (fromIntegral (length rows) * rowHeight 
     stack lbl ymid segs sign = do
       let cums = scanl1 (+) (map (toD . snd) segs)
           starts = 0 : cums
-          lastk = length segs - 1
           clipped = any (\c -> c > hi || c < lo) (lastMay cums)
-      forM_ (zip3 [0 :: Int ..] segs (zip starts cums)) $ \(k, (d, q), (c0, c1)) -> do
-        let gap = if k > 0 && abs (xof c1 - xof c0) >= 4 then 2 else 0  -- no gap for tiny segments, which it would hide
-            xbase = xof c0 + sign * gap   -- the end nearer the axis, after the gap (the sums are negative for negative segments)
-            len = (xof c1 - xbase) * sign
-        when (len > 0.5) $ withTooltip (T.intercalate " · " [lbFull lbl, lbFull (seLabel $ dsSeries d), showValue unit q]) $
-          S.path ! A.class_ ("fill " <> toValue (dsClass d))
-            ! A.d (toValue $ barPath False xbase (ymid - thickness / 2) thickness (sign * len) (k == lastk && not clipped))
+          outer = maybe (xof 0) xof (lastMay cums)
+      roundedEnd (not clipped) False (xof 0) (ymid - thickness / 2) thickness (outer - xof 0) $
+        forM_ (zip3 [0 :: Int ..] segs (zip starts cums)) $ \(k, (d, q), (c0, c1)) -> do
+          let gap = if k > 0 && abs (xof c1 - xof c0) >= 4 then 2 else 0  -- no gap for tiny segments, which it would hide
+              xbase = xof c0 + sign * gap   -- the end nearer the axis, after the gap (the sums are negative for negative segments)
+              len = (xof c1 - xbase) * sign
+          when (len > 0.5) $ withTooltip (T.intercalate " · " [lbFull lbl, lbFull (seLabel $ dsSeries d), showValue unit q]) $
+            S.path ! A.class_ ("fill " <> toValue (dsClass d))
+              ! A.d (toValue $ barPath False xbase (ymid - thickness / 2) thickness (sign * len) False)
       -- a bar clipped by a fixed scale has a small triangle beyond its end
       when clipped $ clipMark False (xof $ if sign > 0 then hi else lo) ymid thickness sign
 
 -- | One direction of a vertical stacked bar, with its left edge at x and the given width, on a y scale:
 -- segments (each with its series, value and tooltip) from zero outward (up if sign is 1, down if -1),
--- 2px apart (except tiny ones, which a gap would hide), the outermost with a rounded end.
+-- 2px apart (except tiny ones, which a gap would hide), with a rounded end (see 'roundedEnd').
 -- If the bar extends beyond the y scale's range (lo, hi), it is clipped, with a small triangle beyond its end instead.
 vstack :: (Double, Double) -> (Double -> Double) -> Double -> Double -> [(DrawSeries, Quantity, Text)] -> Double -> Svg
 vstack (lo, hi) yof x width segs sign = do
   let cums = scanl1 (+) [toD q | (_, q, _) <- segs]
       starts = 0 : cums
-      lastk = length segs - 1
       clipped = any (\c -> c > hi || c < lo) (lastMay cums)
-  forM_ (zip3 [0 :: Int ..] segs (zip starts cums)) $ \(k, (d, q, tip), (c0, c1)) -> do
-    let gap = if k > 0 && abs (yof c1 - yof c0) >= 4 then 2 else 0
-        ybase = yof c0 - sign * gap   -- the end nearer zero, after the gap
-        len = (ybase - yof c1) * sign  -- positive when there is something to draw
-        path = toValue $ barPath True x ybase width (-sign * len) (k == lastk && not clipped)
-    when (len > 0.5) $ withTooltip tip $ do
-      S.path ! A.class_ ("fill " <> toValue (dsClass d)) ! A.d path
-      -- a contra amount is hatched
-      when (isContra (dsSeries d) q) $ S.path ! A.fill (toValue $ "url(#" <> hatchId <> ")") ! A.d path
+      outer = maybe (yof 0) yof (lastMay cums)
+  roundedEnd (not clipped) True x (yof 0) width (outer - yof 0) $
+    forM_ (zip3 [0 :: Int ..] segs (zip starts cums)) $ \(k, (d, q, tip), (c0, c1)) -> do
+      let gap = if k > 0 && abs (yof c1 - yof c0) >= 4 then 2 else 0
+          ybase = yof c0 - sign * gap   -- the end nearer zero, after the gap
+          len = (ybase - yof c1) * sign  -- positive when there is something to draw
+          path = toValue $ barPath True x ybase width (-sign * len) False
+      when (len > 0.5) $ withTooltip tip $ do
+        S.path ! A.class_ ("fill " <> toValue (dsClass d)) ! A.d path
+        -- a contra amount is hatched
+        when (isContra (dsSeries d) q) $ S.path ! A.fill (toValue $ "url(#" <> hatchId <> ")") ! A.d path
   when clipped $ clipMark True (yof $ if sign > 0 then hi else lo) (x + width / 2) width sign
+
+-- | Draw a bar's segments (if rounded) clipped to the bar's outline with a rounded outer end, so that the end
+-- is rounded the same however thin its outermost segment. The bar is vertical or horizontal, with its base at a, b
+-- (its left or top edge, at the axis), the given size across, and length (negative for up or left).
+-- The clipping path's id, unique within the chart, is made from these (with the prefix 'run' makes unique within its pages).
+roundedEnd :: Bool -> Bool -> Double -> Double -> Double -> Double -> Svg -> Svg
+roundedEnd rounded vertical a b size len segments
+  | not rounded || abs len < 0.5 = segments
+  | otherwise = do
+      S.defs $ S.clippath ! A.id_ (toValue clipid) $ S.path ! A.d (toValue $ barPath vertical a b size len True)
+      S.g ! A.clipPath (toValue $ "url(#" <> clipid <> ")") $ segments
+  where
+    clipid = "hledger-chart-clip-bar" <> T.intercalate "_" [if vertical then "v" else "h", num a, num b, num len]
 
 -- | The id of the hatching pattern for contra amounts.
 hatchId :: Text
@@ -559,7 +574,7 @@ barPath vertical a b size len rounded
       , "H", num a, "Z" ]
   where
     sgn = if len < 0 then -1 else 1
-    r = if rounded then minimum [4, size / 2, abs len] else 0
+    r = if rounded then minimum [3, size / 2, abs len] else 0
 
 -- | The scale for a panel's values, given their range (which should include 0): a nice scale covering it ('niceScale'),
 -- or with a fixed scale, exactly the range it spans ('scaleSpans'), with the nice scale's ticks that are within it.
@@ -710,6 +725,6 @@ tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
      niceScale 0 0 @?= (0, 1, [0, 0.2, 0.4, 0.6000000000000001, 0.8, 1], 1)
      niceScale 0 7.3 @?= (0, 8, [0, 2, 4, 6, 8], 0)
   ,testCase "barPath" $ do
-     barPath True 10 100 20 (-50) True @?= "M 10 100 V 54 Q 10 50 14 50 H 26 Q 30 50 30 54 V 100 Z"
+     barPath True 10 100 20 (-50) True @?= "M 10 100 V 53 Q 10 50 13 50 H 27 Q 30 50 30 53 V 100 Z"
      barPath False 10 5 12 (-30) False @?= "M 10 5 H -20 Q -20 5 -20 5 V 17 Q -20 17 -20 17 H 10 Z"
   ]

@@ -196,21 +196,42 @@
 <line class="grid" x1="54.1" x2="864" y1="36" y2="36" />
 <text class="tick" x="46.1" y="41" text-anchor="end">100</text>
 <text class="label" x="189.1" y="312" text-anchor="middle">expenses:food</text>
+<defs>
+<clipPath id="hledger-chart-clip-barv_157.1_296_-26">
+<path d="M 157.1 296 V 273 Q 157.1 270 160.1 270 H 218.1 Q 221.1 270 221.1 273 V 296 Z" />
+</clipPath>
+</defs>
+<g clip-path="url(#hledger-chart-clip-barv_157.1_296_-26)">
 <g>
 <title>expenses:food · Balance · 10</title>
-<path class="fill tx0" d="M 157.1 296 V 274 Q 157.1 270 161.1 270 H 217.1 Q 221.1 270 221.1 274 V 296 Z" />
+<path class="fill tx0" d="M 157.1 296 V 270 Q 157.1 270 157.1 270 H 221.1 Q 221.1 270 221.1 270 V 296 Z" />
+</g>
 </g>
 <text class="value" x="189.1" y="264" text-anchor="middle">10</text>
 <text class="label" x="459" y="312" text-anchor="middle">expenses:food:dining</text>
+<defs>
+<clipPath id="hledger-chart-clip-barv_427_296_-13">
+<path d="M 427 296 V 286 Q 427 283 430 283 H 488 Q 491 283 491 286 V 296 Z" />
+</clipPath>
+</defs>
+<g clip-path="url(#hledger-chart-clip-barv_427_296_-13)">
 <g>
 <title>expenses:food:dining · Balance · 5</title>
-<path class="fill tx0" d="M 427 296 V 287 Q 427 283 431 283 H 487 Q 491 283 491 287 V 296 Z" />
+<path class="fill tx0" d="M 427 296 V 283 Q 427 283 427 283 H 491 Q 491 283 491 283 V 296 Z" />
+</g>
 </g>
 <text class="value" x="459" y="277" text-anchor="middle">5</text>
 <text class="label" x="729" y="312" text-anchor="middle">expenses:rent</text>
+<defs>
+<clipPath id="hledger-chart-clip-barv_697_296_-260">
+<path d="M 697 296 V 39 Q 697 36 700 36 H 758 Q 761 36 761 39 V 296 Z" />
+</clipPath>
+</defs>
+<g clip-path="url(#hledger-chart-clip-barv_697_296_-260)">
 <g>
 <title>expenses:rent · Balance · 100</title>
-<path class="fill tx0" d="M 697 296 V 40 Q 697 36 701 36 H 757 Q 761 36 761 40 V 296 Z" />
+<path class="fill tx0" d="M 697 296 V 36 Q 697 36 697 36 H 761 Q 761 36 761 36 V 296 Z" />
+</g>
 </g>
 <text class="value" x="729" y="30" text-anchor="middle">100</text>
 </svg>

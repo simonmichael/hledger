@@ -207,21 +207,49 @@
 <text class="tick" x="46.1" y="97" text-anchor="end">100</text>
 <text class="tick" x="256.6" y="373" text-anchor="middle">Jan</text>
 <text class="tick" x="661.5" y="373" text-anchor="middle">Feb</text>
+<defs>
+<clipPath id="hledger-chart-clip-barv_199.6_352_-260">
+<path d="M 199.6 352 V 95 Q 199.6 92 202.6 92 H 252.6 Q 255.6 92 255.6 95 V 352 Z" />
+</clipPath>
+</defs>
+<g clip-path="url(#hledger-chart-clip-barv_199.6_352_-260)">
 <g>
 <title>Jan · revenues:salary · 100</title>
-<path class="fill tr1" d="M 199.6 352 V 96 Q 199.6 92 203.6 92 H 251.6 Q 255.6 92 255.6 96 V 352 Z" />
+<path class="fill tr1" d="M 199.6 352 V 92 Q 199.6 92 199.6 92 H 255.6 Q 255.6 92 255.6 92 V 352 Z" />
 </g>
+</g>
+<defs>
+<clipPath id="hledger-chart-clip-barv_257.6_352_-78">
+<path d="M 257.6 352 V 277 Q 257.6 274 260.6 274 H 310.6 Q 313.6 274 313.6 277 V 352 Z" />
+</clipPath>
+</defs>
+<g clip-path="url(#hledger-chart-clip-barv_257.6_352_-78)">
 <g>
 <title>Jan · expenses:food · 30</title>
-<path class="fill tx1" d="M 257.6 352 V 278 Q 257.6 274 261.6 274 H 309.6 Q 313.6 274 313.6 278 V 352 Z" />
+<path class="fill tx1" d="M 257.6 352 V 274 Q 257.6 274 257.6 274 H 313.6 Q 313.6 274 313.6 274 V 352 Z" />
 </g>
+</g>
+<defs>
+<clipPath id="hledger-chart-clip-barv_604.5_352_-260">
+<path d="M 604.5 352 V 95 Q 604.5 92 607.5 92 H 657.5 Q 660.5 92 660.5 95 V 352 Z" />
+</clipPath>
+</defs>
+<g clip-path="url(#hledger-chart-clip-barv_604.5_352_-260)">
 <g>
 <title>Feb · revenues:salary · 100</title>
-<path class="fill tr1" d="M 604.5 352 V 96 Q 604.5 92 608.5 92 H 656.5 Q 660.5 92 660.5 96 V 352 Z" />
+<path class="fill tr1" d="M 604.5 352 V 92 Q 604.5 92 604.5 92 H 660.5 Q 660.5 92 660.5 92 V 352 Z" />
 </g>
+</g>
+<defs>
+<clipPath id="hledger-chart-clip-barv_662.5_352_-208">
+<path d="M 662.5 352 V 147 Q 662.5 144 665.5 144 H 715.5 Q 718.5 144 718.5 147 V 352 Z" />
+</clipPath>
+</defs>
+<g clip-path="url(#hledger-chart-clip-barv_662.5_352_-208)">
 <g>
 <title>Feb · expenses:rent · 80</title>
-<path class="fill tx0" d="M 662.5 352 V 148 Q 662.5 144 666.5 144 H 714.5 Q 718.5 144 718.5 148 V 352 Z" />
+<path class="fill tx0" d="M 662.5 352 V 144 Q 662.5 144 662.5 144 H 718.5 Q 718.5 144 718.5 144 V 352 Z" />
+</g>
 </g>
 <g>
 <title>Jan · Net · 70</title>
