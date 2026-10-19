@@ -141,7 +141,14 @@ opens `/journal?q=assets status:* depth:3` (url-encoded). The server
 itself keeps the defaults, so every view is fully described by its
 url: a bare url shows the default view, and editing the url (or the
 search and the links above each page) changes the view. Report options
-the web UI has no equivalent for are ignored.
+the web UI has no equivalent for are ignored; options that map to
+page-local state, like `--historical`, shape the opening page only.
+
+This means a startup query is a starting search, not a restriction: a
+viewer can edit or clear it, and the JSON API serves the whole journal
+regardless. To actually restrict what hledger-web serves, give it a
+file holding only the entries to serve (eg one written by `hledger
+print QUERY`).
 
 If you use the bash shell, you can auto-complete flags by pressing TAB in the command line.
 If this is not working see [Install > Shell completions](install.html#shell-completions).
@@ -264,8 +271,9 @@ too, as on the command line (`date:monthly`, or
 The links above each report also set its depth, which they write as a
 `depth:` term in the search; how amounts are shown, as recorded, at
 cost (like `-B`), or at market value at the end of each period (like
-`-V`), with a `value` parameter (`none`, `cost`, or `end`) that
-is carried to the other reports; and
+`-V`), with a `value` parameter (`none`, `cost`, `then`, `end`, `now`,
+or a date; all but `cost` take an optional commodity, as
+`--value WHEN[,COMM]`) that is carried to the other reports; and
 whether accounts with zero balances are shown, with an `empty`
 parameter that the `e` key toggles and the pages' links carry.
 Other rows filter what every page shows, each rewriting its own search
@@ -276,7 +284,9 @@ Every page shows and preserves the report state its url carries: a
 link changes only the control it names, and controls that take effect
 on another page (the report-shaping rows, on the journal and register)
 show muted labels, their state marked all the same. Only the
-accumulation mode and the register's costs toggle are page-local.
+accumulation mode and the register's costs toggle are page-local:
+each report accumulates its own way, and following a link returns
+to the target page's own default.
 
 The balance sheets show ending balances and the income statement and
 cashflow statement show changes, as their commands do; an `accum`
