@@ -292,6 +292,7 @@ helpflags = [
  ,flagNone ["webman"]   (setboolopt "webman")  "show this command's manual on the web"
  ,flagNone ["examples"] (setboolopt "examples") "show examples for this command"
  ,flagNone ["version"]  (setboolopt "version") "show version information"
+ ,flagOpt "" ["test"]   (\s opts -> Right $ setopt "test" s opts) "PATTERN" "run built-in tests (those matching PATTERN) and exit"
   -- flagOpt would be more correct for --debug, showing --debug[=LVL] rather than --debug=[LVL] in help.
   -- But flagReq plus special handling in Cli.hs makes the = optional, removing a source of confusion.
  ,flagReq  ["debug"]    (\s opts -> Right $ setopt "debug" s opts) "[1-9]" "show this much debug output (default: 1)"
@@ -720,7 +721,7 @@ propagatedGeneralFlagNames :: [String]
 propagatedGeneralFlagNames =
   filter (`notElem` (["file","f"] ++ helpactionflags))
     $ concatMap flagNames (inputflags ++ reportflags ++ helpflags)
-  where helpactionflags = ["quickref","help","h","examples","info","man","webman","version"]
+  where helpactionflags = ["quickref","help","h","examples","info","man","webman","version","test"]
 
 -- | Extract the propagated general flags from these raw options, as a raw option
 -- association list, for passing to run/repl subcommands.
@@ -749,7 +750,7 @@ journalCreatingCommandNames = ["add","import"]
 -- never read or check the journal (help is handled by the CLI's help hub,
 -- which also does not read the journal).
 journalIgnoringCommandNames :: [String]
-journalIgnoringCommandNames = ["help","setup","test"]
+journalIgnoringCommandNames = ["help","setup"]
 
 -- | The name of a hidden marker flag used internally by the run command to
 -- recognise inline commands. run reads inline commands (rather than command

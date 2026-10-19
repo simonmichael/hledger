@@ -114,10 +114,6 @@ webflags =
   --     (\s opts -> Right $ setopt "file-url" s opts)
   --     "FILEURL"
   --     "set a different base url for static files (default: `BASEURL/static/`)"
-  , flagNone
-      ["test"]
-      (setboolopt "test")
-      "run hledger-web's tests and exit. hspec test runner args may follow a --, eg: hledger-web --test -- --help"
   ]
   where
     serveprefix = "server mode: "

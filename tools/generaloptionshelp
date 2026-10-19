@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# generaloptionshelp - regenerate the _generaloptions_ and _webgeneraloptions_ macros in doc/common.m4
-# from the current hledger build's --help output.
+# generaloptionshelp - regenerate the _generaloptions_, _uigeneraloptions_ and _webgeneraloptions_
+# macros in doc/common.m4 from the current hledger build's --help output.
+# _uigeneraloptions_ is the same, minus --test, since hledger-ui has no built-in tests.
 # _webgeneraloptions_ is the same, minus --lang, which hledger-web lists among its own flags
 # since it works differently there.
 # Run from the top of the hledger repo, usually via `just generaloptionshelp`
@@ -12,12 +13,17 @@ f=doc/common.m4
 help=$(stack exec -- hledger -h | awk '/^General input flags:/,0')
 [[ -n $help ]] || { echo "error: could not find general flags help in 'hledger -h' output" >&2; exit 1; }
 
-# The help without the --lang flag: its line, and its indented continuation lines.
-webhelp=$(printf '%s\n' "$help" | awk '
-  /^ +--lang=/                { skip = 1; next }
-  skip && /^                  / { next }
-                              { skip = 0; print }
-')
+# The help without the given flag (eg --lang): its line, and its indented continuation lines.
+withoutflag() {
+  printf '%s\n' "$help" | awk -v flag="$1" '
+    { p = substr($1, 1, length(flag) + 1) }
+    $1 == flag || p == flag "=" || p == flag "[" { skip = 1; next }
+    skip && /^                  / { next }
+    { skip = 0; print }
+  '
+}
+uihelp=$(withoutflag --test)
+webhelp=$(withoutflag --lang)
 
 # Replace the body of macro $1 in $f with the text $2, as a code block.
 updatemacro() {
@@ -39,4 +45,5 @@ updatemacro() {
 }
 
 updatemacro _generaloptions_ "$help"
+updatemacro _uigeneraloptions_ "$uihelp"
 updatemacro _webgeneraloptions_ "$webhelp"

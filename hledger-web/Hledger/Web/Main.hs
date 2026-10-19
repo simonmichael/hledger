@@ -41,7 +41,7 @@ import Network.Socket
 import Network.Wai (Application, Middleware, pathInfo, responseLBS)
 import Network.Wai.Handler.Warp (Settings, runSettings, runSettingsSocket, defaultSettings, setBeforeMainLoop, setHost, setPort)
 import System.Directory (removeFile)
-import System.Environment ( getArgs, withArgs )
+import System.Environment (withArgs)
 import System.IO (hFlush, stdout)
 import System.PosixCompat.Files (getFileStatus, isSocket)
 import System.Time.Extra (sleep)
@@ -95,9 +95,8 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
     | boolopt "webman"          rawopts_ -> void $ openBrowserOn $ webManualUrl "hledger-web" Nothing
     | boolopt "version"         rawopts_ -> putStrLn prognameandversion
     -- boolopt "binary-filename" rawopts_ -> putStrLn (binaryfilename progname)
-    | boolopt "test"            rawopts_ -> do
-      -- remove --test and --, leaving other args for hspec
-      (`withArgs` hledgerWebTest) . filter (`notElem` ["--test","--"]) =<< getArgs
+    | Just pat <- maybestringopt "test" rawopts_ ->
+      withArgs ["--match=" <> pat | not $ null pat] hledgerWebTest
     | otherwise                              -> withJournal copts (web wopts)
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'

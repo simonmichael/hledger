@@ -80,7 +80,8 @@ uimode =
         [flagNone ["future"] (setboolopt "forecast") "old flag, use --forecast instead"
         ,flagNone ["menu"] (setboolopt "menu") "old flag, menu screen is now the default"
         ]
-      ,groupNamed = mkgeneralflagsgroups1 helpflags
+      -- hledger-ui has no built-in tests
+      ,groupNamed = mkgeneralflagsgroups1 $ filter ((/= ["test"]) . flagNames) helpflags
       }
   ,modeHelpSuffix=[
     -- "Reads your ~/.hledger.journal file, or another specified by $LEDGER_FILE or -f, and starts the full-window TUI."

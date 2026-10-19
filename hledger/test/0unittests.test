@@ -1,6 +1,15 @@
 # * Run unit tests.
 
 # ** 1. all tests passed
-$ hledger test
+$ hledger --test
 > //
 >=0
+
+# ** 2. --test=PATTERN runs only the tests whose names match.
+$ hledger --test=NOSUCHTESTNAME
+> /All 0 tests passed/
+
+# ** 3. --test with a command is an error, suggesting --test=PATTERN.
+$ hledger --test balance
+>2 /--test can't be used with a command \(balance\); to select tests, use --test=PATTERN/
+>=1

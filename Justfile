@@ -457,7 +457,7 @@ STACKTEST := STACK + ' test --fast'
 
 # run hledger & hledger-lib unit tests (do a stack build hledger first).
 @unittest:
-    ($STACK exec hledger test && echo $@ PASSED) || (echo $@ FAILED; false)
+    ($STACK exec hledger -- --test && echo $@ PASSED) || (echo $@ FAILED; false)
 
 SHELLTEST := STACK + ' exec -- shelltest --execdir --threads=40'
 

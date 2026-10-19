@@ -327,7 +327,7 @@ runCommand defaultJournalOverride rungeneralopts addonfileargs findBuiltinComman
                 | infoFlag  -> runInfoForTopic "hledger" mmodecmdname
                 | manFlag   -> runManForTopic "hledger"  mmodecmdname
                 | cmdname `elem` journalIgnoringCommandNames ->
-                  -- help/setup/test never read the journal, as at the CLI
+                  -- help/setup never read the journal, as at the CLI
                   cmdaction opts nulljournal
                 | cmdname `elem` journalCreatingCommandNames ->
                   -- add and import can create a nonexistent journal file, as they do at the CLI

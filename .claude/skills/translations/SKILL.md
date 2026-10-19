@@ -119,7 +119,7 @@ files use it.
   `PO-Revision-Date`, `Last-Translator` or `Language-Team` header fields
   are harmless.
 - In a checkout: `just i18n-check`, and for a built-in catalog the unit
-  tests (`stack exec -- hledger test`), which check placeholders and tags.
+  tests (`stack exec -- hledger --test`), which check placeholders and tags.
 - Built-in catalogs are embedded at build time: rebuild hledger,
   hledger-ui and hledger-web (`stack build`) before looking at them. A user
   catalog is read at run time, with no rebuild.
