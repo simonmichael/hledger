@@ -281,6 +281,7 @@ commandCategories rawopts
 --
 -- prefixed with a space for a builtin command, or a + for a known addon command
 -- (which is shown only when hledger-COMMAND is found in $PATH at runtime).
+-- Each section is sorted alphabetically, except that setup comes first in MAINTENANCE.
 --
 -- Keep synced with builtinCommands above, the command docs (Commands/\*.md),
 -- commands.m4, and hledger.m4.md -> Commands.
@@ -291,7 +292,7 @@ commandsListSections :: [(String, [String])]
 commandsListSections = [
     -----------------------------------------80-------------------------------------
   ("USER INTERFACES",
-  [" help (h)                 show documentation"
+  [" help (h)                 show documentation and examples"
   ," repl                     run multiple commands from an interactive prompt"
   ," run                      run multiple commands from a file or command line"
   ,"+ui                       run a terminal UI"
@@ -300,66 +301,53 @@ commandsListSections = [
     -----------------------------------------80-------------------------------------
  ,("ENTERING DATA",
   [" add                      add transactions using terminal prompts"
+  ," get                      fetch transaction and price data for import"
   ,"+iadd                     add transactions using a TUI (hledger-iadd)"
   ," import                   add new transactions from other files, eg CSV files"
-  ,"+edit                     edit specific transactions with $EDITOR"               -- hledger-utils
   ])
     -----------------------------------------80-------------------------------------
- ,("BASIC REPORTS",
-  [" accounts (acc)           show account names"
-  ," codes                    show transaction codes"
-  ," commodities (comm)       show commodity/currency symbols"
-  ," descriptions (desc)      show transaction descriptions"
-  ," files                    show input files in use"
-  ," notes                    show note part of transaction descriptions"
-  ," payees                   show payee part of transaction descriptions"
-  ," prices                   show market prices"
-  ," stats                    show journal statistics"
-  ," tags                     show tag names"
-  ," transactions (tx)        show transactions, one per line"
-  ])
-    -----------------------------------------80-------------------------------------
- ,("STANDARD REPORTS",
-  [" print                    show journal entries, or export journal data"
-  ," aregister (areg)         show transactions & running balance in one account"
-  ," register (reg)           show postings & running total across accounts"
-  ," balancesheet (bs)        show assets, liabilities and net worth"
-  ," balancesheetequity (bse) show assets, liabilities and equity"
-  ," cashflow (cf)            show changes in liquid assets"
-  ," incomestatement (is)     show revenues and expenses"
-  ])
-    -----------------------------------------80-------------------------------------
- ,("ADVANCED REPORTS",
-  [" balance (bal)            show balance changes, end balances, gains, budgets.."
-  ," holdings                 show investment holdings"
-  ,"+lots                     show a commodity's lots"                               -- hledger-lots
-  ," roi                      show return on investments"
-  ])
-    -----------------------------------------80-------------------------------------
- ,("CHARTS",
-  [" activity                 show transaction or posting counts as a bar chart"
-  ,"+bar                      show balances or changes as a bar chart"               -- hledger-bar
-  ,"+plot                     show advanced matplotlib charts as gui/svg/png/pdf.."  -- hledger-utils
-  ])
-    -----------------------------------------80-------------------------------------
- ,("GENERATING DATA",
-  ["+autosync                 download/deduplicate/show OFX data as transactions"    -- ledger-autosync
-  ," close                    generate transactions to zero/restore/assert balances"
-  ," get                      fetch new transactions and market price data"
-  ,"+interest                 generate transactions transferring accrued interest"   -- hledger-interest
-  ,"+lots sell                generate a lot-selling transaction"                    -- hledger-lots
-  ,"+pricehist                download historical market prices"                     -- pricehist
-  ," rewrite                  generate auto postings, like print --auto"
+ ,("REPORTS",
+  [" accounts (acc)           account names"
+  ," activity                 transaction or posting counts, as a bar chart"
+  ," aregister (areg)         an account's transactions & running balance"
+  ," balance (bal)            balance changes, end balances, gains, budgets & more"
+  ," balancesheet (bs)        assets, liabilities and net worth"
+  ," balancesheetequity (bse) assets, liabilities and equity"
+  ,"+bar                      simple balance/change bar charts for hledger 1"        -- hledger-bar
+  ," cashflow (cf)            changes in liquid assets"
+  ," codes                    transaction codes"
+  ," commodities (comm)       commodity/currency symbols"
+  ," descriptions (desc)      transaction descriptions"
+  ," files                    input files used"
+  ," holdings                 investment holdings and performance"
+  ," incomestatement (is)     revenues and expenses"
+  ," notes                    the note part of transaction descriptions"
+  ," payees                   the payee part of transaction descriptions"
+  ,"+plot                     advanced matplotlib charts, as gui/svg/png/pdf"        -- hledger-utils
+  ," prices                   market prices"
+  ," print                    transaction entries, or a whole exported journal"
+  ," register (reg)           matched postings & running total, across accounts"
+  ," roi                      return on investments"
+  ," stats                    journal statistics"
+  ," tags                     tag names"
+  ," transactions (tx)        transactions, in compact one-line format"
   ])
     -----------------------------------------80-------------------------------------
  ,("MAINTENANCE",
-  [" check                    check for various kinds of error in the data"
+  [" setup                    check your hledger installation"
+  ," check                    check your journal data"
   ,"+check-fancyassertions    check more powerful balance assertions"                -- hledger-check-fancyassertions
   ,"+check-tagfiles           check that files referenced in tag values exist"       -- hledger-check-tagfiles
   ," diff                     compare an account's transactions in two journals"
-  ,"+git                      save or view journal file history simply in git"       -- hledger-git
-  ,"+pijul                    save or view journal file history simply in pijul"     -- hledger-pijul
-  ," setup                    check and show the status of the hledger installation"
+  ,"+edit                     edit matched transactions with $EDITOR"                -- hledger-utils
+  ,"+git                      simple version control of the journal with git"        -- hledger-git
+  ,"+jj                       simple version control of the journal with jj"         -- hledger-jj
+  ])
+    -----------------------------------------80-------------------------------------
+ ,("GENERATING DATA",
+  [" close                    generate transactions to zero/restore/assert balances"
+  ,"+interest                 generate transactions transferring accrued interest"   -- hledger-interest
+  ," rewrite                  generate postings by rule, like print --auto"
   ])
     -----------------------------------------80-------------------------------------
  ]

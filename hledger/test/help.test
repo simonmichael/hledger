@@ -113,7 +113,7 @@ $ hledger help manual
 
 # ** 27. help commands --addons shows only the addon commands, not the builtin ones.
 $ hledger help commands --addons
-> !/show account names/
+> !/accounts \(acc\) +account names/
 
 # ** 28. help commands --addons still shows the other addons section.
 $ hledger help commands --addons
@@ -122,8 +122,8 @@ $ hledger help commands --addons
 # ** 29. help commands --aliases shows only the command aliases, not the builtin commands.
 # (See also cli/command-aliases.test.)
 $ hledger help commands --aliases
-> !/show account names/
+> !/accounts \(acc\) +account names/
 
 # ** 30. The category flags can be combined.
 $ hledger help commands --builtins --addons
-> /show account names/
+> /accounts \(acc\) +account names/
