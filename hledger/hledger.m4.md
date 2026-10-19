@@ -521,7 +521,6 @@ You can list all of a command's options by running `hledger CMD -h`.
 - [check](#check)                                  - check for various kinds of error in the data
 - [diff](#diff)                                    - compare an account's transactions in two journals
 - [setup](#setup)                                  - check and show the status of the hledger installation
-- [test](#test)                                    - run self tests
 
 
 m4_dnl XXX maybe later
@@ -8084,6 +8083,21 @@ To capture debug output in a log file instead, you can usually redirect stderr, 
 hledger bal --debug=3 2>hledger.log
 ```
 (This option doesn't work in a config file yet.)
+
+## Built-in tests
+
+hledger's unit tests are built in to the executable,
+and `--test` runs them, printing the results and exiting with a non-zero code if any fail.
+`--test=PATTERN` runs just the tests whose names contain PATTERN
+(it can also be a [tasty pattern](https://github.com/UnkindPartition/tasty#patterns)).
+Eg:
+```cli
+$ hledger --test               # run all unit tests
+$ hledger --test=balance       # run tests with "balance" in their name
+```
+This can be a sanity check of an unusual hledger build;
+failures are unlikely, but if you see one, please report it as a bug.
+(hledger-web also has a `--test` flag, which runs its own tests.)
 
 # Charts
 

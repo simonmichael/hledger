@@ -391,6 +391,7 @@ main = handleExit $ withGhcDebug' $ do
     infoFlag     = boolopt "info"     rawopts
     manFlag      = boolopt "man"      rawopts
     versionFlag  = boolopt "version"  rawopts
+    testFlag     = maybestringopt "test" rawopts
     -- ignoredopts    cmd = error' $ cmd ++ " tried to read options but is not supposed to"
     ignoredjournal cmd = error' $ cmd ++ " tried to read the journal but is not supposed to"
 
@@ -420,6 +421,11 @@ main = handleExit $ withGhcDebug' $ do
     -- 6.2. --version flag found and none of these other conditions - show version
     | versionFlag && not (isaddoncmd || quickrefFlag || helpFlag || examplesFlag || infoFlag || manFlag || webmanFlag) -> putStrLn prognameandversion
 
+    -- or --test flag found, with no command - run the unit tests
+    | Just pat <- testFlag, not isaddoncmd ->
+        if nocmdprovided then runUnitTests pat
+        else error' $ "--test can't be used with a command (" <> cmdarg <> "); to select tests, use --test=PATTERN"
+
     -- 6.3. no command found, nothing else to do - show the quick reference card
     | nocmdprovided -> do
         dbg1IO "no command, showing quickref" ()
@@ -441,7 +447,7 @@ main = handleExit $ withGhcDebug' $ do
         | webmanFlag -> void $ openBrowserOn $ webManualUrl "hledger" mmodecmdname
 
         -- 6.4.2. builtin command which should not require or read the journal - run it
-        -- (help/setup/test; help's own action dispatches its subtopics)
+        -- (help/setup; help's own action dispatches its subtopics)
         | cmdname `elem` journalIgnoringCommandNames ->
           cmdaction opts (ignoredjournal cmdname)
 

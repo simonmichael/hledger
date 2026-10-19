@@ -88,9 +88,6 @@ Flags:
                             with auto, use each viewer's browser language if
                             available, otherwise the server's. (Default: the
                             browser's language if available, otherwise en.)
-     --test                 run hledger-web's tests and exit. hspec test
-                            runner args may follow a --, eg: hledger-web --test
-                            --help
 ```
 
 By default hledger-web listens only on IP address `127.0.0.1`,

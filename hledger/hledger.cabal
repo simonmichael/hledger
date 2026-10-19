@@ -86,7 +86,6 @@ extra-source-files:
     Hledger/Cli/Commands/Setup.txt
     Hledger/Cli/Commands/Stats.txt
     Hledger/Cli/Commands/Tags.txt
-    Hledger/Cli/Commands/Test.txt
     Hledger/Cli/Commands/Transactions.txt
 
 source-repository head

@@ -3,7 +3,7 @@ hledger test-related files. See also [Developer docs > TESTS].
 unittest.hs - main file for a cabal test suite in the hledger package
 (run by "cabal test" or "stack test"). Runs the unit tests built in to
 all hledger modules. Not used much, we usually run them via hledger's
-builtin "test" command instead.
+--test flag instead.
 
 doctest.hs - main file for another cabal test suite. Runs the doctests
 embedded in haddock comments in some hledger modules.

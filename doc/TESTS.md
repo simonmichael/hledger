@@ -96,8 +96,8 @@ For how to run the tests, see [Developer workflows](DEVWORKFLOWS.md).
     (search for `tests_`).
 
     The unit tests are shipped as part of the hledger executable, and
-    can always be run via the [test](https://hledger.org/hledger.html#test)
-    command (`hledger test`).
+    can always be run with the [--test](https://hledger.org/hledger.html#built-in-tests)
+    flag (`hledger --test`).
 
 2.  Doc tests
 
@@ -178,10 +178,9 @@ See [Developer workflows](DEVWORKFLOWS.md) for the main commands
 and `just h test` for all test-related scripts.
 
 Also, the unit tests are built in to the hledger executable, and can be
-run any time with the `test` command:
+run any time with the `--test` flag:
 
 ``` example
-$ hledger test               # run all unit tests
-$ hledger test balance       # run tests with "balance" in their name
-$ hledger test -- -h         # show tasty test runner options
+$ hledger --test             # run all unit tests
+$ hledger --test=balance     # run tests with "balance" in their name
 ```

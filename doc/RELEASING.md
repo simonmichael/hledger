@@ -343,7 +343,7 @@ More procedure notes.
 - then by hand:
   - only after release binaries are built (preferably after release is published):
     update --version outputs (version, hash, date, but not platform)
-  - final output line from `hledger test` (run local build and in terminal for normal speed)
+  - final output line from `hledger --test` (run local build and in terminal for normal speed)
   - Total count from `make functest`
   - preview
   - commit: `install: NEW`

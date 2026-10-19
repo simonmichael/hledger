@@ -15,7 +15,7 @@ the export list, the import list, builtinCommands, commandsListSections.
 module Hledger.Cli.Commands (
    commands
   ,mainmode
-  ,testcmd
+  ,runUnitTests
   ,builtinCommands
   ,builtinCommandNames
   ,addonCommandNames
@@ -154,7 +154,6 @@ builtinCommands = [
   ,(statsmode              , stats)
   ,(tagsmode               , tags)
   ,(transactionsmode       , transactions)
-  ,(testmode               , testcmd)
   ]
 
 -- | The overall cmdargs mode describing hledger's command-line options and subcommands.
@@ -361,7 +360,6 @@ commandsListSections = [
   ,"+git                      save or view journal file history simply in git"       -- hledger-git
   ,"+pijul                    save or view journal file history simply in pijul"     -- hledger-pijul
   ," setup                    check and show the status of the hledger installation"
-  ," test                     run self tests"
   ])
     -----------------------------------------80-------------------------------------
  ]
@@ -547,37 +545,19 @@ addonExtensions =
   ,"ysh"
   ]
 
--- The test command is also defined here for easy access to other modules' tests.
-
-testmode = hledgerCommandMode
-  $(embedFileRelative "Hledger/Cli/Commands/Test.txt")
-  []
-  [generalflagsgroup3]
-  []
-  ([], Just $ argsFlag "[-- TASTYOPTS]")
-
--- | The test command, which runs the hledger and hledger-lib packages' unit tests.
--- Arguments following a -- argument will be passed to the tasty test runner,
--- and any arguments before -- will be passed as test-selecting -p patterns.
---
--- Unlike most hledger commands, this one does not read the user's journal.
--- A 'Journal' argument remains in the type signature, but it should
--- not be used (and would raise an error).
---
-testcmd :: CliOpts -> Journal -> IO ()
-testcmd opts _undefined = do
-  let
-    args = listofstringopt "args" $ rawopts_ opts
-    (hledgerargs, tastyargs0) = break (== "--") args
-    tastyargs = dbg1 "tastyargs" $ ["-p " <> a | a <- hledgerargs] ++ drop 1 tastyargs0
-  withArgs tastyargs $
+-- | Run the hledger and hledger-lib packages' unit tests (for --test),
+-- or just those whose names match the given tasty pattern, if it is non-empty.
+-- Defined here for easy access to other modules' tests.
+runUnitTests :: String -> IO ()
+runUnitTests pat =
+  withArgs ["--pattern=" <> pat | not $ null pat] $
     Test.Tasty.defaultMain $ testGroup "hledger" [
        tests_Hledger
       ,tests_Hledger_Cli
       ]
 
 -- All unit tests for Hledger.Cli, defined here rather than
--- Hledger.Cli so testcmd can use them.
+-- Hledger.Cli so runUnitTests can use them.
 tests_Hledger_Cli = testGroup "Hledger.Cli" [
    tests_Cli_Utils
   ,tests_Commands

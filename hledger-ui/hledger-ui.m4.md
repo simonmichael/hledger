@@ -77,7 +77,7 @@ Flags:
 
 hledger-ui also supports many of hledger's [general options](hledger.md#options):
 
-_generaloptions_
+_uigeneraloptions_
 
 With hledger-ui, the `--debug` option sends debug output to a `hledger-ui.log` file in the current directory.
 
