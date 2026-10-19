@@ -98,26 +98,43 @@ Sections take an account type from their query, which their accounts inherit if 
 
 ## Colours
 
-- Accounts of several types: conventional type hues (assets blue, liabilities amber, equity violet, revenues green, expenses red),
-  with up to 4 tints per type. Accounts all of one type, or untyped: 8 categorical colours (the type hue would tell nothing).
-  Decided for the whole chart (`chartColouring`), not per panel; per panel, a commodity's panel with one asset account
-  (eg in bcexample's bs) got a categorical colour while the USD panel's assets were blue.
-  When every panel shows one account, nothing needs telling apart: its type hue, or cyan if untyped (an apparently random
-  categorical colour was confusing). The cost: such an account's colour changes when others join it; a single series has no legend.
-  Always using type hues was considered and rejected: 4 tints (2 shades in basic ANSI) can't tell apart a one-type chart's accounts.
-  "other" is grey, or when coloured by type, tinged with its accounts' type hue (60% grey), so that several (one per type) can be told apart; totals ink; a lone series that isn't an account (eg a total, or "..." for all accounts) is cyan, a hue no account type uses.
-- Chosen by account name, not position or count (`stableSlots`): each name has a hashed order of preference, names choose largest first.
-  So -S changes nothing, and removing the largest account (drilling down) disturbs only accounts it had displaced. Text fill characters likewise,
-  but with preferences biased towards the best looking ones (`stableSlotsFavouringFirst 0.5`: █ ▓ ▒ ░, best first), so that the
-  stippled ones are used mainly when there are more series; accounts choose first, then "other" series (grey, so their texture
-  matters less), whose preferences are reversed, favouring the stippled ones (the palest, ░, also separates the grey from the coloured segments well).
-  Chosen among the series in the same bar (each section's, in the grouped layout), and a series alone in its bar gets █;
-  choosing once per panel left the expenses bar of an `is` chart with stippled characters while █ went unused there.
-- Palette: the dataviz skill's validated reference palette; type hues validated on the pairs that co-occur (green/red is in the CVD warn band,
-  so legends and positions matter). Tints mix with white/black ([0, -0.3, 0.4, 0.65], most saturated first),
-  and are chosen favouring the first (`stableSlotsFavouringFirst 0.5`), since the pale ones looked washed out when chosen for a lone account.
-- Text: exact colours with `COLORTERM=truecolor` (dark variants when the background is known dark), else basic ANSI colours.
-  Negative values stay ANSI red, like other output.
+How hues, shades and fill characters are chosen (`chartColouring`, `seriesColours`, `stableSlots`; exact values in `Chart.Palette`).
+
+1. **What hue means is decided once per chart** (`chartColouring`, over all its panels, so a hue means the same in each):
+
+   | the chart's accounts | colouring | hue tells you |
+   |---|---|---|
+   | of several main types | by type | the type: assets blue, liabilities amber, equity violet, revenues green, expenses red (untyped accounts: categorical) |
+   | all of one type, or untyped | by name | which account: 8 distinct categorical hues |
+   | one per panel | single | the type, or cyan if untyped (nothing needs telling apart) |
+
+   In a single-period chart with one series, each category's bar has its own account type's hue.
+2. **Roles override that**: totals and net are ink; a lone series that isn't an account (eg activity's counts) is cyan, a hue no type uses;
+   "other" series are grey, or when coloured by type, a greyed version of their type's hue (60% grey), so that several (one per type)
+   can be told apart; contra amounts are hatched (`╱`/`/` in text), with a neutral hatched legend swatch.
+3. **Shades within a type**: 4 tints, ordered most visible first: base, darker, lighter, palest (mixed with white/black by [0, -0.3, 0.4, 0.65]);
+   on dark backgrounds, where a darker shade sinks into the surface, base, lighter, darker, palest ([0, 0.4, -0.3, 0.65]).
+   Preferences favour the first (`stableSlotsFavouringFirst 0.5`), so pale shades appear mainly when several accounts of a type share a panel.
+   (Darker first was considered: deeper but less vivid, unvalidated, and poorly visible on dark backgrounds.)
+4. **Fill characters** (text only; SVG uses solid fills with 2px gaps): `█ ▓ ▒ ░` (`# = + :` in ASCII), best looking first.
+   Chosen among the series in the same bar (each section's, in the grouped layout); a series alone in its bar gets █.
+   Accounts choose first, favouring the first characters; then "other" series, favouring the last (they're grey, so texture matters less,
+   and ░ separates them from the coloured segments).
+5. **Stability**: categorical hues, shades and fill characters are all chosen by name (`stableSlots`): each name has an order of preference
+   for the slots (from a hash, FNV-1a with murmur3's finaliser), and names choose largest first (ties by name), each taking its first free slot.
+   So position doesn't matter (`-S` changes nothing), and adding or removing small accounts, or removing the largest (drilling down),
+   disturbs few others. Biased preferences (shades, fill characters) make the first slots likelier but stay name-based.
+   With `-S`, accounts are drawn largest first, so bars read `█ ▓ ▒ ░`, most saturated first; otherwise they're drawn in name order.
+   Costs: slots repeat when more are needed (8 hues, 4 shades, 4 characters); a chart-wide decision can change all colours when the
+   chart's mix of types changes (eg adding a liability to an assets chart); a single account's colour changes when a second one joins it.
+6. **Precedence**: role (total, other, lone), then the chart's colouring, then the type's hue, then the name-chosen slot.
+7. **Rendering**: SVG and truecolor text (`COLORTERM=truecolor`) use the same exact colours, with variants for dark backgrounds
+   (SVG via `prefers-color-scheme`, omitted when embedded in html; text when the background is known to be dark).
+   Basic ANSI colours otherwise: type hues as the terminal's blue, yellow, magenta, green, red, shades alternating dull/vivid;
+   categorical hues as 8 basic colours (avoiding red, which marks negative values); "other" faint; lone cyan.
+   Negative values stay ANSI red, like other output.
+8. **Palette**: the dataviz skill's validated reference palette; type hues validated on the pairs that co-occur
+   (green/red is in the CVD warn band, so legends and positions matter).
 
 ## Fixed scale
 
@@ -152,6 +169,18 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 - Net marks: dots, then extra bars, then line marks, thinned; a white surface ring around them was removed.
 - Colours: by position at first; then by name, with count-based rules (tints for up to 4 accounts of one type, neutral for a lone series)
   removed, since they repainted accounts as others were removed.
+- Colouring by type or by name was decided per panel at first; then for the whole chart, since a commodity's panel with one asset account
+  (eg in bcexample's bs) got a categorical colour while the USD panel's assets were blue. A lone account got a categorical colour too,
+  which looked arbitrary; hence the "single" colouring. Always using type hues was rejected: 4 tints (2 shades in basic ANSI)
+  can't tell apart a one-type chart's accounts.
+- The name hash was plain FNV-1a at first: its last character (the slot number) was poorly mixed, giving only a few dozen orders of
+  preference, so colours collided more often than chance; murmur3's finaliser fixed that.
+- Tints and fill characters were chosen without bias at first; the pale tints looked washed out, and the stippled characters
+  untidy, when chosen for a lone or large account. Fill characters were chosen once per panel, leaving an `is` chart's expenses
+  bar with stippled characters while █ went unused there, and the large "other" series took the dense ones first.
+  ░ ranked above ▒ was tried and dropped. Assigning fill characters by position (always `█ ▓ ▒ ░` from the left) was considered:
+  tidier without `-S`, but an account's character would no longer follow it between charts.
+- "other" was always plain grey; with several (one per type), SVG couldn't tell them apart, hence the type-tinged greys.
 - Fixed scale as a per-direction maximum was tried first: one small negative value halved the resolution, defeating comparison.
   KIND and SCALE in any order was allowed at first, then KIND first, as less surprising.
 - One cell per unit for all charts was rejected: amounts' units are arbitrary (eg 0.5 BTC would be half a cell). Counts only.
