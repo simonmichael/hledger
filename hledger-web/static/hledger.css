@@ -203,8 +203,10 @@ td.date {
   font-weight: 600;
   color: inherit;
 }
-/* The rows' labels share a width, so the links start in one column. */
-.report-links > .row-label {
+/* The rows' labels share a width, so the links start in one column
+   (the collapsed commodity line's label too). */
+.report-links > .row-label,
+div.commodities summary > .row-label {
   display: inline-block;
   min-width: 8.5em;
 }
@@ -274,15 +276,20 @@ div.commodities summary {
   cursor: pointer;
   width: max-content;
 }
+/* The summary's selection reads like the other rows' current choice,
+   and sits in their column; the trailing caret, link-colored like the
+   other carets, is what offers the full list. */
 div.commodities summary .sel {
-  color: var(--link, #337ab7);
+  font-weight: 600;
   margin-left: 0.5em;
 }
-div.commodities summary .sel::before {
-  content: "▸ ";
+div.commodities summary .sel::after {
+  content: " ▸";
+  color: var(--link, #337ab7);
+  font-weight: normal;
 }
-div.commodities details[open] summary .sel::before {
-  content: "▾ ";
+div.commodities details[open] summary .sel::after {
+  content: " ▾";
 }
 
 /* A short usage hint below a row of controls, eg the years row's
@@ -291,6 +298,11 @@ div.commodities details[open] summary .sel::before {
   color: var(--muted);
   font-size: 0.85em;
   margin: -8px 0 10px 10.6em;
+}
+/* The closed commodity list keeps a row's bottom margin, so the hint
+   below sits as far from it as from any other row. */
+div.commodities > details {
+  margin-bottom: 10px;
 }
 /* The pages row keeps its shape from page to page: the newer and older
    links hold their places when absent, and each page number has a cell

@@ -1,3 +1,4 @@
+$newline never
 $if manyYears
   <p .report-links .years>
     <span .row-label>#{trc trs "years row" "Years:"}
