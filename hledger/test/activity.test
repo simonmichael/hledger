@@ -150,9 +150,9 @@ Transaction counts in 2022-12-26..2023-01-08:
 
 Total 3, Average 1.5
 
-# ** 12. In SVG, the average is also drawn as a line across the chart.
+# ** 12. In SVG, the average is also drawn as a line across the chart, with a dashed swatch in the legend.
 $ hledger -f - activity -A -O svg | grep -c 'class="average"'
-1
+2
 
 # ** 13. A single "..." series (all accounts, eg the transaction count) is drawn in the lone series colour (cyan), not an account colour.
 $ hledger -f - activity -O svg | grep -o 'class="fill [a-z0-9]*"' | sort -u

@@ -6,7 +6,7 @@ bar series as vertical bars (stacked, with a 2px gap between segments), line ser
 and totals as ink-coloured line marks across each period's bars, or as an ink-coloured line.
 Charts of categories (eg the accounts of a single-period report) are drawn as horizontal bars,
 with labels on the left and an aligned value column on the right.
-There is one panel per commodity, one above the other, and a legend when a panel has several series.
+There is one panel per commodity, one above the other, and a legend when a panel has several series (or an average line).
 Each mark has a tooltip (an SVG title) giving its x label, series and value.
 
 The SVG includes its own styles, with a colour-blind-safe palette and a dark-mode variant
@@ -34,7 +34,7 @@ import Data.List (foldl')
 import Data.Map qualified as M
 import Data.Array qualified as Arr
 import Data.Decimal (realFracToDecimal)
-import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing, listToMaybe)
+import Data.Maybe (catMaybes, fromMaybe, isJust, isNothing)
 import Data.Time (Day, addDays, diffDays, fromGregorian, toGregorian)
 import Data.Text (Text)
 import Data.Text qualified as T
@@ -143,7 +143,9 @@ panelSvg xaxis colouring showheading top Panel{pnUnit, pnSeries, pnGroupNames, p
     summarytext = T.intercalate ", " [suLabel su <> " " <> showSummary su | su <- pnSummary]
     showSummary = T.pack . showAmountWith oneLineNoCostFmt . suValue
     -- the average, drawn as a line across a chart of periods
-    maverage = listToMaybe [(suLabel su <> " · " <> showSummary su, aquantity $ suValue su) | su <- pnSummary, suKind su == SummaryAverage]
+    maverage = case xaxis of
+      XPeriods _ -> find ((== SummaryAverage) . suKind) pnSummary
+      _          -> Nothing
     -- The series drawn as marks: items and "other" (bars or lines), and the total (dots or a line). Other markers are not drawn yet.
     items = [s | s <- pnSeries, seRole s /= SeriesTotal, seMark s /= MarkMarker]
     mtotal = find ((== SeriesTotal) . seRole) pnSeries
@@ -151,23 +153,31 @@ panelSvg xaxis colouring showheading top Panel{pnUnit, pnSeries, pnGroupNames, p
     mtotalmark = if pnCounts && length pnGroupNames <= 1 then Nothing else mtotal
     drawn = zipWith (\c s -> DrawSeries (colourClass c) s (seriesValues s)) (seriesColours colouring items) items
     (legendh, legendm) = legendSvg (top + headingh) [(dsClass d, seMark (dsSeries d), lbFull $ seLabel $ dsSeries d) | d <- drawn]
-                           (if length items > 1 then mtotalmark else Nothing) hascontra
+                           (if length items > 1 then mtotalmark else Nothing) hascontra (suLabel <$> maverage)
     hascontra = or [isContra s q | s <- items, seMark s == MarkBar, Just q <- seValues s]
     (bodyh, bodym) = case xaxis of
       XCategories ls -> categoriesSvg (top + headingh + legendh) pnScale pnUnit drawn mtotal ls
-      XPeriods ps    -> timeSvg (top + headingh + legendh) pnScale pnLayout pnUnit drawn mtotalmark maverage (EvenScale $ map snd ps)
+      XPeriods ps    -> timeSvg (top + headingh + legendh) pnScale pnLayout pnUnit drawn mtotalmark averageline (EvenScale $ map snd ps)
       XDates ds      -> timeSvg (top + headingh + legendh) pnScale pnLayout pnUnit drawn mtotalmark Nothing (DateScale ds)
+    averageline = (\su -> (suLabel su <> " · " <> showSummary su, aquantity $ suValue su)) <$> maverage
 
 -- | A legend: a swatch and label for each series, flowing left to right, when there are several series.
 -- If there are contra amounts, a hatched swatch is shown for them too.
-legendSvg :: Double -> [(Text, Mark, Text)] -> Maybe Series -> Bool -> (Double, Svg)
-legendSvg top entries mtotal hascontra
-  | length entries < 2 = (0, mempty)
+-- If an average line is drawn (with this label), a dashed swatch is shown for it, even when there is only one series.
+legendSvg :: Double -> [(Text, Mark, Text)] -> Maybe Series -> Bool -> Maybe Text -> (Double, Svg)
+legendSvg top entries mtotal hascontra maveragelabel
+  | null allentries = (0, mempty)
   | otherwise = (fromIntegral (length rows) * legendRowHeight + 8, mapM_ drawRow (zip [0 ..] rows))
   where
-    allentries = entries ++ [("total", if seMark t == MarkLine || all (\(_, mk, _) -> mk == MarkLine) entries then MarkLine else MarkMarker, lbFull (seLabel t)) | Just t <- [mtotal]]
-                 ++ [(contraClass, MarkBar, "contra") | hascontra]
+    allentries
+      | length entries < 2 = averageentry
+      | otherwise = entries
+          ++ [("total", if seMark t == MarkLine || all (\(_, mk, _) -> mk == MarkLine) entries then MarkLine else MarkMarker, lbFull (seLabel t)) | Just t <- [mtotal]]
+          ++ averageentry
+          ++ [(contraClass, MarkBar, "contra") | hascontra]
+    averageentry = [(averageClass, MarkLine, lbl) | Just lbl <- [maveragelabel]]
     contraClass = "contra"
+    averageClass = "average"
     itemWidth (_, _, lbl) = 20 + textWidth lbl + 18
     rows = reverse $ map reverse $ foldl place [] allentries
     place [] e = [[e]]
@@ -180,6 +190,9 @@ legendSvg top entries mtotal hascontra
           xs = scanl (+) pad (map itemWidth row)
       forM_ (zip xs row) $ \(x, (cls, mk, lbl)) -> do
         case mk of
+          MarkLine | cls == averageClass ->  -- a dashed line, a little longer so that it ends with a dash
+                          S.line ! A.class_ "average" ! A.x1 (toValue $ num x) ! A.x2 (toValue $ num (x + 14))
+                          ! A.y1 (toValue $ num y) ! A.y2 (toValue $ num y)
           MarkLine   -> S.line ! A.class_ ("line " <> toValue cls) ! A.x1 (toValue $ num x) ! A.x2 (toValue $ num (x + 12))
                           ! A.y1 (toValue $ num y) ! A.y2 (toValue $ num y)
           MarkMarker -> S.line ! A.class_ ("mark " <> toValue cls) ! A.x1 (toValue $ num x) ! A.x2 (toValue $ num (x + 12))

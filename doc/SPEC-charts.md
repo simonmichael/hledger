@@ -62,7 +62,7 @@ report  -->  adapter (Hledger.Cli.Chart; smart defaults)  -->  Chart (Hledger.Wr
 - **Nets and totals**: a thin ink line mark across bars (1.5px in SVG; `┃` in text), or an ink line with lines.
   Not for counts in one stack (eg activity), where it would be just the top of the stack.
 - **Row total and average** (`-T`, `-A`), for changes per period: the net total's total and average per period, on a summary line
-  below the chart (eg `Total 11, Average 0.9`; labels are the table's column headings); the average also as a dashed line in SVG;
+  below the chart (eg `Total 11, Average 0.9`; labels are the table's column headings); the average also as a dashed line in SVG, with a legend entry (shown even for a single series);
   `rowtotal` and `average` records in chart data. Not drawn as bars, since a total would be off the scale.
   Averages of counts have one decimal place (counts themselves are whole numbers, ignoring the journal's no-commodity style).
 

@@ -136,7 +136,7 @@ data Summary = Summary
 
 data SummaryKind
   = SummaryTotal    -- ^ the total of all x positions' values
-  | SummaryAverage  -- ^ the average per x position, which SVG charts also draw as a line across the plot
+  | SummaryAverage  -- ^ the average per x position, which SVG charts also draw as a line across the plot (with a legend entry)
   deriving (Show, Eq, Generic, ToJSON)
 
 -- | How to draw the bars of a panel whose series are in several groups (eg a compound report's sections).

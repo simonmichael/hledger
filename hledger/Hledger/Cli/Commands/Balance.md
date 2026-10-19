@@ -1073,7 +1073,7 @@ one for each account type (so eg assets and liabilities are never combined), and
 The total is omitted with `-N` or `--percent`.
 
 In a chart of balance changes per period, `-T`/`--row-total` and `-A`/`--average` show the net total's total and average per period
-on a line below the chart, eg `Total 11, Average 0.9`; and in graphical charts, the average is also drawn as a dashed line across the chart.
+on a line below the chart, eg `Total 11, Average 0.9`; and in graphical charts, the average is also drawn as a dashed line across the chart, with an entry in the legend.
 
 Each chart is scaled to fit its values. To draw charts at a fixed scale instead,
 so that you can compare them (eg this month's chart with last month's), add a SCALE amount: `--chart=SCALE`.
