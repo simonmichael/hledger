@@ -225,12 +225,16 @@ runPageHtml (showlabel, titleslabel, chartslabel, alllabel) sections = htmlAsLaz
       forM_ (zip [0 :: Int ..] [titleslabel, chartslabel, alllabel]) $ \(n, l) ->
         H.a ! A.href "#" ! H.dataAttribute "level" (H.toValue n) !? (n == 1, A.class_ "current") $ H.toHtml l
     nl
-    -- level 0: sections folded; 1: sections open (as at first); 2: report details open too
+    -- level 0: sections folded; 1: sections open (as at first); 2: report details open too.
+    -- Report details are closed first, and the page laid out (by reading its height) before the sections are toggled
+    -- (otherwise Safari leaves the space of report details closed along with their section, when it is reopened).
     H.script $ H.preEscapedText $ T.concat
       [ "document.querySelectorAll('.hledger-run-show a').forEach(a => a.onclick = e => { e.preventDefault();"
-      , " const level = +a.dataset.level;"
+      , " const level = +a.dataset.level, details = document.querySelectorAll('details.hledger-details');"
+      , " if (level < 2) details.forEach(d => d.open = false);"
+      , " void document.body.offsetHeight;"
       , " document.querySelectorAll('details.hledger-run').forEach(d => d.open = level > 0);"
-      , " document.querySelectorAll('details.hledger-details').forEach(d => d.open = level > 1);"
+      , " if (level > 1) details.forEach(d => d.open = true);"
       , " document.querySelectorAll('.hledger-run-show a').forEach(b => b.classList.toggle('current', b === a)); });"
       ]
     nl
