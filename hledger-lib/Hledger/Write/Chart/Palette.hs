@@ -29,7 +29,7 @@ import Hledger.Write.Chart (Colour(..), mainAccountType, maxTints)
 -- | A chart colour as #rrggbb, in its light variant (for light backgrounds) or its dark variant (for dark backgrounds).
 colourHex :: Bool -> Colour -> Text
 colourHex dark c = case c of
-  TypeColour at k -> tint (tintFraction k) $ pick $ typeColour $ mainAccountType at
+  TypeColour at k -> tint (tintFraction dark k) $ pick $ typeColour $ mainAccountType at
   IndexColour k   -> pick $ fromMaybe ("#2a78d6", "#3987e5") $ categorical `atMay` (k `mod` length categorical)
   OtherColour Nothing   -> grey
   OtherColour (Just at) -> mixWith 0.6 grey $ pick $ typeColour $ mainAccountType at  -- the type's hue, greyed
@@ -56,11 +56,13 @@ categorical =
   [ ("#2a78d6", "#3987e5"), ("#eb6834", "#d95926"), ("#1baf7a", "#199e70"), ("#eda100", "#c98500")
   , ("#e87ba4", "#d55181"), ("#008300", "#008300"), ("#4a3aa7", "#9085e9"), ("#e34948", "#e66767") ]
 
--- | How the Nth tint of a type's colour differs from it ('maxTints' of them, repeating):
--- the colour itself, then darker, lighter, and lighter still (the fraction to mix with white (positive) or black (negative));
--- most saturated first, since accounts prefer the first ones (see 'seriesColours').
-tintFraction :: Int -> Double
-tintFraction k = fromMaybe 0 $ take maxTints [0, -0.3, 0.4, 0.65] `atMay` (k `mod` maxTints)
+-- | How the Nth tint of a type's colour differs from it ('maxTints' of them, repeating), on a light or dark background:
+-- the fraction to mix with white (positive) or black (negative). Ordered with the most visible first, since accounts prefer
+-- the first ones (see 'seriesColours'): the colour itself, then darker (on a light background) or lighter (on a dark one),
+-- then the other of those, then lighter still.
+tintFraction :: Bool -> Int -> Double
+tintFraction dark k = fromMaybe 0 $ take maxTints fractions `atMay` (k `mod` maxTints)
+  where fractions = if dark then [0, 0.4, -0.3, 0.65] else [0, -0.3, 0.4, 0.65]
 
 -- | Mix a #rrggbb colour with white (by a positive fraction) or black (by a negative fraction).
 tint :: Double -> Text -> Text
