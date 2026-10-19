@@ -582,10 +582,21 @@ reportTable isTree mfold header sections footer =
         for_ mtitle $ \t ->
           H.tr ! A.class_ "section" $
             H.th ! A.colspan (H.toValue ncols) ! H.customAttribute "scope" "rowgroup" $ H.toHtml t
-        rows Nothing body
+        rowsWith foldcls body
         rows (Just "subtotal") subtotals
-    rows mcls = traverse_ $ \r ->
-      maybe id (\cls -> (! A.class_ cls)) mcls H.tr (traverse_ (formatCell . cellHtml) (stripIndents r)) <> nl
+    rows mcls = rowsWith (const mcls)
+    rowsWith cls = traverse_ $ \r ->
+      maybe id (\c -> (! A.class_ c)) (cls r) H.tr (traverse_ (formatCell . cellHtml) (stripIndents r)) <> nl
+    -- With a depth limit, the rows below it are served already folded,
+    -- so the table paints at its folded height and nothing moves after
+    -- paint; hledger.js's carets toggle the same class from there.
+    foldcls r
+      | Just d <- mfold, Just n <- rowDepth r, n >= d = Just "tree-fold-hide"
+      | otherwise = Nothing
+    rowDepth r = listToMaybe
+      [ n | c <- r, cls <- T.words $ textFromClass $ cellClass c
+          , Just ns <- [T.stripPrefix "depth-" cls]
+          , ((n, "") : _) <- [reads (T.unpack ns) :: [(Int, String)]] ]
     -- An account cell marked acct-split renders as two spans, the parent
     -- path and the leaf name, so css can dim the path and shorten it from
     -- the left (.acct-path in hledger.css). The inner span is a bidi

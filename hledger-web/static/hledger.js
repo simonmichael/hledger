@@ -48,7 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
   controlsInit();
 
   // The hideemptyaccts cookie was replaced by the empty parameter;
-  // clear it from browsers that still carry it.
+  // clear it from browsers that still carry it. Older versions set it
+  // with a one-year max-age, so this can safely be removed after
+  // 2028-01-01.
   if (document.cookie.indexOf('hideemptyaccts=') >= 0) {
     document.cookie = 'hideemptyaccts=; path=/; max-age=0';
   }

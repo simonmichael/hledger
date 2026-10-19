@@ -133,14 +133,19 @@ statementPage here tabtitle spec = do
               map (withClass "account") cbrpLeadingHeaders ++
               relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans (map (withClass "amount") cbrpDataHeaders)
             sections =
-              [ (mfilter (not . T.null) (Just title), stripShared $ relink body, relink subtotals)
-              | (title, body, subtotals) <- cbrpSections ]
+              [ (sectionTitle title prefix, body', relink subtotals)
+              | (title, body, subtotals) <- cbrpSections
+              , let (prefix, body') = stripShared (relink body) ]
             -- In flat mode each subreport's rows drop their shared account
-            -- prefix, which its title names, and dim the remaining parent
-            -- path (see splitAccountNames).
+            -- prefix and dim the remaining parent path (splitAccountNames).
+            -- A single-component prefix is implied by the section title;
+            -- a deeper one is named beside it, or it would show nowhere.
             stripShared body
-              | accountlistmode_ ropts == ALTree = body
-              | otherwise = snd $ splitAccountNames body
+              | accountlistmode_ ropts == ALTree = (Nothing, body)
+              | otherwise = splitAccountNames body
+            sectionTitle title prefix = mfilter (not . T.null) $ Just $ case prefix of
+              Just p | T.any (== ':') p -> title <> " — " <> p
+              _ -> title
             noRows = all (\(_, r, _) -> null $ prRows r) . cbrSubreports
             empty = noRows cbr
             -- An empty report with zero balances hidden may have them all: look again showing them.

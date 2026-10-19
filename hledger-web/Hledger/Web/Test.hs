@@ -848,9 +848,11 @@ hledgerWebTest = do
       -- assets is boring and squashed into its branching child
       bodyContains ">assets:bank</a>"
       bodyContains "class=\"account depth-0\""
-      -- the rows below the fold are served too, for the page to unfold
+      -- the rows below the fold are served too, for the page to unfold,
+      -- but already folded, so the table paints at its folded height
       bodyContains "class=\"account depth-1\""
       bodyContains ">checking</a>"
+      bodyContains "<tr class=\"tree-fold-hide\">"
 
   -- The journal, register, and sidebar link to one another: a date to that
   -- day's journal entries, an account to its register, an amount to the
@@ -1012,7 +1014,9 @@ hledgerWebTest = do
       get BalancesheetR
       statusIs 200
       bodyContains "<h2>Balance Sheet 2025-02-06</h2>"
-      bodyContains "<tr class=\"section\"><th colspan=\"2\" scope=\"rowgroup\">Assets</th></tr>"
+      -- a section heading names a dropped shared prefix deeper than one
+      -- component; a single-component one stays implied by the title
+      bodyContains "<tr class=\"section\"><th colspan=\"2\" scope=\"rowgroup\">Assets — assets:bank</th></tr>"
       bodyContains "<tr class=\"section\"><th colspan=\"2\" scope=\"rowgroup\">Liabilities</th></tr>"
       bodyContains "<tr class=\"subtotal\">"
       bodyContains "<tfoot>"
@@ -1096,7 +1100,7 @@ hledgerWebTest = do
       get CashflowR
       statusIs 200
       bodyContains "<h2>Cashflow Statement 2025-01-01..2025-02-06</h2>"
-      bodyContains ">Cash flows</th>"
+      bodyContains ">Cash flows — assets:bank</th>"
       bodyNotContains "<tfoot>"
 
     yit "serves the balance sheet with equity" $ do
