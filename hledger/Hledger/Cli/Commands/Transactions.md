@@ -2,6 +2,9 @@
 
 (tx)
 
+<!-- This section has the same name as Journal > Transactions, and comes first; so it has anchor #transactions and that one #transactions-1.
+     If changing their relative order, all #transactions[-1] links need to be updated -->
+
 List transactions, one per line.
 
 ```flags

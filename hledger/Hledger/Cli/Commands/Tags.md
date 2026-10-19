@@ -1,8 +1,8 @@
 ## tags
 
 List the tag names used or declared in the journal, or their values.
-<!-- This section has the same name as Journal > Tags; 
-     if changing their relative order, all #tags[-1] links need to be updated -->
+<!-- This section has the same name as Journal > Tags, and comes first; so it has anchor #tags and that one #tags-1.
+     If changing their relative order, all #tags[-1] links need to be updated -->
 
 ```flags
 Flags:

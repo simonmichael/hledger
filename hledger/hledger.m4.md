@@ -496,7 +496,7 @@ You can list all of a command's options by running `hledger CMD -h`.
 - [register](#register) (reg)                      - matched postings & running total, across accounts
 - [roi](#roi)                                      - return on investments
 - [stats](#stats)                                  - journal statistics
-- [tags](#tags-1)                                  - tag names
+- [tags](#tags)                                  - tag names
 - [transactions](#transactions) (tx)               - transactions, in compact one-line format
 
 **[Maintenance commands](#maintenance-commands)**
@@ -764,6 +764,8 @@ are attached to that transaction, and are shown before it, as written, in `print
 
 ## Transactions
 
+<!-- Note: same section name as Commands > transactions, which comes first; so this section has anchor #transactions-1 and that one #transactions. If reordering these, update all #transactions[-1] links. -->
+
 Transactions are the main unit of information in a journal file.
 They represent events, typically a movement of some quantity of commodities between two or more named accounts.
 
@@ -803,7 +805,7 @@ Some examples: `2010-01-31`, `2010/01/31`, `2010.1.31`, `1/31`.
 
 You can give individual postings a different date from their parent
 transaction, by adding a [posting comment](#posting-comments) containing a
-[tag](#tags) (see 
+[tag](#tags-1) (see 
 below) like `; date:DATE`.
 (There's also a [Ledger-compatible syntax](#bracketed-posting-dates), `; [DATE]`, which can be convenient.)
 
@@ -883,7 +885,7 @@ This has a few limitations:
 The code must not contain a closing parenthesis (or it will be truncated).
 Codes tend to disrupt alignment of the register report, making it harder to scan visually.
 And you can't store more than one value there per transaction.
-For these reasons you might want to avoid the code field and use [tags](#tags) instead.
+For these reasons you might want to avoid the code field and use [tags](#tags-1) instead.
 
 ## Description
 
@@ -922,7 +924,7 @@ and then enforce these with [hledger check payees](#check).
 Text following `;`, after a transaction description,
 and/or on indented lines immediately below it, form comments for that transaction.
 They are reproduced by `print` but otherwise ignored,
-except they may contain [tags](#tags), which are not ignored.
+except they may contain [tags](#tags-1), which are not ignored.
 
 ```journal
 2012-01-01 something  ; a transaction comment
@@ -1455,7 +1457,7 @@ see [add and balance assertions](#add-and-balance-assertions).
 Text following `;`, at the end of a posting line, 
 and/or on indented lines immediately below it, form comments for that posting.
 They are reproduced by `print` but otherwise ignored,
-except they may contain [tags](#tags), which are not ignored.
+except they may contain [tags](#tags-1), which are not ignored.
 
 ```journal
 2012-01-01
@@ -1467,7 +1469,7 @@ except they may contain [tags](#tags), which are not ignored.
 
 ## Tags
 
-<!-- Note: same section name as Commands > tags; that one will have anchor #tags-1. If reordering these, update all #tags[-1] links. -->
+<!-- Note: same section name as Commands > tags, which comes first; so this section has anchor #tags-1 and that one #tags. If reordering these, update all #tags[-1] links. -->
 
 Tags are a way to add extra labels or data fields to transactions, postings, or accounts,
 which you can match with a `tag:` query in reports. (See [queries](#queries) below.)
@@ -1556,7 +1558,7 @@ account expenses:food           ; atag:
 
 ### Displaying tags
 
-You can use the [`tags` command](#tags-1) to list tag names or values.
+You can use the [`tags` command](#tags) to list tag names or values.
 
 The [`print` command](#print) also shows tags.
 
@@ -1740,7 +1742,7 @@ Though not required, these declarations can provide several benefits:
 
 - They can document your intended chart of accounts, providing a reference.
 - They can store additional account information as [comments](#account-comments),
-  or as [tags](#tags) which can be used to filter or pivot reports.
+  or as [tags](#tags-1) which can be used to filter or pivot reports.
 - They can restrict which accounts may be posted to by transactions, eg in [strict mode], which helps prevent errors.
 - They influence account display order in reports, allowing non-alphabetic sorting (eg Revenues to appear above Expenses).
 - They can help hledger know your accounts' types (asset, liability, equity, revenue, expense), enabling reports like [balancesheet](#balancesheet) and [incomestatement](#incomestatement).
@@ -1769,7 +1771,7 @@ account assets:bank:checking    ; same-line comment, at least 2 spaces before th
 
 ### Account tags
 
-An account directive's comment may contain [tags](#tags).
+An account directive's comment may contain [tags](#tags-1).
 These will be inherited by all postings using that account,
 except where the posting already has a value for that tag.
 (A posting tag overrides an account tag.)
@@ -1903,7 +1905,7 @@ hledger also uses a few subtypes:
 <!-- [liquid assets]: https://en.wikipedia.org/wiki/Cash_and_cash_equivalents -->
 
 As a convenience, hledger will detect these types automatically from english account names.
-But it's better to declare them explicitly by adding a `type:` [tag](#tags) in the account directives.
+But it's better to declare them explicitly by adding a `type:` [tag](#tags-1) in the account directives.
 The tag's value can be any of the types or one-letter abbreviations above.
 
 Here is a typical set of account type declarations.
@@ -2279,7 +2281,7 @@ hledger warns if files read with `-f` declare different display styles.
 
 ### Commodity tags
 
-A commodity directive's comment may contain [tags](#tags).
+A commodity directive's comment may contain [tags](#tags-1).
 These will be inherited by all postings using that commodity in their main amount,
 except where the posting already has a value for that tag.
 (A posting tag or an account tag overrides a commodity tag.)
@@ -2510,7 +2512,7 @@ Any indented subdirectives are ignored.
 
 `tag TAGNAME`
 
-This directive can be used to declare a limited set of tag names allowed in [tags](#tags).
+This directive can be used to declare a limited set of tag names allowed in [tags](#tags-1).
 TAGNAME should be a valid tag name (no spaces). Eg:
 
 ```journal
@@ -2707,7 +2709,7 @@ amount applied to a given transaction, as it will be unable to infer amounts.
 
 ### Auto posting tags
 
-Automated postings will have some extra [tags](#tags):
+Automated postings will have some extra [tags](#tags-1):
 
 - `generated-posting:= QUERY`  - shows this was generated by an auto posting rule, and the query
 - `_generated-posting:= QUERY` - a hidden tag, which does not appear in hledger's output.
@@ -3781,7 +3783,7 @@ So any semicolons here will be replaced with `.,` (a semicolon on its side), and
 
 You can assign multi-line comments by writing literal `\n` in the code. A comment starting with `\n` will begin on a new line.
 
-Comments can contain [tags](#tags), as usual.
+Comments can contain [tags](#tags-1), as usual.
 
 Posting comments can also contain a [posting date](#posting-dates). A secondary date, or a year-less date, will be ignored.
 
@@ -5218,7 +5220,7 @@ Here's the gist of it (see [PART 2: COMMANDS](#part-2-commands) above for the co
 
 - Transaction-oriented commands
   (`print`, `aregister`, `close`, `import`, `descriptions`..)
-  try to match [transactions](#transactions) (including the transaction's postings).
+  try to match [transactions](#transactions-1) (including the transaction's postings).
 
 - Posting-oriented commands
   (`register`, `balance`, `balancesheet`, `incomestatement`, `accounts`..)
@@ -7700,7 +7702,7 @@ See also: [Budgeting](/budgeting.html) on hledger.org.
 hledger detects and tags certain kinds of postings, to help it understand complex transactions.
 Here is quick overview of the posting detection rules.
 
-By default, these [tags](#tags) are hidden (with a `_` prefix), so they can be queried but they won't appear in `print` output.
+By default, these [tags](#tags-1) are hidden (with a `_` prefix), so they can be queried but they won't appear in `print` output.
 To also add visible tags, for troubleshooting, use `print`'s `--verbose-tags` or `-a/--all` flags.
 
 | Tag                   | Detected pattern                                                                                                                                                         | Effect                                                                                                |
