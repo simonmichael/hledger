@@ -186,6 +186,11 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 - Fixed scale as a per-direction maximum was tried first: one small negative value halved the resolution, defeating comparison.
   KIND and SCALE in any order was allowed at first, then KIND first, as less surprising.
 - One cell per unit for all charts was rejected: amounts' units are arbitrary (eg 0.5 BTC would be half a cell). Counts only.
+- To make separate text charts comparable more often, a nice amount per cell (1, 2, 2.5 or 5 × 10ⁿ, the smallest that fits) with a
+  `1 cell = 500 USD` note was tried and dropped (2026-10): charts matched only when their maxima happened to round to the same step,
+  bars lost up to half the width, and panels of different commodities got different lengths, suggesting they were comparable.
+  Filling the width says each panel is scaled to itself; `--chart=SCALE` is the way to compare. A shared scale across
+  commodity panels was also rejected: amounts in different commodities aren't comparable (and with -V/-X there is one panel).
 - A narrower block (`▉`) for count charts, leaving a gap after each cell so they could be counted, was tried and dropped:
   terminals draw block characters differently (Ghostty and Terminal draw them filling the cell, but tile the shaded fills `▓▒░` seamlessly;
   VS Code with `customGlyphs` off uses the font's glyphs, with gaps around every block), so the gaps were an inconsistent cue.
@@ -219,3 +224,8 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 - clickable chart ?
 - more charts (budget (goal marks), prices, roi, holdings)
 - more kinds of chart (line, hbar, pie); a sparkline column for tables ? Vega-Lite.
+- a default fixed scale, if users ask: a `--chart-scale=SCALE` option that sets the scale without enabling charts,
+  for per-command config file sections (eg `[incomestatement]`; an env var was considered, but the config file is per command).
+  Users would name their main currencies (a bare number would also fix shares' scales). Caveat: one scale can't suit
+  several intervals (`is -Y` bars are ~12× `is -M`'s); scaling a per-day amount by period length would work for changes, not balances.
+  Meanwhile, a shell alias does it (eg `alias ism='hledger is -M --chart=8000USD'`).
