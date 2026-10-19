@@ -1,10 +1,11 @@
-# Charts from reports - design notes and plan
+# SPEC: charts
 
-Status, 2026-10-16: done for bal, bs, bse, cf, is, aregister, register and activity, as text, SVG, html (chart above the table)
-and chart data (csv/tsv/json). Next: hledger-web and hledger-ui (phase 4), then extras (phase 5). Multiple outputs (phase 3) deferred.
-This doc describes the current design, then the decisions and rejected alternatives behind it.
+Charts from reports: implemented for bal, bs, bse, cf, is, aregister, register and activity, as text, SVG, html (chart above the table)
+and chart data (csv/tsv/json); with `--view` and `run`'s html pages for viewing them.
+This doc describes the current design, then the decisions and rejected alternatives behind it, and possible future work.
+(It was doc/PLAN-charts.md while being built.)
 
-## Goal
+## Scope
 
 Easy, ubiquitous charts from hledger's reports: each report gets a chart mode reusing its logic and data;
 smart defaults always give a useful chart, no configuration needed; graphical (SVG) and terminal output;
@@ -203,13 +204,12 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   command line; echo lines as headings), by giving each command a part file in the cache directory and reading it back;
   so several charts can be viewed at once, as in the chartsdemo page, without a tab per report.
 
-## Next?
+## Possible future work
 
 - html: include the chart by default ?
-- Phase 4: hledger-web integration, could eventually replace the flot register chart
+- hledger-web integration; could eventually replace the flot register chart
 - hledger-ui integration, a chart toggle ?
-- bigger friendlier bars / lines / text ?
-- test dark-mode SVG in a browser
+- repeatable `-o`, for several outputs at once (see Decisions)
 - update hledger-bar doc, charts page
 - improve/publish charts demo
     - use it in docs

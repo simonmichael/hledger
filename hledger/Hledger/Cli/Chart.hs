@@ -2,7 +2,7 @@
 Turning reports into charts ("Hledger.Write.Chart"), and the --chart option.
 
 Each adapter here chooses a useful default chart for its report,
-so that charts just work without configuration (see doc/PLAN-charts.md, "Smart defaults").
+so that charts just work without configuration (see doc/SPEC-charts.md, "Smart defaults").
 -}
 
 {-# LANGUAGE CPP #-}

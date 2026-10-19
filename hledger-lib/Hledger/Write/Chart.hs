@@ -3,7 +3,7 @@ A renderer-independent description of a chart, made from a report.
 
 This is to charts what "Hledger.Write.Spreadsheet" is to tables:
 each chart-capable report has an adapter that turns its report data into a 'Chart',
-choosing a useful default chart for that report (see doc/PLAN-charts.md, "Smart defaults"),
+choosing a useful default chart for that report (see doc/SPEC-charts.md, "Smart defaults"),
 and renderers turn a 'Chart' into text, SVG, CSV or JSON.
 
 The model carries the report's own display information
