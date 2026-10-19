@@ -47,6 +47,8 @@ import Control.Monad (mfilter, unless)
 import Data.Foldable (for_, traverse_)
 import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Text.Encoding qualified as TE
+import Network.HTTP.Types.URI (urlEncode)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
@@ -223,7 +225,8 @@ startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
       Cleared  -> "*"
     depthTerms (DepthSpec mflat regexps) =
       ["depth:" <> T.pack (show n) | Just n <- [mflat]] ++
-      ["depth:" <> reString r <> "=" <> T.pack (show n) | (r, n) <- regexps]
+      -- quoted when the regexp has a space, like the query terms
+      [textQuoteIfNeeded $ "depth:" <> reString r <> "=" <> T.pack (show n) | (r, n) <- regexps]
     rspec' = rspec{
       _rsQuery = Any,
       _rsQueryOpts = [],
@@ -432,12 +435,16 @@ valueParams :: ReportOpts -> Maybe AmountMode -> [(Text, Text)]
 valueParams roptsOrig mmode =
   [("value", valueWord m) | Just m <- [mmode], Just m /= amountModeOf roptsOrig]
 
--- | Add query parameters to a cell's link, if it has one.
+-- | Add query parameters to a cell's link, if it has one. The values
+-- are url-encoded (interval words like "every 2 weeks", and value
+-- parameters carrying a commodity, are not url-safe); the keys are our
+-- own constant names.
 addLinkParams :: [(Text, Text)] -> Cell b Text -> Cell b Text
 addLinkParams [] c = c
 addLinkParams params c
   | T.null (cellAnchor c) = c
-  | otherwise = c {cellAnchor = cellAnchor c <> T.concat ["&" <> k <> "=" <> v | (k, v) <- params]}
+  | otherwise = c {cellAnchor = cellAnchor c <> T.concat ["&" <> k <> "=" <> enc v | (k, v) <- params]}
+  where enc = TE.decodeUtf8 . urlEncode True . TE.encodeUtf8
 
 -- | Force a report enough to surface the error a percentage report
 -- raises when its amounts span commodities: that depends on the data,

@@ -20,7 +20,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.Paging
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, removeAttributes, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
@@ -98,7 +98,7 @@ getRegisterR = do
         stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams
       -- Links to the journal carry the sticky state; the accumulation
       -- mode and the costs toggle are this page's own.
-      journalCarry = filter ((`notElem` ["accum", "costs"]) . fst) modeParams
+      journalCarry = removeAttributes ["accum", "costs"] modeParams
       -- An entry's date link: the journal on that date, same modes.
       dayParams t = ("q", journalDayQuery qparam (tdate t)) : journalCarry
       -- the rows of links above the chart: the filters (status,
@@ -116,12 +116,12 @@ getRegisterR = do
       deepest = deepestDepth j
       depthRow = depthLinks trs RegisterR modeParams qparam deepest
       -- Tree mode adds the sidebar's fold carets.
-      listRow = listModeLinks trs RegisterR (qParams qparam ++ filter ((/= "list") . fst) modeParams) (accountlistmode_ $ _rsReportOpts rspec0) elist
-      amountsRow = amountLinks trs RegisterR (qParams qparam ++ filter ((/= "value") . fst) modeParams)
+      listRow = listModeLinks trs RegisterR (qParams qparam ++ removeAttributes ["list"] modeParams) (accountlistmode_ $ _rsReportOpts rspec0) elist
+      amountsRow = amountLinks trs RegisterR (qParams qparam ++ removeAttributes ["value"] modeParams)
         (amountModeOf $ _rsReportOpts rspec0) (amountModeOf ropts)
-      costsRow = costsLinks trs RegisterR (qParams qparam ++ filter ((/= "costs") . fst) modeParams) costsOn
-      pricesRow = pricesLinks trs RegisterR (qParams qparam ++ filter ((/= "infer") . fst) modeParams) inferOn
-      zeroRow = zeroBalanceLinks trs RegisterR (qParams qparam ++ filter ((/= "empty") . fst) modeParams) dfltHidden hideEmpty
+      costsRow = costsLinks trs RegisterR (qParams qparam ++ removeAttributes ["costs"] modeParams) costsOn
+      pricesRow = pricesLinks trs RegisterR (qParams qparam ++ removeAttributes ["infer"] modeParams) inferOn
+      zeroRow = zeroBalanceLinks trs RegisterR (qParams qparam ++ removeAttributes ["empty"] modeParams) dfltHidden hideEmpty
       -- The report-shaping controls, operative on the report pages,
       -- shown dimmed with the url's state marked.
       (pivl, pspan) = case mperiod of
@@ -130,16 +130,18 @@ getRegisterR = do
       rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
       calcCur = either (const CalcChange) id $ parseCalc mcalc
       -- The years row; its links rewrite the date narrowing themselves,
-      -- so they reduce the period parameter to its interval.
-      yearsKept = [("period", w) | Just w <- [intervalPeriodExpr pivl]] ++ filter ((/= "period") . fst) modeParams
-      yearsNav = yearsRow trs RegisterR qparam today pspan yearsKept years
+      -- so they reduce the period parameter to its interval. The period
+      -- does not narrow this page, so only the search's dates mark years
+      -- (hence nulldatespan, not pspan).
+      yearsKept = [("period", w) | Just w <- [intervalPeriodExpr pivl]] ++ removeAttributes ["period"] modeParams
+      yearsNav = yearsRow trs RegisterR qparam today nulldatespan yearsKept years
       intervalRow = inertControls trs $
-        intervalLinks trs RegisterR (filter ((/= "period") . fst) modeParams) qparam pspan rpInterval
+        intervalLinks trs RegisterR (removeAttributes ["period"] modeParams) qparam pspan rpInterval
       inertRows = inertControls trs $ mconcat
-        [ columnsLinks trs RegisterR (qParams qparam ++ filter ((`notElem` ["total", "avg"]) . fst) modeParams) totalOn avgOn
-        , sortLinks trs RegisterR (qParams qparam ++ filter ((/= "sort") . fst) modeParams) sortAmt
-        , percentLinks trs RegisterR (qParams qparam ++ filter ((/= "pct") . fst) modeParams) pctOn
-        , calcLinks trs RegisterR (qParams qparam ++ filter ((/= "calc") . fst) modeParams) calcCur
+        [ columnsLinks trs RegisterR (qParams qparam ++ removeAttributes ["total", "avg"] modeParams) totalOn avgOn
+        , sortLinks trs RegisterR (qParams qparam ++ removeAttributes ["sort"] modeParams) sortAmt
+        , percentLinks trs RegisterR (qParams qparam ++ removeAttributes ["pct"] modeParams) pctOn
+        , calcLinks trs RegisterR (qParams qparam ++ removeAttributes ["calc"] modeParams) calcCur
         ]
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
@@ -189,7 +191,7 @@ getRegisterR = do
         | otherwise                = trc trs "column heading" "Total"
       -- The balance column's heading switches the mode, keeping the
       -- register's other modes.
-      accumToggle = (RegisterR, qParams qparam ++ filter ((/= "accum") . fst) modeParams ++ [("accum", "historical") | not historical])
+      accumToggle = (RegisterR, qParams qparam ++ removeAttributes ["accum"] modeParams ++ [("accum", "historical") | not historical])
       accumToggleTitle
         | historical = tr trs "Show the running balance from the start of this period"
         | otherwise  = tr trs "Show the running balance including everything before this period"
@@ -204,7 +206,7 @@ getRegisterR = do
         (RegisterR, [("q", T.unwords $
           maybe [] (\(acc, incl) -> [if incl then accountQuery acc else accountOnlyQuery acc]) (inAccount qopts) ++
           [(if secondary then "date2:.." else "date:..") <> showDate start] ++
-          removeDates (T.unwords $ removeInacct qparam))] ++ filter ((/= "accum") . fst) modeParams)
+          removeDates (T.unwords $ removeInacct qparam))] ++ removeAttributes ["accum"] modeParams)
       transactionFrag = transactionFragment j
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.

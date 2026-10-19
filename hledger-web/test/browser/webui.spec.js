@@ -249,6 +249,13 @@ test.describe('keyboard shortcuts', () => {
     await types.locator('a', { hasText: 'Liability' }).click({ modifiers: ['Shift'] });
     await expect(page).toHaveURL(/type%3AAL/);
     await expect(types.locator('a.current')).toHaveText(['Asset', 'Liability']);
+    // a hand-typed search may hold several type: terms; composing
+    // replaces them all with the one term (the controls stay open
+    // here, via the cookie saved above)
+    await page.goto('/journal?q=type%3AA%20type%3AL');
+    await types.locator('a', { hasText: 'Equity' }).click({ modifiers: ['Shift'] });
+    await expect(page).toHaveURL(/type%3AAEL/);
+    expect(page.url().match(/type%3A/g).length).toBe(1);
     expect(pageErrors).toEqual([]);
   });
 

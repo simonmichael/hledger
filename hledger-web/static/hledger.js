@@ -47,6 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
   // clicks save the page's scroll position.
   controlsInit();
 
+  // The hideemptyaccts cookie was replaced by the empty parameter;
+  // clear it from browsers that still carry it.
+  if (document.cookie.indexOf('hideemptyaccts=') >= 0) {
+    document.cookie = 'hideemptyaccts=; path=/; max-age=0';
+  }
+
   // Typing in the last amount field adds another posting row. Delegating from
   // the form means the handler does not have to be moved as rows come and go.
   var addform = document.getElementById('addform');
@@ -244,10 +250,11 @@ function yearsRangeInit() {
       ev.preventDefault();
       var lo = Math.min.apply(null, years);
       var hi = Math.max.apply(null, years);
-      // the clicked link's url, with its date term widened to the range
+      // the clicked link's url, with every date: term (a hand-typed
+      // search may hold several) replaced by the range
       var url = new URL(a.href);
-      url.searchParams.set('q',
-        (url.searchParams.get('q') || '').replace(/date:\S+/, 'date:' + lo + '..' + (hi + 1)));
+      var q = (url.searchParams.get('q') || '').replace(/\s*\bdate:\S+/g, '').trim();
+      url.searchParams.set('q', (q ? q + ' ' : '') + 'date:' + lo + '..' + (hi + 1));
       location.href = url.toString();
     });
   });
@@ -277,10 +284,10 @@ function typesMultiInit() {
       if (i >= 0) { letters.splice(i, 1); } else { letters.push(clicked); }
       ev.preventDefault();
       var url = new URL(a.href);
-      var q = url.searchParams.get('q') || '';
-      q = letters.length
-        ? q.replace(/type:\w+/, 'type:' + letters.sort().join(''))
-        : q.replace(/ ?type:\w+/, '').trim();
+      // drop every type: term (a hand-typed search may hold several),
+      // then append the one composed term
+      var q = (url.searchParams.get('q') || '').replace(/\s*\btype:\w+/g, '').trim();
+      if (letters.length) { q = (q ? q + ' ' : '') + 'type:' + letters.sort().join(''); }
       if (q) { url.searchParams.set('q', q); } else { url.searchParams.delete('q'); }
       location.href = url.toString();
     });

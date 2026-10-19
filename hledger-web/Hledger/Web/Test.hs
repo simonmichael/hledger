@@ -223,6 +223,8 @@ hledgerWebTest = do
       lookup "period" (p defreportopts{interval_ = Weeks 2}) `shouldBe` Just "every 2 weeks"
       lookup "value" (p defreportopts{value_ = Just (AtEnd (Just "EUR"))}) `shouldBe` Just "end,EUR"
       lookup "value" (p defreportopts{conversionop_ = Just ToCost}) `shouldBe` Just "cost"
+      -- a depth regexp with a space must arrive as one quoted term
+      lookup "q" (p defreportopts{depth_ = DepthSpec Nothing [(toRegex' "a b", 2)]}) `shouldBe` Just "\"depth:a b=2\""
 
   runTests "hledger-web" [] nulljournal $ do
 
@@ -1224,6 +1226,16 @@ hledgerWebTest = do
       bodyContains "$900.00"
       bodyContains "href=\"register?q=inacct:assets:broker+date:2025-01&amp;value=cost\""
 
+    -- The parameters appended to the figures' register links must be
+    -- url-encoded: interval words can carry spaces.
+    yit "url-encodes the parameters it adds to the figures' register links" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "period" "every 2 weeks in 2025-01"
+      statusIs 200
+      bodyContains "&amp;period=every%202%20weeks"
+
     -- Percentages need the amounts in one commodity, which depends on
     -- the data: the page explains and shows plain amounts, instead of
     -- the error page the report's error used to become (the url keeps
@@ -1942,6 +1954,30 @@ hledgerWebTest = do
       bodyContains "aria-current=\"page\" title=\"Show only 2023\""
       bodyContains "aria-current=\"page\" title=\"Show only 2025\""
       bodyNotContains "aria-current=\"page\" title=\"Show only 2026\""
+
+    -- The period parameter does not narrow the journal and register
+    -- pages, so it must not mark a year as shown there: only the
+    -- search's dates do.
+    yit "marks All, not the period's year, on the pages a period does not narrow" $ do
+      request $ do
+        setMethod "GET"
+        setUrl JournalR
+        addGetParam "period" "2024"
+      statusIs 200
+      bodyContains "aria-current=\"page\" title=\"Show all years\""
+      bodyNotContains "aria-current=\"page\" title=\"Show only 2024\""
+      -- positive control: the year links are there to mark
+      bodyContains "title=\"Show only 2024\""
+
+    -- A search narrowing only by secondary date sets the shown span too.
+    yit "a date2: search marks its year" $ do
+      request $ do
+        setMethod "GET"
+        setUrl JournalR
+        addGetParam "q" "date2:2024"
+      statusIs 200
+      bodyContains "aria-current=\"page\" title=\"Show only 2024\""
+      bodyNotContains "aria-current=\"page\" title=\"Show all years\""
 
     yit "pages the register, with the running balance carried across pages" $ do
       request $ do

@@ -155,12 +155,17 @@ yearsRow trs here qparam today periodspan kept days = $(hamletFile "templates/ye
     -- the search without its date terms, which each year link replaces
     rest = removeDates qparam
     -- The span being shown: the search's own date terms, or the period
-    -- parameter's span when the search has none.
+    -- parameter's span when the search has none. A search narrowing only
+    -- by secondary date (date2:) sets the span too, so its years are
+    -- marked rather than All.
     shownSpan
       | any isDateTerm terms =
-          either (const nulldatespan) (queryDateSpan False . fst) $
+          either (const nulldatespan) (spanOf . fst) $
             parseQuery today (T.unwords $ filter isDateTerm terms)
       | otherwise = periodspan
+    spanOf q =
+      let s = queryDateSpan False q
+      in if s == nulldatespan then queryDateSpan True q else s
     -- A year is current when the shown span covers all of it.
     isCurrent y =
       shownSpan /= nulldatespan

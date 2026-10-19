@@ -114,9 +114,11 @@ getJournalR = do
       rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
       calcCur = either (const CalcChange) id $ parseCalc mcalc
       -- The years row; its links rewrite the date narrowing themselves,
-      -- so they reduce the period parameter to its interval.
+      -- so they reduce the period parameter to its interval. The period
+      -- does not narrow this page, so only the search's dates mark years
+      -- (hence nulldatespan, not pspan).
       yearsKept = [("period", w) | Just w <- [intervalPeriodExpr pivl]] ++ removeAttributes ["period"] carried
-      yearsNav = yearsRow trs JournalR qparam today pspan yearsKept years
+      yearsNav = yearsRow trs JournalR qparam today nulldatespan yearsKept years
       intervalRow = inertControls trs $
         intervalLinks trs JournalR (removeAttributes ["period"] carried) qparam pspan rpInterval
       inertRows = inertControls trs $ mconcat
