@@ -460,12 +460,9 @@ You can list all of a command's options by running `hledger CMD -h`.
 
 <!-- keep commands & descriptions synced with Hledger.Cli.Commands.commandsListSections, commands.m4 -->
 
-**[Help commands](#help-commands)**
-
-- [help](#help) (h)                                - show documentation
-
 **[User interface commands](#user-interface-commands)**
 
+- [help](#help) (h)                                - show documentation
 - [repl](#repl)                                    - run multiple commands from an interactive prompt
 - [run](#run)                                      - run multiple commands from a file or command line
 - [ui](hledger-ui.md)                              - (if installed) run hledger's terminal UI
@@ -474,53 +471,44 @@ You can list all of a command's options by running `hledger CMD -h`.
 **[Data entry commands](#data-entry-commands)**
 
 - [add](#add)                                      - add transactions using terminal prompts
+- [get](#get)                                      - fetch new transactions and market price data
 - [import](#import)                                - add new transactions from other files, eg CSV files
 
-**[Basic report commands](#basic-report-commands)**
+**[Report commands](#report-commands)**
 
 - [accounts](#accounts) (acc)                      - show account names
+- [activity](#activity)                            - show transaction or posting counts as a bar chart
+- [aregister](#aregister) (areg)                   - show transactions & running balance in one account
+- [balance](#balance) (bal)                        - show balance changes, end balances, gains, budgets..
+- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
+- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
+- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
 - [codes](#codes)                                  - show transaction codes
 - [commodities](#commodities) (comm)               - show commodity/currency symbols
 - [descriptions](#descriptions) (desc)             - show transaction descriptions
 - [files](#files)                                  - show input files in use
+- [holdings](#holdings)                            - show investment holdings
+- [incomestatement](#incomestatement) (is)         - show revenues and expenses
 - [notes](#notes)                                  - show note part of transaction descriptions
 - [payees](#payees)                                - show payee part of transaction descriptions
 - [prices](#prices)                                - show market prices
+- [print](#print)                                  - show journal entries, or export journal data
+- [register](#register) (reg)                      - show postings & running total across accounts
+- [roi](#roi)                                      - show return on investments
 - [stats](#stats)                                  - show journal statistics
 - [tags](#tags-1)                                  - show tag names
 - [transactions](#transactions) (tx)               - show transactions, one per line
 
-**[Standard report commands](#standard-report-commands)**
+**[Maintenance commands](#maintenance-commands)**
 
-- [print](#print)                                  - show journal entries, or export journal data
-- [aregister](#aregister) (areg)                   - show transactions & running balance in one account
-- [register](#register) (reg)                      - show postings & running total across accounts
-- [balancesheet](#balancesheet) (bs)               - show assets, liabilities and net worth
-- [balancesheetequity](#balancesheetequity) (bse)  - show assets, liabilities and equity
-- [cashflow](#cashflow) (cf)                       - show changes in liquid assets
-- [incomestatement](#incomestatement) (is)         - show revenues and expenses
-
-**[Advanced report commands](#advanced-report-commands)**
-
-- [balance](#balance) (bal)                        - show balance changes, end balances, gains, budgets..
-- [holdings](#holdings)                            - show investment holdings
-- [roi](#roi)                                      - show return on investments
-
-**[Chart commands](#chart-commands)**
-
-- [activity](#activity)                            - show transaction or posting counts as a bar chart
+- [setup](#setup)                                  - check and show the status of the hledger installation
+- [check](#check)                                  - check for various kinds of error in the data
+- [diff](#diff)                                    - compare an account's transactions in two journals
 
 **[Data generation commands](#data-generation-commands)**
 
 - [close](#close)                                  - generate transactions to zero/restore/assert balances
-- [get](#get)                                      - fetch new transactions and market price data
 - [rewrite](#rewrite)                              - generate auto postings, like print --auto
-
-**[Maintenance commands](#maintenance-commands)**
-
-- [check](#check)                                  - check for various kinds of error in the data
-- [diff](#diff)                                    - compare an account's transactions in two journals
-- [setup](#setup)                                  - check and show the status of the hledger installation
 
 
 m4_dnl XXX maybe later
