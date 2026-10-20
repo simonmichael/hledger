@@ -406,7 +406,7 @@ other assets (3 accounts)
 ox
 other expenses (3 accounts)
 
-# ** 35. In SVG, the average's dashed line has a legend entry (after the total), as well as its value below the chart.
+# ** 35. In SVG, the average's dashed line has a legend entry, as well as its value below the chart.
 <
 2024-01-01
   expenses:food  10
@@ -420,7 +420,6 @@ other expenses (3 accounts)
 $ hledger -f - bal -M expenses -A -O svg | sed -n 's/.*class="label"[^>]*>\([^<]*\)<.*/\1/p'
 expenses:food
 expenses:rent
-Total
 Average
 Average 30
 
@@ -437,3 +436,24 @@ Average 20
 
 $ hledger -f - bal a --chart='10.000 EUR' -w 30
 a  5.000,00 EUR  ██████▌
+
+# ** 38. In SVG, the total isn't marked when it would be just the top of each stack, ie when no period has values of both signs
+# (eg time logged). Here, until March, there is no total mark (or legend entry); with March, there is one for each period, and in the legend.
+<
+2024-01-01
+  (a)   1
+  (b)   2
+
+2024-02-01
+  (a)   3
+  (b)   4
+
+2024-03-01
+  (a)   5
+  (b)  -1
+
+$ hledger -f - bal -M -e 2024-03 -O svg | grep -c 'class="mark total"' || true
+0
+
+$ hledger -f - bal -M -O svg | grep -c 'class="mark total"'
+4

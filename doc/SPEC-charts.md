@@ -62,7 +62,8 @@ report  -->  adapter (Hledger.Cli.Chart; smart defaults)  -->  Chart (Hledger.Wr
   table-only options are ignored.
 - **Mixed signs**: positive segments stack above (right of) zero, negative below; nothing is silently flipped (except grouped compound charts, below).
 - **Nets and totals**: a thin ink line mark across bars (1.5px in SVG; `┃` in text), or an ink line with lines.
-  Not for counts in one stack (eg activity), where it would be just the top of the stack.
+  Not in SVG bars in one stack (not grouped side by side) when no x position has values of both signs (eg activity's counts,
+  or time logged), where it would be just the top of each stack. (Text shows it as the value instead, except in compound reports.)
 - **Row total and average** (`-T`, `-A`), for changes per period: the net total's total and average per period, on a summary line
   below the chart (eg `Total 11, Average 0.9`; labels are the table's column headings); the average also as a dashed line in SVG, with a legend entry (shown even for a single series);
   `rowtotal` and `average` records in chart data. Not drawn as bars, since a total would be off the scale.

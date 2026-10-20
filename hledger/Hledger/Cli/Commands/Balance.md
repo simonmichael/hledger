@@ -1041,7 +1041,8 @@ Feb  481.48 USD  ████████████████▓▓▓▓▓
 Mar  603.32 USD  ██████████████████████▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
 ```
 
-- A multi-period report of balance changes is charted as stacked bars per period, showing the net total as the value (and in graphical charts, as a line mark).
+- A multi-period report of balance changes is charted as stacked bars per period, showing the net total as the value
+  (and in graphical charts, as a line mark, unless no period has amounts of both signs, when it would just be the top of each bar).
 - A multi-period report of end balances (`--cumulative`, `-H`) is charted the same way in text (and as lines in graphical charts).
 - A single-period report is charted as one bar per account.
 
