@@ -63,7 +63,7 @@ importcmd opts@CliOpts{rawopts_=rawopts,inputopts_=iopts} j = do
       new_save_=False,  -- defer saving .latest files until the end
       strict_=False,  -- defer strict checks until the end
       _importing=True,  -- let the CSV rules reader do its import-specific things (oldest source file, archiving)
-      _dryrun=dryRun,   -- but with --dry-run, archive nothing and remove no data file
+      _dryrun=dryRun,   -- but with --dry-run, archive nothing, remove no data file, and run no data generating command
       balancingopts_=defbalancingopts{commodity_styles_= combinedStyles}  -- use amount styles from both when balancing txns
       }
 

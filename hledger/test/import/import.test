@@ -29,3 +29,23 @@ foo.csv
 # ** 4. A real import archives the data and removes the source data file.
 $ d=$(mktemp -d); mkdir -p $d/rules $d/data; printf '2020-01-01 x\n  (a)  1\n' >$d/main.journal; printf 'source foo*.csv\narchive\nskip 1\nfields date,description,amount\naccount1 a\naccount2 b\n' >$d/rules/foo.rules; printf 'date,description,amount\n2020-01-02,x,1\n' >$d/data/foo.csv; hledger -f $d/main.journal import >/dev/null 2>&1; ls $d/data; rm -rf $d
 archive
+
+# ** 5. A dry run does not run a data generating command, but says what it would run.
+$ d=$(mktemp -d); mkdir -p $d/rules; touch $d/main.journal; printf 'source | touch ran && echo 2020-01-02,1\nfields date,amount\naccount1 a\n' >$d/rules/gen.rules; hledger -f $d/main.journal import --dry-run 2>&1; ls $d/rules; rm -rf $d
+gen.rules: would run data generating command: touch ran && echo 2020-01-02,1
+no new transactions found in gen.rules
+gen.rules
+
+# ** 6. A real import runs the data generating command.
+$ d=$(mktemp -d); mkdir -p $d/rules; touch $d/main.journal; printf 'source | touch ran && echo 2020-01-02,1\nfields date,amount\naccount1 a\n' >$d/rules/gen.rules; hledger -f $d/main.journal import 2>&1 >/dev/null | sed 's/ to .*//'; ls $d/rules; rm -rf $d
+gen.rules: running data generating command: touch ran && echo 2020-01-02,1
+imported 1 new transactions from gen.rules
+gen.rules
+ran
+
+# ** 7. A dry run still runs a data cleaning command, needed to preview the data.
+$ d=$(mktemp -d); mkdir -p $d/rules $d/data; touch $d/main.journal; printf 'source foo.csv | tail -n +2\nfields date,amount\naccount1 a\n' >$d/rules/clean.rules; printf 'date,amount\n2020-01-02,1\n' >$d/data/foo.csv; hledger -f $d/main.journal import --dry-run 2>&1 >/dev/null; rm -rf $d
+clean.rules: running data cleaning command: tail -n +2
+would import 1 new transactions from clean.rules:
+
+>=

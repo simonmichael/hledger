@@ -81,7 +81,7 @@ import Data.Time ( Day, TimeZone, UTCTime, LocalTime, ZonedTime(ZonedTime),
 import Safe (atMay, headDef, headMay, lastDef, lastMay, readDef, readMay)
 import System.Directory (canonicalizePath, createDirectoryIfMissing, doesDirectoryExist, doesFileExist, getHomeDirectory, getModificationTime, listDirectory, removeFile)
 import System.Exit      (ExitCode(..))
-import System.FilePath (isAbsolute, splitDirectories, stripExtension, takeBaseName, takeDirectory, takeExtension, (<.>), (</>))
+import System.FilePath (isAbsolute, splitDirectories, stripExtension, takeBaseName, takeDirectory, takeExtension, takeFileName, (<.>), (</>))
 import System.IO       (Handle, hClose, hPutStrLn, stderr, hGetContents')
 import System.Process  (CreateProcess(..), StdStream(CreatePipe), shell, waitForProcess, withCreateProcess)
 import Data.Foldable (asum, toList)
@@ -275,6 +275,9 @@ readRulesFileWith iopts rulesfile postprocess = do
     exists <- doesFileExist f
     return $ if exists then Just f else Nothing
     ) $ mdatafile
+  let
+    -- Show a source command on stderr, saying which rules file it's from.
+    logCommand verb c = hPutStrLn stderr $ takeFileName rulesfile <> ": " <> verb <> " " <> datacmddesc <> ": " <> c
   cleandata <- dbg1With (\t -> "read "++(show $ length $ T.lines t)++" lines") <$> case (mpat, mexistingdatafile, mcmd) of
 
     -- file pattern, but no file found
@@ -282,18 +285,22 @@ readRulesFileWith iopts rulesfile postprocess = do
       return ""
 
     -- file found, and maybe a data cleaning command
+    -- (run even in a dry run import; it should be a pure filter, and is needed to preview the data)
     (_, Just f,  mc) -> do  -- trace "file found" $
       mencoding <- rulesEncoding rulesfile rules
       liftIO $ do
         raw <- openFileOrStdin f >>= hGetContentsPortably mencoding
-        maybe (return raw) (\c -> runCommandAsFilter rulesfile (dbg0Msg ("running: "++c) c) raw) mc
+        maybe (return raw) (\c -> logCommand "running" c >> runCommandAsFilter rulesfile c raw) mc
 
     -- no file pattern, but a data generating command
-    (Nothing, _, Just cmd) -> -- trace "data generating command" $
-      liftIO $
-        (runCommand rulesfile $ dbg0Msg ("running: " ++ cmd) cmd)
-        -- if it fails, warn and carry on
-        `catchAny` (\e -> warn (show e) $ return "")
+    -- (not run in a dry run import, since it may fetch from the network or change things)
+    (Nothing, _, Just cmd)
+      | dryrun -> liftIO $ logCommand "would run" cmd >> return ""
+      | otherwise ->
+        liftIO $
+          (logCommand "running" cmd >> runCommand rulesfile cmd)
+          -- if it fails, warn and carry on
+          `catchAny` (\e -> warn (show e) $ return "")
 
     -- neither a file pattern nor a data generating command
     (Nothing, _, Nothing) -> -- trace "no file pattern or data generating command" $

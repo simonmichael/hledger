@@ -3244,10 +3244,17 @@ source | simplefincsv data/simplefin.json 'unify.*checking'
 
 (`paypal*` and `simplefin*` scripts are in [bin/](https://github.com/hledgerorg/hledger/tree/main/bin#readme))
 
-Whenever hledger runs one of these commands, it will echo the command on stderr.
+Whenever hledger runs one of these commands, it will echo the command on stderr, prefixed by the rules file's name.
 If the command produces error output, but exits successfully, hledger will show the error output as a warning.
 If a data cleaning command fails, hledger will fail and show the error output in the error message.
 If a data generating command fails, hledger will show the error as a warning and continue, treating this as if no data was found.
+
+`import --dry-run` does not run data generating commands, since they may fetch from the network or have other effects;
+it just shows the command it would run, and treats that source as having no data.
+Data cleaning commands do still run in a dry run, since they are needed to preview the data;
+so they should be pure filters, which only read their input and write their output.
+If you want a dry run to preview fetched data, fetch it beforehand (eg with the [get](#get) command's `getdata` script)
+and use a file pattern to read it.
 
 ### `archive`
 

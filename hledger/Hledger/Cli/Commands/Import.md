@@ -75,6 +75,11 @@ Eg:
 $ hledger import bank.csv --dry-run
 ```
 
+A dry run changes nothing: it archives no data files, and does not run
+[`source`](#source) rules' data generating commands
+(which might fetch from the network or have other effects).
+With `-g`, the `get` command does a dry run too.
+
 The dry run output is valid journal format, so hledger can re-parse it.
 If the output is large, you could show just the uncategorised transactions like so:
 
