@@ -339,7 +339,7 @@ msgctxt "column heading"
 msgid "Commodity"
 msgstr "Единица учёта"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger/Hledger/Cli/Commands/Balance.hs
 #: hledger/Hledger/Cli/Commands/Balance/Internal.hs
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
@@ -874,8 +874,6 @@ msgid "Show each balance's change since the start of the report (--cumulative)"
 msgstr ""
 
 #: hledger-web/Hledger/Web/ReportPage.hs
-#, fuzzy
-#| msgid "Could not parse the period expression:"
 msgid "Could not calculate percentages:"
 msgstr ""
 
@@ -929,11 +927,11 @@ msgstr "{title}, с фильтром"
 msgid "balance - hledger-web"
 msgstr "сальдо - hledger-web"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the account type filter row.
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
 #: hledger-web/Hledger/Web/Handler/JournalR.hs
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
-msgid "Shift-click selects several types or commodities."
+msgid "Shift-click selects several types."
 msgstr ""
 
 #: hledger-web/Hledger/Web/Handler/EditR.hs
@@ -980,24 +978,24 @@ msgstr "все счета"
 msgid "{account} (excluding subaccounts)"
 msgstr "{account} (без субсчетов)"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgctxt "column heading"
 msgid "Historical Total"
 msgstr "Итого (исторически)"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgctxt "column heading"
 msgid "Period Total"
 msgstr "Итого (за период)"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgid "Show the running balance from the start of this period"
 msgstr "Показать нарастающее сальдо с начала этого периода"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgid "Show the running balance including everything before this period"
 msgstr "Показать нарастающее сальдо, включая всё до этого периода"
@@ -1028,6 +1026,9 @@ msgid "cashflow statement - hledger-web"
 msgstr "отчёт о движении денежных средств - hledger-web"
 
 #. the hint below the commodity filter row.
+#: hledger-web/Hledger/Web/Handler/BalanceR.hs
+#: hledger-web/Hledger/Web/Handler/JournalR.hs
+#: hledger-web/Hledger/Web/Handler/RegisterR.hs
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid "Shift-click selects several commodities."
 msgstr ""
@@ -1719,6 +1720,10 @@ msgstr "добавить транзакцию (Escape для отмены)"
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle sidebar"
 msgstr "показать/скрыть боковую панель"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle report controls"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "focus search form"

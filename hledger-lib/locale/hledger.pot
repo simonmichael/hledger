@@ -329,7 +329,7 @@ msgctxt "column heading"
 msgid "Commodity"
 msgstr ""
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger/Hledger/Cli/Commands/Balance.hs hledger/Hledger/Cli/Commands/Balance/Internal.hs hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgctxt "column heading"
 msgid "Total"
@@ -895,9 +895,9 @@ msgstr ""
 msgid "balance - hledger-web"
 msgstr ""
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the account type filter row.
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs hledger-web/Hledger/Web/Handler/JournalR.hs hledger-web/Hledger/Web/Handler/RegisterR.hs
-msgid "Shift-click selects several types or commodities."
+msgid "Shift-click selects several types."
 msgstr ""
 
 #: hledger-web/Hledger/Web/Handler/EditR.hs hledger-web/Hledger/Web/Handler/UploadR.hs
@@ -942,24 +942,24 @@ msgstr ""
 msgid "{account} (excluding subaccounts)"
 msgstr ""
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgctxt "column heading"
 msgid "Historical Total"
 msgstr ""
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgctxt "column heading"
 msgid "Period Total"
 msgstr ""
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgid "Show the running balance from the start of this period"
 msgstr ""
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgid "Show the running balance including everything before this period"
 msgstr ""
@@ -990,7 +990,7 @@ msgid "cashflow statement - hledger-web"
 msgstr ""
 
 #. the hint below the commodity filter row.
-#: hledger-web/Hledger/Web/Handler/StatementsR.hs
+#: hledger-web/Hledger/Web/Handler/BalanceR.hs hledger-web/Hledger/Web/Handler/JournalR.hs hledger-web/Hledger/Web/Handler/RegisterR.hs hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid "Shift-click selects several commodities."
 msgstr ""
 
@@ -1658,6 +1658,10 @@ msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle sidebar"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle report controls"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet

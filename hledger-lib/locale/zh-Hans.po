@@ -339,7 +339,7 @@ msgctxt "column heading"
 msgid "Commodity"
 msgstr "商品"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger/Hledger/Cli/Commands/Balance.hs
 #: hledger/Hledger/Cli/Commands/Balance/Internal.hs
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
@@ -872,8 +872,6 @@ msgid "Show each balance's change since the start of the report (--cumulative)"
 msgstr ""
 
 #: hledger-web/Hledger/Web/ReportPage.hs
-#, fuzzy
-#| msgid "Could not parse the period expression:"
 msgid "Could not calculate percentages:"
 msgstr ""
 
@@ -927,11 +925,11 @@ msgstr "{title}，已筛选"
 msgid "balance - hledger-web"
 msgstr "余额 - hledger-web"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the account type filter row.
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
 #: hledger-web/Hledger/Web/Handler/JournalR.hs
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
-msgid "Shift-click selects several types or commodities."
+msgid "Shift-click selects several types."
 msgstr ""
 
 #: hledger-web/Hledger/Web/Handler/EditR.hs
@@ -978,24 +976,24 @@ msgstr "所有账户"
 msgid "{account} (excluding subaccounts)"
 msgstr "{account}（不包括子账户）"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgctxt "column heading"
 msgid "Historical Total"
 msgstr "历史总计"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgctxt "column heading"
 msgid "Period Total"
 msgstr "期间总计"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgid "Show the running balance from the start of this period"
 msgstr "显示本期开始以来的累计余额"
 
-#. the hint below the account type and commodity filter rows.
+#. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgid "Show the running balance including everything before this period"
 msgstr "显示包含本期之前所有项目的累计余额。"
@@ -1026,6 +1024,9 @@ msgid "cashflow statement - hledger-web"
 msgstr "现金流量表 - hledger-web"
 
 #. the hint below the commodity filter row.
+#: hledger-web/Hledger/Web/Handler/BalanceR.hs
+#: hledger-web/Hledger/Web/Handler/JournalR.hs
+#: hledger-web/Hledger/Web/Handler/RegisterR.hs
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid "Shift-click selects several commodities."
 msgstr ""
@@ -1715,6 +1716,10 @@ msgstr "添加交易（按 Esc 键取消）"
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle sidebar"
 msgstr "切换侧边栏"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle report controls"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "focus search form"
