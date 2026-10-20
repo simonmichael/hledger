@@ -536,9 +536,12 @@ addonExtensions =
 -- | Run the hledger and hledger-lib packages' unit tests (for --test),
 -- or just those whose names match the given tasty pattern, if it is non-empty.
 -- Defined here for easy access to other modules' tests.
+-- They run in a single thread: they take only milliseconds, and running them in parallel
+-- occasionally crashes or hangs on aarch64 macOS, apparently from a GHC runtime bug
+-- (seen with GHC 9.12 and 9.14; https://gitlab.haskell.org/ghc/ghc/-/issues/28001).
 runUnitTests :: String -> IO ()
 runUnitTests pat =
-  withArgs ["--pattern=" <> pat | not $ null pat] $
+  withArgs ("--num-threads=1" : ["--pattern=" <> pat | not $ null pat]) $
     Test.Tasty.defaultMain $ testGroup "hledger" [
        tests_Hledger
       ,tests_Hledger_Cli
