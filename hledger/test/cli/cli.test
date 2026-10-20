@@ -308,6 +308,6 @@ $ printf '' | hledger -f - register -- --sort
 > //
 
 # ** 54. -o - writes to stdout, not to a file named "-".
-$ d=$(mktemp -d); cd $d; printf '2026-01-01\n  a  1\n  b\n' | hledger -f - bal -N -o -; s=$?; ls; cd /; rm -rf $d; exit $s
+$ d=$(mktemp -d); cd $d; printf '2026-01-01\n  a  1\n  b\n' | hledger -n -f - bal -N -o -; s=$?; ls; cd /; rm -rf $d; exit $s
                    1  a
                   -1  b
