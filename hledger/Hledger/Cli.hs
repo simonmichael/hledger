@@ -139,6 +139,12 @@ confflagsmode = defMode{
   ,modeArgs = ([], Just $ argsFlag "")
   }
 
+-- A dummy mode just for parsing the help/doc/version/test flags.
+helpflagsmode = defMode{
+   modeGroupFlags=Group [] helpflags []
+  ,modeArgs = ([], Just $ argsFlag "")
+  }
+
 ------------------------------------------------------------------------------
 -- | hledger CLI's main procedure.
 --
@@ -227,11 +233,19 @@ main = handleExit $ withGhcDebug' $ do
     cliconfrawopts = cmdargsParse "for conf options" confflagsmode cliconfargs
 
   -- Read extra general and command-specific args/opts from the config file, if any.
+  -- If it can't be read, that's an error, unless the command line doesn't need it.
   (conf, mconffile) <-
     seq cliconfrawopts $  -- order debug output
     if clicmdarg=="setup"  -- the setup command checks config files, but never uses one itself
       then return (nullconf,Nothing)
-      else getConf' cliconfrawopts
+      else getConf cliconfrawopts >>= \case
+        Right c -> return c
+        Left err -> do
+          skip <- canSkipConf clicmdarg cliargswithoutcmd
+          if skip
+            then dbg1IO "config file has errors, but not needed for help/version/test output" err >> return (nullconf,Nothing)
+            else error' $ rstrip err <> "\n(" <> progname <> " " <> packageversion
+                   <> " could not read this config file. To run without it, add -n.)"
   -- Whether !-prefixed shell command aliases from this config file are allowed to run
   -- (only from a trusted config file: one given with --conf, or a user-level config file).
   shellaliasesallowed <- confFileIsTrusted cliconfrawopts mconffile
@@ -525,6 +539,26 @@ argsToCliOpts args addons = do
     args1 = replaceNumericFlags args0
     rawopts = cmdargsParse "for options" (mainmode addons) args1
   rawOptsToCliOpts rawopts
+
+-- | When the config file can't be read, can this command line do without it ?
+-- Yes if it asks for help/docs, version info or unit tests,
+-- with no command or a command that is recognised without the config file.
+-- (Not with a command alias defined in the config file; there the config error
+-- is more useful than "command not recognised".)
+-- Flags must be written in full here, not abbreviated.
+-- Takes the command argument (or "") and the other command line arguments.
+canSkipConf :: String -> [String] -> IO Bool
+canSkipConf cmdarg args
+  | not helpflag = return False
+  | null cmdarg  = return True
+  | otherwise    = do
+      addons <- addonCommandNames
+      return $ either (const False) (not . null . stringopt "command") $
+        process (mainmode addons) [cmdarg]
+  where
+    rawopts = cmdargsParse "for help flags" helpflagsmode $ dropUnsupportedOpts helpflagsmode args
+    helpflag = isJust (maybestringopt "test" rawopts)
+      || any (`boolopt` rawopts) ["help","info","man","webman","examples","quickref","version"]
 
 -- | Parse the given command line arguments/options with the given cmdargs mode,
 -- after adding values to any valueless --debug flags,

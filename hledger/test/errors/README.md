@@ -203,10 +203,12 @@ Click error names to see an example. The table headings mean:
 | [csvtwofields](#csvtwofields)                         | ✓          | ✓    | -      | ✓       | ✓        |
 | [ambiguousalias](#ambiguousalias)                     |            | ✓    | -      | -       |          |
 | [csvstdinrules](#csvstdinrules)                       |            |      |        |         |          |
+| [confargs](#confargs)                                 | ✓          | ✓    | -      | ✓       |          |
+| [confparse](#confparse)                               | ✓          | ✓    | ✓      | ✓✓      |          |
 
 
 <!-- GENERATED: -->
-hledger 1.99-ge47d97316-20261014 error messages:
+hledger 1.99-gba5ef82e6-20261019 error messages:
 
 ### accounts
 ```
@@ -739,6 +741,27 @@ hledger: Error: commodity alias Mt is declared differently by different files, s
 /path/to/usage.journal:2: commodity kt  ; alias: 0.001 Mt
 /path/to/mt-alias.journal:2: commodity kt  ; alias: 0.01 Mt
 To use it, make these declarations agree; or use a different alias in one of them.
+```
+
+
+### confargs
+```
+hledger: Error: /path/to/confargs.conf:2:
+2 | --pretty "unclosed
+this config file line has an unmatched quote (' or ").
+(hledger 1.99 could not read this config file. To run without it, add -n.)
+```
+
+
+### confparse
+```
+hledger: Error: /path/to/confparse.conf:2:7:
+  |
+2 | [files
+  |       ^
+unexpected newline
+expecting ']'
+(hledger 1.99 could not read this config file. To run without it, add -n.)
 ```
 
 

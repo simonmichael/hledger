@@ -144,8 +144,7 @@ confArgsE conf@Conf{confSections} =
     argline (lnum, l) = case wordsmay l of
       Just _  -> Right ()
       Nothing -> Left $ confErrorAt conf lnum l $
-        "this config file line could not be parsed as command line arguments.\n"
-        <> "Is there an unclosed quote? (A # outside quotes starts a comment.)"
+        "this config file line has an unmatched quote (' or \")."
 
 -- | Make a pretty, multiline error message about a problem on the given line
 -- of this config file: file path and line number, an excerpt showing the line

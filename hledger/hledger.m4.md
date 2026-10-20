@@ -335,6 +335,13 @@ You can ignore all config files by adding the `-n`/`--no-conf` flag to the comma
 This is recommended when using hledger in scripts.
 When both `--conf` and `--no-conf` options are used, the right-most wins.
 
+Note, hledger 1 also reads config files, but some things written for hledger 2 make it stop with an error:
+indented lines (including the continuation lines of a multi-line [command alias](#command-aliases)),
+a `#` inside quotes, quotes around only part of an argument,
+and options in a `[COMMAND]` section which that command doesn't have in hledger 1.
+(hledger 1 ignores single-line command aliases, and unknown options in the general section.)
+In this situation, you can run hledger 1 with `-n`, or give it a separate config file with `--conf`.
+
 ## Command aliases
 
 In a config file you can also define command aliases: your own custom commands,
@@ -368,6 +375,8 @@ rev10 = balance
     -p 'every 10 years from 2000'
     # --drop 1
 ```
+
+(hledger 1 can't read these continuation lines; see [Config files](#config-files).)
 
 Command aliases override addon commands with the same name,
 but they can't override builtin command names or abbreviations like `balance` or `bal`.
@@ -403,6 +412,10 @@ Some tips:
 4. Add `--debug` or `--debug=8` to any command to see config/command line debug output.
 5. In scripts, and in examples you share with others, add `-n` so that a config file can't change the result.
 6. When you download hledger data from elsewhere, watch out for directories containing a `hledger.conf` file.
+7. If hledger reports an error in a config file which should be fine, you might be running an older hledger version.
+   (Since 1.99.6, config file errors show the hledger version; with older versions, check which hledger executables are in your PATH.)
+8. A config file with errors doesn't stop help flags like `--help` or `--version` from working,
+   unless they're used with a command alias defined in that file, in which case the error is reported.
 
 # Environment
 

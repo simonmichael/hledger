@@ -268,31 +268,46 @@ unexpected newline
 expecting '\]'/
 >= 1
 
-# ** 47. A config file line which can't be parsed as command line arguments
-# (eg because of an unclosed quote) is reported with a pretty error message
+# ** 47. A config file line with an unmatched quote
+# is reported with a pretty error message
 # showing the position and problem line.
 $  echo '--alias "unclosed' >$$.conf; hledger --conf $$.conf -f /dev/null files; s=$?; rm -f $$.conf; exit $s
 >2 /\.conf:1:
 1 \| --alias "unclosed
-this config file line could not be parsed as command line arguments/
+this config file line has an unmatched quote/
 >= 1
 
-# ** 48. The required-value pre-check only considers flags the identified command supports,
+# ** 48. A config file with errors doesn't prevent help, version or test output,
+# for no command or a command recognised without the config file.
+$  echo '"unclosed' >$$.conf; for a in --version --test=nomatch '-?' --help 'files -h' '-h files'; do hledger --conf $$.conf $a >/dev/null || echo "failed: $a"; done; rm -f $$.conf
+
+# ** 49. But other command lines still report the config error.
+$  echo '"unclosed' >$$.conf; hledger --conf $$.conf -f /dev/null files; s=$?; rm -f $$.conf; exit $s
+>2 /has an unmatched quote/
+>= 1
+
+# ** 50. Including help for a command not recognised without the config file,
+# such as a command alias defined in it.
+$  printf '[alias]\nmyfiles = files\n[general]\n"unclosed\n' >$$.conf; hledger --conf $$.conf myfiles -h; s=$?; rm -f $$.conf; exit $s
+>2 /has an unmatched quote/
+>= 1
+
+# ** 51. The required-value pre-check only considers flags the identified command supports,
 # so another command's flag is left for cmdargs to report.
 $ hledger help --sort
 >2 /Unknown flag: --sort/
 >= 1
 
-# ** 49. The command's own required-value flags are still checked.
+# ** 52. The command's own required-value flags are still checked.
 $ hledger register --sort
 >2 /--sort needs a value, none provided/
 >= 1
 
-# ** 50. The pre-check stops at "--", since cmdargs treats what follows as positional args.
+# ** 53. The pre-check stops at "--", since cmdargs treats what follows as positional args.
 $ printf '' | hledger -f - register -- --sort
 > //
 
-# ** 51. -o - writes to stdout, not to a file named "-".
+# ** 54. -o - writes to stdout, not to a file named "-".
 $ d=$(mktemp -d); cd $d; printf '2026-01-01\n  a  1\n  b\n' | hledger -f - bal -N -o -; s=$?; ls; cd /; rm -rf $d; exit $s
                    1  a
                   -1  b

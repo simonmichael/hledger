@@ -1,0 +1,8 @@
+# The command is indented so that shelltest -w (make test) leaves it alone.
+$  sh confargs.sh
+>2 /hledger: Error: .*confargs\.conf:2:
+2 \| --pretty "unclosed
+this config file line has an unmatched quote \(' or "\)\.
+\(hledger .* could not read this config file\. To run without it, add -n\.\)
+/
+>= 1

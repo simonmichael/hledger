@@ -1,0 +1,11 @@
+# The command is indented so that shelltest -w (make test) leaves it alone.
+$  sh confparse.sh
+>2 /hledger: Error: .*confparse\.conf:2:7:
+  \|
+2 \| \[files
+  \|       \^
+unexpected newline
+expecting '\]'
+\(hledger .* could not read this config file\. To run without it, add -n\.\)
+/
+>= 1
