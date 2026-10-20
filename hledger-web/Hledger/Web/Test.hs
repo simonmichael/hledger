@@ -346,6 +346,10 @@ hledgerWebTest = do
             ,"commodity BBB  ; lots:"
             ,"P 2026-01-31 AAA $12.00"
             ,""
+            ,"2025-12-30 opening"  -- a second year, so the years row shows
+            ,"    assets:cash    $100.00"
+            ,"    equity:opening"
+            ,""
             ,"2026-01-01 buy aaa"
             ,"    assets:broker    2 AAA @ $10.00"
             ,"    assets:cash    $-20.00"
@@ -382,11 +386,15 @@ hledgerWebTest = do
       bodyNotContains "0 BBB" -- but its row is hidden without closed=1
                               -- (the commodity filter row still offers BBB)
       bodyContains "Holdings</a>"  -- and the journal has lots, so the menu links here
-      -- the controls sit behind the disclosure, with the type and
-      -- commodity filter rows like the other report pages
+      -- the controls sit behind the disclosure, with the report pages'
+      -- rows: years (setting the report date), status, real, type,
+      -- commodity, and prices
       bodyContains "<details class=\"report-controls\">"
+      bodyContains "Years:"
+      bodyContains "Status:"
       bodyContains "Type:"
       bodyContains "Commodity:"
+      bodyContains "Prices:"
       -- the account names' shared prefix is a group heading, rows show the rest
       bodyContains "scope=\"rowgroup\">assets</th>"
       bodyContains ">broker</a>"

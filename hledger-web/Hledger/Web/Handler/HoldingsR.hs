@@ -19,13 +19,14 @@ import Hledger.Write.Spreadsheet (Cell(..), Class(..), Type(..),
 
 import Hledger.Web.Import
 import Hledger.Web.Handler.BalanceR (reportTitle)
+import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (accountQuery, closedLinks, commodityLinks, controlsHint, controlsToggle,
    depthLinks, holdingsValueLinks, listModeLinks,
-   lotsLinks, removeInacct, replaceInacct, sortLinks, typeLinks,
-   zeroBalanceLinks)
+   lotsLinks, pricesLinks, realLinks, removeInacct, replaceInacct, sortLinks,
+   statusLinks, typeLinks, zeroBalanceLinks)
 
 -- | The holdings view: investment holdings and their performance at the
 -- report end date, as the holdings command shows them. In tree mode the
@@ -65,7 +66,7 @@ getHoldingsR = do
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ reportTitle roptsOrig $ tr trs "Holdings"
         paramError trs err
-      Right ReportParams{rpRopts, rpRspec, rpPeriod, rpValue} -> do
+      Right ReportParams{rpRopts, rpRspec, rpSpan, rpPeriod, rpValue} -> do
         let ropts = rpRopts{empty_ = closedShown}
             rspec = rpRspec{_rsReportOpts = ropts}
             -- The report's display lines: flat positions (or lots with
@@ -251,8 +252,17 @@ getHoldingsR = do
             -- control the page responds to, one row of links each, sits
             -- behind the controls disclosure, in the report pages' order.
             reportsRow = reportLinks trs HoldingsR menuParams $ reportLinkItems $ reportMenuFor jHasLots
+            -- The years the search matches in, ignoring all date
+            -- narrowing: a year link sets the period, so the page shows
+            -- the holdings at that year's end.
+            yearsDays = map tdate $
+              entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} jfull
+            yearsNav = yearsRow trs HoldingsR qparam today rpSpan (removeAttributes ["period"] pageParams) yearsDays
             controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
-              [ typeLinks trs HoldingsR pageParams qparam
+              [ yearsNav
+              , statusLinks trs HoldingsR pageParams qparam
+              , realLinks trs HoldingsR pageParams qparam
+              , typeLinks trs HoldingsR pageParams qparam
               -- TRANSLATORS: the hint below the account type filter row.
               , controlsHint $ tr trs "Shift-click selects several types."
               , commodityLinks trs HoldingsR pageParams qparam commoditiesOpen
@@ -261,6 +271,7 @@ getHoldingsR = do
               [ depthLinks trs HoldingsR pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs HoldingsR (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , holdingsValueLinks trs HoldingsR (qParams ++ removeAttributes ["value"] pageParams) (isJust $ value_ ropts)
+              , pricesLinks trs HoldingsR (qParams ++ removeAttributes ["infer"] pageParams) (infer_prices_ ropts)
               , zeroBalanceLinks trs HoldingsR (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty
               , lotsLinks trs HoldingsR (qParams ++ removeAttributes ["lots"] pageParams) lotsShown
               , closedLinks trs HoldingsR (qParams ++ removeAttributes ["closed"] pageParams) (not $ empty_ roptsOrig) (not closedShown)
