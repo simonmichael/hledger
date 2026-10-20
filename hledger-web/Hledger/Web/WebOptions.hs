@@ -1,6 +1,5 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE LambdaCase #-}
 
@@ -12,13 +11,13 @@ import Data.ByteString.UTF8 (fromString)
 import Data.Default (Default(def))
 import Data.Maybe (fromMaybe)
 import Data.Text (Text)
-import GitHash (tGitInfoCwdTry)
 import System.Environment (getArgs)
 import Network.Wai as WAI
 import Network.Wai.Middleware.Cors
 import Safe (lastMay)
 
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
+import Hledger.Cli.GitInfo (gitInfo)
 import Hledger.Web.Settings (defhost, defport, defbaseurl)
 import Data.Text qualified as T
 import Data.Char (toLower)
@@ -40,11 +39,10 @@ progname :: ProgramName
 progname = "hledger-web"
 
 -- | Generate the version string for this program.
--- The template haskell call is here rather than in Hledger.Cli.Version to avoid wasteful recompilation.
 prognameandversion :: String
 prognameandversion =
   versionStringWith
-  $$tGitInfoCwdTry
+  gitInfo
 #ifdef GHCDEBUG
   True
 #else

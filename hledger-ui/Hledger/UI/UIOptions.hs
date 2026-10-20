@@ -1,5 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE TemplateHaskell #-}
 
 module Hledger.UI.UIOptions where
 
@@ -8,11 +7,11 @@ import Data.Either (fromRight)
 import Data.List (intercalate)
 import Data.Map qualified as M
 import Data.Maybe (fromMaybe)
-import GitHash (tGitInfoCwdTry)
 import Lens.Micro (set)
 import System.Environment (getArgs)
 
 import Hledger.Cli hiding (packageversion, progname, prognameandversion)
+import Hledger.Cli.GitInfo (gitInfo)
 import Hledger.UI.Theme (themes, themeNames)
 
 -- cf Hledger.Cli.Version
@@ -29,11 +28,10 @@ progname :: ProgramName
 progname = "hledger-ui"
 
 -- | Generate the version string for this program.
--- The template haskell call is here rather than in Hledger.Cli.Version to avoid wasteful recompilation.
 prognameandversion :: String
 prognameandversion =
   versionStringWith
-  $$tGitInfoCwdTry
+  gitInfo
 #ifdef GHCDEBUG
   True
 #else

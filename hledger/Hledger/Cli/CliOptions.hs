@@ -113,7 +113,6 @@ import Data.Maybe
 -- import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Void (Void)
-import GitHash (tGitInfoCwdTry)
 import Safe
 import String.ANSI
 import System.Console.CmdArgs hiding (Default,def)
@@ -130,6 +129,7 @@ import Text.Megaparsec.Char
 import Hledger.Utils.I18n (builtinLanguages, translationsForLangOption)
 import Hledger
 import Hledger.Cli.DocFiles
+import Hledger.Cli.GitInfo (gitInfo)
 import Hledger.Cli.Version
 import Data.Time.Clock.POSIX (POSIXTime)
 import Data.List (dropWhileEnd, find, isPrefixOf, isSuffixOf)
@@ -141,11 +141,10 @@ progname :: ProgramName
 progname = "hledger"
 
 -- | Generate the version string for this program.
--- The template haskell call is here rather than in Hledger.Cli.Version to avoid wasteful recompilation.
 prognameandversion :: String
 prognameandversion =
   versionStringWith
-  $$tGitInfoCwdTry
+  gitInfo
 #ifdef GHCDEBUG
   True
 #else

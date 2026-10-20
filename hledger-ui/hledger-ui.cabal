@@ -80,7 +80,6 @@ library
     , extra >=1.7.11
     , filepath
     , fsnotify >=0.4.2.0 && <0.5
-    , githash >=0.1.6.2
     , hledger ==1.99.*
     , hledger-lib ==1.99.*
     , megaparsec >=7.0.0 && <9.8 || >=9.8.1 && <9.9

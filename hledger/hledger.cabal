@@ -141,6 +141,7 @@ library
       Hledger.Cli.CompoundBalanceCommand
       Hledger.Cli.Conf
       Hledger.Cli.DocFiles
+      Hledger.Cli.GitInfo
       Hledger.Cli.Script
       Hledger.Cli.Utils
       Hledger.Cli.Version

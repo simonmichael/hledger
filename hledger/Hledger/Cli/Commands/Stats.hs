@@ -26,7 +26,6 @@ import Data.Text.Lazy qualified as TL
 import Data.Time.Calendar (Day, addDays, diffDays)
 import Data.Time.Clock.POSIX (getPOSIXTime)
 import GHC.Stats
-import GitHash (tGitInfoCwdTry)
 import System.Console.CmdArgs.Explicit hiding (Group)
 import System.FilePath (takeFileName)
 import System.Mem (performMajorGC)
@@ -35,6 +34,7 @@ import Text.Tabular.AsciiWide
 
 import Hledger
 import Hledger.Cli.CliOptions
+import Hledger.Cli.GitInfo (gitInfo)
 import Hledger.Cli.Utils (writeOutputWithTitle, warnIfLargeMultiPeriodReport)
 import Hledger.Cli.Version (packageversion, versionStringWith)
 
@@ -96,7 +96,7 @@ stats opts@CliOpts{rawopts_=rawopts, reportspec_=rspec, progstarttime_} j = do
   t <- getPOSIXTime
   let
     (label, sep)
-      | oneline   = (lstrip $ versionStringWith $$tGitInfoCwdTry False "" packageversion <> "\t", "\t")
+      | oneline   = (lstrip $ versionStringWith gitInfo False "" packageversion <> "\t", "\t")
       | otherwise = (printf "%-*s: " labelwidth ("Runtime stats" :: String), ", ")
     dt = t - progstarttime_
     ss =
