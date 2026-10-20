@@ -22,8 +22,9 @@ import Hledger.Web.Handler.BalanceR (reportTitle)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (accountQuery, closedLinks, depthLinks, holdingsValueLinks, listModeLinks,
-   lotsLinks, removeInacct, replaceInacct, sortLinks,
+  (accountQuery, closedLinks, commodityLinks, controlsHint, controlsToggle,
+   depthLinks, holdingsValueLinks, listModeLinks,
+   lotsLinks, removeInacct, replaceInacct, sortLinks, typeLinks,
    zeroBalanceLinks)
 
 -- | The holdings view: investment holdings and their performance at the
@@ -34,9 +35,8 @@ import Hledger.Web.Widget.Common
 getHoldingsR :: Handler Html
 getHoldingsR = do
   checkServerSideUiEnabled
-  VD{jfull, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs} <- getViewData
+  VD{jfull, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
-  hideEmpty <- hideEmptyAccounts
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
   mclosedparam <- lookupGetParam "closed"
@@ -247,16 +247,25 @@ getHoldingsR = do
                   [tr trs "Total:"] : totalsParts (hrTotals rpt)
               ]
 
-            -- Every control the page responds to, one row of links each.
-            controlRows render = foldMap ($ render) $
-              [ reportLinks trs HoldingsR menuParams $ reportLinkItems $ reportMenuFor jHasLots
-              , lotsLinks trs HoldingsR (qParams ++ removeAttributes ["lots"] pageParams) lotsShown
-              , closedLinks trs HoldingsR (qParams ++ removeAttributes ["closed"] pageParams) (not $ empty_ roptsOrig) (not closedShown)
-              , zeroBalanceLinks trs HoldingsR (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty ] ++
+            -- The links to the other reports stay visible; every other
+            -- control the page responds to, one row of links each, sits
+            -- behind the controls disclosure, in the report pages' order.
+            reportsRow = reportLinks trs HoldingsR menuParams $ reportLinkItems $ reportMenuFor jHasLots
+            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
+              [ typeLinks trs HoldingsR pageParams qparam
+              -- TRANSLATORS: the hint below the account type filter row.
+              , controlsHint $ tr trs "Shift-click selects several types."
+              , commodityLinks trs HoldingsR pageParams qparam commoditiesOpen
+                  -- TRANSLATORS: the hint below the commodity filter row.
+                  (tr trs "Shift-click selects several commodities.") jfull ] ++
               [ depthLinks trs HoldingsR pageParams qparam deepest | deepest > 1 ] ++
               [ listModeLinks trs HoldingsR (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
               , holdingsValueLinks trs HoldingsR (qParams ++ removeAttributes ["value"] pageParams) (isJust $ value_ ropts)
+              , zeroBalanceLinks trs HoldingsR (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty
+              , lotsLinks trs HoldingsR (qParams ++ removeAttributes ["lots"] pageParams) lotsShown
+              , closedLinks trs HoldingsR (qParams ++ removeAttributes ["closed"] pageParams) (not $ empty_ roptsOrig) (not closedShown)
               , sortLinks trs HoldingsR (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
+        Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
         Yesod.toWidget $ reportTable isTree (isTree && lotsShown) mfold header [(mprefixHeading, body, [])] totals

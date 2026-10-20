@@ -947,6 +947,7 @@ msgstr "сальдо - hledger-web"
 
 #. the hint below the account type filter row.
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
+#: hledger-web/Hledger/Web/Handler/HoldingsR.hs
 #: hledger-web/Hledger/Web/Handler/JournalR.hs
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 msgid "Shift-click selects several types."
@@ -1126,6 +1127,7 @@ msgstr "отчёт о движении денежных средств - hledger
 
 #. the hint below the commodity filter row.
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
+#: hledger-web/Hledger/Web/Handler/HoldingsR.hs
 #: hledger-web/Hledger/Web/Handler/JournalR.hs
 #: hledger-web/Hledger/Web/Handler/RegisterR.hs
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs

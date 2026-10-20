@@ -379,8 +379,14 @@ hledgerWebTest = do
       bodyContains "$36.00"   -- total value: 3 AAA at the $12 market price
       bodyContains "12.5%"    -- UGain%: 4/32
       bodyContains "$5.00"    -- total RGain includes the closed BBB position
-      bodyNotContains "BBB"   -- but its row is hidden without empty=1
+      bodyNotContains "0 BBB" -- but its row is hidden without closed=1
+                              -- (the commodity filter row still offers BBB)
       bodyContains "Holdings</a>"  -- and the journal has lots, so the menu links here
+      -- the controls sit behind the disclosure, with the type and
+      -- commodity filter rows like the other report pages
+      bodyContains "<details class=\"report-controls\">"
+      bodyContains "Type:"
+      bodyContains "Commodity:"
       -- the account names' shared prefix is a group heading, rows show the rest
       bodyContains "scope=\"rowgroup\">assets</th>"
       bodyContains ">broker</a>"
