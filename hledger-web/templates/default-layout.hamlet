@@ -163,6 +163,7 @@ $if elem ViewPermission perms
                 <li> <code>j</code> - _{HMsg "go to the Journal view (home)"}
                 <li> <code>a</code> - _{HMsg "add a transaction (escape to cancel)"}
                 <li> <code>s</code> - _{HMsg "toggle sidebar"}
+                <li> <code>c</code> - _{HMsg "toggle report controls"}
                 <li> <code>f</code> - _{HMsg "focus search form"} ("find")
                 <li> <code>e</code> - _{HMsg "hide empty accounts in sidebar"}
             <p>

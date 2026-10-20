@@ -221,6 +221,20 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('"c" toggles the report controls, like clicking their summary', async ({ page }) => {
+    await page.goto('/journal');
+    const details = page.locator('#main-content details.report-controls');
+    await expect(details.locator('p.report-links').first()).toBeHidden();
+    await page.locator('body').press('c');
+    await expect(details.locator('p.report-links').first()).toBeVisible();
+    // the choice is saved like a click's, from the toggle event
+    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+    await page.locator('body').press('c');
+    await expect(details.locator('p.report-links').first()).toBeHidden();
+    await page.waitForFunction(() => document.cookie.includes('showcontrols=0'));
+    expect(pageErrors).toEqual([]);
+  });
+
   // The rows of report controls sit behind a disclosure, closed by default;
   // opening it is remembered in a cookie the server reads, so the next
   // page renders it already open.

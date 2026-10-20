@@ -93,6 +93,7 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'h': case '?': helpToggle();                                     break;
       case 'j': journalGo();                                                break;
       case 's': sidebarToggle();                                            break;
+      case 'c': controlsToggle();                                           break;
       case 'e': emptyAccountsToggle();                                      break;
       case 'a': case 'n': addformShow();                                    break;
       case 'f': focusSearch();                                              break;
@@ -424,6 +425,13 @@ function controlsInit() {
     if (!a || !a.closest('details.report-controls')) { return; }
     try { sessionStorage.setItem('pageScrollTop', document.documentElement.scrollTop); } catch (e) {}
   });
+}
+
+// The c key opens and closes the disclosure like a click on its
+// summary; controlsInit's toggle listener saves the choice either way.
+function controlsToggle() {
+  var d = document.querySelector('#main-content details.report-controls');
+  if (d) { d.open = !d.open; }
 }
 
 // The sidebar's account tree is folded by an inline script right after its
