@@ -886,17 +886,6 @@ outputFormatFromOpts opts =
 viewRequested :: CliOpts -> Bool
 viewRequested = boolopt "view" . rawopts_
 
--- | Like outputFormatFromOpts, but works on RawOpts (before CliOpts are constructed).
-outputFormatFromRawOpts :: RawOpts -> String
-outputFormatFromRawOpts rawopts =
-  case maybestringopt "output-format" rawopts of
-    Just f  -> f
-    Nothing ->
-      case filePathExtension <$> maybestringopt "output-file" rawopts of
-        Just ext | ext `elem` outputFormats -> ext
-        _ | boolopt "view" rawopts          -> "html"
-        _                                   -> defaultOutputFormat
-
 -- -- | Get the file name without its last extension, from a file path.
 -- filePathBaseFileName :: FilePath -> String
 -- filePathBaseFileName = fst . splitExtension . snd . splitFileName
