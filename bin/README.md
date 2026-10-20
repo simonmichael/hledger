@@ -277,6 +277,8 @@ $ hledger simplebal
 
 [`hledger-bar`](https://github.com/hledgerorg/hledger/blob/main/bin/hledger-bar)
 prints quick bar charts in the terminal.
+It's useful with hledger 1.x, or hledger 2.x previews up to 1.99.5;
+with newer hledger, use the [built-in charts](https://hledger.org/dev/hledger.html#charts) instead.
 
 ```cli
 $ hledger bar reimbursement
