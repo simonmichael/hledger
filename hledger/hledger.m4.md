@@ -515,7 +515,7 @@ You can list all of a command's options by running `hledger CMD -h`.
 **[Maintenance commands](#maintenance-commands)**
 
 - [setup](#setup)                                  - check your hledger installation
-- [check](#check)                                  - check your journal data
+- [check](#check)                                  - check that your journal is valid
 - [diff](#diff)                                    - compare an account's transactions in two journals
 
 **[Data generation commands](#data-generation-commands)**

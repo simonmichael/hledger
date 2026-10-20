@@ -1,6 +1,6 @@
 ## check
 
-Check for various kinds of errors in your data. 
+Check that your data is valid, using hledger's built-in correctness checks.
 
 ```flags
 Flags:
