@@ -281,7 +281,7 @@ viewFile opts = do
   d <- getXdgDirectory XdgCache "hledger"
   createDirectoryIfMissing True d
   let f = d </> "view." ++ outputFormatFromOpts opts
-  hPutStrLn stderr $ "writing " ++ f ++ "; if it's sensitive, delete it after viewing."
+  hPutStrLn stderr $ "writing " ++ f ++ " (if it's sensitive, delete it after viewing)"
   -- openTempFile creates a file with owner-only permissions, which writing it later keeps
   (tmp, h) <- openTempFile d "view.tmp"
   hClose h
