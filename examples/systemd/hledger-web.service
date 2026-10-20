@@ -9,15 +9,19 @@ After=network.target
 Environment="LANG=en_US.UTF-8"
 Environment="LEDGER_FILE=/fully/qualified/path/to/your/journal"
 
+# Choose a base-url with a domain or a host ip
 Environment="BASE_URL=--base-url=https://your.domain"
+#Environment="BASE_URL=--host=127.0.0.1"
 
-# The default of 'view,add' is a good starting point, but if you need
-# to, this is where you would set these capabilities.
-# Environment="CAPABILITIES=--capabilities=view,add,manage"
+# The default of 'add' for a local only address or 'view' otherwise
+# Enable one of the below for direct control
+# Environment="CAPABILITIES=--allow=view"
+# Environment="CAPABILITIES=--allow=add"
+# Environment="CAPABILITIES=--allow=edit"
 
-Environment="PORT=--port=6001"
+Environment="PORT=--port=5000"
 
-ExecStart=/usr/bin/hledger-web --serve --strict $BASE_URL $PORT $CAPABILITIES
+ExecStart=/usr/local/bin/hledger-web --serve $BASE_URL $PORT $CAPABILITIES
 Restart=always
 
 [Install]
