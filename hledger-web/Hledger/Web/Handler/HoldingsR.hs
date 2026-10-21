@@ -118,8 +118,10 @@ getHoldingsR = do
               [ tr trs "Date", tr trs "Age", tr trs "Units", tr trs (hrUnitCostHeading rpt)
               , tr trs "Unit price", tr trs "Total cost", tr trs "Total value", tr trs "Weight"
               , tr trs "UGain", tr trs "UGain%", tr trs "RGain", tr trs "XIRR" ]
-            header = [ addHeaderBorders $ zipWith hcell ("account" : colclasses) (tr trs "Account" : colheadings) ]
-            hcell cls t = (headerCell t){cellClass = Class cls}
+            -- The figure columns' headings carry .amount too, aligning
+            -- them over their right-aligned figures (hledger.css).
+            header = [ addHeaderBorders $ zipWith3 hcell (TypeString : coltypes) ("account" : colclasses) (tr trs "Account" : colheadings) ]
+            hcell typ cls t = (headerCell t){cellClass = Class $ if typ == TypeString then cls else cls <> " amount"}
             -- per-column css classes, as the holdings command's html output has
             colclasses = ["date","age","units","unitcost","unitprice","totalcost","totalvalue","weight","ugain","ugainpct","rgain","xirr"]
             -- which columns' cell parts are amounts, each shown in its own span
