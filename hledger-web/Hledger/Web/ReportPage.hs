@@ -230,17 +230,18 @@ startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
     rspec' = rspec{
       _rsQuery = Any,
       _rsQueryOpts = [],
-      _rsReportOpts = ropts{
-        period_ = PeriodAll, interval_ = NoInterval, statuses_ = [],
-        conversionop_ = Nothing, value_ = Nothing, infer_prices_ = False,
-        depth_ = mempty, date2_ = False, empty_ = False, no_elide_ = False,
-        full_names_ = False, real_ = False, querystring_ = [],
-        average_ = False, related_ = False, txn_dates_ = False,
-        balancecalc_ = CalcChange, balanceaccum_ = PerPeriod, budgetpat_ = Nothing,
-        accountlistmode_ = ALFlat, drop_ = 0, declared_ = False,
-        row_total_ = False, no_total_ = False, summary_only_ = False,
-        show_costs_ = False, sort_amount_ = False, percent_ = False,
-        invert_ = False, normalbalance_ = Nothing, transpose_ = False
+      _rsReportOpts = defreportopts{
+        -- startup display preferen
+        format_           = format_ ropts,
+        balance_base_url_ = balance_base_url_ ropts,
+        pretty_           = pretty_ ropts,
+        sortspec_         = sortspec_ ropts,
+        color_            = color_ ropts,
+        layout_           = layout_ ropts,
+        period_titles_    = period_titles_ ropts,
+        title_            = title_ ropts,
+        subreport_titles_ = subreport_titles_ ropts,
+        translations_     = translations_ ropts
       }
     }
 

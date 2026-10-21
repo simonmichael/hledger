@@ -205,6 +205,7 @@ hledgerWebTest = do
             , empty_ = True, statuses_ = [Cleared], real_ = True
             , depth_ = DepthSpec (Just 3) []
             , querystring_ = ["assets", "two words"]
+            , title_ = Just "My books"
             }
           (params, rspec') = startupUrlState defreportspec{_rsReportOpts = ropts}
       lookup "period" params `shouldBe` Just "monthly"
@@ -218,6 +219,8 @@ hledgerWebTest = do
       interval_ (_rsReportOpts rspec') `shouldBe` NoInterval
       value_ (_rsReportOpts rspec') `shouldBe` Nothing
       empty_ (_rsReportOpts rspec') `shouldBe` False
+      -- a display preference with no url spelling stays in the spec
+      title_ (_rsReportOpts rspec') `shouldBe` Just "My books"
     it "spells intervals as period expressions and valuations as value words" $ do
       let p ropts = fst $ startupUrlState defreportspec{_rsReportOpts = ropts}
       lookup "period" (p defreportopts{interval_ = Weeks 2}) `shouldBe` Just "every 2 weeks"
