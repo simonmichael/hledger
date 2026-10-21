@@ -1760,6 +1760,18 @@ msgid "filter by status"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "sort by amount"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "total and average columns"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "set the report interval"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgid "set or adjust the depth limit"
 msgstr ""
 
