@@ -1038,9 +1038,14 @@ msgstr ""
 msgid "Account"
 msgstr ""
 
-#. the tooltip of a holding's account link.
+#. the tooltip of an account heading or lot's register link.
 #: hledger-web/Hledger/Web/Handler/HoldingsR.hs
 msgid "Show this account's register"
+msgstr ""
+
+#. the tooltip of a position's register link, which filters to its commodity.
+#: hledger-web/Hledger/Web/Handler/HoldingsR.hs
+msgid "Show this holding's register"
 msgstr ""
 
 #. the heading of the holdings table's totals row.
