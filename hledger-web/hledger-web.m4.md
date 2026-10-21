@@ -202,6 +202,7 @@ which work when you are not typing in a field:
 - `e` - show or hide empty accounts in the sidebar
 - `t` - show accounts as a tree, or a list
 - `H` - show ending balances, or balance changes
+- `L` - show or hide lot detail
 - `V` - show amounts at market value, or as recorded
 - `B` - show amounts at cost, or as recorded
 - `R` - show only real postings, or all

@@ -1,7 +1,8 @@
 // Browser tests for the /holdings page: in tree mode positions group
 // under account heading rows that subtotal the dollar columns, and with
 // lots=1 each position's lots are shown beneath it, the caret and a
-// depth limit folding them in place (reportTreeInit); a lot row's account
+// depth limit folding them in place (reportTreeInit); the L key follows
+// the Lots row's links, toggling lot detail; a lot row's account
 // link reaches that lot's register, quoting the lot subaccount name -
 // including its auto label's double quotes - so the query round-trips;
 // and the flat view shows the account names' shared prefix once, as a
@@ -84,6 +85,19 @@ test.describe('holdings page', () => {
     await expect(broker).toBeVisible();
     expect(errors).toEqual([]);
     await expectNoViolations(page, violations);
+  });
+
+  test('the "L" key toggles lot detail, following the Lots row', async ({ page }) => {
+    const errors = watchPageErrors(page);
+    await page.goto(URL + '/holdings');
+    const lotCells = page.locator('.report-table td.account.lot');
+    await expect(lotCells).toHaveCount(0);
+    await page.locator('body').press('L');
+    await expect(page).toHaveURL(/lots=1/);
+    await expect(lotCells.first()).toBeVisible();
+    await page.locator('body').press('L');
+    await expect(page).not.toHaveURL(/lots=1/);
+    expect(errors).toEqual([]);
   });
 
   test('flat view shows the shared account prefix once and dims each parent path', async ({ page }) => {

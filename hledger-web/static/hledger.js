@@ -101,6 +101,7 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'e': emptyAccountsToggle();                                      break;
       case 't': rowToggle('accounts', -1);                                  break;
       case 'H': rowToggle('accum', 1);                                      break;
+      case 'L': rowToggle('lots', 1);                                       break;
       case 'V': rowToggle('amounts', -1);                                   break;
       case 'B': rowToggle('amounts', 1);                                    break;
       case 'R': rowToggle('postings', 1);                                   break;

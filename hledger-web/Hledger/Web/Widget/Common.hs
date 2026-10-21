@@ -407,10 +407,11 @@ costsLinks trs route kept on =
 
 -- | Links that show or hide lot detail: each holding's individual lots,
 -- shown as lot subaccounts (the lots parameter; 1 shows them).
+-- The L key toggles between them (hledger.js).
 lotsLinks :: Translations -> r -> [(Text, Text)] -> Bool -> HtmlUrl r
 lotsLinks trs route kept on =
   -- TRANSLATORS: the label before a report's lot detail links, and the links' text and tooltips.
-  linksRow (tr trs "Lots:")
+  linksRowClass "lots" (tr trs "Lots:")
     [ (trc trs "lots" "Hidden", tr trs "Aggregate each account's lots", (route, kept), not on)
     , (trc trs "lots" "Shown", tr trs "Show each lot separately (--lots)", (route, kept ++ [("lots", "1")]), on)
     ]
