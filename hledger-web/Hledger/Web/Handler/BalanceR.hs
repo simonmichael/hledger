@@ -165,7 +165,7 @@ getBalanceR = do
         Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
         for_ pctErr $ Yesod.toWidget . pctError trs
-        Yesod.toWidget $ reportTable isTree False mfold header [(acctsPrefix, body', [])] totals
+        Yesod.toWidget $ reportTable isTree mfold header [(acctsPrefix, body', [])] totals
 
 -- | The heading for a report: --title if one was given, otherwise the
 -- given default.

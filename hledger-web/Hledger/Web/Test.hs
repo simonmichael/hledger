@@ -398,6 +398,8 @@ hledgerWebTest = do
       -- the account names' shared prefix is a group heading, rows show the rest
       bodyContains "scope=\"rowgroup\">assets</th>"
       bodyContains ">broker</a>"
+      -- with lots hidden, the Depth row stops at the deepest real account
+      bodyNotContains "depth%3A2"
 
     yit "shows one row per lot with lots=1" $ do
       request $ do
@@ -409,6 +411,9 @@ hledgerWebTest = do
       bodyContains "class=\"account acct-split lot\""
       -- with every lot under one account, that account is the group heading
       bodyContains "scope=\"rowgroup\">assets:broker</th>"
+      -- lot subaccounts are ordinary accounts to the Depth row, which
+      -- now reaches one level deeper, as in hledger-ui
+      bodyContains "depth%3A2"
 
     yit "shows closed positions with closed=1" $ do
       request $ do

@@ -31,12 +31,12 @@ import Hledger.Web.Widget.Common
 -- | The holdings view: investment holdings and their performance at the
 -- report end date, as the holdings command shows them. In tree mode the
 -- positions are grouped under account heading rows. With lots=1, each
--- position's lots are shown: one row per lot in list mode, or folded
--- under their position in tree mode.
+-- position's lots are shown: one row per lot in list mode, or beneath
+-- their position in tree mode.
 getHoldingsR :: Handler Html
 getHoldingsR = do
   checkServerSideUiEnabled
-  VD{jfull, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{j, jfull, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
@@ -44,7 +44,9 @@ getHoldingsR = do
   let withFilter t = if q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
-      deepest = deepestDepth jfull
+      -- The journal as displayed: with lots shown it includes the lot
+      -- subaccounts, so the Depth row extends to them, as in hledger-ui.
+      deepest = deepestDepth j
       -- Fully closed positions are hidden by default, as on the command
       -- line; the closed parameter (or startup -E) shows them. They have
       -- their own parameter because the empty parameter keeps its usual
@@ -201,7 +203,7 @@ getHoldingsR = do
             -- sections (see holdingsTreeLines): heading rows showing each
             -- account's subtree totals, its positions named by their
             -- commodity beneath it, and with lots shown, each position's
-            -- lots beneath it, starting folded.
+            -- lots beneath it.
             lineRow (HoldingsHeading d acct disp tot) = headingRow d disp acct tot
             lineRow (HoldingsPosition d acct disp islot h)
               | isTree    = holdingRow (treecell d cls disp acct) h
@@ -279,4 +281,4 @@ getHoldingsR = do
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
         Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
-        Yesod.toWidget $ reportTable isTree (isTree && lotsShown) mfold header [(mprefixHeading, body, [])] totals
+        Yesod.toWidget $ reportTable isTree mfold header [(mprefixHeading, body, [])] totals

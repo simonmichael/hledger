@@ -192,7 +192,7 @@ statementPage here tabtitle spec = do
         for_ pctErr $ Yesod.toWidget . pctError trs
         if empty
           then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)
-          else Yesod.toWidget $ reportTable isTree False mfold [header] sections (relink cbrpNetRows)
+          else Yesod.toWidget $ reportTable isTree mfold [header] sections (relink cbrpNetRows)
 
 -- | What an empty statement shows instead of a table: that its accounts
 -- all have zero balances, which are hidden; or, for the whole journal,

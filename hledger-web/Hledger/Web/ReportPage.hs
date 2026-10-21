@@ -501,7 +501,9 @@ paramError trs = \case
       H.toHtml $ tr trs "This report is at a single date, so value=then does not apply: use value=end, value=now, or a date."
 
 -- | The deepest account depth a report page can show: that of the
--- journal's deepest account.
+-- journal's deepest account. The journal as displayed with lots shown
+-- includes the lot subaccounts, which are ordinary accounts here, so
+-- the Depth row extends to them, as in hledger-ui.
 deepestDepth :: Journal -> Int
 deepestDepth j = maximum (0 : map accountNameLevel (journalAccountNames j))
 
@@ -575,21 +577,18 @@ splitAccountNames rws = (mprefix, map (map split) rws)
 -- hledger.css; bootstrap's .table-responsive does that only on a phone).
 -- In tree mode the rows carry depth classes, the indent becomes css
 -- padding so hledger.js can put a fold caret at each group, and the
--- table says what depth to fold to initially, if any. With foldLots,
--- it also says that groups of lot rows start folded into their
--- position row (data-fold-lots; see reportTreeInit).
+-- table says what depth to fold to initially, if any.
 reportTable ::
-  Bool -> Bool -> Maybe Int ->
+  Bool -> Maybe Int ->
   [[Cell NumLines Text]] -> [(Maybe Text, [[Cell NumLines Text]], [[Cell NumLines Text]])] -> [[Cell NumLines Text]] -> Html
-reportTable isTree foldLots mfold header sections footer =
+reportTable isTree mfold header sections footer =
   H.div ! A.class_ "table-responsive report-table" $
     maybe id (\n t -> t ! H.dataAttribute "depth-fold" (H.toValue n)) mfold
-      (foldlotsattr $ H.table ! A.class_ "balancereport table table-condensed") $ do
+      (H.table ! A.class_ "balancereport table table-condensed") $ do
       H.thead $ rows Nothing header
       traverse_ section sections
       unless (null footer) $ H.tfoot $ rows Nothing footer
   where
-    foldlotsattr t = if foldLots then t ! H.dataAttribute "fold-lots" "1" else t
     ncols = maybe 1 length $ listToMaybe header
     section (mtitle, body, subtotals) =
       H.tbody $ do

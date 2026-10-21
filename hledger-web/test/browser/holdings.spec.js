@@ -1,7 +1,7 @@
 // Browser tests for the /holdings page: in tree mode positions group
 // under account heading rows that subtotal the dollar columns, and with
-// lots=1 each position's lots start folded into it (data-fold-lots +
-// reportTreeInit) and the caret opens them in place; a lot row's account
+// lots=1 each position's lots are shown beneath it, the caret and a
+// depth limit folding them in place (reportTreeInit); a lot row's account
 // link reaches that lot's register, quoting the lot subaccount name -
 // including its auto label's double quotes - so the query round-trips;
 // and the flat view shows the account names' shared prefix once, as a
@@ -54,7 +54,7 @@ test.afterAll(() => {
 
 test.describe('holdings page', () => {
 
-  test('tree mode folds lots into their position, and the caret opens them', async ({ page }) => {
+  test('tree mode shows lots under their position; the caret and a depth fold them', async ({ page }) => {
     const violations = await watchViolations(page);
     const errors = watchPageErrors(page);
     await page.goto(URL + '/holdings?list=tree&lots=1');
@@ -62,21 +62,26 @@ test.describe('holdings page', () => {
     await expect(lotRows).toHaveCount(2);
     // the same-date lots were auto-labeled
     await expect(lotRows.first()).toContainText('"0001"');
-    // the lots start folded into the position row...
-    await expect(lotRows.first()).toBeHidden();
-    await expect(lotRows.last()).toBeHidden();
-    // ...whose caret shows it is closed, and opens them in place
-    const broker = page.locator('.report-table tr', { has: page.locator('td.account.depth-1 a', { hasText: /^broker$/ }) });
-    // the boring parent is squashed into its child, as on the command line
-    await expect(page.locator('td.account.depth-1 a', { hasText: 'other:broker2' })).toBeVisible();
-    await expect(broker.locator('.tree-caret')).toHaveText('▸');
-    await broker.locator('.tree-caret').click();
+    // the lots start shown beneath their position row...
     await expect(lotRows.first()).toBeVisible();
     await expect(lotRows.last()).toBeVisible();
-    // the position row's units are its lots' sum, so the fold reconciles
+    // ...whose units are its lots' sum, so the group reconciles
+    const broker = page.locator('.report-table tr', { has: page.locator('td.account.depth-1 a', { hasText: /^broker$/ }) });
     await expect(broker).toContainText('5 AAA');
     await expect(lotRows.first()).toContainText('2 AAA');
     await expect(lotRows.last()).toContainText('3 AAA');
+    // the boring parent is squashed into its child, as on the command line
+    await expect(page.locator('td.account.depth-1 a', { hasText: 'other:broker2' })).toBeVisible();
+    // the position's caret folds its lots in place
+    await expect(broker.locator('.tree-caret')).toHaveText('▾');
+    await broker.locator('.tree-caret').click();
+    await expect(lotRows.first()).toBeHidden();
+    await expect(lotRows.last()).toBeHidden();
+    // lot subaccounts are ordinary accounts to a depth limit, as in
+    // hledger-ui: a depth above them folds them from the start
+    await page.goto(URL + '/holdings?list=tree&lots=1&q=depth:2');
+    await expect(lotRows.first()).toBeHidden();
+    await expect(broker).toBeVisible();
     expect(errors).toEqual([]);
     await expectNoViolations(page, violations);
   });
@@ -119,8 +124,7 @@ test.describe('holdings page', () => {
 
   test("a lot row's register link round-trips its quoted name", async ({ page }) => {
     await page.goto(URL + '/holdings?list=tree&lots=1');
-    // open the folded lots, then follow the labeled lot's register link
-    await page.locator('td.account.depth-1', { has: page.locator('a', { hasText: /^broker$/ }) }).locator('.tree-caret').click();
+    // follow the labeled lot's register link
     await page.locator('td.account.lot a', { hasText: '"0001"' }).click();
     await expect(page).toHaveURL(/register/);
     await expect(page.locator('h2')).toContainText('{2026-01-01, "0001", $10.00}');

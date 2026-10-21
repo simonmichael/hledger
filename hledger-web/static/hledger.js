@@ -432,7 +432,6 @@ function depthSet(n) {
 function reportTreeInit() {
   document.querySelectorAll('.report-table table').forEach(function(table) {
     var fold = parseInt(table.getAttribute('data-depth-fold') || '', 10);
-    var foldlots = table.hasAttribute('data-fold-lots');
     table.querySelectorAll('tbody').forEach(function(tbody) {
       var rows = [];
       tbody.querySelectorAll('tr').forEach(function(tr) {
@@ -443,9 +442,6 @@ function reportTreeInit() {
       rows.forEach(function(r, i) {
         r.parent = i + 1 < rows.length && rows[i + 1].depth > r.depth;
         if (!isNaN(fold)) { r.expanded = r.depth < fold - 1; }
-        // with data-fold-lots, a group of lot rows starts folded into its
-        // position row (lots are always leaves, so the first child decides)
-        if (foldlots && r.parent && rows[i + 1].td.classList.contains('lot')) { r.expanded = false; }
         var caret = document.createElement('span');
         caret.className = 'tree-caret';
         r.td.insertBefore(caret, r.td.firstChild);
