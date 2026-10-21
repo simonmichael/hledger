@@ -279,8 +279,8 @@ zeroBalanceLinks trs route kept dfltHidden hidden =
 $newline never
 <p .report-links .zero-balances>
   <span .row-label>#{tr trs "Zero balances:"}
-  <a href=@?{link False} :not hidden:.current title=#{tr trs "Show accounts whose balances are zero"}>#{tr trs "Shown"}
   <a href=@?{link True} :hidden:.current title=#{tr trs "Hide accounts whose balances are zero"}>#{tr trs "Hidden"}
+  <a href=@?{link False} :not hidden:.current title=#{tr trs "Show accounts whose balances are zero"}>#{tr trs "Shown"}
 |]
   where link h = (route, kept ++ [("empty", if h then "0" else "1") | h /= dfltHidden])
 
