@@ -198,8 +198,16 @@ which work when you are not typing in a field:
 - `j` - go to the journal view
 - `a` or `n` - add a transaction (escape to cancel)
 - `s` - show or hide the sidebar
+- `o` - show or hide the report options
 - `e` - show or hide empty accounts in the sidebar
-- `f` - focus the search form
+- `t` - show accounts as a tree, or a list
+- `H` - show ending balances, or balance changes
+- `V` - show amounts at market value, or as recorded
+- `B` - show amounts at cost, or as recorded
+- `R` - show only real postings, or all
+- `U`, `P`, `C` - show only unmarked, pending, or cleared transactions, or all
+- `0`-`9`, `-`, `+` - set or adjust the account depth limit
+- `f` or `/` - focus the search form
 
 The pages are light or dark, following your OS or browser's color scheme setting,
 and switch when it changes.

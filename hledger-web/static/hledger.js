@@ -89,14 +89,28 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.ctrlKey || e.metaKey || e.altKey) { return; }
     if (e.target.closest('input, textarea, select')) { return; }
     if (document.querySelector('dialog[open]')) { return; }
+    if (e.key >= '0' && e.key <= '9') {
+      if (depthSet(e.key)) { e.preventDefault(); }
+      return;
+    }
     switch (e.key) {
       case 'h': case '?': helpToggle();                                     break;
       case 'j': journalGo();                                                break;
       case 's': sidebarToggle();                                            break;
-      case 'c': controlsToggle();                                           break;
+      case 'o': controlsToggle();                                           break;
       case 'e': emptyAccountsToggle();                                      break;
+      case 't':           rowToggle('accounts', -1);                        break;
+      case 'H':           rowToggle('accum', 1);                            break;
+      case 'v': case 'V': rowToggle('amounts', -1);                         break;
+      case 'b': case 'B': rowToggle('amounts', 1);                          break;
+      case 'r': case 'R': rowToggle('postings', 1);                         break;
+      case 'u': case 'U': rowToggle('status', 1);                           break;
+      case 'p': case 'P': rowToggle('status', 2);                           break;
+      case 'c': case 'C': rowToggle('status', 3);                           break;
+      case '-': case '_': depthAdjust(-1);                                  break;
+      case '+': case '=': depthAdjust(1);                                   break;
       case 'a': case 'n': addformShow();                                    break;
-      case 'f': focusSearch();                                              break;
+      case 'f': case '/': focusSearch();                                    break;
       default: return;
     }
     e.preventDefault();
@@ -350,6 +364,51 @@ function emptyAccountsToggle() {
   // the page's empty parameter, so showing or hiding is a navigation.
   var other = document.querySelector('.zero-balances a:not(.current)');
   if (other) { location.href = other.href; }
+}
+
+function rowToggle(rowCls, idx) {
+  // hledger-ui's toggling keys, on a row of control links: follow the
+  // link at idx (negative counts from the end), or when it is already
+  // current, the row's first link, which shows the default. Each row
+  // builder says which position its keys rely on (Widget.Common).
+  var links = document.querySelectorAll('#main-content .' + rowCls + ' a');
+  if (!links.length) { return; }
+  var target = links[idx < 0 ? links.length + idx : idx];
+  if (!target) { return; }
+  location.href = (target.classList.contains('current') ? links[0] : target).href;
+}
+
+function depthAdjust(delta) {
+  // The - and + keys step the depth limit through the Depth row's
+  // links, whose order is: no limit first, then each depth ascending.
+  // Stepping past either end leaves or reaches the no-limit state.
+  var links = document.querySelectorAll('#main-content .depth a');
+  if (!links.length) { return; }
+  var cur = -1;
+  links.forEach(function(a, i) { if (a.classList.contains('current')) { cur = i; } });
+  if (cur < 0) { return; }  // a depth outside the row's range, eg depth:0
+  var next;
+  if (cur === 0) {
+    next = delta < 0 ? links.length - 1 : cur;  // shallower than no limit is the deepest
+  } else {
+    next = cur + delta;
+    if (next < 1) { next = cur; }               // already the shallowest link
+    if (next >= links.length) { next = 0; }     // deeper than the deepest: no limit
+  }
+  if (next !== cur) { location.href = links[next].href; }
+}
+
+function depthSet(n) {
+  // The digit keys set the depth limit, like hledger-ui's: the Depth
+  // row's All link carries the page's url without a depth term, so the
+  // new term is appended to its search without parsing it.
+  var all = document.querySelector('#main-content .depth a');
+  if (!all) { return false; }
+  var url = new URL(all.href);
+  var q = url.searchParams.get('q');
+  url.searchParams.set('q', (q ? q + ' ' : '') + 'depth:' + n);
+  location.href = url.href;
+  return true;
 }
 
 // Tree-mode report rows carry depth-N classes (and the table the depth

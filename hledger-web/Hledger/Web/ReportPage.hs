@@ -63,7 +63,7 @@ import Yesod (HtmlUrl)
 import Hledger.Utils.I18n (Translations, tr, trc, trf)
 import Hledger
 import Hledger.Cli.Anchor (dateTerm, renderPeriodHeading)
-import Hledger.Web.Widget.Common (AmountMode(..), accumWord, linksRow, listWord, removeDates, valueWord)
+import Hledger.Web.Widget.Common (AmountMode(..), accumWord, linksRow, linksRowClass, listWord, removeDates, valueWord)
 import Hledger.Query qualified as Query
 import Hledger.Write.Html (Html, formatCell, nl)
 import Hledger.Write.Spreadsheet (Cell(..), Class(..), NumLines, textFromClass)
@@ -321,8 +321,9 @@ intervalLinks trs route kept qparam spn current =
 -- shown is marked.
 accumulationLinks :: Translations -> r -> [(Text, Text)] -> BalanceAccumulation -> BalanceAccumulation -> HtmlUrl r
 accumulationLinks trs route kept dflt current =
+  -- The H key toggles Ending balances, the second link (hledger.js).
   -- TRANSLATORS: the label before a report's accumulation mode links, and the links' text and tooltips.
-  linksRow (tr trs "Show:")
+  linksRowClass "accum" (tr trs "Show:")
     [ (tr trs "Balance changes", tr trs "Show how much each balance changed in each period",
         link PerPeriod, current == PerPeriod)
     , (tr trs "Ending balances", tr trs "Show each balance at the end of each period, including everything before it",

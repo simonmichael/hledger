@@ -688,7 +688,7 @@ hledgerWebTest = do
       get BalanceR
       statusIs 200
       bodyContains "<details class=\"report-controls\">"
-      bodyContains ">Controls</summary>"
+      bodyContains ">Options</summary>"
       -- a single-commodity journal gets no commodity row (positive
       -- control: the amount conversion group's multi-commodity journal)
       bodyNotContains ">Commodity:"

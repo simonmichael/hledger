@@ -12,6 +12,7 @@ module Hledger.Web.Widget.Common
   , controlsToggle
   , inertControls
   , linksRow
+  , linksRowClass
   , pricesLinks
   , commodityLinks
   , depthLinks
@@ -142,8 +143,13 @@ balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty to
 -- sentence: an adjective that fits one language's sentence does not fit
 -- another's, so a translation cannot be assembled from parts.
 linksRow :: Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
-linksRow rowlabel items renderUrl =
-    H.p ! A.class_ "report-links" $ do
+linksRow = linksRowClass ""
+
+-- | 'linksRow' with an extra class on the row: a hook for hledger.js's
+-- keyboard shortcuts.
+linksRowClass :: Text -> Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
+linksRowClass cls rowlabel items renderUrl =
+    H.p ! A.class_ (H.toValue $ T.unwords $ "report-links" : [cls | not (T.null cls)]) $ do
       H.span ! A.class_ "row-label" $ H.toHtml rowlabel
       for_ items $ \(label, title, link, current) ->
         H.a !? (current, A.class_ "current")
@@ -161,7 +167,7 @@ controlsToggle trs open rows =
   -- TRANSLATORS: the disclosure hiding each page's rows of report controls: its text, and its tooltip.
   [hamlet|
 <details .report-controls :open:open>
-  <summary title=#{tr trs "Show the controls that reshape this view"}>#{tr trs "Controls"}
+  <summary title=#{tr trs "Show the options that reshape this view"}>#{tr trs "Options"}
   ^{rows}
 |]
 
@@ -228,10 +234,11 @@ valueWord = \case
 -- that removes the limit. Each replaces the search's depth limit and
 -- keeps its other terms and the given parameters; the depth being shown
 -- is marked. (A depth:0 term, a single total, can be typed in the search.)
+-- The digit keys set a depth through the All link's url (hledger.js).
 depthLinks :: Translations -> r -> [(Text, Text)] -> Text -> Int -> HtmlUrl r
 depthLinks trs route kept qparam deepest =
   -- TRANSLATORS: the label before a report's depth links, and the links' text and tooltips.
-  linksRow (tr trs "Depth:") $
+  linksRowClass "depth" (tr trs "Depth:") $
     (trc trs "depth" "All", tr trs "Show accounts at every depth", link Nothing, maybe True (>= deepest) current)
     : [ (T.pack (show n), depthTitle n, link (Just n), current == Just n)
       | n <- [1 .. deepest - 1] ]
@@ -245,11 +252,13 @@ depthLinks trs route kept qparam deepest =
 -- | Links to the same report page showing amounts as recorded, at cost,
 -- or at market value, keeping the given parameters; the mode being
 -- shown, if it is one of these, is marked. The page's default mode, the
--- startup one, needs no parameter.
+-- startup one, needs no parameter. The V key toggles between the first
+-- link (as recorded) and the last (market value), and B the second, at
+-- cost (hledger.js).
 amountLinks :: Translations -> r -> [(Text, Text)] -> Maybe AmountMode -> Maybe AmountMode -> HtmlUrl r
 amountLinks trs route kept startup current =
   -- TRANSLATORS: the label before a report's amount conversion links, and the links' text and tooltips.
-  linksRow (tr trs "Amounts:")
+  linksRowClass "amounts" (tr trs "Amounts:")
     [ (label, title, (route, kept ++ [("value", valueWord m) | Just m /= startup]), Just m == current)
     | (label, title, m) <-
         [ (tr trs "As recorded",     tr trs "Show amounts in the commodities they were recorded in", AsRecorded)
@@ -280,9 +289,9 @@ $newline never
 -- own term, or removes them, keeping the search's other terms and the
 -- given parameters. The link whose term the search has is marked, or the
 -- removing link when it has none.
-queryTermRow :: r -> [(Text, Text)] -> Text -> (Text -> Bool) -> Text -> [(Text, Text, Maybe Text)] -> HtmlUrl r
-queryTermRow route kept qparam owns rowlabel items =
-  linksRow rowlabel [ (label, title, link mterm, current mterm) | (label, title, mterm) <- items ]
+queryTermRow :: r -> [(Text, Text)] -> Text -> (Text -> Bool) -> Text -> Text -> [(Text, Text, Maybe Text)] -> HtmlUrl r
+queryTermRow route kept qparam owns cls rowlabel items =
+  linksRowClass cls rowlabel [ (label, title, link mterm, current mterm) | (label, title, mterm) <- items ]
   where
     terms = searchTerms qparam
     rest = map quoteIfSpaced $ filter (not . owns) terms
@@ -291,11 +300,12 @@ queryTermRow route kept qparam owns rowlabel items =
       (route, [("q", t) | let t = T.unwords $ rest ++ map quoteIfSpaced (maybeToList mterm), not (T.null t)] ++ kept)
 
 -- | Links filtering by transaction status, as hledger-ui's U, P, and C
--- keys do: each rewrites the status: term in the search.
+-- keys do: each rewrites the status: term in the search. The same keys
+-- follow them, by their order here (hledger.js).
 statusLinks :: Translations -> r -> [(Text, Text)] -> Text -> HtmlUrl r
 statusLinks trs route kept qparam =
   -- TRANSLATORS: the label before a report's status filter links, and the links' text and tooltips.
-  queryTermRow route kept qparam (T.isPrefixOf "status:") (tr trs "Status:")
+  queryTermRow route kept qparam (T.isPrefixOf "status:") "status" (tr trs "Status:")
     [ (trc trs "status" "All", tr trs "Show transactions of any status", Nothing)
     , (tr trs "Unmarked", tr trs "Show only unmarked transactions (status:)",     Just "status:")
     , (tr trs "Pending",  tr trs "Show only pending transactions (status:!)",    Just "status:!")
@@ -303,11 +313,12 @@ statusLinks trs route kept qparam =
     ]
 
 -- | Links filtering to real or virtual postings: each rewrites the
--- real: term in the search.
+-- real: term in the search. The R key toggles Real, the second link
+-- (hledger.js).
 realLinks :: Translations -> r -> [(Text, Text)] -> Text -> HtmlUrl r
 realLinks trs route kept qparam =
   -- TRANSLATORS: the label before a report's real/virtual filter links, and the links' text and tooltips.
-  queryTermRow route kept qparam (T.isPrefixOf "real:") (tr trs "Postings:")
+  queryTermRow route kept qparam (T.isPrefixOf "real:") "postings" (tr trs "Postings:")
     [ (trc trs "postings" "All", tr trs "Show real and virtual postings", Nothing)
     , (tr trs "Real",    tr trs "Show only real postings, as -R does (real:1)", Just "real:1")
     , (tr trs "Virtual", tr trs "Show only virtual postings, the parenthesized ones (real:0)", Just "real:0")
@@ -315,11 +326,12 @@ realLinks trs route kept qparam =
 
 -- | Links showing the report's accounts as a flat list or a tree,
 -- keeping the given parameters; the mode being shown is marked, and
--- the page's default mode, the startup one, needs no parameter.
+-- the page's default mode, the startup one, needs no parameter. The t
+-- key toggles them (hledger.js).
 listModeLinks :: Translations -> r -> [(Text, Text)] -> AccountListMode -> AccountListMode -> HtmlUrl r
 listModeLinks trs route kept dflt mode =
   -- TRANSLATORS: the label before a report's list/tree links, and the links' text and tooltips.
-  linksRow (tr trs "Accounts:")
+  linksRowClass "accounts" (tr trs "Accounts:")
     [ (trc trs "accounts" "List", tr trs "Show accounts as a flat list (--flat)", link ALFlat, mode == ALFlat)
     , (trc trs "accounts" "Tree", tr trs "Show accounts as a tree (--tree)", link ALTree, mode == ALTree)
     ]

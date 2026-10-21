@@ -221,17 +221,28 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('"c" toggles the report controls, like clicking their summary', async ({ page }) => {
+  test('"o" toggles the report options, like clicking their summary', async ({ page }) => {
     await page.goto('/journal');
     const details = page.locator('#main-content details.report-controls');
     await expect(details.locator('p.report-links').first()).toBeHidden();
-    await page.locator('body').press('c');
+    await page.locator('body').press('o');
     await expect(details.locator('p.report-links').first()).toBeVisible();
     // the choice is saved like a click's, from the toggle event
     await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
-    await page.locator('body').press('c');
+    await page.locator('body').press('o');
     await expect(details.locator('p.report-links').first()).toBeHidden();
     await page.waitForFunction(() => document.cookie.includes('showcontrols=0'));
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('the report keys follow control links: digits set depth, "v" value, "t" tree', async ({ page }) => {
+    await page.goto('/balance');
+    await page.locator('body').press('3');
+    await expect(page).toHaveURL(/depth%3A3/);
+    await page.locator('body').press('v');
+    await expect(page).toHaveURL(/value=end/);
+    await page.locator('body').press('t');
+    await expect(page).toHaveURL(/list=tree/);
     expect(pageErrors).toEqual([]);
   });
 
