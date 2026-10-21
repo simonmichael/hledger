@@ -260,18 +260,22 @@ intervalPeriodExpr = \case
   Quarters n -> Just $ every n "quarters"
   Years n    -> Just $ every n "years"
   MonthDay n             -> Just $ "every " <> ordinal n <> " day of month"
-  NthWeekdayOfMonth n wd -> Just $ "every " <> ordinal n <> " " <> weekdayName wd <> " of month"
+  NthWeekdayOfMonth n wd -> (\name -> "every " <> ordinal n <> " " <> name <> " of month") <$> weekdayName wd
   MonthAndDay m d        -> Just $ "every " <> T.pack (show m) <> "/" <> T.pack (show d)
   DaysOfWeek [1,2,3,4,5] -> Just "every weekday"
   DaysOfWeek [6,7]       -> Just "every weekendday"
-  DaysOfWeek ds          -> Just $ "every " <> T.intercalate "," (map weekdayName ds)
+  DaysOfWeek []          -> Nothing
+  DaysOfWeek ds          -> ("every " <>) . T.intercalate "," <$> traverse weekdayName ds
   where
     every n unit = "every " <> T.pack (show n) <> " " <> unit
     ordinal n = T.pack (show n) <> suffix
       where
         suffix | n `mod` 100 `elem` [11, 12, 13] = "th"
                | otherwise = case n `mod` 10 of 1 -> "st"; 2 -> "nd"; 3 -> "rd"; _ -> "th"
-    weekdayName d = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"] !! (d - 1)
+    -- The period parser accepts any day number in "every Nth day of
+    -- week", so days outside 1-7 arrive here: they have no name, and
+    -- their interval yields no period expression.
+    weekdayName d = lookup d $ zip [1..] ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
 
 -- | Links to the report pages, given as route, label, and title,
 -- keeping the given parameters; the page being shown is marked.

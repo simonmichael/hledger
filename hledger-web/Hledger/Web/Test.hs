@@ -62,7 +62,7 @@ import Web.Cookie (defaultSetCookie, setCookieName, setCookieValue)
 
 import Hledger.Web.Application ( makeAppWith )
 import Hledger.Web.Paging (pageNumbers)
-import Hledger.Web.ReportPage (startupUrlState)
+import Hledger.Web.ReportPage (intervalPeriodExpr, startupUrlState)
 import Hledger.Web.WebOptions  -- ( WebOpts(..), defwebopts, prognameandversion )
 import Hledger.Web.Import hiding (get, j)
 import Hledger.Web.Widget.Common (transactionFragment)
@@ -715,6 +715,32 @@ hledgerWebTest = do
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=type%3AL\" title=\"Show only liability accounts (type:L)\"")
       bodyContains ("<a href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show accounts of every type\"")
       bodyContains "Shift-click selects several types."
+
+    yit "survives a period whose weekday is out of range" $ do
+      -- the period parser accepts this; naming the ninth weekday used
+      -- to crash the page (#2771 review)
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "period" "every 9th day of week"
+      statusIs 200
+
+    -- intervalPeriodExpr is the period parser's interval syntax in
+    -- reverse; parsing back what it emits keeps them from drifting.
+    yit "emits period expressions the period parser reads back" $ do
+      let readBack i = case intervalPeriodExpr i of
+            Nothing -> Left ("no period expression for " ++ show i)
+            Just t -> case parsePeriodExpr (fromGregorian 2026 1 1) t of
+              Left _ -> Left (show i ++ " emitted unparseable " ++ T.unpack t)
+              Right (i', _) -> Right i'
+      mapM_ (\i -> assertEq "the interval round-trips" (Right i) (readBack i))
+        [ Days 1, Days 2, Weeks 1, Weeks 3, Months 1, Months 6, Quarters 1, Years 1, Years 2
+        , MonthDay 1, MonthDay 22, NthWeekdayOfMonth 2 3, MonthAndDay 6 15
+        , DaysOfWeek [1,2,3,4,5], DaysOfWeek [6,7], DaysOfWeek [2,4] ]
+      -- weekdays the parser accepts but the week lacks have no names:
+      -- no period expression, rather than a crash
+      assertEq "no ninth weekday" Nothing (intervalPeriodExpr (DaysOfWeek [9]))
+      assertEq "no empty weekday list" Nothing (intervalPeriodExpr (DaysOfWeek []))
 
     yit "uses --title for the heading, unaltered" $ do
       get BalanceR
