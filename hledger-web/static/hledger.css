@@ -217,6 +217,15 @@ div.commodities summary > .row-label {
 details.report-controls {
   margin: 10px 0;
 }
+/* Open, the controls read as a panel: the hover tint and the header
+   rule's color, both already defined per color scheme. */
+details.report-controls[open] {
+  background: var(--row-hover, #f6f8fa);
+  border: 1px solid var(--header-rule, #e6e8eb);
+  border-radius: 6px;
+  padding: 8px 14px 2px;
+  margin-bottom: 16px;
+}
 details.report-controls > summary {
   cursor: pointer;
   width: max-content;
@@ -225,6 +234,8 @@ details.report-controls > summary::before {
   content: "▸";
   display: inline-block;
   width: 1.1em;
+  font-size: 1.25em;
+  line-height: 1;
   color: var(--link, #337ab7);
 }
 details.report-controls[open] > summary::before {
