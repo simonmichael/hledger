@@ -237,18 +237,22 @@ valueWord = \case
   where comm = maybe "" ("," <>)
 
 -- | Links to the same report page limited to each account depth, from 1
--- up to (but not including) the given deepest one, after an All link
--- that removes the limit. Each replaces the search's depth limit and
+-- up to and including the given deepest one, after an All link that
+-- removes the limit. The deepest link shows the same accounts as All,
+-- but holds the depth in the query, where it keeps clipping if showing
+-- lots deepens the tree. Each replaces the search's depth limit and
 -- keeps its other terms and the given parameters; the depth being shown
--- is marked. (A depth:0 term, a single total, can be typed in the search.)
+-- is marked, on All when the search's depth exceeds the deepest, as
+-- hledger-ui's digits treat one. (A depth:0 term, a single total, can
+-- be typed in the search.)
 -- The digit keys set a depth through the All link's url (hledger.js).
 depthLinks :: Translations -> r -> [(Text, Text)] -> Text -> Int -> HtmlUrl r
 depthLinks trs route kept qparam deepest =
   -- TRANSLATORS: the label before a report's depth links, and the links' text and tooltips.
   linksRowClass "depth" (tr trs "Depth:") $
-    (trc trs "depth" "All", tr trs "Show accounts at every depth", link Nothing, maybe True (>= deepest) current)
+    (trc trs "depth" "All", tr trs "Show accounts at every depth", link Nothing, maybe True (> deepest) current)
     : [ (T.pack (show n), depthTitle n, link (Just n), current == Just n)
-      | n <- [1 .. deepest - 1] ]
+      | n <- [1 .. deepest] ]
   where
     current = searchDepth qparam
     -- TRANSLATORS: the tooltips of a report's depth links.

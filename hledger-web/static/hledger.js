@@ -404,7 +404,7 @@ function depthAdjust(delta) {
   if (cur < 0) { return; }  // a depth outside the row's range, eg depth:0
   var next;
   if (cur === 0) {
-    next = delta < 0 ? links.length - 1 : cur;  // shallower than no limit is the deepest
+    next = delta < 0 ? links.length - 2 : cur;  // shallower than no limit skips the deepest link, which shows the same
   } else {
     next = cur + delta;
     if (next < 1) { next = cur; }               // already the shallowest link

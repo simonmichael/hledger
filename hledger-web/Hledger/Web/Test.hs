@@ -400,8 +400,9 @@ hledgerWebTest = do
       bodyContains ">broker</a>"
       -- a position's register link filters to its commodity
       bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3AAAA\""
-      -- with lots hidden, the Depth row stops at the deepest real account
-      bodyNotContains "depth%3A2"
+      -- with lots hidden, the Depth row reaches the deepest real account
+      bodyContains "depth%3A2"
+      bodyNotContains "depth%3A3"
 
     yit "shows one row per lot with lots=1" $ do
       request $ do
@@ -415,7 +416,7 @@ hledgerWebTest = do
       bodyContains "scope=\"rowgroup\">assets:broker</th>"
       -- lot subaccounts are ordinary accounts to the Depth row, which
       -- now reaches one level deeper, as in hledger-ui
-      bodyContains "depth%3A2"
+      bodyContains "depth%3A3"
 
     yit "shows closed positions with closed=1" $ do
       request $ do
@@ -714,7 +715,7 @@ hledgerWebTest = do
       bodyContains "href=\"register?q=inacct:assets+depth:1\""
       bodyNotContains "href=\"register?q=inacct:assets:bank:checking"
 
-    yit "links to each depth above the deepest account's, replacing the search's depth term and keeping its others" $ do
+    yit "links to each depth, the deepest included, replacing the search's depth term and keeping its others" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
@@ -723,8 +724,10 @@ hledgerWebTest = do
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets\" title=\"Show accounts at every depth\">All</a>")
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A1\"")
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A2\"")
-      -- assets:bank:checking is at depth 3, the same as All
-      bodyNotContains "depth%3A3"
+      -- assets:bank:checking is at depth 3: its link shows the same
+      -- accounts as All, but holds the depth in the query
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A3\"")
+      bodyNotContains "depth%3A4"
 
     yit "squashes boring parents in tree mode, as the cli does" $ do
       request $ do
