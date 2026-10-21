@@ -26,6 +26,9 @@ module Hledger.Web.Widget.Common
   , percentLinks
   , calcLinks
   , costsLinks
+  , lotsLinks
+  , closedLinks
+  , holdingsValueLinks
   , typeLinks
   , AmountMode(..)
   , accumWord
@@ -123,12 +126,16 @@ balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty to
     indent a = preEscapedString $ concat $ replicate (2 + 2 * a) "&nbsp;"
     hasSubAccounts acct = maybe True (not . null . asubs) $ ledgerAccount l acct
     isInterestingAccount acct = maybe False isInteresting $ ledgerAccount l acct
-      where isInteresting a = not (all (mixedAmountLooksZero . bdexcludingsubs) . pdperiods $ adata a) || any isInteresting (asubs a)
+      -- Costs and cost bases are stripped before the zero test, since they
+      -- keep bought-and-fully-sold amounts from cancelling (eg a disposed
+      -- lot, +10 A @ one cost and -10 A at another), and the sidebar
+      -- displays such balances as zero.
+      where isInteresting a = not (all (mixedAmountLooksZero . mixedAmountStripCosts . bdexcludingsubs) . pdperiods $ adata a) || any isInteresting (asubs a)
     matchesAcctSelector acct = Just True == ((`matchesAccount` acct) <$> inAccountQuery qopts)
     -- The journal and register links keep the states those pages read:
-    -- the amounts mode, the accounts mode, inferred prices, and zero
-    -- balances; each link rewrites the search itself.
-    kept = [p | p@(k, _) <- reportParams, k `elem` ["value", "list", "infer", "empty"]]
+    -- the amounts mode, the accounts mode, inferred prices, zero
+    -- balances, and lot detail; each link rewrites the search itself.
+    kept = [p | p@(k, _) <- reportParams, k `elem` ["value", "list", "infer", "empty", "lots"]]
     acctlink acct = (registerR, ("q", replaceInacct qparam $ accountQuery acct) : kept)
     acctonlylink acct = (registerR, ("q", replaceInacct qparam $ accountOnlyQuery acct) : kept)
     -- The journal, and the register of everything, for the sidebar's
@@ -230,18 +237,22 @@ valueWord = \case
   where comm = maybe "" ("," <>)
 
 -- | Links to the same report page limited to each account depth, from 1
--- up to (but not including) the given deepest one, after an All link
--- that removes the limit. Each replaces the search's depth limit and
+-- up to and including the given deepest one, after an All link that
+-- removes the limit. The deepest link shows the same accounts as All,
+-- but holds the depth in the query, where it keeps clipping if showing
+-- lots deepens the tree. Each replaces the search's depth limit and
 -- keeps its other terms and the given parameters; the depth being shown
--- is marked. (A depth:0 term, a single total, can be typed in the search.)
+-- is marked, on All when the search's depth exceeds the deepest, as
+-- hledger-ui's digits treat one. (A depth:0 term, a single total, can
+-- be typed in the search.)
 -- The digit keys set a depth through the All link's url (hledger.js).
 depthLinks :: Translations -> r -> [(Text, Text)] -> Text -> Int -> HtmlUrl r
 depthLinks trs route kept qparam deepest =
   -- TRANSLATORS: the label before a report's depth links, and the links' text and tooltips.
   linksRowClass "depth" (tr trs "Depth:") $
-    (trc trs "depth" "All", tr trs "Show accounts at every depth", link Nothing, maybe True (>= deepest) current)
+    (trc trs "depth" "All", tr trs "Show accounts at every depth", link Nothing, maybe True (> deepest) current)
     : [ (T.pack (show n), depthTitle n, link (Just n), current == Just n)
-      | n <- [1 .. deepest - 1] ]
+      | n <- [1 .. deepest] ]
   where
     current = searchDepth qparam
     -- TRANSLATORS: the tooltips of a report's depth links.
@@ -394,6 +405,40 @@ costsLinks trs route kept on =
     , (trc trs "costs" "Shown", tr trs "Show amounts with the costs recorded in the journal", (route, kept ++ [("costs", "1")]), on)
     ]
 
+-- | Links that show or hide lot detail: each holding's individual lots,
+-- shown as lot subaccounts (the lots parameter; 1 shows them).
+-- The L key toggles between them (hledger.js).
+lotsLinks :: Translations -> r -> [(Text, Text)] -> Bool -> HtmlUrl r
+lotsLinks trs route kept on =
+  -- TRANSLATORS: the label before a report's lot detail links, and the links' text and tooltips.
+  linksRowClass "lots" (tr trs "Lots:")
+    [ (trc trs "lots" "Hidden", tr trs "Aggregate each account's lots", (route, kept), not on)
+    , (trc trs "lots" "Shown", tr trs "Show each lot separately (--lots)", (route, kept ++ [("lots", "1")]), on)
+    ]
+
+-- | Links that show or hide fully closed positions: commodities no
+-- longer held, with realized gains to show (the closed parameter;
+-- 1 shows them - the empty parameter keeps meaning zero balances).
+closedLinks :: Translations -> r -> [(Text, Text)] -> Bool -> Bool -> HtmlUrl r
+closedLinks trs route kept dfltHidden hidden =
+  -- TRANSLATORS: the label before the holdings page's closed-position links, and the links' text and tooltips.
+  linksRow (tr trs "Closed positions:")
+    [ (trc trs "closed" "Hidden", tr trs "Show only open positions", link True, hidden)
+    , (trc trs "closed" "Shown", tr trs "Also show fully disposed positions and their realized gains (-E)", link False, not hidden)
+    ]
+  where link h = (route, kept ++ [("closed", if h then "0" else "1") | h /= dfltHidden])
+
+-- | Links choosing how the holdings page values holdings: each lot in
+-- its own cost commodity (the default), or all in the market valuation
+-- commodity, as -V does.
+holdingsValueLinks :: Translations -> r -> [(Text, Text)] -> Bool -> HtmlUrl r
+holdingsValueLinks trs route kept valued =
+  -- TRANSLATORS: the label before the holdings page's valuation links, and the links' text and tooltips.
+  linksRow (tr trs "Values:")
+    [ (tr trs "Per cost commodity", tr trs "Value each holding in its own cost commodity", (route, kept), not valued)
+    , (tr trs "At market value", tr trs "Convert values and costs to the market valuation commodity (-V)", (route, kept ++ [("value", "end")]), valued)
+    ]
+
 -- | Links filtering to accounts of one or more types: a link rewrites
 -- the type: term in the search to its own type, and shift-clicking adds
 -- or removes a type (hledger.js), the selection carried as one
@@ -496,10 +541,10 @@ commodityLinks trs route kept qparam open hint j renderUrl
           (a, _) -> [a]
 
 accountQuery :: AccountName -> Text
-accountQuery = ("inacct:" <>) .  quoteIfSpaced
+accountQuery = ("inacct:" <>) . quoteForQuery
 
 accountOnlyQuery :: AccountName -> Text
-accountOnlyQuery = ("inacctonly:" <>) . quoteIfSpaced
+accountOnlyQuery = ("inacctonly:" <>) . quoteForQuery
 
 mixedAmountAsHtml :: MixedAmount -> HtmlUrl a
 mixedAmountAsHtml = mixedAmountAsHtmlWith noCostFmt{displayZeroCommodity=True}

@@ -99,7 +99,13 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
     -- boolopt "binary-filename" rawopts_ -> putStrLn (binaryfilename progname)
     | Just pat <- maybestringopt "test" rawopts_ ->
       withArgs ["--match=" <> pat | not $ null pat] hledgerWebTest
-    | otherwise                              -> withJournal copts (web wopts)
+    | otherwise                              -> do
+      -- always load the journal with full lot detail retained; the web app
+      -- collapses it per request for display (see JournalState), so the
+      -- uncollapsed journal stays available without re-reading files.
+      let copts' = copts{rawopts_ = setboolopt "lots" rawopts_}
+          wopts' = wopts{cliopts_ = copts'}
+      withJournal copts' (web wopts')
 
   when (ghcDebugMode == GDPauseAtEnd) $ ghcDebugPause'
 

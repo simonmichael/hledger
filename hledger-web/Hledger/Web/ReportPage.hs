@@ -94,7 +94,7 @@ data ReportParams = ReportParams {
 -- combination of parameters that contradict each other.
 data ReportParamError
   = BadPeriod String | BadAccum Text | BadValue Text | BadParamValue Text Text
-  | ValuechangeNeedsEnd | GainNotCost
+  | ValuechangeNeedsEnd | GainNotCost | ValueThenUnsupported
 
 -- | Resolve a report page's parameters: today's date, the startup report
 -- spec, the search parameter and its parsed query and options, whether
@@ -496,9 +496,14 @@ paramError trs = \case
   GainNotCost ->
     H.div ! A.class_ "alert alert-danger" $
       H.toHtml $ tr trs "Gains compare market value against cost, so they do not combine with value=cost."
+  ValueThenUnsupported ->
+    H.div ! A.class_ "alert alert-danger" $
+      H.toHtml $ tr trs "This report is at a single date, so value=then does not apply: use value=end, value=now, or a date."
 
 -- | The deepest account depth a report page can show: that of the
--- journal's deepest account.
+-- journal's deepest account. The journal as displayed with lots shown
+-- includes the lot subaccounts, which are ordinary accounts here, so
+-- the Depth row extends to them, as in hledger-ui.
 deepestDepth :: Journal -> Int
 deepestDepth j = maximum (0 : map accountNameLevel (journalAccountNames j))
 

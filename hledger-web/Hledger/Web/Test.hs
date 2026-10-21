@@ -337,6 +337,143 @@ hledgerWebTest = do
       bodyContains "id=\"transaction-2-1\""
       bodyContains "id=\"transaction-2-2\""
 
+  -- A journal with lot tracking enabled: two open AAA lots (FIFO), and
+  -- a fully disposed BBB position whose realised gain is $3.
+  let liopts = rawOptsToInputOpts d usecolor $ mkRawOpts []
+  lj <- fmap (either error' id) . runExceptT . journalFinalise liopts "lots.journal" "" =<<
+          readJournal'' (T.pack $ unlines  -- PARTIAL: readJournal'' should not fail
+            ["commodity AAA  ; lots:"
+            ,"commodity BBB  ; lots:"
+            ,"P 2026-01-31 AAA $12.00"
+            ,""
+            ,"2025-12-30 opening"  -- a second year, so the years row shows
+            ,"    assets:cash    $100.00"
+            ,"    equity:opening"
+            ,""
+            ,"2026-01-01 buy aaa"
+            ,"    assets:broker    2 AAA @ $10.00"
+            ,"    assets:cash    $-20.00"
+            ,""
+            ,"2026-01-15 buy more aaa"
+            ,"    assets:broker    2 AAA @ $11.00"
+            ,"    assets:cash    $-22.00"
+            ,""
+            ,"2026-01-16 buy bbb"
+            ,"    assets:broker    1 BBB @ $5.00"
+            ,"    assets:cash     $-5.00"
+            ,""
+            ,"2026-01-20 sell one aaa"
+            ,"    assets:broker   -1 AAA @ $12.00"
+            ,"    assets:cash     $12.00"
+            ,""
+            ,"2026-01-21 sell all bbb"
+            ,"    assets:broker   -1 BBB @ $8.00"
+            ,"    assets:cash      $8.00"
+            ])
+  runTests "hledger-web holdings page" [] lj $ do
+
+    yit "shows the holdings report, hiding closed positions by default" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("period", "2026")])
+      statusIs 200
+      bodyContains "Holdings on 2026-12-31"
+      bodyContains ">Avg cost<"
+      bodyContains "$32.00"   -- total cost: 1@10 + 2@11
+      bodyContains "$36.00"   -- total value: 3 AAA at the $12 market price
+      bodyContains "12.5%"    -- UGain%: 4/32
+      bodyContains "$5.00"    -- total RGain includes the closed BBB position
+      bodyNotContains "0 BBB" -- but its row is hidden without closed=1
+                              -- (the commodity filter row still offers BBB)
+      bodyContains "Holdings</a>"  -- and the journal has lots, so the menu links here
+      -- the controls sit behind the disclosure, with the report pages'
+      -- rows: years (setting the report date), status, real, type,
+      -- commodity, and prices
+      bodyContains "<details class=\"report-controls\">"
+      bodyContains "Years:"
+      bodyContains "Status:"
+      bodyContains "Type:"
+      bodyContains "Commodity:"
+      bodyContains "Prices:"
+      -- the account names' shared prefix is a group heading, rows show the rest
+      bodyContains "scope=\"rowgroup\">assets</th>"
+      bodyContains ">broker</a>"
+      -- a position's register link filters to its commodity
+      bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3AAAA\""
+      -- with lots hidden, the Depth row reaches the deepest real account
+      bodyContains "depth%3A2"
+      bodyNotContains "depth%3A3"
+
+    yit "shows one row per lot with lots=1" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("period", "2026"), ("lots", "1")])
+      statusIs 200
+      bodyContains ">Unit cost<"
+      bodyContains "{2026-01-01, $10.00}"
+      bodyContains "class=\"account acct-split lot\""
+      -- with every lot under one account, that account is the group heading
+      bodyContains "scope=\"rowgroup\">assets:broker</th>"
+      -- lot subaccounts are ordinary accounts to the Depth row, which
+      -- now reaches one level deeper, as in hledger-ui
+      bodyContains "depth%3A3"
+
+    yit "shows closed positions with closed=1" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("period", "2026"), ("closed", "1")])
+      statusIs 200
+      bodyContains "0 BBB"
+      bodyContains "$3.00"
+      -- the page also has the usual zero-balances control, which the
+      -- empty parameter drives, so the e key keeps working here
+      bodyContains "Zero balances:"
+
+    yit "tree mode shows a single-commodity account as one combined row" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("period", "2026"), ("list", "tree")])
+      statusIs 200
+      -- the boring root is squashed into the one account, which holds one
+      -- commodity and so is a row, not a heading over a commodity row
+      bodyContains "class=\"account depth-0\""
+      bodyContains ">assets:broker</a>"
+      bodyNotContains "acctheading"
+
+    yit "tree mode groups several commodities under an account heading" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("period", "2026"), ("list", "tree"), ("closed", "1")])
+      statusIs 200
+      -- with the closed BBB position shown, the account holds two
+      -- commodities: a heading row subtotaling the dollar columns, then
+      -- a position row per commodity
+      bodyContains "class=\"account depth-0 acctheading\""
+      bodyContains ">assets:broker</a>"
+      bodyContains "class=\"account depth-1 commodity\""
+      bodyContains ">AAA</a>"
+      bodyContains ">BBB</a>"
+      -- each commodity row's register link filters to its own commodity
+      bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3ABBB&amp;list=tree\""
+      -- the heading's RGain subtotals both commodities' realized gains
+      bodyContains "$5.00"
+
+    yit "rejects value=then" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("value", "then")])
+      statusIs 200
+      bodyContains "value=then does not apply"
+
+  runTests "hledger-web holdings page without lots" [] nulljournal $ do
+
+    yit "hides the Holdings link, but the page still answers" $ do
+      get JournalR
+      statusIs 200
+      bodyNotContains "Holdings</a>"
+      get HoldingsR
+      statusIs 200
+
   -- Submitting an unbalanced transaction produces an error message that
   -- echoes the entry (account names, amounts). Those values must be rendered
   -- as text, not raw html. Note this echo happens on the FormFailure path,
@@ -578,7 +715,7 @@ hledgerWebTest = do
       bodyContains "href=\"register?q=inacct:assets+depth:1\""
       bodyNotContains "href=\"register?q=inacct:assets:bank:checking"
 
-    yit "links to each depth above the deepest account's, replacing the search's depth term and keeping its others" $ do
+    yit "links to each depth, the deepest included, replacing the search's depth term and keeping its others" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
@@ -587,8 +724,10 @@ hledgerWebTest = do
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets\" title=\"Show accounts at every depth\">All</a>")
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A1\"")
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A2\"")
-      -- assets:bank:checking is at depth 3, the same as All
-      bodyNotContains "depth%3A3"
+      -- assets:bank:checking is at depth 3: its link shows the same
+      -- accounts as All, but holds the depth in the query
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A3\"")
+      bodyNotContains "depth%3A4"
 
     yit "squashes boring parents in tree mode, as the cli does" $ do
       request $ do

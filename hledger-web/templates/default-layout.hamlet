@@ -168,6 +168,7 @@ $if elem ViewPermission perms
                 <li> <code>e</code> - _{HMsg "hide empty accounts in sidebar"}
                 <li> <code>t</code> - _{HMsg "toggle tree mode"}
                 <li> <code>H</code> - _{HMsg "toggle historical balances"}
+                <li> <code>L</code> - _{HMsg "toggle lot detail"}
                 <li> <code>V</code> - _{HMsg "toggle market value"}
                 <li> <code>B</code> - _{HMsg "toggle cost"}
                 <li> <code>R</code> - _{HMsg "toggle real postings"}
@@ -182,6 +183,7 @@ $if elem ViewPermission perms
                 <li> _{HMsg "The Journal view shows general journal entries, representing zero-sum movements of money (or other commodity) between hierarchical accounts"}
                 <li> _{HMsg "The sidebar shows the resulting accounts and their final balances"}
                 <li> _{HMsg "The sidebar's report links show the balance sheet, income statement, and cashflow statement, each linking to the other reports"}
+                <li> _{HMsg "For journals using lots, a Holdings report shows investments and their performance, and a Lots link above each report shows the individual lots"}
                 <li> _{HMsg "Parent account balances include subaccount balances"}
                 <li> _{HMsg "Multiple currencies in balances are displayed one above the other"}
                 <li> _{HMsg "Click account name links to see transactions affecting that account, with running balance"}

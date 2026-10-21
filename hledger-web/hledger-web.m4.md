@@ -202,6 +202,7 @@ which work when you are not typing in a field:
 - `e` - show or hide empty accounts in the sidebar
 - `t` - show accounts as a tree, or a list
 - `H` - show ending balances, or balance changes
+- `L` - show or hide lot detail
 - `V` - show amounts at market value, or as recorded
 - `B` - show amounts at cost, or as recorded
 - `R` - show only real postings, or all
@@ -267,7 +268,21 @@ reports of the command line's
 `/balancesheetequity`, `/incomestatement`, and `/cashflow`, and the
 general [balance report](hledger.md#balance) at `/balance`.
 The sidebar links to the balance sheet, income statement, and cashflow
-statement, and each report page links to all five.
+statement, and each report page links to the others.
+
+For journals that use [lots](hledger.md#lots-and-capital-gains), the
+[holdings](hledger.md#holdings) report is at `/holdings`, and appears
+in the sidebar and the report links. It shows one row per account and
+held commodity by default; its links can show each individual lot (a
+`lots=1` parameter), fully disposed positions (a `closed=1` parameter;
+`empty` keeps meaning zero-balance accounts, as on the other pages),
+accounts as a tree (positions grouped under account headings that
+subtotal the dollar columns, with each position's lots folding into
+it, opened in place by a caret), values converted to the market
+valuation commodity (`value=end`, like `-V`), and rows sorted by
+value. On such journals
+every page also gains a Lots link, showing lot subaccounts and per-lot
+postings everywhere with the same `lots` parameter.
 
 A `period` parameter, like the command line's `-p/--period`, selects
 the interval and/or the period, eg `/balancesheet?period=monthly` or

@@ -73,12 +73,31 @@ data App = App
     , httpManager :: Manager
       --
     , appOpts    :: WebOpts
-    , appJournal :: IORef Journal
-        -- ^ the current journal, reloaded from its files when they change.
+    , appJournal :: IORef JournalState
+        -- ^ the current journal and its derived forms, reloaded from
+        --   its files when they change.
     , appTranslations :: M.Map Text Translations
         -- ^ the translation catalogs available to viewers, by language tag
         --   (built-in and from the user's config directory), loaded at startup.
     }
+
+-- | The shared journal state: the current journal as loaded, with any
+-- lot detail (lot subaccounts and synthetic postings) retained - the
+-- journal is always loaded with --lots forced on (see Main.hs) - plus
+-- forms derived from it once per (re)load.
+data JournalState = JournalState
+  { jsFull      :: Journal  -- ^ the journal as loaded, lot detail retained
+  , jsCollapsed :: Journal  -- ^ the same with lot detail collapsed, as pages show by default
+  , jsHasLots   :: Bool     -- ^ does the journal use lots at all ? (cached; it scans all postings)
+  }
+
+-- | Make the journal state for a newly (re)loaded journal.
+mkJournalState :: Journal -> JournalState
+mkJournalState j = JournalState
+  { jsFull      = j
+  , jsCollapsed = journalCollapseLotDetail j
+  , jsHasLots   = journalHasLotFeatures j
+  }
 
 
 -- This is where we define all of the routes in our application. For a full
@@ -143,7 +162,7 @@ instance Yesod App where
 
     master <- getYesod
     here <- fromMaybe RootR <$> getCurrentRoute
-    VD{opts, j, qparam, q, qopts, perms, trs} <- getViewData
+    VD{opts, j, jHasLots, qparam, q, qopts, perms, trs} <- getViewData
     msg <- getMessage
     -- Unless --lang fixes the language: an explicit ?_LANG= choice is
     -- remembered in a cookie, which Yesod's languages reads on later
@@ -207,7 +226,7 @@ instance Yesod App where
     -- The sidebar's links keep the search, minus any account term,
     -- which the reports ignore, and the sticky report state the page
     -- keeps; the page-local parameters (accum, costs) stay behind.
-    let sidebarReports = reportLinkItems $ filter rmInSidebar reportMenu
+    let sidebarReports = reportLinkItems $ filter rmInSidebar $ reportMenuFor jHasLots
         sidebarParams =
           [p | p@("period", _) <- keptParams] ++
           [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
@@ -349,7 +368,12 @@ newCspNonce = TE.decodeUtf8 . B64.encode <$> getEntropy 16
 data ViewData = VD
   { opts  :: WebOpts    -- ^ the command-line options at startup
   , today :: Day        -- ^ today's date (for queries containing relative dates)
-  , j     :: Journal    -- ^ the up-to-date parsed unfiltered journal    -- XXX rename
+  , j     :: Journal    -- ^ the up-to-date parsed unfiltered journal, as displayed:
+                        --   lot detail collapsed unless lotsShown    -- XXX rename
+  , jfull :: Journal    -- ^ the same journal with lot detail retained,
+                        --   for reports that aggregate lots themselves
+  , jHasLots :: Bool    -- ^ does the journal use lots at all ?
+  , lotsShown :: Bool   -- ^ is lot detail shown, by the lots=1 parameter ?
   , qparam :: Text       -- ^ the current "q" request parameter
   , q     :: Query      -- ^ a query parsed from the q parameter
   , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
@@ -380,10 +404,17 @@ getViewData = do
 
   -- try to read the latest journal content, keeping the old content
   -- if there's an error
-  (j, mjerr) <- getCurrentJournal
+  (js, mjerr) <- getCurrentJournal
                 appJournal
                 copts{reportspec_=rspec{_rsReportOpts=_rsReportOpts{no_elide_=True}}}
                 today
+
+  -- With lots=1, show lot detail (lot subaccounts and per-lot postings),
+  -- which is collapsed by default.
+  lotsShown <- (== Just "1") <$> lookupGetParam "lots"
+  let jHasLots = jsHasLots js
+      jfull = jsFull js
+      j = if lotsShown then jfull else jsCollapsed js
 
   -- Get the query specified by the q request parameter, or no query if this fails.
   qparam <- fromMaybe "" <$> lookupGetParam "q"
@@ -414,7 +445,7 @@ getViewData = do
   controlsOpen <- showControls
   commoditiesOpen <- showCommodities
 
-  return VD{opts, today, j, qparam, q, qopts, perms, trs, hideEmpty, controlsOpen, commoditiesOpen}
+  return VD{opts, today, j, jfull, jHasLots, lotsShown, qparam, q, qopts, perms, trs, hideEmpty, controlsOpen, commoditiesOpen}
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do
@@ -446,7 +477,13 @@ reportMenu =
   , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                       (cbcaccum incomestatementSpec)    True
   , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                    (cbcaccum cashflowSpec)           True
   , ReportMenuItem BalanceR            (i18n "Balance report")            (i18n "Show the balance report: any accounts, by period") PerPeriod                         False
+  , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")        PerPeriod                         True
   ]
+
+-- | The report pages that apply to this journal: a journal with no lot
+-- features gets no Holdings page.
+reportMenuFor :: Bool -> [ReportMenuItem]
+reportMenuFor hasLots = [i | i <- reportMenu, hasLots || rmRoute i /= HoldingsR]
 
 -- | The report pages' routes, labels, and titles, for a row of links.
 reportLinkItems :: [ReportMenuItem] -> [(Route App, Text, Text)]
@@ -473,6 +510,7 @@ keptAccums route =
 -- costs.
 keptParamNames :: Route App -> [Text]
 keptParamNames route
+  | route == HoldingsR        = "closed" : stickyParamNames
   | route `elem` reportRoutes = "accum" : stickyParamNames
   | route == RegisterR        = "accum" : "costs" : stickyParamNames
   | route == JournalR         = stickyParamNames
@@ -482,7 +520,7 @@ keptParamNames route
 -- only the control it names. date2 has no control, being deprecated,
 -- but is preserved like the rest.
 stickyParamNames :: [Text]
-stickyParamNames = ["period", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty"]
+stickyParamNames = ["period", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty", "lots"]
 
 -- | Are zero-balance accounts hidden ? The empty parameter says (1
 -- shows them, 0 hides them, the direction of the command line's
@@ -522,19 +560,20 @@ showCommodities = (== Just "1") . lookup "showcommodities" . reqCookies <$> getR
 -- | Update our copy of the journal if the file changed. If there is an
 -- error while reloading, keep the old one and return the error, and set a
 -- ui message.
-getCurrentJournal :: IORef Journal -> CliOpts -> Day -> Handler (Journal, Maybe String)
+getCurrentJournal :: IORef JournalState -> CliOpts -> Day -> Handler (JournalState, Maybe String)
 getCurrentJournal jref opts d = do
   -- XXX put this inside atomicModifyIORef' for thread safety
-  j <- liftIO (readIORef jref)
-  ej <- liftIO . runExceptT $ journalReloadIfChanged opts d j
+  js <- liftIO (readIORef jref)
+  ej <- liftIO . runExceptT $ journalReloadIfChanged opts d (jsFull js)
   case ej of
     Left e -> do
       setMessage "error while reading journal"
-      return (j, Just e)
+      return (js, Just e)
     Right (j', True) -> do
-      liftIO $ writeIORef jref j'
-      return (j',Nothing)
-    Right (_, False) -> return (j, Nothing)
+      let js' = mkJournalState j'
+      liftIO $ writeIORef jref js'
+      return (js', Nothing)
+    Right (_, False) -> return (js, Nothing)
 
 -- | In a request handler, check for the given permission
 -- and fail with a message if it's not present.
