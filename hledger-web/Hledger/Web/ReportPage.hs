@@ -290,8 +290,10 @@ reportLinks trs here kept menu =
 -- interval being shown is marked.
 intervalLinks :: Translations -> r -> [(Text, Text)] -> Text -> DateSpan -> Interval -> HtmlUrl r
 intervalLinks trs route kept qparam spn current =
+  -- The D, W, M, Q, and Y keys follow these links, by their order
+  -- here (hledger.js).
   -- TRANSLATORS: the label before a report's interval links.
-  linksRow (tr trs "Interval:")
+  linksRowClass "interval" (tr trs "Interval:")
     [ (label, title, link mword, ivl == current) | (label, title, mword, ivl) <- intervals ]
   where
     -- TRANSLATORS: the interval links above a report: each link's text, and its tooltip.

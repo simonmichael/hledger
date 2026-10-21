@@ -172,6 +172,9 @@ $if elem ViewPermission perms
                 <li> <code>B</code> - _{HMsg "toggle cost"}
                 <li> <code>R</code> - _{HMsg "toggle real postings"}
                 <li> <code>U</code>, <code>P</code>, <code>C</code> - _{HMsg "filter by status"}
+                <li> <code>S</code> - _{HMsg "sort by amount"}
+                <li> <code>T</code>, <code>A</code> - _{HMsg "total and average columns"}
+                <li> <code>D</code>, <code>W</code>, <code>M</code>, <code>Q</code>, <code>Y</code> - _{HMsg "set the report interval"}
                 <li> <code>0</code>-<code>9</code>, <code>-</code>, <code>+</code> - _{HMsg "set or adjust the depth limit"}
             <p>
               <b>_{HMsg "General"}

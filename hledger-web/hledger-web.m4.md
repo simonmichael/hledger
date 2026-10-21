@@ -206,6 +206,9 @@ which work when you are not typing in a field:
 - `B` - show amounts at cost, or as recorded
 - `R` - show only real postings, or all
 - `U`, `P`, `C` - show only unmarked, pending, or cleared transactions, or all
+- `S` - sort by amount, or by account
+- `T`, `A` - add or remove the row total and average columns (multi-period reports)
+- `D`, `W`, `M`, `Q`, `Y` - set the report interval (daily, weekly, monthly, quarterly, yearly); pressed again, remove it
 - `0`-`9`, `-`, `+` - set or adjust the account depth limit
 - `f` or `/` - focus the search form
 

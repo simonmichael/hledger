@@ -339,10 +339,11 @@ listModeLinks trs route kept dflt mode =
 
 -- | Toggles adding a row-total and a row-average column to a
 -- multi-period report, as -T and -A do; the columns shown are marked.
+-- The T and A keys follow these links, by their order here (hledger.js).
 columnsLinks :: Translations -> r -> [(Text, Text)] -> Bool -> Bool -> HtmlUrl r
 columnsLinks trs route kept total avg =
   -- TRANSLATORS: the label before a report's extra-column toggles, and the toggles' text and tooltips.
-  linksRow (tr trs "Extra columns:")
+  linksRowClass "columns" (tr trs "Extra columns:")
     [ (trc trs "column" "Total", tr trs "Add a column totaling each row (-T)",
         (route, kept ++ [("avg", "1") | avg] ++ [("total", "1") | not total]), total)
     , (trc trs "column" "Average", tr trs "Add a column averaging each row (-A)",
@@ -351,10 +352,11 @@ columnsLinks trs route kept total avg =
 
 -- | Links sorting the report's rows by account name or by amount,
 -- keeping the given parameters; the order being shown is marked.
+-- The S key toggles By amount, the second link (hledger.js).
 sortLinks :: Translations -> r -> [(Text, Text)] -> Bool -> HtmlUrl r
 sortLinks trs route kept byAmount =
   -- TRANSLATORS: the label before a report's sort links, and the links' text and tooltips.
-  linksRow (tr trs "Sort:")
+  linksRowClass "sort" (tr trs "Sort:")
     [ (tr trs "By account", tr trs "Sort rows by account name", (route, kept), not byAmount)
     , (tr trs "By amount", tr trs "Sort rows by their amounts, largest first (-S)", (route, kept ++ [("sort", "amount")]), byAmount)
     ]

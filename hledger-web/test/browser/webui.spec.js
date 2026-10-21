@@ -235,14 +235,19 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('the report keys follow control links: digits set depth, "v" value, "t" tree', async ({ page }) => {
+  test('the report keys follow control links: digits set depth, "V" value, "t" tree, "M" monthly', async ({ page }) => {
     await page.goto('/balance');
     await page.locator('body').press('3');
     await expect(page).toHaveURL(/depth%3A3/);
-    await page.locator('body').press('v');
+    await page.locator('body').press('V');
     await expect(page).toHaveURL(/value=end/);
     await page.locator('body').press('t');
     await expect(page).toHaveURL(/list=tree/);
+    await page.locator('body').press('M');
+    await expect(page).toHaveURL(/period=monthly/);
+    // the keys are cased as hledger-ui's: lowercase v is not a key
+    await page.locator('body').press('v');
+    await expect(page).toHaveURL(/value=end/);
     expect(pageErrors).toEqual([]);
   });
 

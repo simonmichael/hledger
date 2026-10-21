@@ -99,14 +99,22 @@ document.addEventListener('DOMContentLoaded', function() {
       case 's': sidebarToggle();                                            break;
       case 'o': controlsToggle();                                           break;
       case 'e': emptyAccountsToggle();                                      break;
-      case 't':           rowToggle('accounts', -1);                        break;
-      case 'H':           rowToggle('accum', 1);                            break;
-      case 'v': case 'V': rowToggle('amounts', -1);                         break;
-      case 'b': case 'B': rowToggle('amounts', 1);                          break;
-      case 'r': case 'R': rowToggle('postings', 1);                         break;
-      case 'u': case 'U': rowToggle('status', 1);                           break;
-      case 'p': case 'P': rowToggle('status', 2);                           break;
-      case 'c': case 'C': rowToggle('status', 3);                           break;
+      case 't': rowToggle('accounts', -1);                                  break;
+      case 'H': rowToggle('accum', 1);                                      break;
+      case 'V': rowToggle('amounts', -1);                                   break;
+      case 'B': rowToggle('amounts', 1);                                    break;
+      case 'R': rowToggle('postings', 1);                                   break;
+      case 'U': rowToggle('status', 1);                                     break;
+      case 'P': rowToggle('status', 2);                                     break;
+      case 'C': rowToggle('status', 3);                                     break;
+      case 'S': rowToggle('sort', 1);                                       break;
+      case 'T': rowFollow('columns', 0);                                    break;
+      case 'A': rowFollow('columns', 1);                                    break;
+      case 'Y': rowToggle('interval', 1);                                   break;
+      case 'Q': rowToggle('interval', 2);                                   break;
+      case 'M': rowToggle('interval', 3);                                   break;
+      case 'W': rowToggle('interval', 4);                                   break;
+      case 'D': rowToggle('interval', 5);                                   break;
       case '-': case '_': depthAdjust(-1);                                  break;
       case '+': case '=': depthAdjust(1);                                   break;
       case 'a': case 'n': addformShow();                                    break;
@@ -376,6 +384,13 @@ function rowToggle(rowCls, idx) {
   var target = links[idx < 0 ? links.length + idx : idx];
   if (!target) { return; }
   location.href = (target.classList.contains('current') ? links[0] : target).href;
+}
+
+function rowFollow(rowCls, idx) {
+  // Follow a row's link at idx unconditionally: the Extra columns
+  // links each toggle their own column, so no fallback is wanted.
+  var links = document.querySelectorAll('#main-content .' + rowCls + ' a');
+  if (links[idx]) { location.href = links[idx].href; }
 }
 
 function depthAdjust(delta) {
