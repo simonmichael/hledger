@@ -25,8 +25,8 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (accountQuery, closedLinks, commodityLinks, controlsHint, controlsToggle,
    depthLinks, holdingsValueLinks, listModeLinks,
-   lotsLinks, pricesLinks, realLinks, removeInacct, replaceInacct, sortLinks,
-   statusLinks, typeLinks, zeroBalanceLinks)
+   lotsLinks, pricesLinks, realLinks, removeInacct, replaceInacct, searchTerms,
+   sortLinks, statusLinks, typeLinks, zeroBalanceLinks)
 
 -- | The holdings view: investment holdings and their performance at the
 -- report end date, as the holdings command shows them. In tree mode the
@@ -105,6 +105,12 @@ getHoldingsR = do
             registerKept = removeAttributes ["period", "sort", "closed"] pageParams
             acctlink acct = urlrender RegisterR $
               ("q", replaceInacct qparam $ accountQuery acct) : registerKept
+            -- A position's cell links to that register filtered to the
+            -- holding's commodity: the transactions behind the row's figures.
+            poslink acct com = urlrender RegisterR $
+              ("q", T.unwords $
+                 map quoteIfSpaced (filter (not . T.isPrefixOf "cur:") (searchTerms $ replaceInacct qparam $ accountQuery acct))
+                 ++ [quoteIfSpaced $ "cur:" <> regexEscape com]) : registerKept
 
             -- TRANSLATORS: the holdings table's column headings. The cost
             -- heading is "Unit cost", "Avg cost", or "Unit/Avg cost".
@@ -151,7 +157,7 @@ getHoldingsR = do
                     ["lot" | isJust $ lotSubaccountName acct]
                 , cellAnchor = acctlink acct
                 , cellTitle = acct <> "\n" <>
-                    -- TRANSLATORS: the tooltip of a holding's account link.
+                    -- TRANSLATORS: the tooltip of an account heading or lot's register link.
                     tr trs "Show this account's register"
                 }
 
@@ -206,12 +212,22 @@ getHoldingsR = do
             -- lots beneath it.
             lineRow (HoldingsHeading d acct disp tot) = headingRow d disp acct tot
             lineRow (HoldingsPosition d acct disp islot h)
-              | isTree    = holdingRow (treecell d cls disp acct) h
-              | otherwise = holdingRow (acctcell acct) h
+              | isTree    = holdingRow (positioned $ treecell d cls disp acct) h
+              | otherwise = holdingRow (positioned $ acctcell acct) h
               where
                 cls | islot                 = ["lot"]
                     | disp == hCommodity h  = ["commodity"]
                     | otherwise             = []
+                -- A lot subaccount's register holds only its commodity, so
+                -- a lot cell keeps the plain account link.
+                positioned c
+                  | islot = c
+                  | otherwise = c
+                      { cellAnchor = poslink acct (hCommodity h)
+                      , cellTitle = acct <> "\n" <>
+                          -- TRANSLATORS: the tooltip of a position's register link, which filters to its commodity.
+                          tr trs "Show this holding's register"
+                      }
 
             -- An account heading row: the account's subtree totals,
             -- computed like the totals row (see hrAccountTotals).

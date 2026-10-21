@@ -398,6 +398,8 @@ hledgerWebTest = do
       -- the account names' shared prefix is a group heading, rows show the rest
       bodyContains "scope=\"rowgroup\">assets</th>"
       bodyContains ">broker</a>"
+      -- a position's register link filters to its commodity
+      bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3AAAA\""
       -- with lots hidden, the Depth row stops at the deepest real account
       bodyNotContains "depth%3A2"
 
@@ -450,6 +452,8 @@ hledgerWebTest = do
       bodyContains "class=\"account depth-1 commodity\""
       bodyContains ">AAA</a>"
       bodyContains ">BBB</a>"
+      -- each commodity row's register link filters to its own commodity
+      bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3ABBB&amp;list=tree\""
       -- the heading's RGain subtotals both commodities' realized gains
       bodyContains "$5.00"
 
