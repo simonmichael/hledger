@@ -267,8 +267,9 @@ zeroBalanceLinks :: Translations -> r -> [(Text, Text)] -> Bool -> Bool -> HtmlU
 zeroBalanceLinks trs route kept dfltHidden hidden =
   -- TRANSLATORS: the label before the links that show or hide zero balances, and the links' text and tooltips.
   [hamlet|
+$newline never
 <p .report-links .zero-balances>
-  #{tr trs "Zero balances:"}
+  <span .row-label>#{tr trs "Zero balances:"}
   <a href=@?{link False} :not hidden:.current title=#{tr trs "Show accounts whose balances are zero"}>#{tr trs "Shown"}
   <a href=@?{link True} :hidden:.current title=#{tr trs "Hide accounts whose balances are zero"}>#{tr trs "Hidden"}
 |]
