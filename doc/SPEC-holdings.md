@@ -211,24 +211,27 @@ Holdings on 2026-03-31
                                         ||                                                       $2850        $3130  100.0%   $280    9.8%   $100  137.8%
 ```
 
-With `--lots --tree` (parent rows aggregate the lots beneath them, one row
-per commodity with the account name repeated; boring parents are squashed
-as usual):
+With `--lots --tree`, positions are grouped into account sections: an
+account with subaccounts or several commodities is a heading row showing
+its subtree's totals (computed like the totals row), an account holding
+one commodity with no subaccounts is a single combined row, and each
+position's lots appear beneath it. Boring parents (no positions of their
+own, a single child with holdings) are squashed as usual:
 
 ```
 $ hledger holdings --lots --tree
 Holdings on 2026-03-31
 
-                            ||       Date  Age    Units  Unit cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain    XIRR
-============================++================================================================================================================
- assets:broker              ||                  15 AAPL     $56.67         $72        $850        $1080   34.5%   $230   27.1%   $100  419.4%
- assets:broker              || 2026-02-15  44d   5 MSFT       $400        $410       $2000        $2050   65.5%    $50    2.5%          22.7%
-   funds:{2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400        $410       $2000        $2050   65.5%    $50    2.5%          22.7%
-   stocks                   ||                  15 AAPL     $56.67         $72        $850        $1080   34.5%   $230   27.1%   $100  419.4%
-     {2026-01-15, $50}      || 2026-01-15  75d   5 AAPL        $50         $72        $250         $360   11.5%   $110   44.0%   $100  759.2%
-     {2026-02-01, $60}      || 2026-02-01  58d  10 AAPL        $60         $72        $600         $720   23.0%   $120   20.0%         215.2%
-----------------------------++----------------------------------------------------------------------------------------------------------------
-                            ||                                                       $2850        $3130  100.0%   $280    9.8%   $100  137.8%
+                        ||       Date  Age    Units  Unit cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain    XIRR
+========================++================================================================================================================
+ assets:broker          ||                                                       $2850        $3130  100.0%   $280    9.8%   $100  137.8%
+   funds                || 2026-02-15  44d   5 MSFT       $400        $410       $2000        $2050   65.5%    $50    2.5%          22.7%
+     {2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400        $410       $2000        $2050   65.5%    $50    2.5%          22.7%
+   stocks               ||                  15 AAPL     $56.67         $72        $850        $1080   34.5%   $230   27.1%   $100  419.4%
+     {2026-01-15, $50}  || 2026-01-15  75d   5 AAPL        $50         $72        $250         $360   11.5%   $110   44.0%   $100  759.2%
+     {2026-02-01, $60}  || 2026-02-01  58d  10 AAPL        $60         $72        $600         $720   23.0%   $120   20.0%         215.2%
+------------------------++----------------------------------------------------------------------------------------------------------------
+                        ||                                                       $2850        $3130  100.0%   $280    9.8%   $100  137.8%
 ```
 
 With `--depth 2` (aggregation up the tree):

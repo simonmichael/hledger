@@ -61,35 +61,36 @@ Holdings on 2026-03-31
 ----------------------++-------------------------------------------------------------------------------------------------------
                       ||            15 AAPL    $56.67                    $850                                       $100       
 
-# ** 4. Tree mode: parent account rows aggregate the lots beneath them,
-# one line per commodity with per-commodity attributes (and show only
-# lot-tracked commodities, not eg cash). Lot subaccounts appear as leaves
-# with --lots. No totals row when there is a single top-level row.
+# ** 4. Tree mode: positions are grouped into account sections. An account
+# with subaccounts or several commodities is a heading row, showing its
+# subtree's totals computed like the totals row (only the columns that
+# aggregate: here Total cost and RGain; Units and Avg cost only when the
+# subtree holds a single commodity). An account holding one commodity with
+# no subaccounts is a single combined row. Boring parents are squashed into
+# their child, considering only accounts with holdings. With --lots, each
+# position's lots appear beneath it.
 $ hledger -f- holdings -e 2026-04-01 --lots --tree
 Holdings on 2026-03-31
 
-                            ||       Date  Age    Units  Unit cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain  XIRR 
-============================++==============================================================================================================
- assets:broker              ||                  15 AAPL     $56.67                    $850                                       $100       
- assets:broker              || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
-   funds:{2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
-   stocks                   ||                  15 AAPL     $56.67                    $850                                       $100       
-     {2026-01-15, $50}      || 2026-01-15  75d   5 AAPL        $50                    $250                                       $100       
-     {2026-02-01, $60}      || 2026-02-01  58d  10 AAPL        $60                    $600                                                  
-----------------------------++--------------------------------------------------------------------------------------------------------------
-                            ||                                                       $2850                                       $100       
+                        ||       Date  Age    Units  Unit cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain  XIRR 
+========================++==============================================================================================================
+ assets:broker          ||                                                       $2850                                       $100       
+   funds                || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
+     {2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
+   stocks               ||                  15 AAPL     $56.67                    $850                                       $100       
+     {2026-01-15, $50}  || 2026-01-15  75d   5 AAPL        $50                    $250                                       $100       
+     {2026-02-01, $60}  || 2026-02-01  58d  10 AAPL        $60                    $600                                                  
+------------------------++--------------------------------------------------------------------------------------------------------------
+                        ||                                                       $2850                                       $100       
 
-# ** 5. --no-elide shows boring parent accounts (and single lots)
-# as separate rows.
+# ** 5. --no-elide shows boring parent accounts as separate heading rows.
 $ hledger -f- holdings -e 2026-04-01 --lots --tree --no-elide
 Holdings on 2026-03-31
 
                           ||       Date  Age    Units  Unit cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain  XIRR 
 ==========================++==============================================================================================================
- assets                   ||                  15 AAPL     $56.67                    $850                                       $100       
- assets                   || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
-   broker                 ||                  15 AAPL     $56.67                    $850                                       $100       
-   broker                 || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
+ assets                   ||                                                       $2850                                       $100       
+   broker                 ||                                                       $2850                                       $100       
      funds                || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
        {2026-02-15, $400} || 2026-02-15  44d   5 MSFT       $400                   $2000                                                  
      stocks               ||                  15 AAPL     $56.67                    $850                                       $100       
@@ -937,13 +938,111 @@ Holdings on 2026-10-06
 -------------++-----------------------------------------------------------------------------------------------------------
              ||                  2NVDA       10e                     20e                                        30e       
 
-# ** 51. Likewise in tree mode.
+# ** 51. Likewise in tree mode (where the fully disposed sibling also
+# does not stop its parent being squashed: only accounts with holdings
+# count).
 $ hledger -f- holdings -e 2026-10-07 -t
 Holdings on 2026-10-06
 
-        ||       Date  Age  Units  Avg cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain  XIRR 
-========++===========================================================================================================
- stocks || 2026-09-02  34d  2NVDA       10e                     20e                                                  
-   nvda || 2026-09-02  34d  2NVDA       10e                     20e                                                  
---------++-----------------------------------------------------------------------------------------------------------
-        ||                  2NVDA       10e                     20e                                        30e       
+             ||       Date  Age  Units  Avg cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain  XIRR 
+=============++===========================================================================================================
+ stocks:nvda || 2026-09-02  34d  2NVDA       10e                     20e                                                  
+-------------++-----------------------------------------------------------------------------------------------------------
+             ||                  2NVDA       10e                     20e                                        30e       
+
+<
+commodity AAA  ; lots:
+commodity BBB  ; lots:
+P 2026-02-01 AAA $12.00
+
+2026-01-01 buy one
+    assets:broker    2 AAA @ $10.00
+    assets:cash    $-20.00
+
+2026-01-01 buy two
+    assets:broker    3 AAA @ $11.00
+    assets:cash    $-33.00
+
+2026-01-02 buy bbb
+    assets:other:broker2    1 BBB @ $2.00
+    assets:cash    $-2.00
+
+2026-01-20 sell bbb
+    assets:other:broker2    -1 BBB @ $3.00
+    assets:cash    $3.00
+
+# ** 52. Tree mode with market prices: headings also total the value,
+# weight, and gain columns, computed like the totals row.
+$ hledger -f- holdings -e 2026-03-01 --tree -E
+Holdings on 2026-02-28
+
+                 ||       Date  Age  Units  Avg cost  Unit price  Total cost  Total value  Weight  UGain  UGain%  RGain    XIRR 
+=================++=============================================================================================================
+ assets          ||                  5 AAA    $10.60                  $53.00       $60.00  100.0%  $7.00   13.2%  $1.00  142.4% 
+   broker        || 2026-01-01  58d  5 AAA    $10.60      $12.00      $53.00       $60.00  100.0%  $7.00   13.2%         118.4% 
+   other:broker2 ||                  0 BBB                                                                        $1.00         
+-----------------++-------------------------------------------------------------------------------------------------------------
+                 ||                  5 AAA    $10.60                  $53.00       $60.00  100.0%  $7.00   13.2%  $1.00  142.4% 
+
+# ** 53. Tree-mode csv output keeps the flat position records: no
+# heading or totals records.
+$ hledger -f- holdings -e 2026-03-01 --tree -O csv
+"account","commodity","date","age","units","unitcost","unitprice","totalcost","totalvalue","weight","ugain","ugainpct","rgain","xirr"
+"assets:broker","AAA","2026-01-01","58","5","$10.60","$12.00","$53.00","$60.00","100.0","$7.00","13.2","","118.4"
+
+# ** 54. The html output's register links quote labeled lot subaccount
+# names, so they round-trip as queries.
+$ hledger -f- bal --lots -O html --base-url https://h | tr '<' '\n' | grep -F 0001 | head -1
+a href="https://h/register?q=&#39;inacct:assets:broker:%7b2026-01-01,+%220001%22,+$10.00%7d&#39;" title="Show transactions affecting this account and subaccounts">assets:broker:{2026-01-01, &quot;0001&quot;, $10.00}
+
+<
+account investments  ; type:A
+commodity AAA  ; lots:
+commodity BBB  ; lots:
+P 2026-02-01 AAA $12.00
+P 2026-02-01 BBB $24.00
+
+2026-01-01 buy a
+    assets:broker       2 AAA @ $10.00
+    assets:cash
+
+2026-01-02 buy b
+    investments:x     100 BBB @ $20.00
+    investments:cash
+
+# ** 55. With -S, the top-level accounts are also sorted by amount:
+# the tree follows the flat report's row order at every level.
+$ hledger -f- holdings -e 2026-03-01 --tree -S
+Holdings on 2026-02-28
+
+               ||       Date  Age    Units  Avg cost  Unit price  Total cost  Total value  Weight    UGain  UGain%  RGain    XIRR 
+===============++=================================================================================================================
+ investments:x || 2026-01-02  57d  100 BBB    $20.00      $24.00    $2000.00     $2400.00   99.0%  $400.00   20.0%         221.7% 
+ assets:broker || 2026-01-01  58d    2 AAA    $10.00      $12.00      $20.00       $24.00    1.0%    $4.00   20.0%         215.2% 
+---------------++-----------------------------------------------------------------------------------------------------------------
+               ||                                                   $2020.00     $2424.00  100.0%  $404.00   20.0%         221.6% 
+
+# ** 56. --depth with --lots shows each depth-clipped position once;
+# clipped rows are not mistaken for lots.
+$ hledger -f- holdings -e 2026-03-01 --tree --lots --depth 1
+Holdings on 2026-02-28
+
+             ||       Date  Age    Units  Unit cost  Unit price  Total cost  Total value  Weight    UGain  UGain%  RGain    XIRR 
+=============++==================================================================================================================
+ investments || 2026-01-02  57d  100 BBB     $20.00      $24.00    $2000.00     $2400.00   99.0%  $400.00   20.0%         221.7% 
+ assets      || 2026-01-01  58d    2 AAA     $10.00      $12.00      $20.00       $24.00    1.0%    $4.00   20.0%         215.2% 
+-------------++------------------------------------------------------------------------------------------------------------------
+             ||                                                    $2020.00     $2424.00  100.0%  $404.00   20.0%         221.6% 
+
+# ** 57. --drop removes the first N levels from the tree: these roots
+# are the level-2 accounts.
+$ hledger -f- holdings -e 2026-03-01 --tree --drop 1
+Holdings on 2026-02-28
+
+        ||       Date  Age    Units  Avg cost  Unit price  Total cost  Total value  Weight    UGain  UGain%  RGain    XIRR 
+========++=================================================================================================================
+ x      || 2026-01-02  57d  100 BBB    $20.00      $24.00    $2000.00     $2400.00   99.0%  $400.00   20.0%         221.7% 
+ broker || 2026-01-01  58d    2 AAA    $10.00      $12.00      $20.00       $24.00    1.0%    $4.00   20.0%         215.2% 
+--------++-----------------------------------------------------------------------------------------------------------------
+        ||                                                   $2020.00     $2424.00  100.0%  $404.00   20.0%         221.6% 
+

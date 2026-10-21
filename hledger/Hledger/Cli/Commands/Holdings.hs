@@ -5,7 +5,13 @@ The @holdings@ command shows a report of investment holdings (lot-tracked assets
 Work in progress; see doc/SPEC-holdings.md.
 Currently it shows the Date, Age, Units, Unit/Avg cost, Price, Cost,
 Value, Weight, UGain, UGain%, RGain and XIRR columns, one row per
-account (or lot subaccount, with --lots) and held commodity.
+account (or lot subaccount, with --lots) and held commodity. In tree
+mode, positions are grouped into account sections: a heading row per
+account showing its subtree's totals, its positions beneath it named
+by their commodity, and with --lots each position's lots beneath it.
+
+The report computation (holdingsReport) is exported for reuse by other
+UIs; the holdings command renders it in the usual output formats.
 
 -}
 
@@ -16,6 +22,14 @@ account (or lot subaccount, with --lots) and held commodity.
 module Hledger.Cli.Commands.Holdings (
   holdingsmode
  ,holdings
+ ,HoldingsReport(..)
+ ,HoldingsReportOpts(..)
+ ,HoldingsTotals(..)
+ ,HoldingsLine(..)
+ ,Holding(..)
+ ,holdingsReport
+ ,showage
+ ,showPercentWith
 ) where
 
 import Control.Applicative ((<|>))
@@ -23,8 +37,9 @@ import Control.Monad (guard)
 import Data.Aeson (Value, object, (.=))
 import Data.Decimal (roundTo)
 import Data.Default (def)
-import Data.List.Extra (intercalate, intersperse, minimumBy, nubSort, nubSortOn, sortOn)
+import Data.List.Extra (find, intercalate, intersperse, minimumBy, nubSort, nubSortOn, sortOn)
 import Data.Map.Strict qualified as M
+import Data.Set qualified as S
 import Data.Maybe (fromMaybe, isJust, mapMaybe)
 import Data.Ord (Down(..), comparing)
 import Data.Text qualified as T
@@ -35,7 +50,7 @@ import Text.Printf (printf)
 
 import Hledger
 import Hledger.Cli.CliOptions
-import Hledger.Cli.Commands.Balance.Internal (addTotalBorders, renderPeriodicAcct)
+import Hledger.Cli.Commands.Balance.Internal (addTotalBorders)
 import Hledger.Cli.Commands.Print (roundFromRawOpts)
 import Hledger.Cli.Utils (unsupportedOutputFormatError, writeOutputLazyText)
 import Hledger.Write.Csv (CSV, printCSV, printTSV)
@@ -56,7 +71,7 @@ holdingsmode = hledgerCommandMode
   (flattreeflags True ++
    [flagNone ["no-elide"] (setboolopt "no-elide") "in tree mode, don't squash boring parent accounts; in list mode, also show parent accounts (usually zero, hidden without -E)"
    ,flagNone ["full-names"] (setboolopt "full-names") "in tree mode, show full account names instead of indented leaf names"
-   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "in list mode, omit N leading account name parts"
+   ,flagReq  ["drop"] (\s opts -> Right $ setopt "drop" s opts) "N" "omit N leading account name parts; in tree mode, remove the first N levels"
    ,flagNone ["sort-amount","S"] (setboolopt "sort-amount") "sort by value (or cost) instead of account name, largest first"
    ,flagNone ["no-total","N"] (setboolopt "no-total") "omit the final total row"
    ,flagReq ["round"] (\s opts -> Right $ setopt "round" s opts) "TYPE" $
@@ -152,44 +167,191 @@ showage d
   | d >= 365  = T.pack (show (roundTo 1 (fromIntegral d / 365))) <> "y"
   | otherwise = T.pack (show d) <> "d"
 
--- | Show the holdings report: the assets held in lot-tracked accounts
--- as of the report end date, one row per account (or per lot, with --lots).
---
--- This command receives the journal with lot detail (lot subaccounts and
--- synthetic postings) uncollapsed, regardless of --lots
--- (see maybeCollapseLotDetail); it aggregates lots itself.
-holdings :: CliOpts -> Journal -> IO ()
-holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts}} j = do
-  if (case mvalue of Just (AtThen _) -> True; _ -> False)
-  then error' "holdings: --value=then is not supported"
-  else rounding `seq`  -- validate the --round value before any output
-    writeOutputLazyText opts $ case outputFormatFromOpts opts of
-      "txt"  -> txtoutput
-      "csv"  -> printCSV csvoutput
-      "tsv"  -> printTSV csvoutput
-      "html" -> (<>"\n") $ htmlAsLazyText $ titledTableHtml title htmltable
-      "fods" -> printFods IO.localeEncoding $ M.singleton "Holdings" ((1,0), fodstable)
-      "json" -> (<>"\n") $ toJsonText $ map holdingJson holdingrecords
-      fmt    -> error' $ unsupportedOutputFormatError fmt
-  where
-    -- The default title can be customised or suppressed with --title.
-    title = effectiveTitle ropts ("Holdings on " <> showDate reportdate)
-    txtoutput =
-      (case title of
-         "" -> ""
-         t  -> TL.fromStrict t <> "\n\n")
-      <>
-      if null rows
-      then "(no holdings)\n"
-      else renderTable
-        def{tableBorders=False}
-        (textCell TopLeft)
-        (textCell TopRight)
-        (textCell TopRight)
-        tbl
-    showlots = boolopt "lots" rawopts
-    tree = accountlistmode_ ropts == ALTree
+-- | Show a percentage (eg for the Weight, UGain% and XIRR columns) as a
+-- "%" commodity amount, using the given styles' display style for the
+-- "%" commodity (eg from a commodity directive or -c, or
+-- holdingsReport's default): eg 64.3%.
+showPercentWith :: M.Map CommoditySymbol AmountStyle -> Quantity -> T.Text
+showPercentWith styles p =
+  T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} $
+  styleAmounts styles nullamt{acommodity="%", aquantity=p}
 
+-- | Options for the holdings report, besides the usual ReportSpec.
+data HoldingsReportOpts = HoldingsReportOpts {
+   hroLots     :: Bool      -- ^ show each lot (one row per lot subaccount) rather than aggregating them per account, like --lots
+  ,hroRounding :: Rounding  -- ^ how much rounding or padding to apply to displayed amounts, like --round
+  }
+
+-- | The grand totals of a holdings report, summed over its topmost
+-- displayed rows (which include everything below them) - except RGain
+-- and XIRR, which cover all the lots within the query and end date,
+-- including fully disposed lots, commodities and accounts, which have
+-- no row unless -E is used; so the totals are the same in list or tree
+-- mode, with or without --lots or -E (#2769). Absent components
+-- (Nothing or empty) are shown as blank cells.
+-- Units, and the average cost per unit, are present only when the
+-- holdings are all in one commodity (a multi-commodity total would
+-- widen the column for everyone, and a multi-commodity average is
+-- not meaningful); the average also needs a single cost commodity.
+-- Value and gains are absent unless all holdings have a market price.
+data HoldingsTotals = HoldingsTotals {
+   htUnits    :: Maybe Amount    -- ^ total units held, when all in one commodity
+  ,htAvgCost  :: Maybe Amount    -- ^ their average unit cost, when also in one cost commodity
+  ,htCost     :: [Amount]        -- ^ total cost basis, per cost commodity
+  ,htValue    :: Maybe [Amount]  -- ^ total market value, per value commodity
+  ,htWeight   :: Maybe Quantity  -- ^ percent of the portfolio's value, unrounded
+  ,htUgain    :: Maybe [Amount]  -- ^ total unrealised gain, when values and costs are comparable
+  ,htUgainPct :: Maybe Quantity  -- ^ total unrealised gain percent, unrounded
+  ,htRgain    :: [Amount]        -- ^ total realised gain, per cost commodity
+  ,htXirr     :: Maybe Double    -- ^ the portfolio's annualised internal rate of return percent
+  }
+
+-- | One display line of the holdings report.
+data HoldingsLine
+  -- | An account heading row (tree mode): an account with subaccounts
+  -- or several commodities, showing its subtree's totals.
+  = HoldingsHeading {
+      hlIndent  :: Int             -- ^ tree indent depth, 0 at top level
+     ,hlAccount :: AccountName     -- ^ the full account name
+     ,hlDisplay :: T.Text          -- ^ the name to display: the leaf name, or a squashed chain like b:c
+     ,hlTotals  :: HoldingsTotals  -- ^ the account's subtree totals (see hrAccountTotals)
+    }
+  -- | A holding's line: a position, lot, or depth-clipped aggregate,
+  -- one line per held commodity.
+  | HoldingsPosition {
+      hlIndent  :: Int          -- ^ tree indent depth, 0 at top level and in list mode
+     ,hlAccount :: AccountName  -- ^ the account (or lot subaccount) the line belongs to
+     ,hlDisplay :: T.Text       -- ^ the name to display: the account name (list mode, or a combined tree row), its commodity (a position under its account's heading), or a lot's name
+     ,hlIsLot   :: Bool         -- ^ is this a lot subaccount's line ?
+     ,hlHolding :: Holding
+    }
+
+-- | A computed holdings report: the display lines and totals shown by
+-- the holdings command, renderable by any UI.
+data HoldingsReport = HoldingsReport {
+   hrDate            :: Day     -- ^ the date holdings are shown at: the day before the (exclusive) report end date if specified, otherwise today
+  ,hrLines           :: [HoldingsLine]
+     -- ^ the display lines in display order: flat holdings in list
+     --   mode, or account sections in tree mode
+  ,hrRows            :: [(PeriodicReportRow DisplayName MixedAmount, Holding)]
+     -- ^ the holdings as flat records, for machine-readable output:
+     --   each holding, paired with its report row (a row holding
+     --   several commodities repeats on several lines)
+  ,hrTotals          :: HoldingsTotals  -- ^ the grand totals row's components
+  ,hrAccountTotals   :: AccountName -> HoldingsTotals
+     -- ^ the totals of the lots at or under any one account, computed
+     --   like the grand totals row (eg for an account heading row);
+     --   Weight is relative to the whole portfolio's value
+  ,hrUnitCostHeading :: T.Text  -- ^ what the unit cost column shows: "Unit cost", "Avg cost", or "Unit/Avg cost"
+  ,hrStyles          :: M.Map CommoditySymbol AmountStyle
+     -- ^ the journal's display styles with hroRounding applied, plus a
+     --   style for the "%" commodity, for showing the percent columns
+     --   (see showPercentWith)
+  }
+
+-- | Compute the holdings report: the assets held in lot-tracked accounts
+-- as of the report end date, one line per account (or per lot, with
+-- hroLots) and held commodity, plus grand totals. In tree mode the
+-- display lines are instead account sections (see holdingsTreeLines),
+-- while the flat records (hrRows) keep the list-mode shape.
+--
+-- The journal must have its lot detail (lot subaccounts and synthetic
+-- postings) uncollapsed, as the holdings command receives it
+-- (see maybeCollapseLotDetail); this report aggregates lots itself.
+-- A --value=then valuation strategy is not supported; callers reject it.
+holdingsReport :: HoldingsReportOpts -> ReportSpec -> Journal -> HoldingsReport
+holdingsReport hro rspec@ReportSpec{_rsReportOpts=ropts'} j'
+  | accountlistmode_ ropts' == ALTree = treeHoldingsReport hro rspec j'
+  | otherwise                         = flatHoldingsReport hro rspec j'
+
+-- | The tree-mode holdings report: the flat report, with its display
+-- lines grouped into account sections. With hroLots, a second flat
+-- report gives each position's lots, shown beneath it, and provides
+-- the flat records and unit cost heading, as list mode would.
+treeHoldingsReport :: HoldingsReportOpts -> ReportSpec -> Journal -> HoldingsReport
+treeHoldingsReport hro rspec@ReportSpec{_rsReportOpts=ropts'} j' =
+  prpt{ hrLines = holdingsTreeLines (drop_ ropts') (no_elide_ ropts') prpt mlrpt
+      , hrRows  = hrRows mrpt
+      , hrUnitCostHeading = hrUnitCostHeading mrpt
+      }
+  where
+    flatrspec = rspec{_rsReportOpts = ropts'{accountlistmode_ = ALFlat}}
+    prpt = flatHoldingsReport hro{hroLots = False} flatrspec j'
+    mlrpt | hroLots hro = Just $ flatHoldingsReport hro{hroLots = True} flatrspec j'
+          | otherwise   = Nothing
+    mrpt = fromMaybe prpt mlrpt
+
+-- | Group a flat holdings report's lines into account sections, as tree
+-- mode displays them: an account with subaccounts or several
+-- commodities is a heading line showing its subtree's totals, with its
+-- own positions beneath it named by their commodity, then its
+-- subaccounts; an account holding one commodity with no subaccounts is
+-- a single combined line carrying its figures. Boring parents - those
+-- with no positions of their own and a single child - are squashed into
+-- their child like the balance reports' tree mode, unless no-elide is
+-- set; only accounts with holdings exist here, so the squashing
+-- considers holding rows alone (#2779). With a lots report given, each
+-- position's lots are beneath it. Sibling accounts, the top level
+-- included, keep the flat report's order, so with -S they are ordered
+-- by their first (largest) row. --drop removes the first N levels: the
+-- tree's roots are the accounts at level N+1 (a shallower account's
+-- own positions, a rare case, show as top-level rows).
+holdingsTreeLines :: Int -> Bool -> HoldingsReport -> Maybe HoldingsReport -> [HoldingsLine]
+holdingsTreeLines dropn noelide prpt mlrpt =
+    concatMap node $ sortOn ((`M.lookup` subtreeIxMap) . fst) $
+      [(a, False) | a <- allaccts, accountNameLevel a == dropn + 1] ++
+      [(a, True)  | dropn > 0, a <- M.keys posByAcct, accountNameLevel a <= dropn]
+  where
+    node (a, False) = treeNode 0 a
+    node (a, True)  =
+      concat [ HoldingsPosition 0 a (accountNameDrop dropn a) False h : lotLines 1 a h
+             | h <- M.findWithDefault [] a posByAcct ]
+    posByAcct = M.fromListWith (flip (++)) [(hAccount h, [h]) | (_, h) <- hrRows prpt]
+    lotsByPos = case mlrpt of
+      Nothing -> M.empty
+      Just lr -> M.fromListWith (flip (++))
+        [ ((lotBaseAccount a, hCommodity h), [h])
+        | (_, h) <- hrRows lr, let a = hAccount h, isJust (lotSubaccountName a) ]
+    -- each account's subtree's first flat row, ordering subtrees as the
+    -- flat report's sort ordered their rows
+    subtreeIxMap = M.fromListWith min
+      [(a, ix) | (ix, (_, h)) <- zip [0 :: Int ..] (hrRows prpt), a <- expandAccountName (hAccount h)]
+    allaccts = M.keys subtreeIxMap
+    kidsMap = M.map (sortOn (`M.lookup` subtreeIxMap)) $ M.fromListWith (++)
+      [(parentAccountName a, [a]) | a <- allaccts, accountNameLevel a > 1]
+    kidsOf a = M.findWithDefault [] a kidsMap
+    -- squash boring parents into their child
+    elide disp acct
+      | not noelide, M.notMember acct posByAcct, [c] <- kidsOf acct =
+          elide (disp <> ":" <> accountLeafName c) c
+      | otherwise = (disp, acct)
+    treeNode d acct0 = case (M.findWithDefault [] acct posByAcct, kidsOf acct) of
+      ([h], []) -> HoldingsPosition d acct disp False h : lotLines (d+1) acct h
+      (own, kids) ->
+        HoldingsHeading d acct disp (hrAccountTotals prpt acct) :
+        concat [ HoldingsPosition (d+1) acct (hCommodity h) False h : lotLines (d+2) acct h
+               | h <- own ] ++
+        concatMap (treeNode (d+1)) kids
+      where (disp, acct) = elide (accountLeafName acct0) acct0
+    lotLines d acct h =
+      [ HoldingsPosition d (hAccount lh) (fromMaybe (hAccount lh) $ lotSubaccountName $ hAccount lh) True lh
+      | lh <- M.findWithDefault [] (acct, hCommodity h) lotsByPos ]
+
+-- | The flat (list-mode) holdings report; also the building block of
+-- the tree-mode report.
+flatHoldingsReport :: HoldingsReportOpts -> ReportSpec -> Journal -> HoldingsReport
+flatHoldingsReport HoldingsReportOpts{hroLots=showlots, hroRounding=rounding}
+               rspec@ReportSpec{_rsQuery=q, _rsReportOpts=ropts} j =
+  HoldingsReport
+    { hrDate            = reportdate
+    , hrLines           = displaylines
+    , hrRows            = rowlines
+    , hrTotals          = totals
+    , hrAccountTotals   = accountTotals
+    , hrUnitCostHeading = unitcostheading
+    , hrStyles          = pctstyles
+    }
+  where
     -- The date this report shows holdings at: the day before the (exclusive)
     -- report end date if specified, otherwise today.
     mend = queryEndDate False q
@@ -263,46 +425,66 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     poolavgmap = M.map (\(units, costtot) -> styleAmounts styles $ avgcost nullamt{aquantity=units} costtot)
                        (journalAveragePoolTotals j mend)
 
-    -- Which accounts (lot subaccounts, or the keys of the per-lot maps)
-    -- belong to a displayed row's own scope: those at or under the row's
-    -- account - excluding, in list mode, those at or under a deeper
-    -- candidate row, which displays them itself. (In tree mode, and for
-    -- totals, a row includes everything at or under it; see the *Under
-    -- helpers.) This is what makes overlapping list-mode rows disjoint,
-    -- eg when lots are held in both an account and its subaccount (each
-    -- of which then gets its own row).
-    rowScope :: AccountName -> (AccountName -> Bool)
-    rowScope acct = \sub -> covers acct sub && not (any (`covers` sub) deeper)
-      where
-        covers p s = p == s || p `isAccountNamePrefixOf` s
-        deeper | tree = []
-               | otherwise = [c | c <- candaccts, c /= acct, acct `isAccountNamePrefixOf` c]
+    -- The per-row lookups below (lotsOf, rgainsOf, flowsOf and the
+    -- *Under forms) used to scan a whole per-lot map for every displayed
+    -- row, making the report roughly O(rows × lots) (#2779). Instead,
+    -- each map is indexed by account up front, in two groupings:
+    --
+    -- "under": a key's data appears under its account and every ancestor,
+    -- answering "at or under this account" queries directly.
+    --
+    -- "own": a key's data appears under its owning row account - the
+    -- deepest candidate row account at or above it, if any - answering
+    -- "in this row's own scope" queries. This is what makes overlapping
+    -- rows disjoint, eg when lots are held in both an account and its
+    -- subaccount (each of which then gets its own row).
+    --
+    -- Each group keeps the map's ascending (account, commodity) key
+    -- order, as the full scans produced.
 
-    -- The values in a map whose keys are at or under the given account
-    -- (and in the given held commodity, if specified).
-    underIn :: M.Map (AccountName, CommoditySymbol) v -> AccountName -> Maybe CommoditySymbol -> [v]
-    underIn m acct = scopedIn m (\sub -> acct == sub || acct `isAccountNamePrefixOf` sub)
+    underIx :: M.Map (AccountName, CommoditySymbol) v -> M.Map AccountName [(CommoditySymbol, v)]
+    underIx m = groupIx [(anc, (c, v)) | ((sub, c), v) <- M.toAscList m
+                                       , anc <- sub : parentAccountNames sub]
 
-    -- The values in a map whose keys satisfy the given account test
-    -- (and are in the given held commodity, if specified).
-    scopedIn :: M.Map (AccountName, CommoditySymbol) v -> (AccountName -> Bool) -> Maybe CommoditySymbol -> [v]
-    scopedIn m intest mc =
-      [ v | ((sub, c), v) <- M.toAscList m
-      , intest sub
-      , maybe True (== c) mc
-      ]
+    ownIx :: M.Map (AccountName, CommoditySymbol) v -> M.Map AccountName [(CommoditySymbol, v)]
+    ownIx m = groupIx [(owner, (c, v)) | ((sub, c), v) <- M.toAscList m
+                                       , Just owner <- [ownerOf sub]]
+
+    -- Group an ascending association list by account, each group keeping
+    -- the input order (fromListWith prepends, hence the reverse).
+    groupIx :: [(AccountName, a)] -> M.Map AccountName [a]
+    groupIx = M.fromListWith (++) . reverse . map (fmap (:[]))
+
+    -- A lot subaccount's owning row account: the deepest candidate row
+    -- account at or above it, if any.
+    ownerOf :: AccountName -> Maybe AccountName
+    ownerOf sub = find (`S.member` candaccset) (sub : parentAccountNames sub)
+    candaccset = S.fromList candaccts
+
+    ownFlowIx    = ownIx flowmap
+    ownRgainIx   = ownIx rgainmap
+    underFlowIx  = underIx flowmap
+    underRgainIx = underIx rgainmap
+
+    -- Narrow an indexed group to one held commodity, if specified.
+    inComm :: Maybe CommoditySymbol -> [(CommoditySymbol, v)] -> [v]
+    inComm mc kvs = [v | (c, v) <- kvs, maybe True (== c) mc]
 
     -- The cashflows of the lots in a row account's own scope.
     flowsOf :: AccountName -> Maybe CommoditySymbol -> [(Day, Amount)]
-    flowsOf acct mc = concat $ scopedIn flowmap (rowScope acct) mc
+    flowsOf acct mc = concat $ inComm mc $ M.findWithDefault [] acct ownFlowIx
+
+    -- The cashflows of the lots at or under an account.
+    flowsUnder :: AccountName -> [(Day, Amount)]
+    flowsUnder acct = concat $ map snd $ M.findWithDefault [] acct underFlowIx
 
     -- The realised gains of the lots at or under an account, optionally of one held commodity.
     rgainsUnder :: AccountName -> Maybe CommoditySymbol -> [Amount]
-    rgainsUnder = underIn rgainmap
+    rgainsUnder acct mc = inComm mc $ M.findWithDefault [] acct underRgainIx
 
     -- The realised gains of the lots in a row account's own scope.
     rgainsOf :: AccountName -> Maybe CommoditySymbol -> [Amount]
-    rgainsOf acct = scopedIn rgainmap (rowScope acct)
+    rgainsOf acct mc = inComm mc $ M.findWithDefault [] acct ownRgainIx
 
     -- A lot subaccount's cost basis, parsed from its name
     -- (which by construction contains the acquisition date and unit cost).
@@ -318,8 +500,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       where parseAmt = either (const Nothing) Just . parseamount
 
     -- Amounts are displayed normalised to their commodity's display
-    -- precision by default; --round can choose another rounding strategy.
-    rounding = fromMaybe HardRounding $ roundFromRawOpts rawopts
+    -- precision by default; hroRounding can choose another rounding strategy.
     styles = journalCommodityStylesWith rounding j
 
     priceoracle = journalPriceOracle (infer_prices_ ropts) j
@@ -453,18 +634,6 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     pctstyles = M.union styles $ M.singleton "%" $
       amountstyle{ascommodityside=R, asprecision=Precision 1, asrounding=HardRounding}
 
-    -- Show a percentage (for the Weight, UGain% and XIRR columns) as a
-    -- "%" commodity amount, using the display style of "%" (eg from a
-    -- commodity directive or -c) or the default above: eg 64.3%.
-    showpct :: Quantity -> T.Text
-    showpct p =
-      T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} $
-      styleAmounts pctstyles nullamt{acommodity="%", aquantity=p}
-
-    -- Show an XIRR percentage, like showpct: eg 12.3%.
-    showxirr :: Double -> T.Text
-    showxirr = showpct . realToFrac
-
     -- The unrealised gains implied by value and cost amounts: value minus
     -- cost per commodity, when they cover exactly the same (nonempty) set
     -- of commodities; otherwise Nothing.
@@ -499,28 +668,29 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
       filter (not . amountLooksZero) $ sumAmounts $
       map fst $ lotsOf $ prrFullName r
 
-    -- The lots held at or under the given account, excluding empty ones.
-    lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
-    lotsUnder acct = lotsWhere (\sub -> acct == sub || acct `isAccountNamePrefixOf` sub)
-
-    -- The lots in a row account's own scope, excluding empty ones.
-    lotsOf :: AccountName -> [(Amount, Maybe CostBasis)]
-    lotsOf acct = lotsWhere (rowScope acct)
-
-    -- The nonempty lots whose subaccounts satisfy the given test.
-    -- A lot's cost basis comes from its subaccount name; when the name has
-    -- no cost part (AVERAGE lots' names omit it, staying stable across
-    -- re-averaging), the pool's current average cost is filled in instead.
-    lotsWhere :: (AccountName -> Bool) -> [(Amount, Maybe CostBasis)]
-    lotsWhere intest =
-      [ (a, addPoolAvg sub a <$> lotBasis sub) | ((sub, _), a) <- M.toAscList lotmap
-      , intest sub
-      , not $ amountLooksZero a
-      ]
+    -- The nonempty lots as (units, cost basis), keyed like lotmap.
+    -- A lot's cost basis comes from its subaccount name, parsed once
+    -- here; when the name has no cost part (AVERAGE lots' names omit it,
+    -- staying stable across re-averaging), the pool's current average
+    -- cost is filled in instead.
+    lotbases :: M.Map (AccountName, CommoditySymbol) (Amount, Maybe CostBasis)
+    lotbases = M.mapWithKey mklot $ M.filter (not . amountLooksZero) lotmap
       where
+        mklot (sub, _) a = (a, addPoolAvg sub a <$> lotBasis sub)
         addPoolAvg sub a cb@CostBasis{cbCost=Nothing} =
           cb{cbCost = M.lookup (lotBaseAccount sub, acommodity a) poolavgmap}
         addPoolAvg _ _ cb = cb
+
+    underLotIx = underIx lotbases
+    ownLotIx   = ownIx lotbases
+
+    -- The lots held at or under the given account, excluding empty ones.
+    lotsUnder :: AccountName -> [(Amount, Maybe CostBasis)]
+    lotsUnder acct = map snd $ M.findWithDefault [] acct underLotIx
+
+    -- The lots in a row account's own scope, excluding empty ones.
+    lotsOf :: AccountName -> [(Amount, Maybe CostBasis)]
+    lotsOf acct = map snd $ M.findWithDefault [] acct ownLotIx
 
     -- Report rows come from a single-period, end-balances multiBalanceReport:
     -- on the lot-detailed journal with --lots (rows are lot subaccounts),
@@ -544,14 +714,14 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
           where acct = prrFullName r
     candaccts = map prrFullName candidates
 
-    -- Rows to display: the candidates, except - in list mode - those with
-    -- nothing in their own scope (eg a base account row whose lots all
-    -- appear in displayed lot subaccount rows); in tree mode all are
-    -- wanted. A row holding lots directly is kept even when a deeper row
-    -- also displays; it shows just its own lots (see rowScope).
+    -- Rows to display: the candidates, except those with nothing in
+    -- their own scope (eg a base account row whose lots all appear in
+    -- displayed lot subaccount rows). A row holding lots directly is
+    -- kept even when a deeper row also displays; it shows just its own
+    -- lots (see ownIx).
     rows = filter keeprow candidates
       where
-        keeprow r = tree || not (null (lotsOf acct))
+        keeprow r = not (null (lotsOf acct))
                  || (empty_ ropts && hasRgainsOf acct)
           where acct = prrFullName r
 
@@ -566,13 +736,16 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     -- The topmost displayed rows: those not contained in another displayed
     -- row. Totals are computed from these, to avoid double counting.
     toprows = [ r | r <- rows
-              , not $ any (\r2 -> prrFullName r2 `isAccountNamePrefixOf` prrFullName r) rows ]
+              , not $ any (`S.member` rowaccset) (parentAccountNames $ prrFullName r) ]
+      where rowaccset = S.fromList $ map prrFullName rows
 
     -- The display order: by account name, or with -S by each row's Value
     -- (falling back to Cost), largest first. Sorting compares the keys
-    -- along each row's chain of displayed ancestors, so in tree mode each
-    -- level is sorted and subtrees stay together. Ties (and rows mixing
-    -- commodities, which are summed crudely) keep the account name order.
+    -- along each row's chain of displayed ancestors, so an overlapping
+    -- subaccount row sorts with its displayed parent (and tree mode's
+    -- sections, which keep this order, get each level sorted). Ties (and
+    -- rows mixing commodities, which are summed crudely) keep the
+    -- account name order.
     sortedrows
       | not $ sort_amount_ ropts = rows
       | otherwise = sortOn keypath rows
@@ -591,14 +764,16 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
     rowlines :: [(PeriodicReportRow DisplayName MixedAmount, Holding)]
     rowlines = [(r, h) | r <- sortedrows, h <- rowHoldings r]
 
-    tbl = maybe id addtotalrow (map (T.intercalate ", ") <$> mtotalrowparts) $ Table
-      (Group NoLine $ map (Header . renderacct . fst) rowlines)
-      (Group NoLine $ map Header colheadings)
-      (map (map (T.intercalate ", ") . holdingCellParts . snd) rowlines)
-      where
-        addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
-          Table (Group NoLine [Header ""]) (Header []) [totalrow]
-    colheadings = ["Date", "Age", "Units", unitcostheading, "Unit price", "Total cost", "Total value", "Weight", "UGain", "UGain%", "RGain", "XIRR"]
+    -- One display line per report line.
+    displaylines :: [HoldingsLine]
+    displaylines =
+      [ HoldingsPosition
+          { hlIndent  = prrIndent r
+          , hlAccount = prrFullName r
+          , hlDisplay = prrDisplayName r
+          , hlIsLot   = isJust $ lotSubaccountName $ prrFullName r
+          , hlHolding = h }
+      | (r, h) <- rowlines ]
 
     -- The cost column's heading matches what's shown: "Avg cost" on rows
     -- aggregating multiple lots (the default) or when the lots shown all
@@ -616,76 +791,9 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
                | (sub, c) <- M.keys lotmap ]
         allavg = not (null avgs) && and avgs
         anyavg = or avgs
-    renderacct r = renderPeriodicAcct ropts " " r
 
     rowLotCosts r = [rowCostValuer r $ multiplyAmount (aquantity a) c
                     | (a, mcb) <- lotsOf $ prrFullName r, Just c <- [cbCost =<< mcb]]
-
-    -- A holding's cells, each as a list of parts: possibly several in Cost
-    -- and RGain (when cost commodities are mixed), at most one elsewhere.
-    -- Units show a commodity symbol even when zero (for rgain-only rows).
-    holdingCellParts :: Holding -> [[T.Text]]
-    holdingCellParts h =
-      [ [maybe "" showDate (hDate h)]
-      , [maybe "" showage (hAge h)]
-      , [T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} (hUnits h)]
-      , [maybe "" showamt (hUnitCost h)]
-      , map showamt $ hPrice h
-      , map showamt $ hCost h
-      , map showamtz $ hValue h
-      , [maybe "" showpct (hWeight h)]
-      , map showamtz $ hUgain h
-      , [maybe "" showpct (hUgainPct h)]
-      , map showamt $ hRgain h
-      , [maybe "" showxirr (hXirr h)]
-      ]
-      where
-        showamt  = T.pack . showAmountWith noCostFmt
-        showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
-
-    -- Spreadsheet-shaped tables for the html and fods output: like the
-    -- text table, but with single-line cells, an Account column heading,
-    -- and a Total: row heading. Parameterised on how to convert plain
-    -- text, and a cell's list of (possibly amount) parts, to content.
-    spreadsheetWith :: forall content. (T.Text -> content) -> (Bool -> [T.Text] -> content)
-                    -> [[Ods.Cell Ods.NumLines content]]
-    spreadsheetWith plain parts =
-      addHeaderBorders (zipWith hcell colclasses ("Account" : colheadings))
-      : [ zipWith3 bodycell [0..] colclasses
-            (plain (acctcell r) : zipWith parts amountcols (holdingCellParts h))
-        | (r, h) <- rowlines ]
-      ++ maybe [] (\tot -> addTotalBorders
-           [zipWith3 totalcell [0..] colclasses
-              (plain "Total:" : zipWith parts amountcols tot) :: [Ods.Cell () content]])
-           mtotalrowparts
-      where
-        -- per-column css classes, so the html cells can be styled
-        colclasses = ["account","date","age","units","unitcost","unitprice","totalcost","totalvalue","weight","ugain","ugainpct","rgain","xirr"]
-        -- which of the other columns' cell parts are amounts
-        amountcols = [False, False, True, True, True, True, True, False, True, False, True, False]
-        hcell cls t = plain <$> (headerCell t){Ods.cellClass = Ods.Class cls}
-        -- body cells are right-aligned, except the first two columns
-        -- (Account and Date); headings are unaffected
-        bodycell :: Ods.Lines border => Int -> T.Text -> content' -> Ods.Cell border content'
-        bodycell i cls t = (Ods.defaultCell t)
-          {Ods.cellType = if i < 2 then Ods.TypeString else Ods.TypeMixedAmount
-          ,Ods.cellClass = Ods.Class cls}
-        totalcell i cls = bodycell i (cls <> " coltotal")
-        -- indent tree-mode account names with no-break spaces
-        acctcell r = T.replicate (prrIndent r * 2) "\160" <> prrDisplayName r
-
-    -- Each commodity amount gets its own span with an "amount" class,
-    -- so eg wrapping within amounts can be prevented with css.
-    htmltable :: [[Ods.Cell Ods.NumLines Html]]
-    htmltable = spreadsheetWith toHtml partsHtml
-      where
-        partsHtml isamount parts =
-          mconcat $ intersperse (toHtml (", "::T.Text)) $
-          map (\p -> if isamount then (H.span ! A.class_ "amount") (toHtml p) else toHtml p) $
-          filter (not . T.null) parts
-
-    fodstable :: [[Ods.Cell Ods.NumLines T.Text]]
-    fodstable = spreadsheetWith id (\_ -> T.intercalate ", " . filter (not . T.null))
 
     -- Sum amounts per commodity, keeping an empty list empty
     -- (unlike amounts . mixed, which would make it a single zero).
@@ -708,8 +816,7 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
           | not $ empty_ ropts = []
           | otherwise =
               [ nullamt{acommodity=c}
-              | c <- nubSort [ c2 | ((sub, c2), g) <- M.toAscList rgainmap
-                                  , rowScope acct sub
+              | c <- nubSort [ c2 | (c2, g) <- M.findWithDefault [] acct ownRgainIx
                                   , not $ amountLooksZero g ]
               , c `notElem` map acommodity heldamts
               ]
@@ -753,60 +860,65 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
               [v] <- Just vals
               xirrOf (flowsOf acct (Just c)) v
 
-    -- Machine-readable records for the csv/tsv/json output, one per
-    -- displayed table line. No totals records.
-    holdingrecords :: [Holding]
-    holdingrecords = map snd rowlines
-
-    csvoutput :: CSV
-    csvoutput =
-      ["account","commodity","date","age","units","unitcost","unitprice","totalcost","totalvalue","weight","ugain","ugainpct","rgain","xirr"]
-      : map holdingCsv holdingrecords
-
-    -- Grand totals row (as cell parts, like rowCellParts): the Units,
-    -- Avg cost, Cost, Value and UGain columns, summed over the topmost
-    -- displayed rows (which include everything below them); and RGain and
-    -- XIRR, over all the lots within the query and end date, including
-    -- fully disposed lots, commodities and accounts, which have no row
-    -- unless -E is used. So the totals are the same in list or tree mode,
-    -- with or without --lots or -E (#2769).
-    -- Units, and the average cost per unit, are shown only when the
-    -- holdings are all in one commodity (a multi-commodity total would
-    -- widen the column for everyone, and a multi-commodity average is
-    -- not meaningful); the average also needs a single cost commodity.
-    -- Value and gains are blank unless all rows have a market price.
-    mtotalrowparts :: Maybe [[T.Text]]
-    mtotalrowparts
-      | no_total_ ropts = Nothing
-      | otherwise = Just [[], [], unitsparts, avgcostparts, [], costparts, valueparts, [weightcell], ugainparts, [ugainpctcell], rgainparts, [xirrcell]]
+    -- The grand totals, summed over the topmost displayed rows; the
+    -- RGain and XIRR components cover all the lots within the query and
+    -- end date, whatever rows are displayed (#2769; see HoldingsTotals).
+    totals :: HoldingsTotals
+    totals = HoldingsTotals
+      { htUnits    = case totunits of [u] -> Just u; _ -> Nothing
+      , htAvgCost  = case (totunits, sumAmounts totcosts) of
+          ([u], [c]) -> Just $ avgcost u c
+          _          -> Nothing
+      , htCost     = amounts $ mixed totcosts
+      , htValue    = mportfoliovalue
+      , htWeight   = weightPct =<< mportfoliovalue
+      , htUgain    = mtotgains
+      , htUgainPct = gainPct (fromMaybe [] mtotgains) totcosts
+      , htRgain    = case map (costValuerTo mportvaluecomm) $ M.elems rgainmap of
+          [] -> []
+          rs -> amounts $ mixed rs
+      , htXirr     = do
+          totvalue <- mportfoliovalue
+          [tv] <- Just totvalue
+          xirrOf (concat $ M.elems flowmap) tv
+      }
       where
         totunits = filter (not . amountLooksZero) $ sumAmounts $
                    concatMap (map fst . lotsUnder . prrFullName) toprows
-        unitsparts = case totunits of
-          [u] -> [showamt u]
-          _   -> []
-        avgcostparts = case (totunits, sumAmounts totcosts) of
-          ([u], [c]) -> [showamt $ avgcost u c]
-          _          -> []
         totcosts = [ rowCostValuer r $ multiplyAmount (aquantity a) c
                    | r <- toprows, (a, mcb) <- lotsUnder (prrFullName r), Just c <- [cbCost =<< mcb] ]
-        costparts = map showamt $ amounts $ mixed totcosts
-        (valueparts, weightcell, ugainparts, ugainpctcell) = case mportfoliovalue of
-          Nothing -> ([], "", [], "")
-          Just totvalue -> ( map showamt totvalue
-                           , maybe "" showpct $ weightPct totvalue
-                           , maybe [] (map showamtz) mtotgains
-                           , maybe "" showpct $ gainPct (fromMaybe [] mtotgains) totcosts)
-            where mtotgains = gainAmounts totvalue totcosts
-        rgainparts = case map (costValuerTo mportvaluecomm) $ M.elems rgainmap of
-          [] -> []
-          rs -> map showamt $ amounts $ mixed rs
-        xirrcell = fromMaybe "" $ do
-          totvalue <- mportfoliovalue
-          [tv] <- Just totvalue
-          showxirr <$> xirrOf (concat $ M.elems flowmap) tv
-        showamt = T.pack . showAmountWith noCostFmt
-        showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
+        mtotgains = mportfoliovalue >>= \totvalue -> gainAmounts totvalue totcosts
+
+    -- The totals of the lots at or under one account, computed like the
+    -- grand totals row: an account heading row's figures. Like those,
+    -- RGain and XIRR cover all the subtree's lots within the query and
+    -- end date, including fully disposed ones with no row (#2769), and
+    -- Weight is relative to the whole portfolio's value.
+    accountTotals :: AccountName -> HoldingsTotals
+    accountTotals acct = HoldingsTotals
+      { htUnits    = case units of [u] -> Just u; _ -> Nothing
+      , htAvgCost  = case (units, sumAmounts costs) of
+          ([u], [c]) -> Just $ avgcost u c
+          _          -> Nothing
+      , htCost     = sumAmounts costs
+      , htValue    = msubvalue
+      , htWeight   = weightPct =<< msubvalue
+      , htUgain    = mgains
+      , htUgainPct = gainPct (fromMaybe [] mgains) costs
+      , htRgain    = sumAmounts $ map (costValuerTo msubvaluecomm) $ rgainsUnder acct Nothing
+      , htXirr     = do
+          [v] <- msubvalue
+          xirrOf (flowsUnder acct) v
+      }
+      where
+        units = filter (not . amountLooksZero) $ sumAmounts $ map fst $ lotsUnder acct
+        costs = [ costValuerTo msubvaluecomm $ multiplyAmount (aquantity a) c
+                | (a, mcb) <- lotsUnder acct, Just c <- [cbCost =<< mcb] ]
+        msubvalue = mvalueUnder acct
+        msubvaluecomm = case msubvalue of
+          Just [v] -> Just $ acommodity v
+          _        -> Nothing
+        mgains = msubvalue >>= \subvalue -> gainAmounts subvalue costs
 
     -- An average cost: total cost / total units, shown like other amounts
     -- in the cost commodity's display precision - but with at least 2
@@ -820,3 +932,183 @@ holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsQuery=q,
         clamp lo hi = max lo . min hi
         pdiv = case asprecision (astyle avg) of Precision n -> n; _ -> defaultMaxDisplayPrecision
         pstyle = case asprecision (astyle costa) of Precision n -> n; _ -> 2
+
+-- | Show the holdings report: the assets held in lot-tracked accounts
+-- as of the report end date, one row per account (or per lot, with --lots).
+--
+-- This command receives the journal with lot detail (lot subaccounts and
+-- synthetic postings) uncollapsed, regardless of --lots
+-- (see maybeCollapseLotDetail); holdingsReport aggregates lots itself.
+holdings :: CliOpts -> Journal -> IO ()
+holdings opts@CliOpts{rawopts_=rawopts, reportspec_=rspec@ReportSpec{_rsReportOpts=ropts}} j = do
+  if (case value_ ropts of Just (AtThen _) -> True; _ -> False)
+  then error' "holdings: --value=then is not supported"
+  else rounding `seq`  -- validate the --round value before any output
+    writeOutputLazyText opts $ case outputFormatFromOpts opts of
+      "txt"  -> txtoutput
+      "csv"  -> printCSV csvoutput
+      "tsv"  -> printTSV csvoutput
+      "html" -> (<>"\n") $ htmlAsLazyText $ titledTableHtml title htmltable
+      "fods" -> printFods IO.localeEncoding $ M.singleton "Holdings" ((1,0), fodstable)
+      "json" -> (<>"\n") $ toJsonText $ map holdingJson holdingrecords
+      fmt    -> error' $ unsupportedOutputFormatError fmt
+  where
+    -- Amounts are displayed normalised to their commodity's display
+    -- precision by default; --round can choose another rounding strategy.
+    rounding = fromMaybe HardRounding $ roundFromRawOpts rawopts
+
+    rpt = holdingsReport
+      HoldingsReportOpts{hroLots = boolopt "lots" rawopts, hroRounding = rounding}
+      rspec j
+    rowlines = hrRows rpt
+    reportdate = hrDate rpt
+
+    -- The default title can be customised or suppressed with --title.
+    title = effectiveTitle ropts ("Holdings on " <> showDate reportdate)
+    txtoutput =
+      (case title of
+         "" -> ""
+         t  -> TL.fromStrict t <> "\n\n")
+      <>
+      if null rowlines
+      then "(no holdings)\n"
+      else renderTable
+        def{tableBorders=False}
+        (textCell TopLeft)
+        (textCell TopRight)
+        (textCell TopRight)
+        tbl
+
+    tbl = maybe id addtotalrow (map (T.intercalate ", ") <$> mtotalrowparts) $ Table
+      (Group NoLine $ map (Header . lineacct) displaylines)
+      (Group NoLine $ map Header colheadings)
+      (map (map (T.intercalate ", ") . linecells) displaylines)
+      where
+        addtotalrow totalrow tbl' = concatTables SingleLine tbl' $
+          Table (Group NoLine [Header ""]) (Header []) [totalrow]
+    colheadings = ["Date", "Age", "Units", hrUnitCostHeading rpt, "Unit price", "Total cost", "Total value", "Weight", "UGain", "UGain%", "RGain", "XIRR"]
+    displaylines = hrLines rpt
+
+    -- A display line's account cell: indented display names in tree
+    -- mode, full (possibly dropped) account names otherwise.
+    lineacct :: HoldingsLine -> T.Text
+    lineacct l
+      | accountlistmode_ ropts == ALTree && not (full_names_ ropts) =
+          T.replicate (hlIndent l * 2) " " <> hlDisplay l
+      | otherwise = accountNameDrop (drop_ ropts) (hlAccount l)
+
+    -- A display line's data cells, each as a list of parts.
+    linecells :: HoldingsLine -> [[T.Text]]
+    linecells HoldingsHeading{hlTotals}   = totalsCellParts hlTotals
+    linecells HoldingsPosition{hlHolding} = holdingCellParts hlHolding
+
+    showpct = showPercentWith (hrStyles rpt)
+    -- Show an XIRR percentage, like showpct: eg 12.3%.
+    showxirr :: Double -> T.Text
+    showxirr = showpct . realToFrac
+
+    -- A holding's cells, each as a list of parts: possibly several in Cost
+    -- and RGain (when cost commodities are mixed), at most one elsewhere.
+    -- Units show a commodity symbol even when zero (for rgain-only rows).
+    holdingCellParts :: Holding -> [[T.Text]]
+    holdingCellParts h =
+      [ [maybe "" showDate (hDate h)]
+      , [maybe "" showage (hAge h)]
+      , [T.pack $ showAmountWith noCostFmt{displayZeroCommodity=True} (hUnits h)]
+      , [maybe "" showamt (hUnitCost h)]
+      , map showamt $ hPrice h
+      , map showamt $ hCost h
+      , map showamtz $ hValue h
+      , [maybe "" showpct (hWeight h)]
+      , map showamtz $ hUgain h
+      , [maybe "" showpct (hUgainPct h)]
+      , map showamt $ hRgain h
+      , [maybe "" showxirr (hXirr h)]
+      ]
+      where
+        showamt  = T.pack . showAmountWith noCostFmt
+        showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
+
+    -- A totals row's cells (the grand total, or an account heading row
+    -- in tree mode), each as a list of parts like holdingCellParts.
+    totalsCellParts :: HoldingsTotals -> [[T.Text]]
+    totalsCellParts tot =
+      [ []
+      , []
+      , maybe [] ((:[]) . showamt) (htUnits tot)
+      , maybe [] ((:[]) . showamt) (htAvgCost tot)
+      , []
+      , map showamt (htCost tot)
+      , maybe [] (map showamt) (htValue tot)
+      , [maybe "" showpct (htWeight tot)]
+      , maybe [] (map showamtz) (htUgain tot)
+      , [maybe "" showpct (htUgainPct tot)]
+      , map showamt (htRgain tot)
+      , [maybe "" showxirr (htXirr tot)]
+      ]
+      where
+        showamt  = T.pack . showAmountWith noCostFmt
+        showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
+
+    -- The grand totals row as cell parts, unless --no-total is in effect.
+    mtotalrowparts :: Maybe [[T.Text]]
+    mtotalrowparts
+      | no_total_ ropts = Nothing
+      | otherwise = Just $ totalsCellParts $ hrTotals rpt
+
+    -- Spreadsheet-shaped tables for the html and fods output: like the
+    -- text table, but with single-line cells, an Account column heading,
+    -- and a Total: row heading. Parameterised on how to convert plain
+    -- text, and a cell's list of (possibly amount) parts, to content.
+    spreadsheetWith :: forall content. (T.Text -> content) -> (Bool -> [T.Text] -> content)
+                    -> [[Ods.Cell Ods.NumLines content]]
+    spreadsheetWith plain parts =
+      addHeaderBorders (zipWith hcell colclasses ("Account" : colheadings))
+      : [ zipWith3 bodycell [0..] (lineclasses l)
+            (plain (acctcell l) : zipWith parts amountcols (linecells l))
+        | l <- displaylines ]
+      ++ maybe [] (\tot -> addTotalBorders
+           [zipWith3 totalcell [0..] colclasses
+              (plain "Total:" : zipWith parts amountcols tot) :: [Ods.Cell () content]])
+           mtotalrowparts
+      where
+        -- per-column css classes, so the html cells can be styled
+        colclasses = ["account","date","age","units","unitcost","unitprice","totalcost","totalvalue","weight","ugain","ugainpct","rgain","xirr"]
+        -- which of the other columns' cell parts are amounts
+        amountcols = [False, False, True, True, True, True, True, False, True, False, True, False]
+        hcell cls t = plain <$> (headerCell t){Ods.cellClass = Ods.Class cls}
+        -- account heading rows get an extra class, so html can style them
+        lineclasses HoldingsHeading{}  = "account acctheading" : drop 1 colclasses
+        lineclasses HoldingsPosition{} = colclasses
+        -- body cells are right-aligned, except the first two columns
+        -- (Account and Date); headings are unaffected
+        bodycell :: Ods.Lines border => Int -> T.Text -> content' -> Ods.Cell border content'
+        bodycell i cls t = (Ods.defaultCell t)
+          {Ods.cellType = if i < 2 then Ods.TypeString else Ods.TypeMixedAmount
+          ,Ods.cellClass = Ods.Class cls}
+        totalcell i cls = bodycell i (cls <> " coltotal")
+        -- indent tree-mode account names with no-break spaces
+        acctcell l = T.replicate (hlIndent l * 2) "\160" <> hlDisplay l
+
+    -- Each commodity amount gets its own span with an "amount" class,
+    -- so eg wrapping within amounts can be prevented with css.
+    htmltable :: [[Ods.Cell Ods.NumLines Html]]
+    htmltable = spreadsheetWith toHtml partsHtml
+      where
+        partsHtml isamount parts =
+          mconcat $ intersperse (toHtml (", "::T.Text)) $
+          map (\p -> if isamount then (H.span ! A.class_ "amount") (toHtml p) else toHtml p) $
+          filter (not . T.null) parts
+
+    fodstable :: [[Ods.Cell Ods.NumLines T.Text]]
+    fodstable = spreadsheetWith id (\_ -> T.intercalate ", " . filter (not . T.null))
+
+    -- Machine-readable records for the csv/tsv/json output, one per
+    -- displayed table line. No totals records.
+    holdingrecords :: [Holding]
+    holdingrecords = map snd rowlines
+
+    csvoutput :: CSV
+    csvoutput =
+      ["account","commodity","date","age","units","unitcost","unitprice","totalcost","totalvalue","weight","ugain","ugainpct","rgain","xirr"]
+      : map holdingCsv holdingrecords
