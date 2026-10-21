@@ -1125,12 +1125,12 @@ msgstr "过账验证失败"
 
 #. the disclosure hiding each page's rows of report controls: its text, and its tooltip.
 #: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Show the controls that reshape this view"
+msgid "Show the options that reshape this view"
 msgstr ""
 
 #. the disclosure hiding each page's rows of report controls: its text, and its tooltip.
 #: hledger-web/Hledger/Web/Widget/Common.hs
-msgid "Controls"
+msgid "Options"
 msgstr ""
 
 #. the tooltip on the muted control rows of the journal and register pages.
@@ -1718,7 +1718,7 @@ msgid "toggle sidebar"
 msgstr "切换侧边栏"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "toggle report controls"
+msgid "toggle report options"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
@@ -1728,6 +1728,34 @@ msgstr "聚焦搜索表单"
 #: hledger-web/templates/default-layout.hamlet
 msgid "hide empty accounts in sidebar"
 msgstr "聚焦搜索表单"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle tree mode"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle historical balances"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle market value"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle cost"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle real postings"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "filter by status"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "set or adjust the depth limit"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "General"
