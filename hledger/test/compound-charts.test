@@ -276,7 +276,7 @@ $ hledger -f - is -M --chart -T -A -O csv
   assets:broker:gld  5 GLD
   equity
 
-$ hledger -f - bs -O svg | sed -n 's/.*class="heading".*>\(.*\)<.*/\1/p; s/.*class="fill \(t[al]\|s\)[0-9]".*/\1/p' | uniq
+$ hledger -f - bs -O svg | sed -n 's/.*class="heading".*>\(.*\)<.*/\1/p; s/.*class="fill \(t[al]\)[0-9]".*/\1/p; s/.*class="fill \(s\)[0-9]".*/\1/p' | uniq
 USD
 ta
 tl
