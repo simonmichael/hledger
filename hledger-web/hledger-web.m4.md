@@ -117,7 +117,7 @@ Note this affects url generation but not route parsing.
 `--file-url=URL`
 : set a different base url for static files (default: `BASEURL/static/`)
 
-hledger-web normally serves static files itself, 
+hledger-web normally serves static files itself,
 but if you wanted to serve them from another server,
 eg for better caching or cookie-less serving on high performance websites,
 you can customise their urls with this.
@@ -133,9 +133,22 @@ If you see accounts which appear to have a zero balance, but cannot be hidden wi
 it's because they have a mixed-cost balance, which looks like zero when costs are hidden.
 (hledger-web does not show costs.)
 
-Reporting options and/or query arguments can be used to set an initial query,
-which although not shown in the UI, will restrict the data shown
-(in addition to any search query entered in the UI).
+Report options and query arguments given at startup become url state:
+hledger-web translates them into the url that browse mode opens, and
+that `--serve` prints, eg `hledger-web -V -M` opens
+`/journal?period=monthly&value=end`, and `hledger-web --cleared -3 assets`
+opens `/journal?q=assets status:* depth:3` (url-encoded). The server
+itself keeps the defaults, so every view is fully described by its
+url: a bare url shows the default view, and editing the url (or the
+search and the links above each page) changes the view. Report options
+the web UI has no equivalent for are ignored; options that map to
+page-local state, like `--historical`, shape the opening page only.
+
+This means a startup query is a starting search, not a restriction: a
+viewer can edit or clear it, and the JSON API serves the whole journal
+regardless. To actually restrict what hledger-web serves, give it a
+file holding only the entries to serve (eg one written by `hledger
+print QUERY`).
 
 If you use the bash shell, you can auto-complete flags by pressing TAB in the command line.
 If this is not working see [Install > Shell completions](install.html#shell-completions).
@@ -154,12 +167,19 @@ hledger-web's main views are:
 The journal and register views show the newest 1000 matching transactions, with links to the older
 and newer pages and to pages by number, so that a page stays a reasonable size
 however large the journal is (a `page` parameter in the URL names the page).
-When the matching transactions span more than one year, a row of years above the table
-links to each year's transactions; "All" widens the view again.
+When the matching transactions span more than one year, a row of years among the
+controls links to the view narrowed to each year; "All" widens it again, and shift-clicking
+a year selects a range of years (a `date:FIRST..END` search term, whose years the row marks).
 When they span more than twenty years, the years are shown one row per decade.
 
 The **sidebar** lists accounts and their balances (parent balances include subaccounts,
 and multiple commodities are shown one above the other).
+When a report shows its accounts as a tree (the Accounts row), the sidebar does too,
+with carets that fold and open each group in place. Folds are remembered in the browser,
+as choices laid over each page's baseline: a page with a `depth:` limit starts folded
+to it, one without starts fully open, and either way the groups you have opened or
+closed by hand stay as you left them. A caret clicked back to its page's baseline
+is forgotten.
 Click an account name to see its register, or an amount to see the transactions it is
 made of. In the journal and register views, click a date to see that day's journal entries.
 
@@ -178,8 +198,19 @@ which work when you are not typing in a field:
 - `j` - go to the journal view
 - `a` or `n` - add a transaction (escape to cancel)
 - `s` - show or hide the sidebar
+- `o` - show or hide the report options
 - `e` - show or hide empty accounts in the sidebar
-- `f` - focus the search form
+- `t` - show accounts as a tree, or a list
+- `H` - show ending balances, or balance changes
+- `V` - show amounts at market value, or as recorded
+- `B` - show amounts at cost, or as recorded
+- `R` - show only real postings, or all
+- `U`, `P`, `C` - show only unmarked, pending, or cleared transactions, or all
+- `S` - sort by amount, or by account
+- `T`, `A` - add or remove the row total and average columns (multi-period reports)
+- `D`, `W`, `M`, `Q`, `Y` - set the report interval (daily, weekly, monthly, quarterly, yearly); pressed again, remove it
+- `0`-`9`, `-`, `+` - set or adjust the account depth limit
+- `f` or `/` - focus the search form
 
 The pages are light or dark, following your OS or browser's color scheme setting,
 and switch when it changes.
@@ -244,10 +275,29 @@ the interval and/or the period, eg `/balancesheet?period=monthly` or
 report offer the usual intervals, and column headings link to the
 report for that period.
 The search box filters the reports like the other pages, including
-`depth:` terms, and the general report options given at startup, such
-as `--depth`, `-B`, or `-V`, apply. A `date:` term can set the interval
+`depth:` terms. A `date:` term can set the interval
 too, as on the command line (`date:monthly`, or
 `"date:quarterly in 2025"`), and wins over the `period` parameter.
+
+The links above each report also set its depth, which they write as a
+`depth:` term in the search; how amounts are shown, as recorded, at
+cost (like `-B`), or at market value at the end of each period (like
+`-V`), with a `value` parameter (`none`, `cost`, `then`, `end`, `now`,
+or a date; all but `cost` take an optional commodity, as
+`--value WHEN[,COMM]`) that is carried to the other reports; and
+whether accounts with zero balances are shown, with an `empty`
+parameter that the `e` key toggles and the pages' links carry.
+Other rows filter what every page shows, each rewriting its own search
+term: transaction status, posting realness, account type, and
+commodity, the last two selecting several at once with shift-click.
+
+Every page shows and preserves the report state its url carries: a
+link changes only the control it names, and controls that take effect
+on another page (the report-shaping rows, on the journal and register)
+show muted labels, their state marked all the same. Only the
+accumulation mode and the register's costs toggle are page-local:
+each report accumulates its own way, and following a link returns
+to the target page's own default.
 
 The balance sheets show ending balances and the income statement and
 cashflow statement show changes, as their commands do; an `accum`
@@ -270,6 +320,8 @@ An ending balance's register runs in historical mode (its own
 `accum=historical`): its running balance starts from the balance
 brought forward from before the period, shown as its oldest row, and
 its balance column's heading switches between the two modes.
+A figure at cost or at market value links to a register showing its
+amounts the same way (with the same `value` parameter).
 
 # RELOADING
 
@@ -284,7 +336,7 @@ both machines have roughly the same idea of what time it is.)
 
 # JSON API
 
-In addition to the web UI, hledger-web also serves a JSON API that can be 
+In addition to the web UI, hledger-web also serves a JSON API that can be
 used to get data or add new transactions.
 If you want the JSON API only, you can use the `--serve-api` flag. Eg:
 
@@ -353,7 +405,7 @@ $ curl -s http://127.0.0.1:5000/transactions | python3 -m json.tool
 
 Most of the JSON corresponds to hledger's data types; for details of what the fields mean, see the
 [Hledger.Data.Json haddock docs](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Json.html)
-and click on the various data types, eg 
+and click on the various data types, eg
 [Transaction](https://hackage.haskell.org/package/hledger-lib/docs/Hledger-Data-Types.html#t:Transaction).
 And for a higher level understanding, see the [journal docs](hledger.md#journal).
 There is also a basic [OpenAPI specification][openapi.yaml], also served at `/openapi.json`.

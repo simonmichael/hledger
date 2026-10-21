@@ -1,11 +1,12 @@
 <h2>
   #{header}
 
-^{yearsRow trs RegisterR qparam years}
-^{pagingLinks trs RegisterR qparam page}
+^{controlsRows}
+
+^{pagingLinks trs RegisterR qparam modeParams page}
 
 <div>
-  ^{registerChartHtml qparam accumParams transactionFrag (T.unpack balancelabel) $ accountTransactionsReportByCommodity items}
+  ^{registerChartHtml qparam modeParams transactionFrag (T.unpack balancelabel) $ accountTransactionsReportByCommodity items}
 
 <div.table-responsive>
   <table .table.table-condensed>
@@ -24,7 +25,7 @@
       $forall (torig, tacct, split, _acct, amt, bal) <- items
         <tr ##{transactionFrag torig} data-entry="#{showTransaction torig}">
           <td .date nowrap>
-            <a href="@?{(JournalR, [("q", journalDayQuery qparam (tdate torig))])}##{transactionFrag torig}"
+            <a href="@?{(JournalR, dayParams torig)}##{transactionFrag torig}"
                title=_{HMsg "Show this entry and the other journal entries on its date"}>
               #{show (tdate tacct)}
           <td .description>
@@ -35,9 +36,9 @@
                 #{summName}</a>#{comma}
           <td .amount>
             $if not split || not (mixedAmountLooksZero amt)
-              ^{mixedAmountAsHtml amt}
+              ^{mixedAmountAsHtmlWith amtfmt amt}
           <td .amount>
-            ^{mixedAmountAsHtml bal}
+            ^{mixedAmountAsHtml (mixedAmountStripCosts bal)}
       $if historical && lastpage
         $maybe start <- mstart
           <tr .broughtforward>
@@ -54,7 +55,7 @@
                 <a href=@?{broughtForwardLink start} title=_{HMsg "Show the transactions before this period"}>
                   ^{mixedAmountAsHtml startbal}
 
-^{pagingLinks trs RegisterR qparam page}
+^{pagingLinks trs RegisterR qparam modeParams page}
 
 $if elem AddPermission perms
   ^{addModal AddR j today}

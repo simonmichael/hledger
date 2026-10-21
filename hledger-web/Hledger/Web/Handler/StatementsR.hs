@@ -29,9 +29,14 @@ import Hledger.Utils.I18n (Translations, i18n, tr, trf)
 import Hledger.Write.Spreadsheet qualified as Spr
 
 import Hledger.Web.Import
+import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (helplink, removeInacct)
+import Hledger.Web.Widget.Common
+  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsToggle,
+   depthLinks, helplink,
+   listModeLinks, percentLinks, pricesLinks, realLinks, removeInacct,
+   sortLinks, statusLinks, zeroBalanceLinks)
 
 getBalancesheetR, getBalancesheetequityR, getIncomestatementR, getCashflowR :: Handler Html
 -- TRANSLATORS: the browser tab titles of the statement pages.
@@ -48,16 +53,16 @@ getCashflowR           = statementPage CashflowR           (i18n "cashflow state
 statementPage :: AppRoute -> Text -> CompoundBalanceCommandSpec -> Handler Html
 statementPage here tabtitle spec = do
   checkServerSideUiEnabled
-  VD{j, q, qopts, qparam, opts, today, trs} <- getViewData
+  VD{j, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
-  hideEmpty <- hideEmptyAccounts
   urlrender <- getUrlRenderParams
   let dateless = filterQuery (not . queryIsDateOrDate2)
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
       menu = reportLinkItems reportMenu
+      deepest = deepestDepth j
 
   defaultLayout $ do
     setTitleI (HMsg tabtitle)
@@ -65,45 +70,127 @@ statementPage here tabtitle spec = do
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ effectiveTitle roptsOrig $ tr trs $ cbctitle spec NoInterval
         paramError trs err
-      Right ReportParams{rpRopts, rpRspec, rpSpan, rpInterval, rpPeriod, rpAccum} -> do
+      Right ReportParams{rpRopts, rpRspec, rpSpan, rpInterval, rpPeriod, rpAccum, rpValue} -> do
         let accum = fromMaybe (cbcaccum spec) rpAccum
             override = mfilter (/= cbcaccum spec) rpAccum
             ropts = rpRopts{balanceaccum_ = accum}
             rspec = rpRspec{_rsReportOpts = ropts}
-            cbr0 =
-              styleAmounts (journalCommodityStylesWith HardRounding j) $
-                compoundBalanceReport rspec j (cbcqueries spec)
+            styles = journalCommodityStylesWith HardRounding j
+            cbrAsked = styleAmounts styles $ compoundBalanceReport rspec j (cbcqueries spec)
+        -- Percentages can be impossible in the data (amounts in mixed
+        -- commodities); probe the report for that error and show plain
+        -- amounts with an explanation instead of an error page, keeping
+        -- the url's percent state. See BalanceR.
+        pctErr <- if percent_ ropts then liftIO $ reportProbe cbrAsked else pure Nothing
+        let roptsR = if isJust pctErr then ropts{percent_ = False} else ropts
+            rspecR = rspec{_rsReportOpts = roptsR}
+            cbr0 | isJust pctErr = styleAmounts styles $ compoundBalanceReport rspecR j (cbcqueries spec)
+                 | otherwise = cbrAsked
             cbr =
               applySubreportTitles ropts $
                 cbr0{cbrTitle = effectiveTitle ropts $ compoundBalanceReportTitle spec rpRopts override cbr0}
             colspans = cbrDates cbr
-            -- What links staying on this page keep: the period as given, and
-            -- the mode when it is not the report's own.
+            -- What links staying on this page keep: the period as given, the
+            -- accumulation mode when it is not the report's own, and each
+            -- report-shaping parameter that is not at its default.
             periodParams = [("period", p) | Just p <- [rpPeriod]]
-            accumParams = [("accum", if accum == Historical then "historical" else "change") | isJust override]
+            accumParams = [("accum", accumWord accum) | accum /= cbcaccum spec]
+            valParams = valueParams roptsOrig rpValue
+            listParams  = [("list", listWord (accountlistmode_ ropts)) | accountlistmode_ ropts /= accountlistmode_ roptsOrig]
+            totalParams = [("total", "1") | row_total_ ropts]
+            avgParams   = [("avg", "1") | average_ ropts]
+            sortParams  = [("sort", "amount") | sort_amount_ ropts]
+            pctParams   = [("pct", "1") | percent_ ropts]
+            calcParams  = [("calc", w) | Just w <- [calcWord $ balancecalc_ ropts]]
+            inferParams = [("infer", "1") | infer_prices_ ropts, not (infer_prices_ roptsOrig)]
+            date2Params = [("date2", "1") | date2_ ropts, not (date2_ roptsOrig)]
+            emptyParams = [("empty", if hideEmpty then "0" else "1") | hideEmpty /= empty_ roptsOrig]
+            pageParams =
+              dbg1 "statement pageParams" $
+              periodParams ++ accumParams ++ valParams ++ listParams ++
+              totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
+              inferParams ++ date2Params ++ emptyParams
+            qParams = [("q", qparam) | not (T.null qparam)]
             -- Links to the other reports keep the search, minus any account
-            -- term, which the reports ignore, and the period as given.
-            menuParams = periodParams ++ [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)]
-            headinglink = urlrender here . headingParams qparam params
+            -- term, which the reports ignore, and this page's parameters,
+            -- apart from the accumulation mode, which each report defaults.
+            menuParams = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ removeAttributes ["accum"] pageParams
+            -- The figures' registers convert amounts as the report does. One
+            -- showing them as recorded must say so when the register's
+            -- default, the startup options', converts them.
+            registerParams =
+              [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
+              [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++
+              removeAttributes ["period", "accum", "value"] pageParams
+            relink = map (map (addLinkParams registerParams))
+            headinglink = urlrender here . headingParams rpInterval qparam params
             CompoundBalanceReportParts{cbrpLeadingHeaders, cbrpDataHeaders, cbrpSections, cbrpNetRows} =
-              compoundBalanceReportAsSpreadsheetParts oneLineNoCostFmt "account" ropts (cbcqueries spec) cbr
+              compoundBalanceReportAsSpreadsheetParts oneLineNoCostFmt "account" roptsR (cbcqueries spec) cbr
             -- The heading row with the classes the stylesheet aligns the
             -- columns by, and this page's column headings and links.
             withClass c cell = cell{Spr.cellClass = Spr.Class c}
             header =
               map (withClass "account") cbrpLeadingHeaders ++
               relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans (map (withClass "amount") cbrpDataHeaders)
-            sections = [(mfilter (not . T.null) (Just title), body, subtotals) | (title, body, subtotals) <- cbrpSections]
+            sections =
+              [ (sectionTitle title prefix, body', relink subtotals)
+              | (title, body, subtotals) <- cbrpSections
+              , let (prefix, body') = stripShared (relink body) ]
+            -- In flat mode each subreport's rows drop their shared account
+            -- prefix and dim the remaining parent path (splitAccountNames).
+            -- A single-component prefix is implied by the section title;
+            -- a deeper one is named beside it, or it would show nowhere.
+            stripShared body
+              | accountlistmode_ ropts == ALTree = (Nothing, body)
+              | otherwise = splitAccountNames body
+            sectionTitle title prefix = mfilter (not . T.null) $ Just $ case prefix of
+              Just p | T.any (== ':') p -> title <> " — " <> p
+              _ -> title
             noRows = all (\(_, r, _) -> null $ prRows r) . cbrSubreports
             empty = noRows cbr
             -- An empty report with zero balances hidden may have them all: look again showing them.
-            zerosHidden = hideEmpty && not (noRows $ compoundBalanceReport rspec{_rsReportOpts = ropts{empty_ = True}} j (cbcqueries spec))
+            zerosHidden = hideEmpty && not (noRows $ compoundBalanceReport rspecR{_rsReportOpts = roptsR{empty_ = True}} j (cbcqueries spec))
+        let isTree = accountlistmode_ ropts == ALTree
+            mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
+            -- The links to the other reports stay visible; every other
+            -- control the page responds to, one row of links each, sits
+            -- behind the controls disclosure.
+            -- No type row: the statements choose their own account types.
+            reportsRow = reportLinks trs here menuParams menu
+            -- The years the search matches in, ignoring all date
+            -- narrowing, as a row of links among the controls; the year
+            -- links rewrite the date narrowing themselves, so they
+            -- reduce the period to its interval.
+            yearsDays = map tdate $
+              entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
+            yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
+            yearsNav = yearsRow trs here qparam today rpSpan yearsKept yearsDays
+            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
+              [ accumulationLinks trs here (qParams ++ removeAttributes ["accum"] pageParams) (cbcaccum spec) accum
+              , intervalLinks trs here (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
+              , yearsNav
+              , statusLinks trs here pageParams qparam
+              , realLinks trs here pageParams qparam
+              , commodityLinks trs here pageParams qparam commoditiesOpen
+                  -- TRANSLATORS: the hint below the commodity filter row.
+                  (tr trs "Shift-click selects several commodities.") j ] ++
+              [ depthLinks trs here pageParams qparam deepest | deepest > 1 ] ++
+              [ listModeLinks trs here (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
+              , amountLinks trs here (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)
+              , pricesLinks trs here (qParams ++ removeAttributes ["infer"] pageParams) (infer_prices_ ropts)
+              , zeroBalanceLinks trs here (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty ] ++
+              [ columnsLinks trs here (qParams ++ removeAttributes ["total", "avg"] pageParams) (row_total_ ropts) (average_ ropts)
+              | rpInterval /= NoInterval ] ++
+              [ sortLinks trs here (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts)
+              , percentLinks trs here (qParams ++ removeAttributes ["pct"] pageParams) (percent_ ropts)
+              , calcLinks trs here (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
-        Yesod.toWidget $ reportLinks trs here menuParams menu
-        Yesod.toWidget $ intervalLinks trs here accumParams qparam rpSpan rpInterval
+        Yesod.toWidget reportsRow
+        Yesod.toWidget controlRows
+        for_ pctErr $ Yesod.toWidget . pctError trs
         if empty
           then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)
-          else Yesod.toWidget $ reportTable [header] sections cbrpNetRows
+          else Yesod.toWidget $ reportTable isTree mfold [header] sections (relink cbrpNetRows)
 
 -- | What an empty statement shows instead of a table: that its accounts
 -- all have zero balances, which are hidden; or, for the whole journal,

@@ -1,7 +1,7 @@
 {-|
-What hledger-web's report pages share: resolving their parameters
-against the startup options, and rendering a report's cells as the
-page's table.
+What hledger-web's report pages share: resolving their parameters into
+report options, translating the startup options into url state, and
+rendering a report's cells as the page's table.
 -}
 
 {-# LANGUAGE LambdaCase        #-}
@@ -13,37 +13,60 @@ module Hledger.Web.ReportPage (
   ReportParams(..),
   ReportParamError(..),
   reportParams,
+  startupUrlState,
+  intervalPeriodExpr,
   paramError,
+  reportProbe,
+  pctError,
+  AmountMode(..),
+  parseValue,
+  parseListMode,
+  parseCalc,
+  listWord,
+  valueWord,
+  amountModeOf,
+  setAmountMode,
+  valueParams,
+  addLinkParams,
+  deepestDepth,
+  accumWord,
+  calcWord,
   columnHeading,
   headingParams,
-  linksRow,
+  removeAttributes,
+  relinkDateHeaders,
   reportLinks,
   intervalLinks,
   accumulationLinks,
-  relinkDateHeaders,
   reportTable,
+  splitAccountNames,
 ) where
 
+import Control.Exception qualified as E
 import Control.Monad (mfilter, unless)
 import Data.Foldable (for_, traverse_)
+import Data.List (stripPrefix)
 import Data.Maybe (fromMaybe, listToMaybe)
+import Data.Text.Encoding qualified as TE
+import Network.HTTP.Types.URI (urlEncode)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
 import Data.Set qualified as Set
-import Text.Blaze.Html5 ((!), (!?))
+import Text.Blaze.Html5 ((!))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 import Text.Megaparsec.Error (errorBundlePretty)
+
 import Yesod (HtmlUrl)
 
-import Hledger.Utils.I18n (Translations, tr, trc)
+import Hledger.Utils.I18n (Translations, tr, trc, trf)
 import Hledger
 import Hledger.Cli.Anchor (dateTerm, renderPeriodHeading)
-import Hledger.Web.Widget.Common (removeDates)
+import Hledger.Web.Widget.Common (AmountMode(..), accumWord, linksRow, linksRowClass, listWord, removeDates, valueWord)
 import Hledger.Query qualified as Query
 import Hledger.Write.Html (Html, formatCell, nl)
-import Hledger.Write.Spreadsheet (Cell(..), NumLines)
+import Hledger.Write.Spreadsheet (Cell(..), Class(..), NumLines, textFromClass)
 
 -- | A report page's parameters, resolved.
 data ReportParams = ReportParams {
@@ -57,24 +80,31 @@ data ReportParams = ReportParams {
       -- ^ The period parameter's date span, or the unbounded span.
     rpInterval :: Interval,
       -- ^ The reporting interval: from a date: search term, else the period
-      --   parameter, else startup.
+      --   parameter, else none.
     rpPeriod   :: Maybe Text,
       -- ^ The period parameter as given, for links that keep it.
-    rpAccum    :: Maybe BalanceAccumulation
+    rpAccum    :: Maybe BalanceAccumulation,
       -- ^ The accum parameter, if one was given.
+    rpValue    :: Maybe AmountMode
+      -- ^ The value parameter, if one was given. rpRopts converts amounts
+      --   as it says.
 }
 
--- | A parameter the page cannot use, with what was given.
-data ReportParamError = BadPeriod String | BadAccum Text
+-- | A parameter the page cannot use, with what was given; or a
+-- combination of parameters that contradict each other.
+data ReportParamError
+  = BadPeriod String | BadAccum Text | BadValue Text | BadParamValue Text Text
+  | ValuechangeNeedsEnd | GainNotCost
 
 -- | Resolve a report page's parameters: today's date, the startup report
 -- spec, the search parameter and its parsed query and options, whether
--- zero items are hidden, and the period and accum parameters.
+-- zero items are hidden, and a lookup for the page's other parameters:
+-- period, accum, value, list, total, avg, sort, pct, and calc.
 --
 -- The period parameter is a period expression as for -p: an interval
 -- ("monthly"), a date span ("2024"), or both ("monthly in 2024"). An
 -- empty one is no period at all, as from a search form with nothing in
--- it; then the startup interval applies. A date: search term can carry
+-- it. A date: search term can carry
 -- an interval too (date:monthly), and as on the command line it wins
 -- over the period; cf reportOptsToSpec. The period's date span restricts
 -- the report like a date: search term would, and the report's links
@@ -84,20 +114,58 @@ reportParams ::
   Either ReportParamError ReportParams
 reportParams today rspecOrig qparam q qopts hideEmpty params = do
   let roptsOrig = _rsReportOpts rspecOrig
-      rpPeriod = mfilter (not . T.null) $ lookup "period" params
+      param k = lookup k params
+      rpPeriod = mfilter (not . T.null) (param "period")
   (ivl, rpSpan) <- case rpPeriod of
     Nothing -> Right (interval_ roptsOrig, nulldatespan)
     Just p  -> either (Left . BadPeriod . errorBundlePretty) Right $ parsePeriodExpr today p
-  rpAccum <- parseAccum $ lookup "accum" params
+  rpAccum <- parseAccum (param "accum")
+  rpValue <- parseValue (param "value")
+  mlist   <- parseListMode (param "list")
+  total   <- parseFlag "total" (param "total")
+  avg     <- parseFlag "avg" (param "avg")
+  sortAmt <- parseSort (param "sort")
+  pct     <- parseFlag "pct" (param "pct")
+  calc    <- parseCalc (param "calc")
+  infer <- parseFlag "infer" (param "infer")
+  dat2  <- parseFlag "date2" (param "date2")
   let rpInterval = fromMaybe ivl $ intervalFromQueryOpts qopts
-      rpRopts =
-        roptsOrig {
+      ropts1 =
+        maybe id setAmountMode rpValue roptsOrig {
           -- -E means the opposite in hledger-ui and hledger-web: hide
           -- zero items, which are shown by default, as the sidebar does.
           empty_ = not hideEmpty,
           balance_base_url_ = Just "",
-          querystring_ = filter (not . T.null) (Query.words'' queryprefixes qparam) ++ dateTerm (date2_ roptsOrig) rpSpan,
+          date2_ = date2_ roptsOrig || dat2,
+          infer_prices_ = infer_prices_ roptsOrig || infer,
+          querystring_ = filter (not . T.null) (Query.words'' queryprefixes qparam) ++ dateTerm (date2_ roptsOrig || dat2) rpSpan,
           interval_ = rpInterval
+        }
+      tree = fromMaybe (accountlistmode_ roptsOrig) mlist == ALTree
+  -- The combinations the command line rejects too, judged on the
+  -- effective conversion: the value parameter, or startup's options.
+  let isEnd (AtEnd _) = True
+      isEnd _         = False
+      atCost = conversionop_ ropts1 == Just ToCost
+      offEnd = rpValue == Just AsRecorded || maybe False (not . isEnd) (value_ ropts1)
+  case calc of
+    CalcGain | atCost -> Left GainNotCost
+    _ | calc `elem` [CalcValueChange, CalcGain], atCost || offEnd -> Left ValuechangeNeedsEnd
+    _ -> Right ()
+  let
+      -- Value changes and gains are figured from period-end market
+      -- values; default to that valuation, as the commands do.
+      value' | calc `elem` [CalcValueChange, CalcGain], Nothing <- value_ ropts1 = Just $ AtEnd Nothing
+             | otherwise = value_ ropts1
+      rpRopts = ropts1 {
+          value_           = value',
+          accountlistmode_ = fromMaybe (accountlistmode_ roptsOrig) mlist,
+          depth_           = if tree then mempty else depth_ ropts1,
+          row_total_       = total,
+          average_         = avg,
+          sort_amount_     = sortAmt,
+          percent_         = pct,
+          balancecalc_     = calc
         }
       -- cf queryFromFlags
       dateq
@@ -106,30 +174,109 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
         | otherwise              = Date rpSpan
       -- Unlike the journal and register pages, keep any depth limit:
       -- the report reads it from the query, and it is how a balance
-      -- report gets summarized (--depth at startup, or depth: in the search).
+      -- report gets summarized (--depth at startup, or depth: in the
+      -- search). In tree mode the report is computed at full depth
+      -- instead, and the page folds it to the depth limit, with each
+      -- deeper group openable in place (see reportTable and hledger.js).
       rpRspec =
         rspecOrig {
-          _rsQuery = simplifyQuery $ And [q, dateq],
+          _rsQuery = simplifyQuery $ And [if tree then filterQuery (not . queryIsDepth) q else q, dateq],
           _rsReportOpts = rpRopts
         }
   Right ReportParams{..}
 
+-- | The startup report options and query arguments, expressed as url
+-- state: the parameters for the url that browse mode opens and --serve
+-- prints. Query arguments and query-expressible options
+-- (periods, depths, statuses, -R) become the q parameter's search
+-- terms the other options the pages know become their parameters.
+-- Display preferences without a url spelling (the language, period
+-- title style, report titles) stay in the spec; report options the web
+-- ui has no vocabulary for (--invert, --transpose, ...) are dropped.
+startupUrlState :: ReportSpec -> ([(Text, Text)], ReportSpec)
+startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
+  where
+    params =
+      [("period", p)          | Just p <- [intervalPeriodExpr $ interval_ ropts]] ++
+      [("accum", accumWord a) | let a = balanceaccum_ ropts, a /= PerPeriod] ++
+      [("value", valueWord m) | Just m <- [amountModeOf ropts], m /= AsRecorded] ++
+      [("list", "tree")       | accountlistmode_ ropts == ALTree] ++
+      [("total", "1")         | row_total_ ropts] ++
+      [("avg", "1")           | average_ ropts] ++
+      [("sort", "amount")     | sort_amount_ ropts] ++
+      [("pct", "1")           | percent_ ropts] ++
+      [("calc", c)            | Just c <- [calcWord $ balancecalc_ ropts]] ++
+      [("costs", "1")         | show_costs_ ropts] ++
+      [("infer", "1")         | infer_prices_ ropts] ++
+      [("date2", "1")         | date2_ ropts] ++
+      -- -E means the opposite here: hide the zero balances the web ui
+      -- shows by default (cf hideEmptyAccounts).
+      [("empty", "0")         | empty_ ropts] ++
+      [("q", T.unwords qterms) | not (null qterms)]
+    qterms =
+      map textQuoteIfNeeded (querystring_ ropts) ++
+      dateTerm (date2_ ropts) (periodAsDateSpan $ period_ ropts) ++
+      map statusTerm (statuses_ ropts) ++
+      ["real:1" | real_ ropts] ++
+      depthTerms (depth_ ropts)
+    statusTerm s = "status:" <> case s of
+      Unmarked -> ""
+      Pending  -> "!"
+      Cleared  -> "*"
+    depthTerms (DepthSpec mflat regexps) =
+      ["depth:" <> T.pack (show n) | Just n <- [mflat]] ++
+      -- quoted when the regexp has a space, like the query terms
+      [textQuoteIfNeeded $ "depth:" <> reString r <> "=" <> T.pack (show n) | (r, n) <- regexps]
+    rspec' = rspec{
+      _rsQuery = Any,
+      _rsQueryOpts = [],
+      _rsReportOpts = defreportopts{
+        -- startup display preferen
+        format_           = format_ ropts,
+        balance_base_url_ = balance_base_url_ ropts,
+        pretty_           = pretty_ ropts,
+        sortspec_         = sortspec_ ropts,
+        color_            = color_ ropts,
+        layout_           = layout_ ropts,
+        period_titles_    = period_titles_ ropts,
+        title_            = title_ ropts,
+        subreport_titles_ = subreport_titles_ ropts,
+        translations_     = translations_ ropts
+      }
+    }
 
--- | A row of links above a report: a label, then each link's label,
--- title, target, and whether it is the one being shown.
--- Each label and title is a whole phrase, not a word slotted into a
--- sentence: an adjective that fits one language's sentence does not fit
--- another's, so a translation cannot be assembled from parts.
-linksRow :: Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
-linksRow rowlabel items renderUrl = do
-    H.p ! A.class_ "report-links" $ do
-      H.toHtml rowlabel
-      for_ items $ \(label, title, link, current) -> do
-        H.a !? (current, A.class_ "current")
-            ! A.href (H.toValue $ uncurry renderUrl link)
-            ! A.title (H.toValue title) $
-          H.toHtml label
-
+-- | A period expression naming the given reporting interval, none for
+-- NoInterval: the inverse of parsePeriodExpr's interval part.
+intervalPeriodExpr :: Interval -> Maybe Text
+intervalPeriodExpr = \case
+  NoInterval -> Nothing
+  Days 1     -> Just "daily"
+  Weeks 1    -> Just "weekly"
+  Months 1   -> Just "monthly"
+  Quarters 1 -> Just "quarterly"
+  Years 1    -> Just "yearly"
+  Days n     -> Just $ every n "days"
+  Weeks n    -> Just $ every n "weeks"
+  Months n   -> Just $ every n "months"
+  Quarters n -> Just $ every n "quarters"
+  Years n    -> Just $ every n "years"
+  MonthDay n             -> Just $ "every " <> ordinal n <> " day of month"
+  NthWeekdayOfMonth n wd -> (\name -> "every " <> ordinal n <> " " <> name <> " of month") <$> weekdayName wd
+  MonthAndDay m d        -> Just $ "every " <> T.pack (show m) <> "/" <> T.pack (show d)
+  DaysOfWeek [1,2,3,4,5] -> Just "every weekday"
+  DaysOfWeek [6,7]       -> Just "every weekendday"
+  DaysOfWeek []          -> Nothing
+  DaysOfWeek ds          -> ("every " <>) . T.intercalate "," <$> traverse weekdayName ds
+  where
+    every n unit = "every " <> T.pack (show n) <> " " <> unit
+    ordinal n = T.pack (show n) <> suffix
+      where
+        suffix | n `mod` 100 `elem` [11, 12, 13] = "th"
+               | otherwise = case n `mod` 10 of 1 -> "st"; 2 -> "nd"; 3 -> "rd"; _ -> "th"
+    -- The period parser accepts any day number in "every Nth day of
+    -- week", so days outside 1-7 arrive here: they have no name, and
+    -- their interval yields no period expression.
+    weekdayName d = lookup d $ zip [1..] ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"]
 
 -- | Links to the report pages, given as route, label, and title,
 -- keeping the given parameters; the page being shown is marked.
@@ -138,14 +285,15 @@ reportLinks trs here kept menu =
   -- TRANSLATORS: the label before a page's report links.
   linksRow (tr trs "Report:") [ (tr trs label, tr trs title, (route, kept), route == here) | (route, label, title) <- menu ]
 
-
 -- | Links to the same report page for each reporting interval, keeping
 -- the search, the period's date span, and the given parameters; the
 -- interval being shown is marked.
 intervalLinks :: Translations -> r -> [(Text, Text)] -> Text -> DateSpan -> Interval -> HtmlUrl r
 intervalLinks trs route kept qparam spn current =
+  -- The D, W, M, Q, and Y keys follow these links, by their order
+  -- here (hledger.js).
   -- TRANSLATORS: the label before a report's interval links.
-  linksRow (tr trs "Interval:")
+  linksRowClass "interval" (tr trs "Interval:")
     [ (label, title, link mword, ivl == current) | (label, title, mword, ivl) <- intervals ]
   where
     -- TRANSLATORS: the interval links above a report: each link's text, and its tooltip.
@@ -170,27 +318,158 @@ intervalLinks trs route kept qparam spn current =
     link mword =
       (route, periodparam mword ++ [("q", qparam) | not (T.null qparam)] ++ kept)
 
--- | Links to the same report page showing balance changes or ending
--- balances, keeping the given parameters; the one being shown is marked.
-accumulationLinks :: Translations -> r -> [(Text, Text)] -> BalanceAccumulation -> HtmlUrl r
-accumulationLinks trs route kept current =
+-- | Links to the same report page for each accumulation mode: balance
+-- changes, ending balances, or cumulative totals. They keep the given
+-- parameters; the page's own default mode needs none. The mode being
+-- shown is marked.
+accumulationLinks :: Translations -> r -> [(Text, Text)] -> BalanceAccumulation -> BalanceAccumulation -> HtmlUrl r
+accumulationLinks trs route kept dflt current =
+  -- The H key toggles Ending balances, the second link (hledger.js).
   -- TRANSLATORS: the label before a report's accumulation mode links, and the links' text and tooltips.
-  linksRow (tr trs "Show:")
+  linksRowClass "accum" (tr trs "Show:")
     [ (tr trs "Balance changes", tr trs "Show how much each balance changed in each period",
-        (route, kept), current /= Historical)
+        link PerPeriod, current == PerPeriod)
     , (tr trs "Ending balances", tr trs "Show each balance at the end of each period, including everything before it",
-        (route, kept ++ [("accum", "historical")]), current == Historical)
+        link Historical, current == Historical)
+    , (tr trs "Cumulative totals", tr trs "Show each balance's change since the start of the report (--cumulative)",
+        link Cumulative, current == Cumulative)
     ]
+  where link m = (route, kept ++ [("accum", accumWord m) | m /= dflt])
 
 -- | The accum parameter: "historical" for ending balances, "change" for
--- balance changes, or none for the page's default.
+-- balance changes, "cumulative" for totals since the report's start, or
+-- none for the page's default.
 parseAccum :: Maybe Text -> Either ReportParamError (Maybe BalanceAccumulation)
 parseAccum = \case
   Nothing           -> Right Nothing
   Just ""           -> Right Nothing
   Just "historical" -> Right $ Just Historical
   Just "change"     -> Right $ Just PerPeriod
+  Just "cumulative" -> Right $ Just Cumulative
   Just other        -> Left $ BadAccum other
+
+-- | The list parameter: show accounts as a "tree" or a "flat" list.
+parseListMode :: Maybe Text -> Either ReportParamError (Maybe AccountListMode)
+parseListMode = \case
+  Nothing     -> Right Nothing
+  Just ""     -> Right Nothing
+  Just "tree" -> Right $ Just ALTree
+  Just "flat" -> Right $ Just ALFlat
+  Just other  -> Left $ BadParamValue "list" other
+
+-- | A parameter that turns something on: "1", or "0" or nothing for off.
+parseFlag :: Text -> Maybe Text -> Either ReportParamError Bool
+parseFlag name = \case
+  Nothing    -> Right False
+  Just ""    -> Right False
+  Just "0"   -> Right False
+  Just "1"   -> Right True
+  Just other -> Left $ BadParamValue name other
+
+-- | The sort parameter: rows in "amount" order, or "account" order (the
+-- default).
+parseSort :: Maybe Text -> Either ReportParamError Bool
+parseSort = \case
+  Nothing        -> Right False
+  Just ""        -> Right False
+  Just "account" -> Right False
+  Just "amount"  -> Right True
+  Just other     -> Left $ BadParamValue "sort" other
+
+-- | The calc parameter: what a report's cells calculate, as the balance
+-- commands' --valuechange, --gain, and --count flags choose.
+parseCalc :: Maybe Text -> Either ReportParamError BalanceCalculation
+parseCalc = \case
+  Nothing            -> Right CalcChange
+  Just ""            -> Right CalcChange
+  Just "change"      -> Right CalcChange
+  Just "valuechange" -> Right CalcValueChange
+  Just "gain"        -> Right CalcGain
+  Just "count"       -> Right CalcPostingsCount
+  Just other         -> Left $ BadParamValue "calc" other
+
+-- | The calc parameter value naming a calculation, for those that have one.
+calcWord :: BalanceCalculation -> Maybe Text
+calcWord = \case
+  CalcValueChange   -> Just "valuechange"
+  CalcGain          -> Just "gain"
+  CalcPostingsCount -> Just "count"
+  _                 -> Nothing
+
+-- | The value parameter, mirroring --value's WHEN[,COMM] syntax:
+-- "none", "cost", or a valuation "end", "then", "now", or a date, each
+-- optionally with a commodity to convert to (end,EUR = -X EUR). None
+-- for the startup options' conversion.
+parseValue :: Maybe Text -> Either ReportParamError (Maybe AmountMode)
+parseValue = \case
+  Nothing -> Right Nothing
+  Just "" -> Right Nothing
+  Just v ->
+    let (w, c) = T.break (== ',') v
+        mc = mfilter (not . T.null) $ Just $ T.drop 1 c
+        ok = Right . Just
+    in case (w, mc) of
+      ("none", Nothing) -> ok AsRecorded
+      ("cost", Nothing) -> ok AtCost
+      ("end",  _)       -> ok $ AtVal $ AtEnd mc
+      ("then", _)       -> ok $ AtVal $ AtThen mc
+      ("now",  _)       -> ok $ AtVal $ AtNow mc
+      _ | Just d <- parsedate (T.unpack w) -> ok $ AtVal $ AtDate d mc
+      _ -> Left $ BadValue v
+
+-- | Which amount mode report options convert amounts by, if any: only
+-- cost combined with a valuation, or conversion to transacted cost, are
+-- none of them.
+amountModeOf :: ReportOpts -> Maybe AmountMode
+amountModeOf ropts =
+  case (conversionop_ ropts, value_ ropts) of
+    (Just ToCost,           Nothing) -> Just AtCost
+    (Just ToCost,           _)       -> Nothing
+    (Just ToTransactedCost, _)       -> Nothing
+    (_,                     Nothing) -> Just AsRecorded
+    (_,                     Just vt) -> Just $ AtVal vt
+
+-- | Report options converting amounts by the given mode, and no other way.
+setAmountMode :: AmountMode -> ReportOpts -> ReportOpts
+setAmountMode mode ropts =
+  case mode of
+    AsRecorded -> ropts{conversionop_ = Just NoConversionOp, value_ = Nothing}
+    AtCost     -> ropts{conversionop_ = Just ToCost,         value_ = Nothing}
+    AtVal vt   -> ropts{conversionop_ = Just NoConversionOp, value_ = Just vt}
+
+-- | The value parameter that links staying on a page keep: the mode
+-- given, unless it is the startup options' own.
+valueParams :: ReportOpts -> Maybe AmountMode -> [(Text, Text)]
+valueParams roptsOrig mmode =
+  [("value", valueWord m) | Just m <- [mmode], Just m /= amountModeOf roptsOrig]
+
+-- | Add query parameters to a cell's link, if it has one. The values
+-- are url-encoded (interval words like "every 2 weeks", and value
+-- parameters carrying a commodity, are not url-safe); the keys are our
+-- own constant names.
+addLinkParams :: [(Text, Text)] -> Cell b Text -> Cell b Text
+addLinkParams [] c = c
+addLinkParams params c
+  | T.null (cellAnchor c) = c
+  | otherwise = c {cellAnchor = cellAnchor c <> T.concat ["&" <> k <> "=" <> enc v | (k, v) <- params]}
+  where enc = TE.decodeUtf8 . urlEncode True . TE.encodeUtf8
+
+-- | Force a report enough to surface the error a percentage report
+-- raises when its amounts span commodities: that depends on the data,
+-- not the parameters, so reportParams cannot catch it. Nothing when
+-- the report calculates.
+reportProbe :: Show r => r -> IO (Maybe String)
+reportProbe r =
+  E.handle (\(E.ErrorCall e) -> pure $ Just e) $
+    Nothing <$ E.evaluate (length $ show r)
+
+-- | Explain percentages falling back to plain amounts, showing the
+-- report's own message.
+pctError :: Translations -> String -> Html
+pctError trs e =
+  H.div ! A.class_ "alert alert-danger" $ do
+    H.toHtml $ tr trs "Could not calculate percentages:"
+    H.pre $ H.toHtml $ fromMaybe e $ stripPrefix "Error: " e
 
 -- | Explain a parameter the page could not use.
 paramError :: Translations -> ReportParamError -> Html
@@ -203,22 +482,44 @@ paramError trs = \case
     H.div ! A.class_ "alert alert-danger" $ do
       H.toHtml $ tr trs "Unknown balance accumulation mode:"
       H.pre $ H.toHtml v
+  BadValue v ->
+    H.div ! A.class_ "alert alert-danger" $ do
+      H.toHtml $ tr trs "Unknown amount conversion:"
+      H.pre $ H.toHtml v
+  BadParamValue name v ->
+    H.div ! A.class_ "alert alert-danger" $ do
+      H.toHtml $ trf trs "The {name} parameter has a value this page does not know:" [("name", name)]
+      H.pre $ H.toHtml v
+  ValuechangeNeedsEnd ->
+    H.div ! A.class_ "alert alert-danger" $
+      H.toHtml $ tr trs "Value changes and gains are figured from period-end market values: leave the value parameter off, or use value=end."
+  GainNotCost ->
+    H.div ! A.class_ "alert alert-danger" $
+      H.toHtml $ tr trs "Gains compare market value against cost, so they do not combine with value=cost."
 
--- | A column's heading: its period, or for ending balances the period's
--- end date, which is what an ending balance is at.
+-- | The deepest account depth a report page can show: that of the
+-- journal's deepest account.
+deepestDepth :: Journal -> Int
+deepestDepth j = maximum (0 : map accountNameLevel (journalAccountNames j))
+
+-- | A column's heading: its period, or for ending balances and
+-- cumulative totals the period's end date, which is what those are at.
 columnHeading :: ReportOpts -> [DateSpan] -> DateSpan -> Text
 columnHeading ropts colspans spn =
   case balanceaccum_ ropts of
-    Historical -> reportPeriodName ropts{balanceaccum_ = Historical} colspans spn
-    _          -> renderPeriodHeading (period_titles_ ropts) spn
+    PerPeriod -> renderPeriodHeading (period_titles_ ropts) spn
+    _         -> reportPeriodName ropts colspans spn
 
--- A column heading opens this report for that column's period,
--- in place of any date terms in the search, which the column narrows anyway.
-headingParams :: Text -> [(Text, Text)] -> DateSpan -> [(Text, Text)]
-headingParams qparam params spn =
+-- A column heading opens this report for that column's period, in
+-- place of any date terms in the search, which the column narrows
+-- anyway. The interval is kept (the drilled view is one column of it),
+-- so the report's subdivision survives navigating on from there.
+headingParams :: Interval -> Text -> [(Text, Text)] -> DateSpan -> [(Text, Text)]
+headingParams ivl qparam params spn =
   [("q", T.unwords qt) |
       let qt = dateTerm False spn ++ removeDates qparam,
       not (null qt)] ++
+  [("period", w) | Just w <- [intervalPeriodExpr ivl]] ++
   removeAttributes ["q", "period"] params
 
 removeAttributes :: [Text] -> [(Text, Text)] -> [(Text, Text)]
@@ -239,16 +540,46 @@ relinkDateHeaders trs heading link = go
     go spns (c:cs) = c : go spns cs
     go _ [] = []
 
+-- | In a flat report's body rows, strip what the account names share
+-- above their leaf names, and mark the account cells for path-dimmed
+-- rendering (acct-split; see reportTable and .acct-path in hledger.css):
+-- the least interesting parents stop repeating down the page. The
+-- register links keep the full names, which also head each cell's
+-- tooltip. Returns the shared prefix, for showing once in a heading.
+splitAccountNames :: [[Cell b Text]] -> (Maybe AccountName, [[Cell b Text]])
+splitAccountNames rws = (mprefix, map (map split) rws)
+  where
+    isAcct c = textFromClass (cellClass c) == "account"
+    names = [cellContent c | r <- rws, c <- r, isAcct c]
+    prefix = case map accountNameComponents names of
+      []    -> []
+      comps -> foldl1 commonPrefix (map init comps)  -- init: each leaf stays in its row
+    commonPrefix (x:xs) (y:ys) | x == y = x : commonPrefix xs ys
+    commonPrefix _ _ = []
+    mprefix = if null prefix then Nothing else Just (accountNameFromComponents prefix)
+    split c
+      | isAcct c = c
+          { cellContent = accountNameFromComponents $ drop (length prefix) $ accountNameComponents $ cellContent c
+          , cellClass = Class "account acct-split"
+          , cellTitle = cellContent c <> "\n" <> cellTitle c
+          }
+      | otherwise = c
+
 -- | A report as a table in the page's own style: the heading rows, then
 -- a table section per report section (a titled row, its rows, then its
 -- subtotal rows), then the total rows as the table's footer. It scrolls
 -- sideways within the page when it is wider (see .report-table in
 -- hledger.css; bootstrap's .table-responsive does that only on a phone).
+-- In tree mode the rows carry depth classes, the indent becomes css
+-- padding so hledger.js can put a fold caret at each group, and the
+-- table says what depth to fold to initially, if any.
 reportTable ::
+  Bool -> Maybe Int ->
   [[Cell NumLines Text]] -> [(Maybe Text, [[Cell NumLines Text]], [[Cell NumLines Text]])] -> [[Cell NumLines Text]] -> Html
-reportTable header sections footer =
+reportTable isTree mfold header sections footer =
   H.div ! A.class_ "table-responsive report-table" $
-    H.table ! A.class_ "balancereport table table-condensed" $ do
+    maybe id (\n t -> t ! H.dataAttribute "depth-fold" (H.toValue n)) mfold
+      (H.table ! A.class_ "balancereport table table-condensed") $ do
       H.thead $ rows Nothing header
       traverse_ section sections
       unless (null footer) $ H.tfoot $ rows Nothing footer
@@ -259,7 +590,41 @@ reportTable header sections footer =
         for_ mtitle $ \t ->
           H.tr ! A.class_ "section" $
             H.th ! A.colspan (H.toValue ncols) ! H.customAttribute "scope" "rowgroup" $ H.toHtml t
-        rows Nothing body
+        rowsWith foldcls body
         rows (Just "subtotal") subtotals
-    rows mcls = traverse_ $ \r ->
-      maybe id (\cls -> (! A.class_ cls)) mcls H.tr (traverse_ (formatCell . fmap H.toHtml) r) <> nl
+    rows mcls = rowsWith (const mcls)
+    rowsWith cls = traverse_ $ \r ->
+      maybe id (\c -> (! A.class_ c)) (cls r) H.tr (traverse_ (formatCell . cellHtml) (stripIndents r)) <> nl
+    -- With a depth limit, the rows below it are served already folded,
+    -- so the table paints at its folded height and nothing moves after
+    -- paint; hledger.js's carets toggle the same class from there.
+    foldcls r
+      | Just d <- mfold, Just n <- rowDepth r, n >= d = Just "tree-fold-hide"
+      | otherwise = Nothing
+    rowDepth r = listToMaybe
+      [ n | c <- r, cls <- T.words $ textFromClass $ cellClass c
+          , Just ns <- [T.stripPrefix "depth-" cls]
+          , ((n, "") : _) <- [reads (T.unpack ns) :: [(Int, String)]] ]
+    -- An account cell marked acct-split renders as two spans, the parent
+    -- path and the leaf name, so css can dim the path and shorten it from
+    -- the left (.acct-path in hledger.css). The inner span is a bidi
+    -- isolate there, keeping that css left-shortening trick
+    -- (direction: rtl) from reordering the name.
+    cellHtml c
+      | "acct-split" `elem` T.words (textFromClass (cellClass c))
+      , (path, leaf) <- T.breakOnEnd ":" (cellContent c)
+      , not (T.null path)
+      = (H.toHtml <$> c)
+          { cellContent =
+              (H.span ! A.class_ "acct-path") (H.span $ H.toHtml $ T.init path)
+              <> H.toHtml (":" :: Text)
+              <> (H.span ! A.class_ "acct-leaf") (H.toHtml leaf) }
+      | otherwise = H.toHtml <$> c
+    -- The nbsp indent the renderer gives tree-mode account names, as
+    -- padding instead (hledger.css indents by the depth class), so the
+    -- caret sits at the name.
+    stripIndents | isTree = map stripCell
+                 | otherwise = id
+    stripCell c
+      | "depth-" `T.isInfixOf` textFromClass (cellClass c) = c{cellContent = T.dropWhile (== '\160') (cellContent c)}
+      | otherwise = c

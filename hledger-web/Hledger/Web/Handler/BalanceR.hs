@@ -15,24 +15,29 @@ import Data.Text qualified as T
 import Hledger.Utils.I18n (tr, trf)
 
 import Hledger.Web.Import
+import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (removeInacct)
+import Hledger.Web.Widget.Common
+  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsHint, controlsToggle,
+   depthLinks, listModeLinks,
+   percentLinks, pricesLinks, realLinks, removeInacct, sortLinks,
+   statusLinks, typeLinks, zeroBalanceLinks)
 
 
 -- | The balance or multi-period balance view, with sidebar.
 getBalanceR :: Handler Html
 getBalanceR = do
   checkServerSideUiEnabled
-  VD{j, q, qopts, qparam, opts, today, trs} <- getViewData
+  VD{j, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
-  hideEmpty <- hideEmptyAccounts
   urlrender <- getUrlRenderParams
   let dateless = filterQuery (not . queryIsDateOrDate2)
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
+      deepest = deepestDepth j
 
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.
@@ -41,45 +46,124 @@ getBalanceR = do
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ reportTitle roptsOrig $ tr trs "Balance report"
         paramError trs err
-      Right ReportParams{rpRopts, rpRspec, rpSpan, rpInterval, rpPeriod, rpAccum} -> do
-        let -- The page shows balance changes unless asked for ending balances.
+      Right ReportParams{rpRopts, rpRspec, rpSpan, rpInterval, rpPeriod, rpAccum, rpValue} -> do
+        let -- The page shows balance changes unless another mode was asked for.
             accum = fromMaybe PerPeriod rpAccum
             ropts = rpRopts{balanceaccum_ = accum}
             rspec = rpRspec{_rsReportOpts = ropts}
             styles = journalCommodityStylesWith HardRounding j
-            mbr = styleAmounts styles $ multiBalanceReport rspec j
+            mbrAsked = styleAmounts styles $ multiBalanceReport rspec j
+        -- Percentages divide each amount by its column's total, which
+        -- needs them in one commodity; whether they are is in the data,
+        -- so the report, not reportParams, raises the error. Probe for
+        -- it, and show plain amounts with an explanation instead of an
+        -- error page. Only the report falls back: the links and the
+        -- Numbers row keep the url's percent state.
+        pctErr <- if percent_ ropts then liftIO $ reportProbe mbrAsked else pure Nothing
+        let roptsR = if isJust pctErr then ropts{percent_ = False} else ropts
+            rspecR = rspec{_rsReportOpts = roptsR}
+            mbr | isJust pctErr = styleAmounts styles $ multiBalanceReport rspecR j
+                | otherwise = mbrAsked
             colspans = prDates mbr
-            -- What links staying on this page keep: the period as given,
-            -- and the mode when it is not the default.
+            -- What links staying on this page keep: the period as given, and each
+            -- report-shaping parameter that is not at its default.
             periodParams = [("period", p) | Just p <- [rpPeriod]]
-            accumParams = [("accum", "historical") | accum == Historical]
+            accumParams = [("accum", accumWord accum) | accum /= PerPeriod]
+            valParams = valueParams roptsOrig rpValue
+            listParams  = [("list", listWord (accountlistmode_ ropts)) | accountlistmode_ ropts /= accountlistmode_ roptsOrig]
+            totalParams = [("total", "1") | row_total_ ropts]
+            avgParams   = [("avg", "1") | average_ ropts]
+            sortParams  = [("sort", "amount") | sort_amount_ ropts]
+            pctParams   = [("pct", "1") | percent_ ropts]
+            calcParams  = [("calc", w) | Just w <- [calcWord $ balancecalc_ ropts]]
+            inferParams = [("infer", "1") | infer_prices_ ropts, not (infer_prices_ roptsOrig)]
+            date2Params = [("date2", "1") | date2_ ropts, not (date2_ roptsOrig)]
+            emptyParams = [("empty", if hideEmpty then "0" else "1") | hideEmpty /= empty_ roptsOrig]
+            pageParams =
+              dbg1 "balance pageParams" $
+              periodParams ++ accumParams ++ valParams ++ listParams ++
+              totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
+              inferParams ++ date2Params ++ emptyParams
             qParams = [("q", qparam) | not (T.null qparam)]
             -- links to the other reports keep the search, minus any account
-            -- term, which the reports ignore, and the period as given
-            menuParams = periodParams ++ [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)]
-            headinglink = urlrender BalanceR . headingParams qparam params
+            -- term, which the reports ignore, and this page's parameters,
+            -- apart from the accumulation mode, which each report defaults
+            menuParams = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ removeAttributes ["accum"] pageParams
+            -- The figures' registers convert amounts as the report does. One
+            -- showing them as recorded must say so when the register's
+            -- default, the startup options', converts them. The sticky
+            -- report state travels along too; the link rewrites only the
+            -- dates, so of the period it keeps just the interval.
+            registerParams =
+              [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
+              [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++
+              removeAttributes ["period", "accum", "value"] pageParams
+            relink = map (map (addLinkParams registerParams))
+            headinglink = urlrender BalanceR . headingParams rpInterval qparam params
             -- The heading, and the report's rows in three parts, for the
             -- table's thead, tbody, and tfoot.
             (title, header, body, totals) = case rpInterval of
               NoInterval ->
                 let (h, b, t) =
-                      Balance.balanceReportAsSpreadsheetParts oneLineNoCostFmt ropts $
-                        styleAmounts styles $ balanceReport rspec j
+                      Balance.balanceReportAsSpreadsheetParts oneLineNoCostFmt roptsR $
+                        styleAmounts styles $ balanceReport rspecR j
                     -- The plain page has its own name; one narrowed to a
                     -- period, or showing ending balances, says so like the
                     -- multi-period page does.
                     dflt | queryDateSpan (date2_ ropts) (_rsQuery rspec) == nulldatespan && accum == PerPeriod = tr trs "Balance report"
-                         | otherwise = trimColon $ Balance.multiBalanceReportTitle ropts mbr
-                in (reportTitle ropts dflt, [toList h], map toList b, map toList t)
+                         | otherwise = trimColon $ Balance.multiBalanceReportTitle roptsR mbr
+                in (reportTitle ropts dflt, [toList h], relink $ map toList b, relink $ map toList t)
               _ ->
-                let (h, b, t) = Balance.multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt ropts mbr
-                in ( reportTitle ropts $ trimColon $ Balance.multiBalanceReportTitle ropts mbr
-                   , map (relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans) h, b, t)
+                let (h, b, t) = Balance.multiBalanceReportAsSpreadsheetParts oneLineNoCostFmt roptsR mbr
+                in ( reportTitle ropts $ trimColon $ Balance.multiBalanceReportTitle roptsR mbr
+                   , map (relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans) h, relink b, relink t)
+        let isTree = accountlistmode_ ropts == ALTree
+            mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
+            -- In flat mode the account names' shared prefix is shown once,
+            -- as a group heading, and each row shows only the rest, its
+            -- remaining parent path dimmed (see splitAccountNames).
+            (acctsPrefix, body')
+              | isTree = (Nothing, body)
+              | otherwise = splitAccountNames body
+            -- The links to the other reports stay visible; every other
+            -- control the page responds to, one row of links each, sits
+            -- behind the controls disclosure.
+            reportsRow = reportLinks trs BalanceR menuParams $ reportLinkItems reportMenu
+            -- The years the search matches in, ignoring all date
+            -- narrowing, as a row of links among the controls; the year
+            -- links rewrite the date narrowing themselves, so they
+            -- reduce the period to its interval.
+            yearsDays = map tdate $
+              entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
+            yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
+            yearsNav = yearsRow trs BalanceR qparam today rpSpan yearsKept yearsDays
+            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
+              [ accumulationLinks trs BalanceR (qParams ++ removeAttributes ["accum"] pageParams) PerPeriod accum
+              , intervalLinks trs BalanceR (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
+              , yearsNav
+              , statusLinks trs BalanceR pageParams qparam
+              , realLinks trs BalanceR pageParams qparam
+              , typeLinks trs BalanceR pageParams qparam
+              -- TRANSLATORS: the hint below the account type filter row.
+              , controlsHint $ tr trs "Shift-click selects several types."
+              , commodityLinks trs BalanceR pageParams qparam commoditiesOpen
+                  -- TRANSLATORS: the hint below the commodity filter row.
+                  (tr trs "Shift-click selects several commodities.") j ] ++
+              [ depthLinks trs BalanceR pageParams qparam deepest | deepest > 1 ] ++
+              [ listModeLinks trs BalanceR (qParams ++ removeAttributes ["list"] pageParams) (accountlistmode_ roptsOrig) (accountlistmode_ ropts)
+              , amountLinks trs BalanceR (qParams ++ removeAttributes ["value"] pageParams) (amountModeOf roptsOrig) (amountModeOf ropts)
+              , pricesLinks trs BalanceR (qParams ++ removeAttributes ["infer"] pageParams) (infer_prices_ ropts)
+              , zeroBalanceLinks trs BalanceR (qParams ++ removeAttributes ["empty"] pageParams) (empty_ roptsOrig) hideEmpty ] ++
+              [ columnsLinks trs BalanceR (qParams ++ removeAttributes ["total", "avg"] pageParams) (row_total_ ropts) (average_ ropts)
+              | rpInterval /= NoInterval ] ++
+              [ sortLinks trs BalanceR (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts)
+              , percentLinks trs BalanceR (qParams ++ removeAttributes ["pct"] pageParams) (percent_ ropts)
+              , calcLinks trs BalanceR (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
-        Yesod.toWidget $ reportLinks trs BalanceR menuParams $ reportLinkItems reportMenu
-        Yesod.toWidget $ accumulationLinks trs BalanceR (periodParams ++ qParams) accum
-        Yesod.toWidget $ intervalLinks trs BalanceR accumParams qparam rpSpan rpInterval
-        Yesod.toWidget $ reportTable header [(Nothing, body, [])] totals
+        Yesod.toWidget reportsRow
+        Yesod.toWidget controlRows
+        for_ pctErr $ Yesod.toWidget . pctError trs
+        Yesod.toWidget $ reportTable isTree mfold header [(acctsPrefix, body', [])] totals
 
 -- | The heading for a report: --title if one was given, otherwise the
 -- given default.

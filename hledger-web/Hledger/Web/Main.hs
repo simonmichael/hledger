@@ -31,12 +31,14 @@ import Control.Exception (bracket)
 import Control.Exception.Backtrace (setBacktraceMechanismState, BacktraceMechanism(..))
 #endif
 import Control.Monad (when, void)
+import Data.ByteString.Char8 qualified as BC
 import Data.IORef (IORef, atomicModifyIORef', newIORef, readIORef, writeIORef)
 import Data.Streaming.Network (bindRandomPortTCP)
 import Data.String (fromString)
 import Data.Text qualified as T
+import Data.Text.Encoding qualified as TE
 import GHC.Clock (getMonotonicTime)
-import Network.HTTP.Types (status204)
+import Network.HTTP.Types (renderSimpleQuery, status204)
 import Network.Socket
 import Network.Wai (Application, Middleware, pathInfo, responseLBS)
 import Network.Wai.Handler.Warp (Settings, runSettings, runSettingsSocket, defaultSettings, setBeforeMainLoop, setHost, setPort)
@@ -104,9 +106,7 @@ hledgerWebMain = handleExit $ withGhcDebug' $ do
 -- | The hledger web command.
 web :: WebOpts -> Journal -> IO ()
 web opts j = do
-  let depthlessinitialq = filterQuery (not . queryIsDepth) . _rsQuery . reportspec_ $ cliopts_ opts
-      j' = filterJournalTransactions depthlessinitialq j
-      h = host_ opts
+  let h = host_ opts
       p0 = port_ opts
       staticRoot = T.pack <$> file_url_ opts  -- XXX not used #2139
 
@@ -127,7 +127,7 @@ web opts j = do
                            ,appRoot = T.pack u
                            ,appExtra = Extra "" staticRoot
                            }
-  app <- makeApplication opts j' appconfig
+  app <- makeApplication opts j appconfig
 
   -- show configuration
   let
@@ -147,6 +147,17 @@ web opts j = do
     Just fu -> printf "and static files base url %s\n" fu
     Nothing -> pure ()
 
+  -- Startup report options and query arguments take effect as url state:
+  -- this is the url carrying them, which browse mode opens. Show it, so
+  -- that with --serve the link in the terminal carries the options too.
+  let starturl
+        | null (startup_params_ opts) = u
+        | otherwise =
+            u ++ "/journal" ++ BC.unpack (renderSimpleQuery True
+              [(TE.encodeUtf8 k, TE.encodeUtf8 v) | (k, v) <- startup_params_ opts])
+  when (server_mode_ opts /= ServeJson && not (null $ startup_params_ opts)) $
+    printf "Web UI with the startup options: %s\n" starturl
+
   -- start server and maybe browser
   let warpsettings = setHost (fromString h) (setPort p defaultSettings)
   if server_mode_ opts == ServeBrowse
@@ -155,7 +166,7 @@ web opts j = do
       putStrLn "Opening web browser..."
       hFlush stdout
       -- returns normally only after the idle exit (ctrl-c or a server failure raises instead)
-      serveAndBrowse warpsettings (snd <$> mtcpsock) u app
+      serveAndBrowse warpsettings (snd <$> mtcpsock) starturl app
       putStrLn "No browser windows were open for 15m, exiting. (Use --serve to serve without this timeout.)"
 
     else do

@@ -21,6 +21,16 @@ async function openAddForm(page) {
   await expect(page.locator('#addmodal')).toBeVisible();
 }
 
+// Hover an element, then nudge the pointer one pixel. hover() may scroll the
+// element into view, and the scroll event, delivered on the next frame, hides
+// the entry tooltip and cancels its pending show; the nudge is the small
+// pointer movement a real hand always makes, which re-arms it.
+async function hoverSettled(page, locator) {
+  await locator.hover();
+  const box = await locator.boundingBox();
+  await page.mouse.move(box.x + box.width / 2 + 1, box.y + box.height / 2);
+}
+
 test.describe('page initialization', () => {
 
   test('journal page loads and starts up without javascript errors', async ({ page }) => {
@@ -211,6 +221,114 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('"o" toggles the report options, like clicking their summary', async ({ page }) => {
+    await page.goto('/journal');
+    const details = page.locator('#main-content details.report-controls');
+    await expect(details.locator('p.report-links').first()).toBeHidden();
+    await page.locator('body').press('o');
+    await expect(details.locator('p.report-links').first()).toBeVisible();
+    // the choice is saved like a click's, from the toggle event
+    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+    await page.locator('body').press('o');
+    await expect(details.locator('p.report-links').first()).toBeHidden();
+    await page.waitForFunction(() => document.cookie.includes('showcontrols=0'));
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('the report keys follow control links: digits set depth, "V" value, "t" tree, "M" monthly', async ({ page }) => {
+    await page.goto('/balance');
+    await page.locator('body').press('3');
+    await expect(page).toHaveURL(/depth%3A3/);
+    await page.locator('body').press('V');
+    await expect(page).toHaveURL(/value=end/);
+    await page.locator('body').press('t');
+    await expect(page).toHaveURL(/list=tree/);
+    await page.locator('body').press('M');
+    await expect(page).toHaveURL(/period=monthly/);
+    // the keys are cased as hledger-ui's: lowercase v is not a key
+    await page.locator('body').press('v');
+    await expect(page).toHaveURL(/value=end/);
+    expect(pageErrors).toEqual([]);
+  });
+
+  // The rows of report controls sit behind a disclosure, closed by default;
+  // opening it is remembered in a cookie the server reads, so the next
+  // page renders it already open.
+  test('the controls disclosure starts closed, and stays open across pages', async ({ page }) => {
+    await page.goto('/balance');
+    const details = page.locator('#main-content details.report-controls');
+    await expect(details.locator('p.report-links').first()).toBeHidden();
+    await details.locator('> summary').click();
+    await expect(details.locator('p.report-links').first()).toBeVisible();
+    // the cookie is saved from the toggle event, which fires
+    // asynchronously; wait for it before navigating away
+    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+    await page.goto('/journal');
+    await expect(page.locator('#main-content details.report-controls p.report-links').first()).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // Shift-clicking account types composes a type:AL.. search term; the
+  // row marks each selected type.
+  test('shift-clicking account types selects several', async ({ page }) => {
+    await page.goto('/journal');
+    await page.locator('#main-content details.report-controls > summary').click();
+    const types = page.locator('#main-content div.types');
+    await types.locator('a', { hasText: 'Asset' }).click();
+    await expect(page).toHaveURL(/type%3AA/);
+    await types.locator('a', { hasText: 'Liability' }).click({ modifiers: ['Shift'] });
+    await expect(page).toHaveURL(/type%3AAL/);
+    await expect(types.locator('a.current')).toHaveText(['Asset', 'Liability']);
+    // a hand-typed search may hold several type: terms; composing
+    // replaces them all with the one term (the controls stay open
+    // here, via the cookie saved above)
+    await page.goto('/journal?q=type%3AA%20type%3AL');
+    await types.locator('a', { hasText: 'Equity' }).click({ modifiers: ['Shift'] });
+    await expect(page).toHaveURL(/type%3AAEL/);
+    expect(page.url().match(/type%3A/g).length).toBe(1);
+    expect(pageErrors).toEqual([]);
+  });
+
+  // Many commodities collapse to a line showing the selection; opening
+  // the list is remembered across pages. Shift-clicking composes a
+  // cur:A|B search term from the links' data attributes, and the row
+  // marks each selected one.
+  test('the commodity list opens, stays open, and shift-click selects several', async ({ page }) => {
+    await page.goto('/journal');
+    await page.locator('#main-content details.report-controls > summary').click();
+    const box = page.locator('#main-content div.commodities');
+    await expect(box.locator('summary .sel')).toHaveText('All');
+    await box.locator('summary').click();
+    // its cookie too is saved from the asynchronous toggle event
+    await page.waitForFunction(() => document.cookie.includes('showcommodities=1'));
+    await box.locator('a', { hasText: 'USD' }).click();
+    await expect(page).toHaveURL(/cur%3AUSD/);
+    // the selection reads back, and the opened list is remembered
+    // (the server renders it open, from the cookie)
+    await expect(box.locator('summary .sel')).toHaveText('USD');
+    await expect(box.locator('details')).toHaveAttribute('open', 'open');
+    await box.locator('a', { hasText: '$' }).click({ modifiers: ['Shift'] });
+    await expect(page).toHaveURL(/cur%3AUSD%7C%5C%24/);
+    await expect(box.locator('a.current')).toHaveText(['$', 'USD']);
+    expect(pageErrors).toEqual([]);
+  });
+
+  // Zero balances state is the empty parameter; the row's links set it,
+  // and the "e" key presses the row's other link.
+  test('"e" and the Zero balances links switch a page between showing and hiding zero balances', async ({ page }) => {
+    await page.goto('/balance');
+    const current = page.locator('#main-content .zero-balances a.current');
+    await expect(current).toHaveText('Shown');
+    await page.locator('#main-content details.report-controls > summary').click();
+    await page.locator('#main-content .zero-balances a', { hasText: 'Hidden' }).click();
+    await expect(page).toHaveURL(/empty=0/);
+    await expect(current).toHaveText('Hidden');
+    await page.locator('body').press('e');
+    await expect(page).not.toHaveURL(/empty=/);
+    await expect(current).toHaveText('Shown');
+    expect(pageErrors).toEqual([]);
+  });
+
 });
 
 test.describe('modal dialogs', () => {
@@ -268,11 +386,12 @@ test.describe('sidebar', () => {
     expect(await page.locator('#sidebar-menu').evaluate(el => el.scrollTop)).toBeGreaterThan(0);
   });
 
-  test('"e" hides empty accounts', async ({ page }) => {
+  test('"e" hides empty accounts, as the empty parameter', async ({ page }) => {
     await page.goto('/journal');
     await page.locator('body').press('e');
-    // the toggle is remembered server-side via the hideemptyaccts cookie
-    await page.goto('/journal');
+    await expect(page).toHaveURL(/\/journal\?empty=0/);
+    await page.locator('body').press('e');
+    await expect(page).not.toHaveURL(/empty=/);
     expect(pageErrors).toEqual([]);
   });
 
@@ -295,6 +414,88 @@ test.describe('sidebar', () => {
 
 });
 
+test.describe('report tree folding', () => {
+
+  // A tree-mode report serves every depth and folds to the search's
+  // depth: term; the carets open and close groups in place, without
+  // changing the URL.
+  test('folds to the depth in the search, and carets unfold groups in place', async ({ page }) => {
+    await page.goto('/balance?list=tree&q=depth:1');
+    // expenses is the branching group; the boring chains squash to leaves
+    const top = page.locator('td.account.depth-0', { hasText: 'expenses' });
+    const deep = page.locator('td.account.depth-1').first();
+    await expect(top).toBeVisible();
+    await expect(deep).toBeHidden();
+    await top.locator('.tree-caret').click();
+    await expect(deep).toBeVisible();
+    await expect(page).toHaveURL('/balance?list=tree&q=depth:1');
+    await top.locator('.tree-caret').click();
+    await expect(deep).toBeHidden();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // The sidebar's accounts fold too, and the fold is remembered in
+  // this browser, so the sidebar stays as you left it between pages.
+  test('in tree mode the sidebar folds, and stays folded across navigation', async ({ page }) => {
+    await page.goto('/journal?list=tree');
+    const deep = () => page.locator('#sidebar-menu tr[data-acct="expenses:food:groceries"]');
+    await expect(deep()).toBeVisible();
+    await page.locator('#sidebar-menu tr[data-acct="expenses"] .tree-caret').click();
+    await expect(deep()).toBeHidden();
+    await page.goto('/balance?list=tree');
+    await expect(deep()).toBeHidden();
+    await page.locator('#sidebar-menu tr[data-acct="expenses"] .tree-caret').click();
+    await expect(deep()).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // A depth limit is each page's baseline: the sidebar starts folded to
+  // it, groups opened or closed by hand are remembered over it, and a
+  // caret clicked back to its page's baseline is forgotten.
+  test('a depth limit folds the sidebar, and caret choices are remembered over it', async ({ page }) => {
+    await page.goto('/journal?list=tree&q=depth:2');
+    const food = () => page.locator('#sidebar-menu tr[data-acct="expenses:food"]');
+    const groceries = () => page.locator('#sidebar-menu tr[data-acct="expenses:food:groceries"]');
+    await expect(food()).toBeVisible();
+    await expect(groceries()).toBeHidden();
+    // opening past the limit is remembered on the next page
+    await food().locator('.tree-caret').click();
+    await expect(groceries()).toBeVisible();
+    await page.goto('/balance?list=tree&q=depth:2');
+    await expect(groceries()).toBeVisible();
+    // closing it again returns it to the baseline, so a page without a
+    // depth limit, whose baseline is fully open, shows it open
+    await food().locator('.tree-caret').click();
+    await expect(groceries()).toBeHidden();
+    await page.goto('/journal?list=tree');
+    await expect(groceries()).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // The other direction: a group folded by hand stays folded on a page
+  // whose depth limit would open it.
+  test('a fold made by hand holds against a depth limit', async ({ page }) => {
+    await page.goto('/journal?list=tree');
+    const food = () => page.locator('#sidebar-menu tr[data-acct="expenses:food"]');
+    await page.locator('#sidebar-menu tr[data-acct="expenses"] .tree-caret').click();
+    await expect(food()).toBeHidden();
+    await page.goto('/journal?list=tree&q=depth:3');
+    await expect(food()).toBeHidden();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // Without a depth, the tree starts fully open and can be folded.
+  test('an unfolded tree collapses from any group', async ({ page }) => {
+    await page.goto('/balance?list=tree');
+    const deep = page.locator('td.account.depth-1').first();
+    await expect(deep).toBeVisible();
+    await page.locator('td.account.depth-0', { hasText: 'expenses' }).locator('.tree-caret').click();
+    await expect(deep).toBeHidden();
+    expect(pageErrors).toEqual([]);
+  });
+
+});
+
 // Hovering a transaction shows its journal entry in a tooltip drawn by
 // hledger.js, in a fixed-width font (#2716). It behaves like a browser's own
 // tooltip: it appears after a pause, and goes when the pointer leaves or clicks.
@@ -307,7 +508,7 @@ test.describe('entry tooltip', () => {
     const description = row.locator('td').nth(1);
     // the row has no title of its own, so no browser tooltip shows as well
     await expect(row).not.toHaveAttribute('title');
-    await description.hover();
+    await hoverSettled(page, description);
     await expect(tip).toBeVisible();
     await expect(tip).toContainText('Cafe Luna');
     await expect(tip).toContainText('expenses:food:dining');
@@ -329,7 +530,7 @@ test.describe('entry tooltip', () => {
     await page.goto('/register?q=inacct:assets:bank:checking');
     const tip = page.locator('.entry-tooltip');
     const row = page.locator('#main-content tbody tr', { hasText: 'Cafe Luna' });
-    await row.locator('td.description').hover();
+    await hoverSettled(page, row.locator('td.description'));
     await expect(tip).toBeVisible();
     await expect(tip).toContainText('Cafe Luna');
     const link = row.locator('td.account a');

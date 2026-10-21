@@ -32,6 +32,29 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  // Fold tree-mode report tables (see reportTreeInit below). The
+  // sidebar's tree is folded earlier, inline right after its markup
+  // (default-layout.hamlet), so it never paints unfolded.
+  reportTreeInit();
+
+  // Shift-clicking in the years row selects a range of years, and in
+  // the account type and commodity rows, several of them.
+  yearsRangeInit();
+  typesMultiInit();
+  commoditiesMultiInit();
+
+  // The controls and commodity disclosures save their state, and control
+  // clicks save the page's scroll position.
+  controlsInit();
+
+  // The hideemptyaccts cookie was replaced by the empty parameter;
+  // clear it from browsers that still carry it. Older versions set it
+  // with a one-year max-age, so this can safely be removed after
+  // 2028-01-01.
+  if (document.cookie.indexOf('hideemptyaccts=') >= 0) {
+    document.cookie = 'hideemptyaccts=; path=/; max-age=0';
+  }
+
   // Typing in the last amount field adds another posting row. Delegating from
   // the form means the handler does not have to be moved as rows come and go.
   var addform = document.getElementById('addform');
@@ -66,13 +89,36 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.ctrlKey || e.metaKey || e.altKey) { return; }
     if (e.target.closest('input, textarea, select')) { return; }
     if (document.querySelector('dialog[open]')) { return; }
+    if (e.key >= '0' && e.key <= '9') {
+      if (depthSet(e.key)) { e.preventDefault(); }
+      return;
+    }
     switch (e.key) {
       case 'h': case '?': helpToggle();                                     break;
-      case 'j': location.href = document.hledgerWebBaseurl + '/journal';     break;
+      case 'j': journalGo();                                                break;
       case 's': sidebarToggle();                                            break;
+      case 'o': controlsToggle();                                           break;
       case 'e': emptyAccountsToggle();                                      break;
+      case 't': rowToggle('accounts', -1);                                  break;
+      case 'H': rowToggle('accum', 1);                                      break;
+      case 'V': rowToggle('amounts', -1);                                   break;
+      case 'B': rowToggle('amounts', 1);                                    break;
+      case 'R': rowToggle('postings', 1);                                   break;
+      case 'U': rowToggle('status', 1);                                     break;
+      case 'P': rowToggle('status', 2);                                     break;
+      case 'C': rowToggle('status', 3);                                     break;
+      case 'S': rowToggle('sort', 1);                                       break;
+      case 'T': rowFollow('columns', 0);                                    break;
+      case 'A': rowFollow('columns', 1);                                    break;
+      case 'Y': rowToggle('interval', 1);                                   break;
+      case 'Q': rowToggle('interval', 2);                                   break;
+      case 'M': rowToggle('interval', 3);                                   break;
+      case 'W': rowToggle('interval', 4);                                   break;
+      case 'D': rowToggle('interval', 5);                                   break;
+      case '-': case '_': depthAdjust(-1);                                  break;
+      case '+': case '=': depthAdjust(1);                                   break;
       case 'a': case 'n': addformShow();                                    break;
-      case 'f': focusSearch();                                              break;
+      case 'f': case '/': focusSearch();                                    break;
       default: return;
     }
     e.preventDefault();
@@ -200,6 +246,112 @@ function addformAddPosting() {
 //----------------------------------------------------------------------
 // SIDEBAR
 
+// The j key follows the sidebar's Journal link, which keeps the page's
+// state (its amounts and accounts modes, zero balances, and search);
+// without a sidebar, the plain journal page.
+function journalGo() {
+  var a = document.getElementById('sidebar-journal-link');
+  location.href = a ? a.href : document.hledgerWebBaseurl + '/journal';
+}
+
+// Shift-clicking a year in the years row extends the selection: from the
+// years marked current (a plain click's single year, or an earlier range)
+// to the clicked one, as an end-exclusive date:FIRST..LAST+1 search term,
+// which the row marks year by year. With no year marked (All current), a
+// shift-click selects the clicked year like a plain click.
+function yearsRangeInit() {
+  document.querySelectorAll('p.years').forEach(function (row) {
+    row.addEventListener('click', function (ev) {
+      if (!ev.shiftKey) { return; }
+      var a = ev.target.closest('a');
+      var clicked = a && parseInt(a.textContent, 10);
+      if (!clicked || isNaN(clicked)) { return; }  // the All link, or no link
+      var years = [clicked];
+      document.querySelectorAll('p.years a.current').forEach(function (c) {
+        var y = parseInt(c.textContent, 10);
+        if (!isNaN(y)) { years.push(y); }
+      });
+      if (years.length < 2) { return; }  // nothing to extend from
+      ev.preventDefault();
+      var lo = Math.min.apply(null, years);
+      var hi = Math.max.apply(null, years);
+      // the clicked link's url, with every date: term (a hand-typed
+      // search may hold several) replaced by the range
+      var url = new URL(a.href);
+      var q = (url.searchParams.get('q') || '').replace(/\s*\bdate:\S+/g, '').trim();
+      url.searchParams.set('q', (q ? q + ' ' : '') + 'date:' + lo + '..' + (hi + 1));
+      location.href = url.toString();
+    });
+  });
+}
+
+// Shift-clicking in the account type row adds the clicked type to the
+// selected ones, or removes it, as a single type:AL.. search term; the
+// row marks each selected type (see Widget.Common.typeLinks).
+function typesMultiInit() {
+  document.querySelectorAll('div.types').forEach(function (box) {
+    box.addEventListener('click', function (ev) {
+      if (!ev.shiftKey) { return; }
+      var a = ev.target.closest('a');
+      if (!a) { return; }
+      var typeOf = function (link) {
+        var m = (new URL(link.href).searchParams.get('q') || '').match(/type:(\w+)/);
+        return m && m[1].toUpperCase();
+      };
+      var clicked = typeOf(a);
+      if (!clicked) { return; }  // the All link
+      var letters = [];
+      box.querySelectorAll('a.current').forEach(function (c) {
+        var t = typeOf(c);
+        if (t && letters.indexOf(t) < 0) { letters.push(t); }
+      });
+      var i = letters.indexOf(clicked);
+      if (i >= 0) { letters.splice(i, 1); } else { letters.push(clicked); }
+      ev.preventDefault();
+      var url = new URL(a.href);
+      // drop every type: term (a hand-typed search may hold several),
+      // then append the one composed term
+      var q = (url.searchParams.get('q') || '').replace(/\s*\btype:\w+/g, '').trim();
+      if (letters.length) { q = (q ? q + ' ' : '') + 'type:' + letters.sort().join(''); }
+      if (q) { url.searchParams.set('q', q); } else { url.searchParams.delete('q'); }
+      location.href = url.toString();
+    });
+  });
+}
+
+// Shift-clicking in the commodity row adds the clicked commodity to the
+// selected ones, or removes it, as a single cur:A|B search term. The
+// links carry their regex-escaped patterns, and the row the search's
+// other terms, as data attributes (Widget.Common.commodityLinks), so no
+// query parsing happens here and any symbol works, spaces included: a
+// composed term containing one is quoted whole.
+function commoditiesMultiInit() {
+  document.querySelectorAll('div.commodities').forEach(function (box) {
+    box.addEventListener('click', function (ev) {
+      if (!ev.shiftKey) { return; }
+      var a = ev.target.closest('a');
+      var clicked = a && a.getAttribute('data-cur');
+      if (!clicked) { return; }  // the All link
+      var pats = [];
+      box.querySelectorAll('a.current[data-cur]').forEach(function (c) {
+        pats.push(c.getAttribute('data-cur'));
+      });
+      var i = pats.indexOf(clicked);
+      if (i >= 0) { pats.splice(i, 1); } else { pats.push(clicked); }
+      ev.preventDefault();
+      var q = box.getAttribute('data-rest') || '';
+      if (pats.length) {
+        var term = 'cur:' + pats.join('|');
+        if (/\s/.test(term)) { term = '"' + term + '"'; }
+        q = (q + ' ' + term).trim();
+      }
+      var url = new URL(a.href);
+      if (q) { url.searchParams.set('q', q); } else { url.searchParams.delete('q'); }
+      location.href = url.toString();
+    });
+  });
+}
+
 function sidebarToggle() {
   var sidebar = document.getElementById('sidebar-menu');
   var main = document.getElementById('main-content');
@@ -216,11 +368,150 @@ function sidebarToggle() {
 }
 
 function emptyAccountsToggle() {
-  document.querySelectorAll('.acct.empty').forEach(function(el) {
-    el.parentNode.classList.toggle('hide');
-  });
-  setCookie('hideemptyaccts', getCookie('hideemptyaccts') === '1' ? '0' : '1');
+  // The e key follows the Zero balances row's other link: the state is
+  // the page's empty parameter, so showing or hiding is a navigation.
+  var other = document.querySelector('.zero-balances a:not(.current)');
+  if (other) { location.href = other.href; }
 }
+
+function rowToggle(rowCls, idx) {
+  // hledger-ui's toggling keys, on a row of control links: follow the
+  // link at idx (negative counts from the end), or when it is already
+  // current, the row's first link, which shows the default. Each row
+  // builder says which position its keys rely on (Widget.Common).
+  var links = document.querySelectorAll('#main-content .' + rowCls + ' a');
+  if (!links.length) { return; }
+  var target = links[idx < 0 ? links.length + idx : idx];
+  if (!target) { return; }
+  location.href = (target.classList.contains('current') ? links[0] : target).href;
+}
+
+function rowFollow(rowCls, idx) {
+  // Follow a row's link at idx unconditionally: the Extra columns
+  // links each toggle their own column, so no fallback is wanted.
+  var links = document.querySelectorAll('#main-content .' + rowCls + ' a');
+  if (links[idx]) { location.href = links[idx].href; }
+}
+
+function depthAdjust(delta) {
+  // The - and + keys step the depth limit through the Depth row's
+  // links, whose order is: no limit first, then each depth ascending.
+  // Stepping past either end leaves or reaches the no-limit state.
+  var links = document.querySelectorAll('#main-content .depth a');
+  if (!links.length) { return; }
+  var cur = -1;
+  links.forEach(function(a, i) { if (a.classList.contains('current')) { cur = i; } });
+  if (cur < 0) { return; }  // a depth outside the row's range, eg depth:0
+  var next;
+  if (cur === 0) {
+    next = delta < 0 ? links.length - 1 : cur;  // shallower than no limit is the deepest
+  } else {
+    next = cur + delta;
+    if (next < 1) { next = cur; }               // already the shallowest link
+    if (next >= links.length) { next = 0; }     // deeper than the deepest: no limit
+  }
+  if (next !== cur) { location.href = links[next].href; }
+}
+
+function depthSet(n) {
+  // The digit keys set the depth limit, like hledger-ui's: the Depth
+  // row's All link carries the page's url without a depth term, so the
+  // new term is appended to its search without parsing it.
+  var all = document.querySelector('#main-content .depth a');
+  if (!all) { return false; }
+  var url = new URL(all.href);
+  var q = url.searchParams.get('q');
+  url.searchParams.set('q', (q ? q + ' ' : '') + 'depth:' + n);
+  location.href = url.href;
+  return true;
+}
+
+// Tree-mode report rows carry depth-N classes (and the table the depth
+// to fold to initially, if any). Give each group a caret that opens or
+// closes its rows in place, leaving the page's URL alone.
+function reportTreeInit() {
+  document.querySelectorAll('.report-table table').forEach(function(table) {
+    var fold = parseInt(table.getAttribute('data-depth-fold') || '', 10);
+    table.querySelectorAll('tbody').forEach(function(tbody) {
+      var rows = [];
+      tbody.querySelectorAll('tr').forEach(function(tr) {
+        var td = tr.querySelector('td.account');
+        var m = td && td.className.match(/\bdepth-(\d+)\b/);
+        if (m) { rows.push({tr: tr, td: td, depth: +m[1], expanded: true, parent: false}); }
+      });
+      rows.forEach(function(r, i) {
+        r.parent = i + 1 < rows.length && rows[i + 1].depth > r.depth;
+        if (!isNaN(fold)) { r.expanded = r.depth < fold - 1; }
+        var caret = document.createElement('span');
+        caret.className = 'tree-caret';
+        r.td.insertBefore(caret, r.td.firstChild);
+        if (r.parent) {
+          caret.addEventListener('click', function() { r.expanded = !r.expanded; apply(); });
+        }
+      });
+      function apply() {
+        // a row shows when every ancestor is open; the stack holds the
+        // open flags of the current row's ancestors
+        var stack = [];
+        rows.forEach(function(r) {
+          while (stack.length > r.depth) { stack.pop(); }
+          r.tr.classList.toggle('tree-fold-hide', !stack.every(function(open) { return open; }));
+          r.td.querySelector('.tree-caret').textContent = r.parent ? (r.expanded ? '\u25be' : '\u25b8') : '';
+          stack.push(r.expanded);
+        });
+      }
+      if (rows.length) { apply(); }
+    });
+  });
+}
+
+// The report controls disclosure, and the commodity filter's collapsed
+// list inside it, remember their state in cookies (showcontrols,
+// showcommodities), which the server reads to render the next page the
+// way this one was left — nothing moves after paint. The commodity
+// list's scroll position is remembered per tab, and clicking a control
+// link saves the page's scroll position, which the inline script in
+// default-layout.hamlet restores on the next page before it paints.
+function controlsInit() {
+  var d = document.querySelector('#main-content details.report-controls');
+  if (!d) { return; }
+  d.addEventListener('toggle', function () {
+    setCookie('showcontrols', d.open ? '1' : '0');
+  });
+  var cd = d.querySelector('div.commodities details');
+  if (cd) {
+    cd.addEventListener('toggle', function () {
+      setCookie('showcommodities', cd.open ? '1' : '0');
+    });
+    var cl = cd.querySelector('.report-links');
+    if (cl) {
+      try {
+        var ct = parseInt(sessionStorage.getItem('commodityScrollTop'), 10);
+        if (!isNaN(ct)) { cl.scrollTop = ct; }
+      } catch (e) {}
+      cl.addEventListener('scroll', function () {
+        try { sessionStorage.setItem('commodityScrollTop', cl.scrollTop); } catch (e) {}
+      });
+    }
+  }
+  document.addEventListener('click', function (ev) {
+    var a = ev.target.closest('a');
+    if (!a || !a.closest('details.report-controls')) { return; }
+    try { sessionStorage.setItem('pageScrollTop', document.documentElement.scrollTop); } catch (e) {}
+  });
+}
+
+// The c key opens and closes the disclosure like a click on its
+// summary; controlsInit's toggle listener saves the choice either way.
+function controlsToggle() {
+  var d = document.querySelector('#main-content details.report-controls');
+  if (d) { d.open = !d.open; }
+}
+
+// The sidebar's account tree is folded by an inline script right after its
+// markup in default-layout.hamlet, like its scroll restore and for the same
+// reason: run from this file it would fold only at DOMContentLoaded, after
+// the browser has painted the tree in full, a visible jump.
 
 function setCookie(name, value) {
   document.cookie = name + '=' + value + '; path=/; max-age=31536000; samesite=lax';

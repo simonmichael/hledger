@@ -5,6 +5,17 @@
 ; description, an account name and a comment. security.spec.js asserts that
 ; every view renders them as text. Please keep them here.
 
+; Declared commodities give the commodity filter row something to list;
+; more than six, so it collapses to its selection, and webui.spec.js
+; tests opening it, its memory, and its shift-click multi-select.
+commodity $1000.00
+commodity 1000.00 USD
+commodity 1000.00 AAA
+commodity 1000.00 BBB
+commodity 1000.00 CCC
+commodity 1000.00 DDD
+commodity 1000.00 EEE
+
 2025-01-01 opening balances
     assets:bank:checking          1000.00
     equity:opening
