@@ -50,19 +50,29 @@ test('a paged journal loads and pages without policy violations or errors', asyn
 
 // Shift-clicking a year extends the selection from the marked year(s) to
 // the clicked one, as an end-exclusive date:FIRST..END search term, whose
-// years the row then marks.
+// years the row then marks. With no year marked, it selects the clicked
+// year in the same tab, as a plain click does; the browser's own
+// shift-click (a new window) never happens.
 test('shift-clicking a year selects a range of years', async ({ page }) => {
   const pageErrors = watchPageErrors(page);
+  const newPages = [];
+  page.context().on('page', p => newPages.push(p.url()));
 
-  await page.goto(URL + '/journal?q=date%3A2024');
+  await page.goto(URL + '/journal');
   const row = page.locator('p.years').first();
-  await expect(row.locator('a.current')).toHaveText(['2024']);
-  // the years row sits with the other controls, behind the disclosure
+  await expect(row.locator('a.current')).toHaveText(['All']);
+  // the years row sits with the other controls, behind the disclosure,
+  // which stays open across pages once its cookie is saved
   await page.locator('#main-content details.report-controls > summary').click();
+  await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+  await row.locator('a', { hasText: '2024' }).click({ modifiers: ['Shift'] });
+  await expect(page).toHaveURL(/date(%3A|:)2024$/);
+  await expect(row.locator('a.current')).toHaveText(['2024']);
   await row.locator('a', { hasText: '2026' }).click({ modifiers: ['Shift'] });
   await expect(page).toHaveURL(/date(%3A|:)2024\.\.2027/);
   await expect(row.locator('a.current')).toHaveText(['2024', '2025', '2026']);
 
+  expect(newPages).toEqual([]);
   expect(pageErrors).toEqual([]);
 });
 
