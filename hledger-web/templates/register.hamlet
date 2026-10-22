@@ -33,7 +33,7 @@
           <td .account>
             $forall (Posting { paccount = acc }, (summName,comma)) <- otherTransAccounts torig
               <a href="@?{acctlink acc torig}##{transactionFrag torig}" title="#{acc}">
-                #{summName}</a>#{comma}
+                #{breakAtColons summName}</a>#{comma}
           <td .amount>
             $if not split || not (mixedAmountLooksZero amt)
               ^{mixedAmountAsHtmlWith amtfmt amt}

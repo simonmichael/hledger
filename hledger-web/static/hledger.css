@@ -130,6 +130,12 @@ td.date {
   white-space: nowrap;
 }
 
+/* So is an amount, its quantity and commodity symbol. (The sidebar's
+   amounts are laid out by its own rules, below.) */
+#main-content span.amount {
+  white-space: nowrap;
+}
+
 /* One row, one line: descriptions arrive elided, so the width is bounded. */
 @media (min-width: 992px) { /* under md: no room */
   td.description {

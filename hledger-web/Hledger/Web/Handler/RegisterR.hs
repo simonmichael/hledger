@@ -10,11 +10,12 @@
 module Hledger.Web.Handler.RegisterR where
 
 import Data.Aeson.Text (encodeToLazyText)
-import Data.List (nub, partition, sort, sortOn)
+import Data.List (intersperse, nub, partition, sort, sortOn)
 import Data.Map qualified as M
 import Data.Ord (Down(..))
 import Data.Text qualified as T
 import Safe (tailSafe)
+import Text.Blaze.Html5 qualified as H
 import Text.Hamlet (hamletFile)
 
 import Hledger.Utils.I18n (Translations, tr, trc, trf)
@@ -174,6 +175,9 @@ getRegisterR = do
           undecorateLinks . elideRightDecorated 40 . decorateLinks .
           addCommas . preferReal . otherTransactionAccounts j displayq acctQuery
       displayq = if isJust (inAccount qopts) then filterQuery (not . queryIsType) q else q
+      -- An account name, which breaks after a colon where the column is
+      -- too narrow for it, rather than the amounts beside it.
+      breakAtColons = mconcat . intersperse (toHtml (":" :: Text) <> H.wbr) . map toHtml . T.splitOn ":"
       addCommas xs =
           zip xs $
           zip (map (T.unpack . accountSummarisedName . paccount) xs) $
