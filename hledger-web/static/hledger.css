@@ -485,7 +485,8 @@ dialog:focus {
 }
 
 /* The legend, which hledger.js adds to the label line: a color swatch and
-   the commodity for each balance line. */
+   the commodity for each balance line, then the note of any commodities
+   left out (.more-commodities). */
 #register-chart-label .legend-item {
   margin-left: 1em;
   font-weight: normal;

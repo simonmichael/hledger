@@ -684,7 +684,7 @@ function registerChartInit() {
   // light one, but the chart is drawn on a canvas; draw it again for those.
   var draw = function() {
     $label.text($chartdiv.attr('data-title'));
-    registerChartLegend($label, registerChart($chartdiv, series));
+    registerChartLegend($label, registerChart($chartdiv, series), $chartdiv.attr('data-more'));
   };
   draw();
   ['(prefers-color-scheme: dark)', 'print'].forEach(function(query) {
@@ -777,13 +777,17 @@ function registerChart($container, series) {
 }
 
 // Add the legend to the label line: a color swatch and the commodity for
-// each balance line.
-function registerChartLegend($label, plot) {
+// each balance line, then the note of how many commodities are left out, if
+// any are.
+function registerChartLegend($label, plot, more) {
   plot.getData().forEach(function(s) {
     if (typeof s.label !== 'string') { return; }
     var $swatch = $('<span class="legend-swatch">').css('background-color', s.color);
     $('<span class="legend-item">').append($swatch, document.createTextNode(s.label)).appendTo($label);
   });
+  if (more) {
+    $('<span class="legend-item more-commodities">').text(more).appendTo($label);
+  }
 }
 
 // Handle a click on a chart point: scroll to that transaction's row.

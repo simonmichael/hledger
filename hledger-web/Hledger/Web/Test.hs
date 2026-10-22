@@ -1565,8 +1565,8 @@ hledgerWebTest = do
       bodyContains "<details open=\"open\">"
 
   -- Registers of many commodities (#2784): a broker account whose balance
-  -- grows to four commodities, and one that buys five and then sells them
-  -- one by one.
+  -- grows to four commodities, an account of eleven, one posted twice, and
+  -- one that buys five and then sells them one by one.
   let closed = map (replicate 3) "ABCDE"
   rj <- fmap (either error' id) . runExceptT . journalFinalise biopts "registers.journal" "" =<<
           readJournal'' (T.pack $ unlines $  -- PARTIAL: readJournal'' should not fail
@@ -1576,6 +1576,8 @@ hledgerWebTest = do
                                          , ("2025-01-03", "three", "2 BBB")
                                          , ("2025-01-04", "four",  "3 CCC")
                                          , ("2025-01-05", "five",  "4 DDD") ] ] ++
+            concat [ ["2025-02-01 many", "    assets:many   1 " ++ c, "    equity"]
+                   | c <- map (replicate 3) "ABCDEFGHIJK" ++ ["KKK"] ] ++
             ["2025-03-01 buy"] ++ ["    assets:closed   1 " ++ c | c <- closed] ++ ["    equity"] ++
             concat [ ["2025-03-02 sell " ++ c, "    assets:closed   -1 " ++ c, "    equity"]
                    | c <- closed ])
@@ -1614,6 +1616,26 @@ hledgerWebTest = do
       htmlAnyContain (rjamounts "sell EEE") "0 EEE"
       htmlAnyContain (rjamounts "sell EEE") "… and 4 more"
       htmlNoneContain (rjamounts "sell EEE") "0 AAA"
+
+    yit "charts the ten commodities with the most transactions on the page, noting the rest (#2784)" $ do
+      request $ do
+        setMethod "GET"
+        setUrl RegisterR
+        addGetParam "q" "inacct:assets:many"
+      statusIs 200
+      -- KKK, posted twice, is charted though last alphabetically; of the
+      -- rest, posted once each, JJJ is left out
+      bodyContains "&quot;label&quot;:&quot;KKK&quot;"
+      bodyNotContains "&quot;label&quot;:&quot;JJJ&quot;"
+      bodyContains "data-more=\"… and 1 more\""
+      -- four commodities are all charted, with no note
+      request $ do
+        setMethod "GET"
+        setUrl RegisterR
+        addGetParam "q" "inacct:assets:broker"
+      statusIs 200
+      bodyContains "&quot;label&quot;:&quot;AAA&quot;"
+      bodyNotContains "data-more"
 
   -- A journal whose accounts have no recognizable types has empty statements.
   uj <- fmap (either error' id) . runExceptT . journalFinalise biopts "untyped.journal" "" =<<
