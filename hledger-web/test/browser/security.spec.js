@@ -23,6 +23,20 @@ async function xssFired(page) {
   return page.evaluate(() => window.__xss !== undefined);
 }
 
+// The pixel position of a point on the register chart, so the mouse can
+// reach what flot drew on its canvas. The point is given by its index (a
+// negative one counting from the end) or by the id of its transaction's row.
+async function chartPoint(page, series, index) {
+  return page.evaluate(([s, i]) => {
+    const $chart = $('#register-chart'), plot = $chart.data('plot');
+    const rect = $chart[0].getBoundingClientRect();
+    const data = plot.getData()[s].data;
+    const p = typeof i === 'string' ? data.find(d => d[4] === i) : data.at(i);
+    const o = plot.pointOffset({ x: p[0], y: p[1] });
+    return { x: rect.left + o.left, y: rect.top + o.top, rect };
+  }, [series, index]);
+}
+
 test.describe('journal data is rendered as text, not markup', () => {
 
   // fixture.journal carries the payload in a description, an account name and
@@ -49,6 +63,22 @@ test.describe('journal data is rendered as text, not markup', () => {
     const tip = page.locator('.entry-tooltip');
     await expect(tip).toBeVisible();
     await expect(tip).toContainText(PAYLOAD);
+    expect(await tip.locator('img').count()).toBe(0);
+    expect(await xssFired(page)).toBe(false);
+  });
+
+  // The register chart's tooltip shows a point's entry, which hledger.js
+  // takes from the transaction's row (#2784): a third way in for the payload.
+  test('the register chart tooltip shows a payload as text', async ({ page }) => {
+    await page.goto('/register?q=inacct:expenses:food:dining');
+    // the point of the payload's transaction, whatever other specs add
+    const id = await page.locator('#main-content tbody tr', { hasText: 'Payee <img' }).getAttribute('id');
+    const point = await chartPoint(page, 1, id);
+    await page.mouse.move(point.x - 30, point.y - 30);
+    await page.mouse.move(point.x, point.y);
+    const tip = page.locator('#flotTip');
+    await expect(tip).toBeVisible();
+    await expect(tip.locator('pre')).toContainText(PAYLOAD);
     expect(await tip.locator('img').count()).toBe(0);
     expect(await xssFired(page)).toBe(false);
   });
@@ -120,17 +150,6 @@ test.describe('the content security policy', () => {
   test.beforeEach(async ({ page }) => {
     violations = await watchViolations(page);
   });
-
-  // The pixel position of a point on the register chart, so the mouse can
-  // reach what flot drew on its canvas.
-  async function chartPoint(page, series, index) {
-    return page.evaluate(([s, i]) => {
-      const $chart = $('#register-chart'), plot = $chart.data('plot');
-      const rect = $chart[0].getBoundingClientRect();
-      const p = plot.getData()[s].data[i], o = plot.pointOffset({ x: p[0], y: p[1] });
-      return { x: rect.left + o.left, y: rect.top + o.top, rect };
-    }, [series, index]);
-  }
 
   test('is sent with every page, with a fresh nonce on its inline scripts', async ({ page }) => {
     const first = await page.goto('/journal');

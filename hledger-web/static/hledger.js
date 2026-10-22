@@ -665,8 +665,9 @@ function registerChartInit() {
   // Each commodity is drawn as two flot series over the same points: a
   // stepped line for the running balance, and one clickable, hoverable point
   // per transaction. A point is [timestamp, balance, amount text, balance
-  // text, transaction text, the transaction's row id]: flot reads the first
-  // two, the tooltip and click handlers the rest.
+  // text, the transaction's row id]: flot reads the first two, the tooltip
+  // and click handlers the rest. The tooltip takes the transaction's entry
+  // from its row.
   var series = [];
   commodities.forEach(function(c, i) {
     series.push({
@@ -757,12 +758,14 @@ function registerChart($container, series) {
         content:
           function(label, x, y, flotitem) {
             var data = flotitem.series.data[flotitem.dataIndex];
+            var row = document.getElementById(data[4]);
+            var entry = ((row && row.getAttribute('data-entry')) || '').replace(/\s+$/, '');
             // The plugin renders this as html. Build it from text nodes and
             // let the browser serialize it, so the journal text cannot be
             // parsed as markup.
             return $('<div>')
               .append(document.createTextNode(data[3] + " balance on %x after " + data[2] + " posted by transaction:"))
-              .append($('<pre>').text(data[4]))
+              .append($('<pre>').text(entry))
               .html();
           },
         onHover: function(flotitem, $tooltipel) {
@@ -786,7 +789,7 @@ function registerChartLegend($label, plot) {
 // Handle a click on a chart point: scroll to that transaction's row.
 function registerChartClick(ev, pos, item) {
   if (!item) { return; }
-  var id = String(item.series.data[item.dataIndex][5]);
+  var id = String(item.series.data[item.dataIndex][4]);
   var target = document.getElementById(id);
   if (target) {
     window.location.hash = '#' + id;
