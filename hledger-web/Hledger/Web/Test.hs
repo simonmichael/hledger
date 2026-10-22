@@ -2223,12 +2223,14 @@ hledgerWebTest = do
       bodyContains "amount\">1300</span>"
       bodyContains "amount\">301</span>"
       bodyNotContains "amount\">1301</span>"
-      -- the chart's data, JSON in an attribute with the transaction texts,
-      -- covers this page's rows only
-      bodyContains "txn 1300\\n"
-      bodyContains "txn 301\\n"
-      bodyNotContains "txn 1301\\n"
-      bodyNotContains "txn 300\\n"
+      -- the chart's data, JSON in an attribute naming the rows of its
+      -- points, covers this page's rows only
+      let chartpoint i = maybe (error' $ "no txn " ++ show i) (\t -> "&quot;" ++ transactionFragment pagingj t ++ "&quot;") $
+            find ((== T.pack ("txn " ++ show (i :: Int))) . tdescription) (jtxns pagingj)
+      bodyContains (chartpoint 1300)
+      bodyContains (chartpoint 301)
+      bodyNotContains (chartpoint 1301)
+      bodyNotContains (chartpoint 300)
       -- the years row keeps the account
       bodyContains "/register?q=date%3A2024%20inacct%3Aassets%3Acash\" title=\"Show only 2024\">2024</a>"
       request $ do

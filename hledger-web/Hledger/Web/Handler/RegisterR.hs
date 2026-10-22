@@ -274,7 +274,9 @@ registerChartHtml q modeParams transactionFrag title percommoditytxnreports = $(
    charttitle = if null title then "" else title ++ ":"
    nodatelink = (RegisterR, [("q", t) | let t = T.unwords $ removeDates q, not (T.null t)] ++ modeParams)
    -- One entry per commodity: its symbol, and per transaction the point flot
-   -- plots followed by the texts the tooltip and click handler show.
+   -- plots, followed by the texts the tooltip shows and the id of the
+   -- transaction's row, from which the tooltip takes the entry and to which
+   -- a click scrolls.
    seriesjson = encodeToLazyText $ map commoditySeries percommoditytxnreports
    commoditySeries (c, items) = object
      [ "label"  .= c
@@ -282,7 +284,6 @@ registerChartHtml q modeParams transactionFrag title percommoditytxnreports = $(
                      , toJSON . quantityAsDouble $ triCommodityBalance c i
                      , toJSON . showZeroCommodity $ triCommodityAmount c i
                      , toJSON . showZeroCommodity $ triCommodityBalance c i
-                     , toJSON . T.stripEnd . showTransaction $ triOrigTransaction i
                      , toJSON . transactionFrag $ triOrigTransaction i
                      ]
                    | i <- reverse items ]
