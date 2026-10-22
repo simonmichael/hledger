@@ -40,6 +40,14 @@ commodity 1000.00 EEE
     expenses:food:dining            18.00
     assets:bank:checking
 
+; A balance with many decimal places, too wide to fit beside its account
+; name in a narrow sidebar; webui.spec.js tests that every sidebar balance
+; is shown whole, clear of its name. Under expenses, so that it stays the
+; only branching group.
+2025-02-20 Coin exchange | network fee
+    expenses:fees:network           11.479592490470042500 ZZZ
+    equity:opening
+
 2025-03-01 Payee <img src=x onerror="window.__xss=1"> | desc <img src=x onerror="window.__xss=1">  ; comment <img src=x onerror="window.__xss=1">
     expenses:food:dining:xss<script>alert(1)</script>            1.00
     assets:bank:checking
