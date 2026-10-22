@@ -568,21 +568,42 @@ ul {
         overflow-y: auto;
     }
 }
+/* fixed, so that a row too wide for the sidebar overflows alone, rather
+   than widening the table and every row with it */
 #sidebar-menu .main-menu {
     table-layout: fixed;
     word-wrap: break-word;
 }
 
+/* Each row is laid out on its own, not in columns shared with the other
+   rows: the balance takes the width it needs and the account name the
+   rest, shortened if need be. When that would leave the name less than
+   6em, the balance goes on a line of its own below it. */
+#sidebar-menu .main-menu tr {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+/* a folded row, which the rule above would show */
+#sidebar-menu .main-menu tr.tree-fold-hide {
+    display: none;
+}
+
+/* the line above an account is the row's, so that a balance below its
+   name stays inside it */
+#sidebar-menu .main-menu tr[data-depth], #sidebar-menu .main-menu tr.total {
+    border-top: 1px solid var(--sidebar-rule);
+}
+
 #sidebar-menu .main-menu td {
     padding: 1px !important;
-    border-top: 1px solid var(--sidebar-rule);
+    border-top: none;
     overflow: hidden;
     white-space:nowrap;
     text-overflow:ellipsis;
     font-size: 16px;
-    /* a multi-commodity balance makes the row several lines tall; the
-       account name stays pegged to the first line */
-    vertical-align: top;
+    flex: 1 1 6em;
+    min-width: 0;
 }
 
 #sidebar-menu .main-menu .ff-wrapper { /* This wrapper is needed because firefox won't apply overflow to a td-tag */
@@ -624,14 +645,9 @@ ul {
 }
 
 #sidebar-menu .main-menu .amount {
-    float: right;
-    overflow-x:auto;
+    flex: none;
+    margin-left: auto;
     font-weight: 500 !important;
-}
-
-#sidebar-menu .main-menu .acct {
-    width:60%;
-    vertical-align:top;
 }
 
 .transactionsreport .posting td {

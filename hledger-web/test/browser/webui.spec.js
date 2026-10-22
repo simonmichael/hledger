@@ -412,6 +412,34 @@ test.describe('sidebar', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  // The fixture's ZZZ balances are too wide to fit beside their account
+  // names at a laptop width, and go below them; at a desktop width every
+  // balance fits beside its name.
+  test('every balance is shown whole, clear of its account name', async ({ page }) => {
+    for (const [width, beside] of [[1400, true], [900, false]]) {
+      await page.setViewportSize({ width, height: 800 });
+      await page.goto('/journal');
+      const problems = await page.locator('#sidebar-menu').evaluate((sidebar, beside) => {
+        const s = sidebar.getBoundingClientRect();
+        const found = [];
+        for (const tr of sidebar.querySelectorAll('tr[data-depth], tr.total')) {
+          const spans = [...tr.querySelectorAll('td.amount span.amount')].map(e => e.getBoundingClientRect());
+          if (!tr.getClientRects().length || !spans.length) continue;
+          const row = tr.getAttribute('data-acct') || 'total';
+          const name = tr.querySelector('td.acct, td.total-label').getBoundingClientRect();
+          const left = Math.min(...spans.map(r => r.left)), right = Math.max(...spans.map(r => r.right));
+          const top = Math.min(...spans.map(r => r.top));
+          if (left < s.left || right > s.right) found.push(`${row}: cut off`);
+          if (left < name.right && top < name.bottom) found.push(`${row}: over its name`);
+          if (name.width <= s.width / 4) found.push(`${row}: name squeezed`);
+          if (beside && top >= name.bottom) found.push(`${row}: below its name`);
+        }
+        return found;
+      }, beside);
+      expect(problems, `at ${width}px`).toEqual([]);
+    }
+  });
+
 });
 
 test.describe('report tree folding', () => {
