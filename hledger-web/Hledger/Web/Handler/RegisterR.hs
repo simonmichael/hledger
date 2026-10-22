@@ -26,9 +26,9 @@ import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
               commodityLinks, controlsHint, controlsToggle, costsLinks, depthLinks,
-              inertControls, listModeLinks, lotsLinks, mixedAmountAsHtml,
+              inertControls, listModeLinks, lotsLinks, mixedAmountAsHtmlElided,
               mixedAmountAsHtmlWith, percentLinks, pricesLinks, realLinks,
-              sortLinks, statusLinks, typeLinks,
+              runningBalanceAsHtml, sortLinks, statusLinks, typeLinks,
               zeroBalanceLinks, transactionFragment, removeDates, removeInacct, replaceInacct, journalDayQuery)
 
 -- | The main journal/account register view, with accounts sidebar.

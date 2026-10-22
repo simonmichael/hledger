@@ -39,6 +39,7 @@ module Hledger.Web.Widget.Common
   , mixedAmountAsHtml
   , mixedAmountAsHtmlWith
   , mixedAmountAsHtmlElided
+  , runningBalanceAsHtml
   , fromFormSuccess
   , writeJournalTextIfValidAndChanged
   , journalFile404
@@ -552,8 +553,12 @@ mixedAmountAsHtml = mixedAmountAsHtmlWith noCostFmt{displayZeroCommodity=True}
 -- | Like 'mixedAmountAsHtml' with a chosen display format, for a page
 -- showing amounts with their costs.
 mixedAmountAsHtmlWith :: AmountFormat -> MixedAmount -> HtmlUrl a
-mixedAmountAsHtmlWith fmt b _ =
-  for_ (lines (showMixedAmountWith fmt b)) $ \t -> do
+mixedAmountAsHtmlWith fmt b _ = amountLinesHtml b $ lines (showMixedAmountWith fmt b)
+
+-- | An amount's lines, one per commodity, colored by the sign of the whole.
+amountLinesHtml :: MixedAmount -> [String] -> Html
+amountLinesHtml b ls =
+  for_ ls $ \t -> do
     H.span ! A.class_ c $ toHtml t
     H.br
   where
@@ -561,25 +566,59 @@ mixedAmountAsHtmlWith fmt b _ =
       Just True -> "negative amount"
       _ -> "positive amount"
 
--- | Like 'mixedAmountAsHtml', but showing at most the given number of
+-- | How many commodities a balance shows in full. One of more shows
+-- fewer, then a line saying how many more there are.
+commoditiesShown :: Int
+commoditiesShown = 3
+
+-- | Like 'mixedAmountAsHtml', but showing at most 'commoditiesShown'
 -- commodities, then a line saying how many more there are: for the
 -- sidebar, where an account holding many commodities would otherwise
 -- be a wall of lines. Searching for a commodity (cur:) shows it alone.
-mixedAmountAsHtmlElided :: Translations -> Int -> MixedAmount -> HtmlUrl a
-mixedAmountAsHtmlElided trs n b _ = do
-    for_ (take n ls) $ \t -> do
-      H.span ! A.class_ c $ toHtml t
-      H.br
-    when (length ls > n) $ do
-      -- TRANSLATORS: the sidebar's note for a balance with more commodities than it shows.
-      H.span ! A.class_ "more-commodities" $ toHtml $
-        trf trs "… and {n} more" [("n", T.pack $ show $ length ls - n)]
-      H.br
+mixedAmountAsHtmlElided :: Translations -> MixedAmount -> HtmlUrl a
+mixedAmountAsHtmlElided trs b _ = do
+    amountLinesHtml b $ take commoditiesShown ls
+    when (length ls > commoditiesShown) $ moreCommoditiesHtml trs (length ls - commoditiesShown)
   where
     ls = lines (showMixedAmountWith noCostFmt{displayZeroCommodity=True} b)
-    c = case isNegativeMixedAmount b of
-      Just True -> "negative amount"
-      _ -> "positive amount"
+
+-- | Like 'mixedAmountAsHtml', for a register row's running balance, given
+-- the row's amount. A balance of more than 'commoditiesShown' commodities
+-- shows only those the amount has, at zero if the row closed one out,
+-- then a line saying how many more there are, so that what the row
+-- changed is not lost among the rest (which, row after row, would also be
+-- most of the page). Searching for a commodity (cur:) shows its balance
+-- alone.
+runningBalanceAsHtml :: Translations -> MixedAmount -> MixedAmount -> HtmlUrl a
+runningBalanceAsHtml trs amt bal render
+  | length bs <= commoditiesShown = mixedAmountAsHtml bal' render
+  | otherwise = do
+      amountLinesHtml (mixed shown) $ concatMap (\a -> lines $ showMixedAmountWith fmt $ mixed [a]) shown
+      when (hidden > 0) $ moreCommoditiesHtml trs hidden
+  where
+    fmt = noCostFmt{displayZeroCommodity=True}
+    bal' = mixedAmountStripCosts bal
+    -- its amounts as shown in full: the nonzero ones, or if none, every zero
+    bs = amountsPreservingZeros bal'
+    -- the commodities the row posted, including any netting to zero
+    cs = Set.fromList $ map acommodity $ amountsRaw amt
+    -- the balance in each, zeros included, each shown on its own so that
+    -- a zero beside the others is not dropped
+    shown = filter ((`Set.member` cs) . acommodity) $ amountsRaw bal'
+    hidden = length $ filter ((`Set.notMember` cs) . acommodity) bs
+
+-- | The line below an amount that shows fewer commodities than it has.
+moreCommoditiesHtml :: Translations -> Int -> Html
+moreCommoditiesHtml trs n = do
+  H.span ! A.class_ "more-commodities" $ toHtml $ moreCommodities trs n
+  H.br
+
+-- | The note saying how many more commodities there are than an amount
+-- shows.
+moreCommodities :: Translations -> Int -> Text
+moreCommodities trs n =
+  -- TRANSLATORS: the note for a balance showing fewer commodities than it has.
+  trf trs "… and {n} more" [("n", T.pack $ show n)]
 
 -- Make a slug to uniquely identify this transaction
 -- in hyperlinks (as far as possible).

@@ -1564,6 +1564,57 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "<details open=\"open\">"
 
+  -- Registers of many commodities (#2784): a broker account whose balance
+  -- grows to four commodities, and one that buys five and then sells them
+  -- one by one.
+  let closed = map (replicate 3) "ABCDE"
+  rj <- fmap (either error' id) . runExceptT . journalFinalise biopts "registers.journal" "" =<<
+          readJournal'' (T.pack $ unlines $  -- PARTIAL: readJournal'' should not fail
+            concat [ [ymd ++ " " ++ desc, "    assets:broker   " ++ amt, "    equity"]
+                   | (ymd, desc, amt) <- [ ("2025-01-01", "one",   "10 DDD")
+                                         , ("2025-01-02", "two",   "1 AAA")
+                                         , ("2025-01-03", "three", "2 BBB")
+                                         , ("2025-01-04", "four",  "3 CCC")
+                                         , ("2025-01-05", "five",  "4 DDD") ] ] ++
+            ["2025-03-01 buy"] ++ ["    assets:closed   1 " ++ c | c <- closed] ++ ["    equity"] ++
+            concat [ ["2025-03-02 sell " ++ c, "    assets:closed   -1 " ++ c, "    equity"]
+                   | c <- closed ])
+  -- the amount cells of an entry's register row
+  let rjamounts desc = maybe (error' $ "no transaction " ++ desc) (\t -> T.pack $ "#" ++ transactionFragment rj t ++ " td.amount") $
+        find ((== T.pack desc) . tdescription) (jtxns rj)
+  runTests "hledger-web registers of many commodities" [] rj $ do
+
+    yit "shows a running balance of up to three commodities in full, and of more only those its row posted (#2784)" $ do
+      request $ do
+        setMethod "GET"
+        setUrl RegisterR
+        addGetParam "q" "inacct:assets:broker"
+      statusIs 200
+      -- three: all of them, though the row posted one
+      htmlAnyContain (rjamounts "three") "10 DDD"
+      htmlNoneContain (rjamounts "three") "more"
+      -- four: the one the row posted, then how many more
+      htmlAnyContain (rjamounts "five") "14 DDD"
+      htmlAnyContain (rjamounts "five") "… and 3 more"
+      htmlNoneContain (rjamounts "five") "1 AAA"
+
+    yit "shows a commodity its row closed out, at zero, and elides a balance of zeros (#2784)" $ do
+      request $ do
+        setMethod "GET"
+        setUrl RegisterR
+        addGetParam "q" "inacct:assets:closed"
+      statusIs 200
+      -- buy posted all five: all of them, and no note of none more
+      htmlAnyContain (rjamounts "buy") "1 EEE"
+      htmlNoneContain (rjamounts "buy") "more"
+      -- sell AAA closed out AAA: it at zero, then the four left
+      htmlAnyContain (rjamounts "sell AAA") "0 AAA"
+      htmlAnyContain (rjamounts "sell AAA") "… and 4 more"
+      -- sell EEE left five zeros: its own, then the other four
+      htmlAnyContain (rjamounts "sell EEE") "0 EEE"
+      htmlAnyContain (rjamounts "sell EEE") "… and 4 more"
+      htmlNoneContain (rjamounts "sell EEE") "0 AAA"
+
   -- A journal whose accounts have no recognizable types has empty statements.
   uj <- fmap (either error' id) . runExceptT . journalFinalise biopts "untyped.journal" "" =<<
           readJournal'' (T.pack $ unlines  -- PARTIAL: readJournal'' should not fail
