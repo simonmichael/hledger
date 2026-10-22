@@ -26,16 +26,16 @@ $forall (acct, adisplay, aindent, abal) <- items
              title=#{tr trs "Show transactions affecting this account but not subaccounts"}>#{tr trs "only"}
     <td .amount>
       $if mixedAmountLooksZero abal
-        ^{mixedAmountAsHtmlElided trs 3 abal}
+        ^{mixedAmountAsHtmlElided trs abal}
       $else
         <a href="@?{acctlink acct}"
            title=#{tr trs "Show the transactions that make up this balance"}>
-          ^{mixedAmountAsHtmlElided trs 3 abal}
+          ^{mixedAmountAsHtmlElided trs abal}
 <tr .total>
   <td .total-label title=#{tottitle}>#{totlabel}
   <td .amount>
     $if mixedAmountLooksZero total
-      ^{mixedAmountAsHtmlElided trs 3 total}
+      ^{mixedAmountAsHtmlElided trs total}
     $else
       <a href="@?{totallink}" title=#{tr trs "Show the transactions that make up this total"}>
-        ^{mixedAmountAsHtmlElided trs 3 total}
+        ^{mixedAmountAsHtmlElided trs total}

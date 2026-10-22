@@ -38,7 +38,7 @@
             $if not split || not (mixedAmountLooksZero amt)
               ^{mixedAmountAsHtmlWith amtfmt amt}
           <td .amount>
-            ^{mixedAmountAsHtml (mixedAmountStripCosts bal)}
+            ^{runningBalanceAsHtml trs amt bal}
       $if historical && lastpage
         $maybe start <- mstart
           <tr .broughtforward>
@@ -50,10 +50,10 @@
             <td .amount>
             <td .amount>
               $if mixedAmountLooksZero startbal
-                ^{mixedAmountAsHtml startbal}
+                ^{mixedAmountAsHtmlElided trs startbal}
               $else
                 <a href=@?{broughtForwardLink start} title=_{HMsg "Show the transactions before this period"}>
-                  ^{mixedAmountAsHtml startbal}
+                  ^{mixedAmountAsHtmlElided trs startbal}
 
 ^{pagingLinks trs RegisterR qparam modeParams page}
 
