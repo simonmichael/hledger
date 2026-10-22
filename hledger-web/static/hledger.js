@@ -255,6 +255,21 @@ function journalGo() {
   location.href = a ? a.href : document.hledgerWebBaseurl + '/journal';
 }
 
+// A shift-click on a link in the years, account type, or commodity rows is
+// always handled here, never by the browser, whose own shift-click opens a
+// new window, or in Safari adds to the Reading List. compose(link) returns
+// the url combining the clicked link with the row's selection, or null to
+// follow the link as a plain click would.
+function shiftClickRow(row, compose) {
+  row.addEventListener('click', function (ev) {
+    if (!ev.shiftKey) { return; }
+    var a = ev.target.closest('a');
+    if (!a) { return; }
+    ev.preventDefault();
+    location.href = compose(a) || a.href;
+  });
+}
+
 // Shift-clicking a year in the years row extends the selection: from the
 // years marked current (a plain click's single year, or an earlier range)
 // to the clicked one, as an end-exclusive date:FIRST..LAST+1 search term,
@@ -262,18 +277,15 @@ function journalGo() {
 // shift-click selects the clicked year like a plain click.
 function yearsRangeInit() {
   document.querySelectorAll('p.years').forEach(function (row) {
-    row.addEventListener('click', function (ev) {
-      if (!ev.shiftKey) { return; }
-      var a = ev.target.closest('a');
-      var clicked = a && parseInt(a.textContent, 10);
-      if (!clicked || isNaN(clicked)) { return; }  // the All link, or no link
+    shiftClickRow(row, function (a) {
+      var clicked = parseInt(a.textContent, 10);
+      if (isNaN(clicked)) { return null; }  // the All link
       var years = [clicked];
       document.querySelectorAll('p.years a.current').forEach(function (c) {
         var y = parseInt(c.textContent, 10);
         if (!isNaN(y)) { years.push(y); }
       });
-      if (years.length < 2) { return; }  // nothing to extend from
-      ev.preventDefault();
+      if (years.length < 2) { return null; }  // nothing to extend from
       var lo = Math.min.apply(null, years);
       var hi = Math.max.apply(null, years);
       // the clicked link's url, with every date: term (a hand-typed
@@ -281,7 +293,7 @@ function yearsRangeInit() {
       var url = new URL(a.href);
       var q = (url.searchParams.get('q') || '').replace(/\s*\bdate:\S+/g, '').trim();
       url.searchParams.set('q', (q ? q + ' ' : '') + 'date:' + lo + '..' + (hi + 1));
-      location.href = url.toString();
+      return url.toString();
     });
   });
 }
@@ -291,16 +303,13 @@ function yearsRangeInit() {
 // row marks each selected type (see Widget.Common.typeLinks).
 function typesMultiInit() {
   document.querySelectorAll('div.types').forEach(function (box) {
-    box.addEventListener('click', function (ev) {
-      if (!ev.shiftKey) { return; }
-      var a = ev.target.closest('a');
-      if (!a) { return; }
+    shiftClickRow(box, function (a) {
       var typeOf = function (link) {
         var m = (new URL(link.href).searchParams.get('q') || '').match(/type:(\w+)/);
         return m && m[1].toUpperCase();
       };
       var clicked = typeOf(a);
-      if (!clicked) { return; }  // the All link
+      if (!clicked) { return null; }  // the All link
       var letters = [];
       box.querySelectorAll('a.current').forEach(function (c) {
         var t = typeOf(c);
@@ -308,14 +317,13 @@ function typesMultiInit() {
       });
       var i = letters.indexOf(clicked);
       if (i >= 0) { letters.splice(i, 1); } else { letters.push(clicked); }
-      ev.preventDefault();
       var url = new URL(a.href);
       // drop every type: term (a hand-typed search may hold several),
       // then append the one composed term
       var q = (url.searchParams.get('q') || '').replace(/\s*\btype:\w+/g, '').trim();
       if (letters.length) { q = (q ? q + ' ' : '') + 'type:' + letters.sort().join(''); }
       if (q) { url.searchParams.set('q', q); } else { url.searchParams.delete('q'); }
-      location.href = url.toString();
+      return url.toString();
     });
   });
 }
@@ -328,18 +336,15 @@ function typesMultiInit() {
 // composed term containing one is quoted whole.
 function commoditiesMultiInit() {
   document.querySelectorAll('div.commodities').forEach(function (box) {
-    box.addEventListener('click', function (ev) {
-      if (!ev.shiftKey) { return; }
-      var a = ev.target.closest('a');
-      var clicked = a && a.getAttribute('data-cur');
-      if (!clicked) { return; }  // the All link
+    shiftClickRow(box, function (a) {
+      var clicked = a.getAttribute('data-cur');
+      if (!clicked) { return null; }  // the All link
       var pats = [];
       box.querySelectorAll('a.current[data-cur]').forEach(function (c) {
         pats.push(c.getAttribute('data-cur'));
       });
       var i = pats.indexOf(clicked);
       if (i >= 0) { pats.splice(i, 1); } else { pats.push(clicked); }
-      ev.preventDefault();
       var q = box.getAttribute('data-rest') || '';
       if (pats.length) {
         var term = 'cur:' + pats.join('|');
@@ -348,7 +353,7 @@ function commoditiesMultiInit() {
       }
       var url = new URL(a.href);
       if (q) { url.searchParams.set('q', q); } else { url.searchParams.delete('q'); }
-      location.href = url.toString();
+      return url.toString();
     });
   });
 }
