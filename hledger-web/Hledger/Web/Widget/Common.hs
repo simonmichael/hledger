@@ -40,6 +40,7 @@ module Hledger.Web.Widget.Common
   , mixedAmountAsHtmlWith
   , mixedAmountAsHtmlElided
   , runningBalanceAsHtml
+  , moreCommodities
   , fromFormSuccess
   , writeJournalTextIfValidAndChanged
   , journalFile404
@@ -613,11 +614,11 @@ moreCommoditiesHtml trs n = do
   H.span ! A.class_ "more-commodities" $ toHtml $ moreCommodities trs n
   H.br
 
--- | The note saying how many more commodities there are than an amount
--- shows.
+-- | The note saying how many more commodities there are than an amount,
+-- or the register chart, shows.
 moreCommodities :: Translations -> Int -> Text
 moreCommodities trs n =
-  -- TRANSLATORS: the note for a balance showing fewer commodities than it has.
+  -- TRANSLATORS: the note for a balance, or the register chart, showing fewer commodities than it has.
   trf trs "… and {n} more" [("n", T.pack $ show n)]
 
 -- Make a slug to uniquely identify this transaction

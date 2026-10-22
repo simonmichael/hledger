@@ -21,6 +21,7 @@ module Hledger.Reports.AccountTransactionsReport (
   triCommodityAmount,
   triCommodityBalance,
   accountTransactionsReportByCommodity,
+  filterAccountTransactionsReportByCommodity,
   tests_AccountTransactionsReport
 )
 where

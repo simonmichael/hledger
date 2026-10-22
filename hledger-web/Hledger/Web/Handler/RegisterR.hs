@@ -10,12 +10,14 @@
 module Hledger.Web.Handler.RegisterR where
 
 import Data.Aeson.Text (encodeToLazyText)
-import Data.List (nub, partition)
+import Data.List (nub, partition, sort, sortOn)
+import Data.Map qualified as M
+import Data.Ord (Down(..))
 import Data.Text qualified as T
 import Safe (tailSafe)
 import Text.Hamlet (hamletFile)
 
-import Hledger.Utils.I18n (tr, trc, trf)
+import Hledger.Utils.I18n (Translations, tr, trc, trf)
 import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
@@ -27,7 +29,7 @@ import Hledger.Web.Widget.Common
              (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
               commodityLinks, controlsHint, controlsToggle, costsLinks, depthLinks,
               inertControls, listModeLinks, lotsLinks, mixedAmountAsHtmlElided,
-              mixedAmountAsHtmlWith, percentLinks, pricesLinks, realLinks,
+              mixedAmountAsHtmlWith, moreCommodities, percentLinks, pricesLinks, realLinks,
               runningBalanceAsHtml, sortLinks, statusLinks, typeLinks,
               zeroBalanceLinks, transactionFragment, removeDates, removeInacct, replaceInacct, journalDayQuery)
 
@@ -267,17 +269,30 @@ decorateLinks = concatMap $ \(acct, (name, comma)) ->
 -- series as JSON in a data attribute. hledger.js draws it with flot on page
 -- load; see registerChartInit there.
 registerChartHtml ::
-  Text -> [(Text, Text)] -> (Transaction -> String) -> String ->
-  [(CommoditySymbol, [AccountTransactionsReportItem])] -> HtmlUrl AppRoute
-registerChartHtml q modeParams transactionFrag title percommoditytxnreports = $(hamletFile "templates/chart.hamlet")
+  Translations -> Text -> [(Text, Text)] -> (Transaction -> String) -> String ->
+  AccountTransactionsReport -> HtmlUrl AppRoute
+registerChartHtml trs q modeParams transactionFrag title report = $(hamletFile "templates/chart.hamlet")
  where
    charttitle = if null title then "" else title ++ ":"
    nodatelink = (RegisterR, [("q", t) | let t = T.unwords $ removeDates q, not (T.null t)] ++ modeParams)
+   -- The chart draws at most ten commodities: those with the most
+   -- transactions on the page, in alphabetical order. More lines, and a
+   -- legend as long, could not be read anyway. The legend notes how many
+   -- are left out; searching for a commodity (cur:) charts it. Each
+   -- commodity's transactions are counted first, so that only the charted
+   -- ones are taken out of the report, a pass over it each.
+   counts = M.toList $ M.fromListWith (+)
+     [(c, 1 :: Int) | i <- report, c <- nub $ map acommodity $ amounts $ triAmount i]
+   charted = [ (c, filterAccountTransactionsReportByCommodity c report)
+             | c <- sort . take 10 . map fst $ sortOn (\(c, n) -> (Down n, c)) counts ]
+   uncharted = length counts - length charted
+   leftout = uncharted > 0
+   morenote = moreCommodities trs uncharted
    -- One entry per commodity: its symbol, and per transaction the point flot
    -- plots, followed by the texts the tooltip shows and the id of the
    -- transaction's row, from which the tooltip takes the entry and to which
    -- a click scrolls.
-   seriesjson = encodeToLazyText $ map commoditySeries percommoditytxnreports
+   seriesjson = encodeToLazyText $ map commoditySeries charted
    commoditySeries (c, items) = object
      [ "label"  .= c
      , "points" .= [ [ toJSON . dayToUtcNoonTimestamp $ triDate i
