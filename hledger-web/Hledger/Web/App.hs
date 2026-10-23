@@ -60,7 +60,7 @@ import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, parseLis
 import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (balanceReportAsHtml, journalKeptParams, removeInacct)
+import Hledger.Web.Widget.Common (balanceReportAsHtml, removeInacct)
 import Data.List (isPrefixOf, partition)
 
 -- | The site argument for your application. This can be a good place to
@@ -232,12 +232,9 @@ instance Yesod App where
           [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
           [p | p@(k, _) <- keptParams, k /= "period", k `elem` stickyParamNames]
         -- The pages g then a key goes to (hledger.js), with the sidebar
-        -- links' parameters (the journal's, as in the sidebar's Journal row).
+        -- links' parameters.
         goItems :: [(Text, (Route App, [(Text, Text)]), Text, Text)]
-        goItems = [ (rmGoKey i, (rmRoute i, goParams i), tr trs (rmLabel i), tr trs (rmTitle i)) | i <- reportMenuFor jHasLots ]
-        goParams i
-          | rmRoute i == JournalR = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ journalKeptParams sidebarParams
-          | otherwise             = sidebarParams
+        goItems = [ (rmGoKey i, (rmRoute i, sidebarParams), tr trs (rmLabel i), tr trs (rmTitle i)) | i <- reportMenuFor jHasLots ]
         -- What the sidebar's bottom row is, in the current amounts mode:
         -- the whole journal's net. Label it by what that means.
         (totlabel, tottitle) = case amountModeOf ropts' of
@@ -251,7 +248,7 @@ instance Yesod App where
             (tr trs "Net flows:",
              tr trs "The sum of every account: open positions in each commodity, and the cash that paid for them. Zero when nothing crosses commodities.")
         accounts =
-          balanceReportAsHtml (JournalR, RegisterR) here sidebarReports sidebarParams hideEmptyAccts totlabel tottitle trs j qparam qopts $
+          balanceReportAsHtml RegisterR here sidebarReports sidebarParams hideEmptyAccts totlabel tottitle trs j qparam qopts $
           styleAmounts (journalCommodityStylesWith HardRounding j) $
           balanceReport rspec' j
 
@@ -472,8 +469,8 @@ data ReportMenuItem = ReportMenuItem {
       --   a statement, balance changes for the balance report; the journal,
       --   not a report page, has none
     rmInSidebar :: Bool,
-      -- ^ has a report row in the sidebar (the others are one click away,
-      --   in the pages' own Report row; the journal has its own row there)
+      -- ^ has a row in the sidebar (the others are one click away, in the
+      --   pages' own Report row)
     rmGeneral   :: Bool,
       -- ^ a general report, listed after the named pages, a little apart
     rmGoKey     :: Text
@@ -486,7 +483,7 @@ data ReportMenuItem = ReportMenuItem {
 reportMenu :: [ReportMenuItem]
 reportMenu =
   -- TRANSLATORS: the report links above each report page and in the sidebar: each link's text, and its tooltip.
-  [ ReportMenuItem JournalR            (i18n "Journal")                   (i18n "Show general journal entries, most recent first")     Nothing                                  False False "j"
+  [ ReportMenuItem JournalR            (i18n "Journal")                   (i18n "Show general journal entries, most recent first")     Nothing                                  True  False "j"
   , ReportMenuItem BalancesheetR       (i18n "Balance sheet")             (i18n "Show assets, liabilities, and net worth")             (Just $ cbcaccum balancesheetSpec)       True  False "b"
   , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                          (Just $ cbcaccum incomestatementSpec)    True  False "i"
   , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                       (Just $ cbcaccum cashflowSpec)           True  False "c"

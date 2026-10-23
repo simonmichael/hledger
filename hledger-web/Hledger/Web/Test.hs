@@ -1103,10 +1103,22 @@ hledgerWebTest = do
         setUrl RegisterR
         addGetParam "q" "inacct:assets:bank:checking date:2025"
       statusIs 200
-      bodyContains ("<a id=\"sidebar-journal-link\" href=\"" ++ base ++ "/journal?q=date%3A2025\" title=\"Show general journal entries, most recent first\">")
+      bodyContains ("<td class=\"top acct\" colspan=\"2\"><a href=\"" ++ base ++ "/journal?q=date%3A2025\" title=\"Show general journal entries, most recent first\">Journal</a>")
       get JournalR
       statusIs 200
-      bodyContains ("<a class=\"inacct\" id=\"sidebar-journal-link\" href=\"" ++ base ++ "/journal\" title=\"Show general journal entries, most recent first\">")
+      bodyContains ("<td class=\"top acct\" colspan=\"2\"><a class=\"inacct\" href=\"" ++ base ++ "/journal\" title=\"Show general journal entries, most recent first\">Journal</a>")
+
+    yit "gives the journal links the same report state as the other page links" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalancesheetR
+        addGetParam "period" "quarterly"
+        addGetParam "sort" "amount"
+      statusIs 200
+      -- in the sidebar, in the g menu, and in the row of page links
+      bodyContains ("<a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\" title=\"Show general journal entries, most recent first\">Journal</a>")
+      bodyContains ("<a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\" data-gokey=\"j\"")
+      bodyContains ("<span class=\"row-label\">Report:</span><a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\"")
 
     yit "links the sidebar's total to the register of the search" $ do
       request $ do

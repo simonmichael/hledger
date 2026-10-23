@@ -1,10 +1,4 @@
-<tr :here == journalR:.inacct>
-  <td .top .acct>
-    <a #sidebar-journal-link href=@?{journallink} :here == journalR:.inacct
-       title=#{tr trs "Show general journal entries, most recent first"}>
-      #{tr trs "Journal"}
-  <td .top>
-$# A report's label spans both columns: it is longer than an account name,
+$# A page's label spans both columns: it may be longer than an account name,
 $# and nothing goes beside it.
 $forall (route, label, title) <- reports
   <tr :here == route:.inacct>

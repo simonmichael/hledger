@@ -1809,12 +1809,12 @@ msgid "Save"
 msgstr "Сохранить"
 
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs
 msgid "Show general journal entries, most recent first"
 msgstr "Показать записи общего журнала, сначала новые"
 
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
-#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs
 msgid "Journal"
 msgstr "Журнал"
 

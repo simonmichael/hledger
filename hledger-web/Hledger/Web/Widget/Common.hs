@@ -14,7 +14,6 @@ module Hledger.Web.Widget.Common
   , linksRow
   , linksRowClass
   , linksRowGroups
-  , journalKeptParams
   , pricesLinks
   , commodityLinks
   , depthLinks
@@ -118,19 +117,19 @@ helplink :: Text -> Text -> HtmlUrl r
 helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
   where u = textValue $ manualurl <> if T.null topic then "" else T.cons '#' topic
 
--- | Of the parameters the report links keep, those the journal and
--- register links keep: the states those pages read, ie the amounts mode,
--- the accounts mode, inferred prices, zero balances, and lot detail.
--- Each such link rewrites the search itself.
-journalKeptParams :: [(Text, Text)] -> [(Text, Text)]
-journalKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["value", "list", "infer", "empty", "lots"]]
+-- | Of the parameters the page links keep, those the sidebar's register
+-- links keep: the states the register reads, ie the amounts mode, the
+-- accounts mode, inferred prices, zero balances, and lot detail. Each such
+-- link rewrites the search itself.
+registerKeptParams :: [(Text, Text)] -> [(Text, Text)]
+registerKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["value", "list", "infer", "empty", "lots"]]
 
--- | Render a "BalanceReport" as the sidebar: the journal and report
--- links (each report's route, label, and title, with the parameters
--- their links carry), then the accounts. The current page's row is marked.
+-- | Render a "BalanceReport" as the sidebar: the page links (each page's
+-- route, label, and title, with the parameters their links carry), then
+-- the accounts, linking to their registers. The current page's row is marked.
 balanceReportAsHtml ::
-  Eq r => (r, r) -> r -> [(r, Text, Text)] -> [(Text, Text)] -> Bool -> Text -> Text -> Translations -> Journal -> Text -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty totlabel tottitle trs j qparam qopts (items, total) =
+  Eq r => r -> r -> [(r, Text, Text)] -> [(Text, Text)] -> Bool -> Text -> Text -> Translations -> Journal -> Text -> [QueryOpt] -> BalanceReport -> HtmlUrl r
+balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel tottitle trs j qparam qopts (items, total) =
   $(hamletFile "templates/balance-report.hamlet")
   where
     l = ledgerFromJournal Any j
@@ -143,13 +142,11 @@ balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty to
       -- displays such balances as zero.
       where isInteresting a = not (all (mixedAmountLooksZero . mixedAmountStripCosts . bdexcludingsubs) . pdperiods $ adata a) || any isInteresting (asubs a)
     matchesAcctSelector acct = Just True == ((`matchesAccount` acct) <$> inAccountQuery qopts)
-    kept = journalKeptParams reportParams
+    kept = registerKeptParams reportParams
     acctlink acct = (registerR, ("q", replaceInacct qparam $ accountQuery acct) : kept)
     acctonlylink acct = (registerR, ("q", replaceInacct qparam $ accountOnlyQuery acct) : kept)
-    -- The journal, and the register of everything, for the sidebar's
-    -- search minus any account term; the search form's clear button is
-    -- the way out of a search.
-    journallink = (journalR, [("q", t) | let t = T.unwords $ removeInacct qparam, not (T.null t)] ++ kept)
+    -- The register of everything, for the sidebar's search minus any
+    -- account term; the search form's clear button is the way out of a search.
     totallink = (registerR, [("q", t) | let t = T.unwords $ removeInacct qparam, not (T.null t)] ++ kept)
 
 -- | A row of links above a report: a label, then each link's label,
