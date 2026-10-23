@@ -233,9 +233,14 @@ function isoDate() {
   return new Date().toLocaleDateString("sv");  // https://stackoverflow.com/a/58633651/84401
 }
 
+// Focus the search field ready for another query term: rather than
+// selecting the search, put the cursor at its end, after a space.
 function focusSearch() {
-  var q = document.querySelector('#searchform input');
-  if (q) { q.focus(); }
+  var q = document.querySelector('#searchform input[name=q]');
+  if (!q) { return; }
+  if (q.value && !/\s$/.test(q.value)) { q.value += ' '; }
+  q.focus();
+  q.setSelectionRange(q.value.length, q.value.length);
 }
 
 // Insert another posting row in the add form.

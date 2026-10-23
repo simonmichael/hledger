@@ -227,6 +227,23 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('"f" and "/" focus the search ready for another term, after a space', async ({ page }) => {
+    await page.goto('/journal?q=assets');
+    const search = page.locator('#searchform input[name=q]');
+    await page.locator('body').press('f');
+    await expect(search).toBeFocused();
+    await expect(search).toHaveValue('assets ');
+    // the cursor is at the end, nothing selected, so typing adds a term
+    await page.keyboard.type('date:2025');
+    await expect(search).toHaveValue('assets date:2025');
+    // an empty search gets no space
+    await page.goto('/journal');
+    await page.locator('body').press('/');
+    await expect(search).toBeFocused();
+    await expect(search).toHaveValue('');
+    expect(pageErrors).toEqual([]);
+  });
+
   test('"g" shows the pages menu, and a page\'s key goes there', async ({ page }) => {
     await page.goto('/journal');
     const menu = page.locator('#gomenu');
