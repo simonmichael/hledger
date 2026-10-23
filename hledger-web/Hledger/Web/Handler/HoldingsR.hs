@@ -97,7 +97,7 @@ getHoldingsR = do
             pageParams =
               dbg1 "holdings pageParams" $
               periodParams ++ valParams ++ listParams ++ sortParams ++
-              inferParams ++ closedParams ++ emptyParams ++ lotsParams
+              inferParams ++ closedParams ++ emptyParams ++ lotsParams ++ depthParams q
             qParams = [("q", qparam) | not (T.null qparam)]
             -- An account cell links to the account's register, keeping
             -- the states that page reads.

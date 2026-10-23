@@ -212,7 +212,7 @@ hledgerWebTest = do
             { period_ = YearPeriod 2026, interval_ = Months 1
             , value_ = Just (AtEnd Nothing), accountlistmode_ = ALTree
             , empty_ = True, statuses_ = [Cleared], real_ = True
-            , depth_ = DepthSpec (Just 3) []
+            , depth_ = DepthSpec (Just 3) [(toRegexCI' "assets", 2)]
             , querystring_ = ["assets", "two words"]
             , title_ = Just "My books"
             }
@@ -222,7 +222,9 @@ hledgerWebTest = do
       lookup "list" params `shouldBe` Just "tree"
       -- -E means the opposite in the web ui: hide the zero balances shown by default
       lookup "empty" params `shouldBe` Just "0"
-      lookup "q" params `shouldBe` Just "assets \"two words\" date:2026 status:* real:1 depth:3"
+      -- a flat depth is a parameter; a per-account one stays a search term
+      lookup "depth" params `shouldBe` Just "3"
+      lookup "q" params `shouldBe` Just "assets \"two words\" date:2026 status:* real:1 depth:assets=2"
       _rsQuery rspec' `shouldBe` Any
       period_ (_rsReportOpts rspec') `shouldBe` PeriodAll
       interval_ (_rsReportOpts rspec') `shouldBe` NoInterval
@@ -410,8 +412,8 @@ hledgerWebTest = do
       -- a position's register link filters to its commodity
       bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3AAAA\""
       -- with lots hidden, the Depth row reaches the deepest real account
-      bodyContains "depth%3A2"
-      bodyNotContains "depth%3A3"
+      bodyContains "&amp;depth=2\""
+      bodyNotContains "&amp;depth=3\""
 
     yit "shows one row per lot with lots=1" $ do
       request $ do
@@ -425,7 +427,7 @@ hledgerWebTest = do
       bodyContains "scope=\"rowgroup\">assets:broker</th>"
       -- lot subaccounts are ordinary accounts to the Depth row, which
       -- now reaches one level deeper, as in hledger-ui
-      bodyContains "depth%3A3"
+      bodyContains "&amp;depth=3\""
 
     yit "shows closed positions with closed=1" $ do
       request $ do
@@ -740,31 +742,52 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "q" "depth:1"
+        addGetParam "depth" "1"
       statusIs 200
-      bodyContains "href=\"register?q=inacct:assets+depth:1\""
+      bodyContains "href=\"register?q=inacct:assets&amp;depth=1\""
       bodyNotContains "href=\"register?q=inacct:assets:bank:checking"
 
-    yit "links to each depth, the deepest included, replacing the search's depth term and keeping its others" $ do
+    yit "moves a depth term in the search to the depth parameter, keeping per-account depths in the search" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "q" "assets depth:1"
+        addGetParam "q" "assets depth:2 depth:assets:bank=3 depth:1"
+        addGetParam "list" "tree"
+      statusIs 303
+      -- the last depth term wins, as in the search (yesod-test sends the parameters in reverse)
+      loc <- headerValue "Location"
+      assertEq "the page is reloaded with the depth as a parameter" loc
+        (T.pack (defbaseurl defhost defport) <> "/balance?list=tree&q=assets%20depth%3Aassets%3Abank%3D3&depth=1")
+
+    yit "keeps the depth in the search form" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "depth" "2"
+      statusIs 200
+      bodyContains "<input type=\"hidden\" name=\"depth\" value=\"2\">"
+
+    yit "links to each depth, the deepest included, setting the depth parameter and keeping the search" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "q" "assets"
+        addGetParam "depth" "1"
       statusIs 200
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets\" title=\"Show accounts at every depth\">All</a>")
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A1\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A2\"")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=1\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=2\"")
       -- assets:bank:checking is at depth 3: its link shows the same
-      -- accounts as All, but holds the depth in the query
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets%20depth%3A3\"")
-      bodyNotContains "depth%3A4"
+      -- accounts as All, but holds the depth
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=3\"")
+      bodyNotContains "depth=4"
 
     yit "squashes boring parents in tree mode, as the cli does" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
         addGetParam "list" "tree"
-        addGetParam "q" "depth:1"
+        addGetParam "depth" "1"
       statusIs 200
       bodyContains "data-depth-fold=\"1\""
       -- every account chain here is boring, so each is one depth-0 row
@@ -772,15 +795,15 @@ hledgerWebTest = do
       bodyContains "class=\"account depth-0\""
       bodyNotContains "class=\"account depth-1\""
       -- the figure's register keeps the sticky state, tree mode included
-      bodyContains "href=\"register?q=inacct:assets:bank:checking+depth:1&amp;list=tree\""
+      bodyContains "href=\"register?q=inacct:assets:bank:checking&amp;list=tree&amp;depth=1\""
 
     yit "offers the depth links on the journal page, where they clip the sidebar" $ do
       request $ do
         setMethod "GET"
         setUrl JournalR
-        addGetParam "q" "depth:1"
+        addGetParam "depth" "1"
       statusIs 200
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/journal?q=depth%3A2\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/journal?depth=2\"")
       -- the sidebar is clipped to the depth; the entries are not
       bodyNotContains "\"q=inacct%3Aassets%3Abank\""
       bodyContains "lunch</td>"
@@ -790,7 +813,7 @@ hledgerWebTest = do
         setMethod "GET"
         setUrl JournalR
         addGetParam "list" "tree"
-        addGetParam "q" "depth:1"
+        addGetParam "depth" "1"
       statusIs 200
       -- the journal page has no report table, so this is the sidebar's
       bodyContains "data-depth-fold=\"1\""
@@ -1040,7 +1063,7 @@ hledgerWebTest = do
         setMethod "GET"
         setUrl BalanceR
         addGetParam "list" "tree"
-        addGetParam "q" "depth:1"
+        addGetParam "depth" "1"
       statusIs 200
       bodyContains "data-depth-fold=\"1\""
       -- assets is boring and squashed into its branching child
@@ -1535,7 +1558,7 @@ hledgerWebTest = do
         setUrl BalancesheetR
         addGetParam "accum" "change"
       statusIs 200
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=depth%3A1&amp;accum=change\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?accum=change&amp;depth=1\"")
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?accum=change&amp;value=end\"")
 
     yit "shows the sidebar's amounts the way the page's value parameter asks, naming its net row by the mode" $ do

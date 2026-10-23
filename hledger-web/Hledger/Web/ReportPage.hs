@@ -29,6 +29,7 @@ module Hledger.Web.ReportPage (
   valueParams,
   addLinkParams,
   deepestDepth,
+  depthParams,
   accumWord,
   calcWord,
   columnHeading,
@@ -188,8 +189,9 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
 -- | The startup report options and query arguments, expressed as url
 -- state: the parameters for the url that browse mode opens and --serve
 -- prints. Query arguments and query-expressible options
--- (periods, depths, statuses, -R) become the q parameter's search
--- terms the other options the pages know become their parameters.
+-- (periods, per-account depths, statuses, -R) become the q parameter's
+-- search terms; the other options the pages know, a flat --depth
+-- among them, become their parameters.
 -- Display preferences without a url spelling (the language, period
 -- title style, report titles) stay in the spec; report options the web
 -- ui has no vocabulary for (--invert, --transpose, ...) are dropped.
@@ -198,6 +200,7 @@ startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
   where
     params =
       [("period", p)          | Just p <- [intervalPeriodExpr $ interval_ ropts]] ++
+      [("depth", T.pack (show n)) | Just n <- [dsFlatDepth $ depth_ ropts]] ++
       [("accum", accumWord a) | let a = balanceaccum_ ropts, a /= PerPeriod] ++
       [("value", valueWord m) | Just m <- [amountModeOf ropts], m /= AsRecorded] ++
       [("list", "tree")       | accountlistmode_ ropts == ALTree] ++
@@ -223,8 +226,7 @@ startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
       Unmarked -> ""
       Pending  -> "!"
       Cleared  -> "*"
-    depthTerms (DepthSpec mflat regexps) =
-      ["depth:" <> T.pack (show n) | Just n <- [mflat]] ++
+    depthTerms (DepthSpec _ regexps) =
       -- quoted when the regexp has a space, like the query terms
       [textQuoteIfNeeded $ "depth:" <> reString r <> "=" <> T.pack (show n) | (r, n) <- regexps]
     rspec' = rspec{
@@ -500,6 +502,12 @@ paramError trs = \case
   ValueThenUnsupported ->
     H.div ! A.class_ "alert alert-danger" $
       H.toHtml $ tr trs "This report is at a single date, so value=then does not apply: use value=end, value=now, or a date."
+
+-- | The depth parameter for the query's depth limit, if it has one, for
+-- links keeping it. (Only a depth:REGEX=N term can be in the search,
+-- which keeps it there: see App.setDepthFromSearch.)
+depthParams :: Query -> [(Text, Text)]
+depthParams q = [("depth", T.pack (show n)) | Just n <- [dsFlatDepth $ queryDepth q]]
 
 -- | The deepest account depth a report page can show: that of the
 -- journal's deepest account. The journal as displayed with lots shown

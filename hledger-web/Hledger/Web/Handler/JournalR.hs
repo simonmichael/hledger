@@ -15,7 +15,7 @@ import Hledger.Web.Import
 import Hledger.Web.Paging
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
             (accountQuery, amountLinks, calcLinks, columnsLinks, commodityLinks,
              controlsHint, controlsToggle,
@@ -83,7 +83,7 @@ getJournalR = do
         [("calc", c) | Just c <- [mcalc], not (T.null c)] ++
         [("date2", "1") | date2On]
       lotsParams = [("lots", "1") | lotsShown]
-      carried = dbg1 "journal carried params" $ stickyParams ++ valParams ++ listParams ++ inferParams ++ emptyParams ++ lotsParams
+      carried = dbg1 "journal carried params" $ stickyParams ++ valParams ++ listParams ++ inferParams ++ emptyParams ++ lotsParams ++ depthParams q
       qps = [("q", qparam) | not (T.null qparam)]
       -- An entry's date link: the journal on that date, same modes.
       dayParams t = ("q", journalDayQuery qparam (tdate t)) : carried

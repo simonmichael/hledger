@@ -112,7 +112,7 @@ statementPage here tabtitle spec = do
               dbg1 "statement pageParams" $
               periodParams ++ accumParams ++ valParams ++ listParams ++
               totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
-              inferParams ++ date2Params ++ emptyParams ++ lotsParams
+              inferParams ++ date2Params ++ emptyParams ++ lotsParams ++ depthParams q
             qParams = [("q", qparam) | not (T.null qparam)]
             -- The figures' registers convert amounts as the report does. One
             -- showing them as recorded must say so when the register's

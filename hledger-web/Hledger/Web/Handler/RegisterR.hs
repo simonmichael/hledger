@@ -23,7 +23,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.Paging
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, removeAttributes, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, removeAttributes, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
@@ -99,7 +99,7 @@ getRegisterR = do
       lotsParams = [("lots", "1") | lotsShown]
       modeParams =
         dbg1 "register modeParams" $
-        stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams ++ lotsParams
+        stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams ++ lotsParams ++ depthParams q
       -- Links to the journal carry the sticky state; the accumulation
       -- mode and the costs toggle are this page's own.
       journalCarry = removeAttributes ["accum", "costs"] modeParams

@@ -249,6 +249,10 @@ A rule of thumb: the query selects the data; report options control what is done
 On the command line these are query arguments and flags; in hledger-web, the search box and the URL parameters set by the page's links.
 A few query terms also affect the report: `date:` sets the report period, `depth:` summarises,
 and `inacct:` (a `QueryOpt`, not a filter) sets a register's focus account.
+hledger-web follows the rule for depth: a flat depth is its `depth` URL parameter, and a `depth:N` typed in the search is moved there
+(`App.setDepthFromSearch`); only per-account `depth:REGEX=N` terms stay in its search.
+Internally, though, the parameter is added to the parsed query (`ViewData.q`) as a `Depth` term, since the reports read depth limits
+from the query; the search text (`ViewData.qparam`) never shows it, and links turn it back into the parameter (`ReportPage.depthParams`).
 
 The period and the query overlap on the span: `queryFromFlags` turns `period_` into a `Date` query,
 and the report's dates are the intersection of that and any `date:` terms.
