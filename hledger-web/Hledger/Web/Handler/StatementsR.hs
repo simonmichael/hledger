@@ -61,7 +61,7 @@ statementPage here tabtitle spec = do
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
-      menu = reportLinkItems $ reportMenuFor jHasLots
+      menu = reportLinkGroups $ reportMenuFor jHasLots
       deepest = deepestDepth j
 
   defaultLayout $ do

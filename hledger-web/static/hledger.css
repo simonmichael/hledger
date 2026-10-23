@@ -209,6 +209,11 @@ td.date {
   font-weight: 600;
   color: inherit;
 }
+/* A second group of links, eg the general reports after the named ones,
+   starts a little apart. */
+.report-links .group-start {
+  margin-left: 2em;
+}
 /* The rows' labels share a width, so the links start in one column
    (the collapsed commodity line's label too). */
 .report-links > .row-label,

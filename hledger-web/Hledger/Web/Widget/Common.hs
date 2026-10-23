@@ -13,6 +13,7 @@ module Hledger.Web.Widget.Common
   , inertControls
   , linksRow
   , linksRowClass
+  , linksRowGroups
   , pricesLinks
   , commodityLinks
   , depthLinks
@@ -157,14 +158,20 @@ linksRow = linksRowClass ""
 -- | 'linksRow' with an extra class on the row: a hook for hledger.js's
 -- keyboard shortcuts.
 linksRowClass :: Text -> Text -> [(Text, Text, (r, [(Text, Text)]), Bool)] -> HtmlUrl r
-linksRowClass cls rowlabel items renderUrl =
+linksRowClass cls rowlabel items = linksRowGroups cls rowlabel [items]
+
+-- | 'linksRowClass' with the links in groups, shown a little apart.
+linksRowGroups :: Text -> Text -> [[(Text, Text, (r, [(Text, Text)]), Bool)]] -> HtmlUrl r
+linksRowGroups cls rowlabel groups renderUrl =
     H.p ! A.class_ (H.toValue $ T.unwords $ "report-links" : [cls | not (T.null cls)]) $ do
       H.span ! A.class_ "row-label" $ H.toHtml rowlabel
-      for_ items $ \(label, title, link, current) ->
-        H.a !? (current, A.class_ "current")
-            ! A.href (H.toValue $ uncurry renderUrl link)
-            ! A.title (H.toValue title) $
-          H.toHtml label
+      for_ (zip [0 :: Int ..] groups) $ \(g, items) ->
+        for_ (zip [0 :: Int ..] items) $ \(i, (label, title, link, current)) ->
+          let classes = ["current" | current] ++ ["group-start" | g > 0, i == 0]
+          in H.a !? (not (null classes), A.class_ (H.toValue $ T.unwords classes))
+                 ! A.href (H.toValue $ uncurry renderUrl link)
+                 ! A.title (H.toValue title) $
+               H.toHtml label
 
 -- | A page's rows of report controls behind a disclosure, closed by
 -- default so the page stays uncluttered. Opening it is remembered per

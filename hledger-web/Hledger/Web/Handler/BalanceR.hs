@@ -129,7 +129,7 @@ getBalanceR = do
             -- The links to the other reports stay visible; every other
             -- control the page responds to, one row of links each, sits
             -- behind the controls disclosure.
-            reportsRow = reportLinks trs BalanceR menuParams $ reportLinkItems $ reportMenuFor jHasLots
+            reportsRow = reportLinks trs BalanceR menuParams $ reportLinkGroups $ reportMenuFor jHasLots
             -- The years the search matches in, ignoring all date
             -- narrowing, as a row of links among the controls; the year
             -- links rewrite the date narrowing themselves, so they

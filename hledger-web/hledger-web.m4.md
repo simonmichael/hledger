@@ -161,8 +161,8 @@ hledger-web's main views are:
 - the **register view**, showing the transactions affecting one account (and its subaccounts),
   with a running balance and a balance chart; and
 - the **report views**, described [below](#reports): the balance sheet, income statement,
-  and cashflow statement, linked from the sidebar, and the balance sheet with equity and
-  the All accounts report, linked from those.
+  and cashflow statement (and holdings, for journals using lots), linked from the sidebar,
+  and the All accounts report and the balance sheet with equity, linked from those.
 
 The journal and register views show the newest 1000 matching transactions, with links to the older
 and newer pages and to pages by number, so that a page stays a reasonable size
@@ -268,7 +268,8 @@ reports of the command line's
 `/balancesheetequity`, `/incomestatement`, and `/cashflow`, and the
 general [balance report](hledger.md#balance), named All accounts (as in hledger-ui), at `/balance`.
 The sidebar links to the balance sheet, income statement, and cashflow
-statement, and each report page links to the others.
+statement, and each report page links to the others: the named reports
+first, then the general ones (All accounts, and the balance sheet with equity).
 
 For journals that use [lots](hledger.md#lots-and-capital-gains), the
 [holdings](hledger.md#holdings) report is at `/holdings`, and appears

@@ -676,6 +676,12 @@ hledgerWebTest = do
       bodyContains "<tfoot>"
       bodyContains "class=\"amount negative\""
 
+    yit "lists the named reports, then the general ones a little apart" $ do
+      get BalanceR
+      statusIs 200
+      bodyContains ">Cashflow statement</a><a class=\"current group-start\""
+      bodyContains ">All accounts</a><a href="
+
     yit "styles the report through the stylesheet, not inline styles" $ do
       get BalanceR
       statusIs 200
@@ -1293,7 +1299,7 @@ hledgerWebTest = do
     yit "links All accounts to the statements too" $ do
       get BalanceR
       statusIs 200
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show the balances of all accounts, by period, like the balance command\"")
+      bodyContains ("class=\"current group-start\" href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show the balances of all accounts, by period, like the balance command\"")
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/incomestatement\" title=\"Show revenues and expenses\"")
 
     yit "lists the balance sheet, income statement, and cashflow statement in the sidebar, marking the one shown" $ do

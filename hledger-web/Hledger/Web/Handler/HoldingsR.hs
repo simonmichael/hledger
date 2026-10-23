@@ -271,7 +271,7 @@ getHoldingsR = do
             -- The links to the other reports stay visible; every other
             -- control the page responds to, one row of links each, sits
             -- behind the controls disclosure, in the report pages' order.
-            reportsRow = reportLinks trs HoldingsR menuParams $ reportLinkItems $ reportMenuFor jHasLots
+            reportsRow = reportLinks trs HoldingsR menuParams $ reportLinkGroups $ reportMenuFor jHasLots
             -- The years the search matches in, ignoring all date
             -- narrowing: a year link sets the period, so the page shows
             -- the holdings at that year's end.

@@ -61,7 +61,7 @@ import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common (balanceReportAsHtml, removeInacct)
-import Data.List (isPrefixOf)
+import Data.List (isPrefixOf, partition)
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -463,21 +463,23 @@ data ReportMenuItem = ReportMenuItem {
     rmAccum     :: BalanceAccumulation,
       -- ^ the page's default accumulation mode: its command's own for a
       --   statement, balance changes for the balance report
-    rmInSidebar :: Bool
+    rmInSidebar :: Bool,
       -- ^ has a row in the sidebar (the others are one click away, in the
       --   report pages' own Report row)
+    rmGeneral   :: Bool
+      -- ^ a general report, listed after the named reports, a little apart
 }
 
--- | The report pages, in menu order.
+-- | The report pages, in menu order: the named reports, then the general ones.
 reportMenu :: [ReportMenuItem]
 reportMenu =
   -- TRANSLATORS: the report links above each report page and in the sidebar: each link's text, and its tooltip.
-  [ ReportMenuItem BalancesheetR       (i18n "Balance sheet")             (i18n "Show assets, liabilities, and net worth")          (cbcaccum balancesheetSpec)       True
-  , ReportMenuItem BalancesheetequityR (i18n "Balance sheet with equity") (i18n "Show assets, liabilities, and equity")             (cbcaccum balancesheetequitySpec) False
-  , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                       (cbcaccum incomestatementSpec)    True
-  , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                    (cbcaccum cashflowSpec)           True
-  , ReportMenuItem BalanceR            (i18n "All accounts")              (i18n "Show the balances of all accounts, by period, like the balance command") PerPeriod                         False
-  , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")        PerPeriod                         True
+  [ ReportMenuItem BalancesheetR       (i18n "Balance sheet")             (i18n "Show assets, liabilities, and net worth")             (cbcaccum balancesheetSpec)       True  False
+  , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                          (cbcaccum incomestatementSpec)    True  False
+  , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                       (cbcaccum cashflowSpec)           True  False
+  , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")           PerPeriod                         True  False
+  , ReportMenuItem BalanceR            (i18n "All accounts")              (i18n "Show the balances of all accounts, by period, like the balance command") PerPeriod     False True
+  , ReportMenuItem BalancesheetequityR (i18n "Balance sheet with equity") (i18n "Show assets, liabilities, and equity")                (cbcaccum balancesheetequitySpec) False True
   ]
 
 -- | The report pages that apply to this journal: a journal with no lot
@@ -488,6 +490,12 @@ reportMenuFor hasLots = [i | i <- reportMenu, hasLots || rmRoute i /= HoldingsR]
 -- | The report pages' routes, labels, and titles, for a row of links.
 reportLinkItems :: [ReportMenuItem] -> [(Route App, Text, Text)]
 reportLinkItems items = [(rmRoute i, rmLabel i, rmTitle i) | i <- items]
+
+-- | 'reportLinkItems' in two groups, the named reports and the general ones,
+-- for a row of links that shows the groups apart.
+reportLinkGroups :: [ReportMenuItem] -> [[(Route App, Text, Text)]]
+reportLinkGroups items = filter (not . null) [reportLinkItems named, reportLinkItems general]
+  where (general, named) = partition rmGeneral items
 
 -- | The report pages: those that take a period and an accumulation mode.
 reportRoutes :: [Route App]
