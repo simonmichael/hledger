@@ -1808,10 +1808,12 @@ msgstr "Añadir a:"
 msgid "Save"
 msgstr "Guardar"
 
+#. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Show general journal entries, most recent first"
 msgstr "Mostrar los asientos del libro diario, los más recientes primero"
 
+#. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Journal"
 msgstr "Libro diario"

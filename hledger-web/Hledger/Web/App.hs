@@ -27,7 +27,7 @@ import Data.Foldable (for_)
 import Data.Map qualified as M
 import Data.Traversable (for)
 import Data.IORef (IORef, readIORef, writeIORef)
-import Data.Maybe (catMaybes, fromMaybe, listToMaybe)
+import Data.Maybe (catMaybes, fromMaybe, isJust, listToMaybe)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as TE
@@ -232,13 +232,12 @@ instance Yesod App where
           [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
           [p | p@(k, _) <- keptParams, k /= "period", k `elem` stickyParamNames]
         -- The pages g then a key goes to (hledger.js), with the sidebar
-        -- links' parameters: the journal, and the report pages.
+        -- links' parameters (the journal's, as in the sidebar's Journal row).
         goItems :: [(Text, (Route App, [(Text, Text)]), Text, Text)]
-        goItems =
-          ( "j"
-          , (JournalR, [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ journalKeptParams sidebarParams)
-          , tr trs "Journal", tr trs "Show general journal entries, most recent first" ) :
-          [ (rmGoKey i, (rmRoute i, sidebarParams), tr trs (rmLabel i), tr trs (rmTitle i)) | i <- reportMenuFor jHasLots ]
+        goItems = [ (rmGoKey i, (rmRoute i, goParams i), tr trs (rmLabel i), tr trs (rmTitle i)) | i <- reportMenuFor jHasLots ]
+        goParams i
+          | rmRoute i == JournalR = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ journalKeptParams sidebarParams
+          | otherwise             = sidebarParams
         -- What the sidebar's bottom row is, in the current amounts mode:
         -- the whole journal's net. Label it by what that means.
         (totlabel, tottitle) = case amountModeOf ropts' of
@@ -463,63 +462,63 @@ checkServerSideUiEnabled = do
     --  permissionDenied "server-side UI is disabled due to --serve-api"
     sendResponseStatus status403 ("server-side UI is disabled due to --serve-api" :: Text)
 
--- | A report page as the menus show it.
+-- | A page as the menus show it: the journal, or a report page.
 data ReportMenuItem = ReportMenuItem {
     rmRoute     :: Route App,
     rmLabel     :: Text,
     rmTitle     :: Text,
-    rmAccum     :: BalanceAccumulation,
-      -- ^ the page's default accumulation mode: its command's own for a
-      --   statement, balance changes for the balance report
+    rmAccum     :: Maybe BalanceAccumulation,
+      -- ^ a report page's default accumulation mode: its command's own for
+      --   a statement, balance changes for the balance report; the journal,
+      --   not a report page, has none
     rmInSidebar :: Bool,
-      -- ^ has a row in the sidebar (the others are one click away, in the
-      --   report pages' own Report row)
+      -- ^ has a report row in the sidebar (the others are one click away,
+      --   in the pages' own Report row; the journal has its own row there)
     rmGeneral   :: Bool,
-      -- ^ a general report, listed after the named reports, a little apart
+      -- ^ a general report, listed after the named pages, a little apart
     rmGoKey     :: Text
       -- ^ the key that goes to it after g (hledger.js); not translated,
       --   like the other keys
 }
 
--- | The report pages, in menu order: the named reports, then the general ones.
+-- | The pages, in menu order: the journal and the named reports, as in the
+-- sidebar, then the general reports.
 reportMenu :: [ReportMenuItem]
 reportMenu =
   -- TRANSLATORS: the report links above each report page and in the sidebar: each link's text, and its tooltip.
-  [ ReportMenuItem BalancesheetR       (i18n "Balance sheet")             (i18n "Show assets, liabilities, and net worth")             (cbcaccum balancesheetSpec)       True  False "b"
-  , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                          (cbcaccum incomestatementSpec)    True  False "i"
-  , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                       (cbcaccum cashflowSpec)           True  False "c"
-  , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")           PerPeriod                         True  False "h"
-  , ReportMenuItem BalanceR            (i18n "All accounts")              (i18n "Show the balances of all accounts, by period, like the balance command") PerPeriod     False True  "a"
-  , ReportMenuItem BalancesheetequityR (i18n "Balance sheet with equity") (i18n "Show assets, liabilities, and equity")                (cbcaccum balancesheetequitySpec) False True  "e"
+  [ ReportMenuItem JournalR            (i18n "Journal")                   (i18n "Show general journal entries, most recent first")     Nothing                                  False False "j"
+  , ReportMenuItem BalancesheetR       (i18n "Balance sheet")             (i18n "Show assets, liabilities, and net worth")             (Just $ cbcaccum balancesheetSpec)       True  False "b"
+  , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                          (Just $ cbcaccum incomestatementSpec)    True  False "i"
+  , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                       (Just $ cbcaccum cashflowSpec)           True  False "c"
+  , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")           (Just PerPeriod)                         True  False "h"
+  , ReportMenuItem BalanceR            (i18n "All accounts")              (i18n "Show the balances of all accounts, by period, like the balance command") (Just PerPeriod) False True  "a"
+  , ReportMenuItem BalancesheetequityR (i18n "Balance sheet with equity") (i18n "Show assets, liabilities, and equity")                (Just $ cbcaccum balancesheetequitySpec) False True  "e"
   ]
 
--- | The report pages that apply to this journal: a journal with no lot
--- features gets no Holdings page.
+-- | The pages that apply to this journal: a journal with no lot features
+-- gets no Holdings page.
 reportMenuFor :: Bool -> [ReportMenuItem]
 reportMenuFor hasLots = [i | i <- reportMenu, hasLots || rmRoute i /= HoldingsR]
 
--- | The report pages' routes, labels, and titles, for a row of links.
+-- | The pages' routes, labels, and titles, for a row of links.
 reportLinkItems :: [ReportMenuItem] -> [(Route App, Text, Text)]
 reportLinkItems items = [(rmRoute i, rmLabel i, rmTitle i) | i <- items]
 
--- | The links above each page: the journal and the named reports, as in
--- the sidebar, then the general reports, for a row of links that shows
--- the groups apart.
+-- | 'reportLinkItems' in two groups, the named pages and the general reports,
+-- for a row of links that shows the groups apart.
 reportLinkGroups :: [ReportMenuItem] -> [[(Route App, Text, Text)]]
-reportLinkGroups items = filter (not . null) [journalLink : reportLinkItems named, reportLinkItems general]
-  where
-    (general, named) = partition rmGeneral items
-    journalLink = (JournalR, i18n "Journal", i18n "Show general journal entries, most recent first")
+reportLinkGroups items = filter (not . null) [reportLinkItems named, reportLinkItems general]
+  where (general, named) = partition rmGeneral items
 
 -- | The report pages: those that take a period and an accumulation mode.
 reportRoutes :: [Route App]
-reportRoutes = map rmRoute reportMenu
+reportRoutes = [rmRoute i | i <- reportMenu, isJust (rmAccum i)]
 
 -- | The accum parameter values a page's links keep: the modes that are
 -- not the page's default. (The register totals the period by default.)
 keptAccums :: Route App -> [Text]
 keptAccums route =
-  case [rmAccum i | i <- reportMenu, rmRoute i == route] of
+  case [dflt | i <- reportMenu, rmRoute i == route, Just dflt <- [rmAccum i]] of
     [dflt]                 -> [accumWord a | a <- [PerPeriod, Historical, Cumulative], a /= dflt]
     _ | route == RegisterR -> ["historical"]
     _                      -> []
