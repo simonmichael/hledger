@@ -93,6 +93,32 @@ The journal, register and sidebar are tables of figures, and read like a ledger.
   by hledger and vary by journal and locale, so alignment must not depend on the
   separator.
 
+## Keys and names: following hledger-ui
+
+hledger-web and hledger-ui are two views of the same reports, and people use
+both, so where they share a feature they share its name and its key.
+
+- **Same names.** A page that corresponds to an hledger-ui screen takes the
+  screen's name, eg All accounts for the general balance report, as in
+  hledger-ui's menu.
+- **Same keys.** `?` for help, `a` to add, `z` to show or hide zero balances,
+  `t` for tree or list mode, `0`-`9`, `-` and `+` for depth, and hledger-ui's
+  uppercase toggles (`H`, `B`, `V`, `L`, `R`, `U`, `P`, `C`) mean the same here.
+  A key hledger-ui already uses is not given a different meaning, and a feature
+  hledger-ui has gets its key. (An existing exception: hledger-ui's `T` sets the
+  period to today, while here it toggles the total column.)
+- **Uppercase letters mirror the command line's short flags** (`-H`, `-V`, `-M`,
+  `-S`, `-T`..), as hledger-ui's toggles do; **lowercase letters are actions in
+  the UI**, like going to the journal or opening a dialog. **`g` then a letter
+  goes to a page** (the g menu in `default-layout.hamlet`), keyed by page, not
+  by position, so reordering the pages keeps their keys.
+- **Keys are not translated**, here or in hledger-ui: translated keys would break
+  muscle memory and the docs, and the flags they mirror are English too. Where
+  a key is listed (the help dialog, the g menu), the name beside it is
+  translated.
+- Features only one of them has (the sidebar's `s`, the report options' `o`, a
+  browser's own reload and back) need not match.
+
 ## Reviewing an appearance change
 
 Screenshots, before and after, of a journal with enough data to fill the page,
