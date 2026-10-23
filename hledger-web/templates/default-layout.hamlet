@@ -174,7 +174,7 @@ $if elem ViewPermission perms
                 <li> <code>a</code> - _{HMsg "add a transaction (escape to cancel)"}
                 <li> <code>s</code> - _{HMsg "toggle sidebar"}
                 <li> <code>o</code> - _{HMsg "toggle report options"}
-                <li> <code>f</code> _{HMsg "or"} <code>/</code> - _{HMsg "focus search form"} ("find")
+                <li> <code>f</code> _{HMsg "or"} <code>/</code> - _{HMsg "focus search form"} ("find"; _{HMsg "escape to leave"})
                 <li> <code>z</code> - _{HMsg "hide empty accounts"}
                 <li> <code>t</code> - _{HMsg "toggle tree mode"}
                 <li> <code>H</code> - _{HMsg "toggle historical balances"}

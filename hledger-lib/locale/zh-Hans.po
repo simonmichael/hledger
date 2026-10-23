@@ -1898,6 +1898,10 @@ msgid "focus search form"
 msgstr "聚焦搜索表单"
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "escape to leave"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgid "hide empty accounts"
 msgstr ""
 

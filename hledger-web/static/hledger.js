@@ -139,6 +139,14 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     e.preventDefault();
   });
+  // Escape leaves the search field, keeping what was typed, so that the
+  // keyboard shortcuts work again.
+  var searchfield = document.querySelector('#searchform input[name=q]');
+  if (searchfield) {
+    searchfield.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { searchfield.blur(); e.preventDefault(); }
+    });
+  }
   // A click elsewhere closes the g key's menu, as escape does.
   document.addEventListener('click', function(e) {
     if (gomenuOpen() && !e.target.closest('#gomenu')) { gomenuHide(); }

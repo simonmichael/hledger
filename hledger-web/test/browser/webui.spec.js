@@ -244,6 +244,19 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('escape leaves the search field, keeping its text, and the shortcuts work again', async ({ page }) => {
+    await page.goto('/journal?q=assets');
+    const search = page.locator('#searchform input[name=q]');
+    await page.locator('body').press('f');
+    await page.keyboard.type('date:2025');
+    await page.keyboard.press('Escape');
+    await expect(search).not.toBeFocused();
+    await expect(search).toHaveValue('assets date:2025');
+    await page.locator('body').press('g');
+    await expect(page.locator('#gomenu')).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
   test('"g" shows the pages menu, and a page\'s key goes there', async ({ page }) => {
     await page.goto('/journal');
     const menu = page.locator('#gomenu');
