@@ -1302,6 +1302,15 @@ hledgerWebTest = do
       bodyContains ("class=\"current group-start\" href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show the balances of all accounts, by period, like the balance command\"")
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/incomestatement\" title=\"Show revenues and expenses\"")
 
+    yit "links the journal page to the reports too, keeping the search minus its account term" $ do
+      request $ do
+        setMethod "GET"
+        setUrl JournalR
+        addGetParam "q" "inacct:assets:bank:checking expenses"
+      statusIs 200
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=expenses\" title=\"Show assets, liabilities, and net worth\"")
+      bodyContains ("class=\"group-start\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=expenses\"")
+
     yit "lists the balance sheet, income statement, and cashflow statement in the sidebar, marking the one shown" $ do
       get BalancesheetR
       statusIs 200
