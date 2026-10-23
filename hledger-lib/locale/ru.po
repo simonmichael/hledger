@@ -782,11 +782,6 @@ msgstr "Показать только {year}"
 msgid "Shift-click selects a range of years."
 msgstr ""
 
-#. the label before a page's report links.
-#: hledger-web/Hledger/Web/ReportPage.hs
-msgid "Report:"
-msgstr "Отчёт:"
-
 #. the label before a report's interval links.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Interval:"
@@ -2253,6 +2248,9 @@ msgstr "Показать все годы"
 msgctxt "years row"
 msgid "All"
 msgstr "Все"
+
+#~ msgid "Report:"
+#~ msgstr "Отчёт:"
 
 #~ msgid "add a transaction (escape to cancel)"
 #~ msgstr "добавить транзакцию (Escape для отмены)"

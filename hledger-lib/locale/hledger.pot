@@ -759,11 +759,6 @@ msgstr ""
 msgid "Shift-click selects a range of years."
 msgstr ""
 
-#. the label before a page's report links.
-#: hledger-web/Hledger/Web/ReportPage.hs
-msgid "Report:"
-msgstr ""
-
 #. the label before a report's interval links.
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Interval:"
