@@ -63,7 +63,7 @@ import Yesod (HtmlUrl)
 import Hledger.Utils.I18n (Translations, tr, trc, trf)
 import Hledger
 import Hledger.Cli.Anchor (dateTerm, renderPeriodHeading)
-import Hledger.Web.Widget.Common (AmountMode(..), accumWord, linksRow, linksRowClass, linksRowGroups, listWord, removeDates, valueWord)
+import Hledger.Web.Widget.Common (AmountMode(..), accumWord, linksRowClass, linksRowGroups, listWord, removeDates, valueWord)
 import Hledger.Query qualified as Query
 import Hledger.Write.Html (Html, formatCell, nl)
 import Hledger.Write.Spreadsheet (Cell(..), Class(..), NumLines, textFromClass)
