@@ -18,6 +18,7 @@ import Hledger.Write.Spreadsheet (Cell(..), Class(..), Type(..),
   addHeaderBorders, defaultCell, headerCell)
 
 import Hledger.Web.Import
+import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Handler.BalanceR (reportTitle)
 import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
@@ -36,7 +37,7 @@ import Hledger.Web.Widget.Common
 getHoldingsR :: Handler Html
 getHoldingsR = do
   checkServerSideUiEnabled
-  VD{j, jfull, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{perms, j, jfull, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
@@ -62,6 +63,8 @@ getHoldingsR = do
         _               -> Right rp
 
   defaultLayout $ do
+    -- the add form, which the a key opens
+    when (AddPermission `elem` perms) $ addModal AddR j today
     -- TRANSLATORS: the browser tab title of this page.
     setTitleI (HMsg "holdings - hledger-web")
     case reportParams today rspecOrig qparam q qopts hideEmpty params >>= checkValue of

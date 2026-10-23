@@ -15,6 +15,7 @@ import Data.Text qualified as T
 import Hledger.Utils.I18n (tr, trf)
 
 import Hledger.Web.Import
+import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
@@ -29,7 +30,7 @@ import Hledger.Web.Widget.Common
 getBalanceR :: Handler Html
 getBalanceR = do
   checkServerSideUiEnabled
-  VD{j, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{perms, j, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
@@ -40,6 +41,8 @@ getBalanceR = do
       deepest = deepestDepth j
 
   defaultLayout $ do
+    -- the add form, which the a key opens
+    when (AddPermission `elem` perms) $ addModal AddR j today
     -- TRANSLATORS: the browser tab title of this page.
     setTitleI (HMsg "balance - hledger-web")
     case reportParams today rspecOrig qparam q qopts hideEmpty params of

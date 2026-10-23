@@ -72,6 +72,15 @@ test.describe('page initialization', () => {
 
 test.describe('add form', () => {
 
+  test('"a" opens it on the report pages too', async ({ page }) => {
+    for (const url of ['/balancesheet', '/balance']) {
+      await page.goto(url);
+      await page.locator('body').press('a');
+      await expect(page.locator('#addmodal')).toBeVisible();
+    }
+    expect(pageErrors).toEqual([]);
+  });
+
   test('starts with four posting rows', async ({ page }) => {
     await page.goto('/journal');
     await openAddForm(page);

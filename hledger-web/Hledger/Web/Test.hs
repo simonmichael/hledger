@@ -682,6 +682,12 @@ hledgerWebTest = do
       bodyContains ">Cashflow statement</a><a class=\"current group-start\""
       bodyContains ">All accounts</a><a href="
 
+    yit "includes the add form on the report pages too, for the a key" $ do
+      forM_ [BalanceR, BalancesheetR, IncomestatementR] $ \r -> do
+        get r
+        statusIs 200
+        bodyContains "<dialog id=\"addmodal\""
+
     yit "offers each page in the g key's menu, with its key" $ do
       get BalanceR
       statusIs 200

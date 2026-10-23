@@ -29,6 +29,7 @@ import Hledger.Utils.I18n (Translations, i18n, tr, trf)
 import Hledger.Write.Spreadsheet qualified as Spr
 
 import Hledger.Web.Import
+import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
@@ -53,7 +54,7 @@ getCashflowR           = statementPage CashflowR           (i18n "cashflow state
 statementPage :: AppRoute -> Text -> CompoundBalanceCommandSpec -> Handler Html
 statementPage here tabtitle spec = do
   checkServerSideUiEnabled
-  VD{j, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{perms, j, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
@@ -65,6 +66,8 @@ statementPage here tabtitle spec = do
       deepest = deepestDepth j
 
   defaultLayout $ do
+    -- the add form, which the a key opens
+    when (AddPermission `elem` perms) $ addModal AddR j today
     setTitleI (HMsg tabtitle)
     case reportParams today rspecOrig qparam q qopts hideEmpty params of
       Left err -> Yesod.toWidget $ do
