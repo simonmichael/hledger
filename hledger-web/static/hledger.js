@@ -140,11 +140,11 @@ document.addEventListener('DOMContentLoaded', function() {
     e.preventDefault();
   });
   // Escape leaves the search field, keeping what was typed, so that the
-  // keyboard shortcuts work again.
+  // keyboard shortcuts and scrolling work again.
   var searchfield = document.querySelector('#searchform input[name=q]');
   if (searchfield) {
     searchfield.addEventListener('keydown', function(e) {
-      if (e.key === 'Escape') { searchfield.blur(); e.preventDefault(); }
+      if (e.key === 'Escape') { focusPage(); e.preventDefault(); }
     });
   }
   // A click elsewhere closes the g key's menu, as escape does.
@@ -173,7 +173,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
   entryTooltipInit();
   registerChartInit();
+
+  // Unless something has focus already: a long page can be clicked or
+  // tabbed in before it has finished loading.
+  if (!document.activeElement || document.activeElement === document.body) { focusPage(); }
 });
+
+// Focus the main content, so that the arrow keys, space and page up/down
+// scroll it. On wider screens it scrolls by itself, not the window, and
+// browsers send those keys to the window until something in it has focus,
+// so a page could not be scrolled from the keyboard before a click.
+function focusPage() {
+  var main = document.getElementById('main-content');
+  if (main) { main.focus({ preventScroll: true }); }
+}
 
 // The entry targeted by the url hash is marked by a :target rule in
 // hledger.css, which needs no javascript. A hash can be anything, eg an

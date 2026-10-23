@@ -600,6 +600,10 @@ ul {
 #main-content {
     padding-left: 30px;
 }
+/* focused only so that the keyboard scrolls it (focusPage in hledger.js) */
+#main-content:focus {
+    outline: none;
+}
 
 #message {
     white-space: pre;

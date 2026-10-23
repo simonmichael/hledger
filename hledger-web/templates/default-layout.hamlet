@@ -104,7 +104,9 @@ $if elem ViewPermission perms
       });
     })();
 
-<div#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm}>
+$# Focusable (but not by tab), so that hledger.js can focus it and the
+$# keyboard scrolls it (see focusPage).
+<div#main-content .col-xs-12.#{mainShowmd}.#{mainShowsm} tabindex=-1>
   $# Shown by hledger.js while the page can't reach the server.
   $if browsemode
     <div #server-stopped .alert.alert-warning role=alert hidden>

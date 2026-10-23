@@ -259,10 +259,23 @@ test.describe('keyboard shortcuts', () => {
     await page.locator('body').press('f');
     await page.keyboard.type('date:2025');
     await page.keyboard.press('Escape');
-    await expect(search).not.toBeFocused();
+    await expect(page.locator('#main-content')).toBeFocused();
     await expect(search).toHaveValue('assets date:2025');
     await page.locator('body').press('g');
     await expect(page.locator('#gomenu')).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // On wider screens the main content scrolls by itself, not the window, so
+  // it must have focus for the keyboard to scroll it.
+  test('a page loads ready to scroll from the keyboard', async ({ page }) => {
+    await page.setViewportSize({ width: 1200, height: 300 });
+    await page.goto('/journal');
+    const main = page.locator('#main-content');
+    await expect(main).toBeFocused();
+    test.skip(await main.evaluate(el => el.scrollHeight <= el.clientHeight), 'main content does not scroll at this viewport');
+    await page.keyboard.press('PageDown');
+    await expect.poll(() => main.evaluate(el => el.scrollTop)).toBeGreaterThan(0);
     expect(pageErrors).toEqual([]);
   });
 
