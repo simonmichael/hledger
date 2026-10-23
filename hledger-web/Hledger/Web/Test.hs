@@ -146,6 +146,15 @@ headerValue name = do
     then failing ("the response has no " ++ show name ++ " header")
     else return $ T.intercalate ", " vs
 
+-- | Assert that the current page contains these texts, in this order.
+bodyContainsInOrder :: [T.Text] -> YesodExample App ()
+bodyContainsInOrder needles = withResponse $ \res -> go (TL.toStrict $ TLE.decodeUtf8 $ simpleBody res) needles
+  where
+    go _ [] = return ()
+    go html (n:ns) = case T.breakOn n html of
+      (_, rest) | T.null rest -> failing $ "the page lacks " ++ T.unpack n ++ ", or has it before the texts preceding it here"
+                | otherwise   -> go (T.drop (T.length n) rest) ns
+
 -- | The nonce in the current response's Content-Security-Policy, failing the
 -- test if the header or the nonce is missing.
 cspNonce :: YesodExample App T.Text
@@ -1126,6 +1135,15 @@ hledgerWebTest = do
       bodyContains ("<a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\" data-gokey=\"j\"")
       bodyContains ("<span class=\"row-label\">Report:</span><a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\"")
 
+    yit "starts each page with the report links, then the search, the options, and the heading" $ do
+      get BalancesheetR
+      statusIs 200
+      bodyContainsInOrder ["<span class=\"row-label\">Report:</span>", "searchform", "report-controls", "<h2>"]
+      -- the register, though no report, has them too
+      get RegisterR
+      statusIs 200
+      bodyContainsInOrder ["<span class=\"row-label\">Report:</span><a href=\"" <> T.pack base <> "/journal\"", "searchform", "report-controls", "<h2>"]
+
     yit "links the sidebar's total to the register of the search" $ do
       request $ do
         setMethod "GET"
@@ -1319,9 +1337,9 @@ hledgerWebTest = do
         addGetParam "q" "inacct:assets:bank:checking expenses"
       statusIs 200
       -- the links keep the period and the search minus its account term
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/incomestatement?q=expenses&amp;period=quarterly\" title=\"Show revenues and expenses\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=expenses&amp;period=quarterly\" title=\"Show assets, liabilities, and net worth\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=expenses&amp;period=quarterly\" title=\"Show the balances of all accounts, by period, like the balance command\"")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/incomestatement?period=quarterly&amp;q=expenses\" title=\"Show revenues and expenses\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?period=quarterly&amp;q=expenses\" title=\"Show assets, liabilities, and net worth\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?period=quarterly&amp;q=expenses\" title=\"Show the balances of all accounts, by period, like the balance command\"")
 
     yit "links All accounts to the statements too" $ do
       get BalanceR

@@ -56,7 +56,7 @@ import Hledger.Cli.Commands.Balancesheetequity (balancesheetequitySpec)
 import Hledger.Cli.Commands.Cashflow (cashflowSpec)
 import Hledger.Cli.Commands.Incomestatement (incomestatementSpec)
 import Hledger.Cli.CompoundBalanceCommand (CompoundBalanceCommandSpec(..))
-import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, parseListMode, parseValue, setAmountMode)
+import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, parseListMode, parseValue, reportLinks, setAmountMode)
 import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
@@ -235,6 +235,9 @@ instance Yesod App where
         -- links' parameters.
         goItems :: [(Text, (Route App, [(Text, Text)]), Text, Text)]
         goItems = [ (rmGoKey i, (rmRoute i, sidebarParams), tr trs (rmLabel i), tr trs (rmTitle i)) | i <- reportMenuFor jHasLots ]
+        -- The links to the journal and reports at the top of every page,
+        -- above the search, with the sidebar links' parameters.
+        reportsRow = reportLinks trs here sidebarParams $ reportLinkGroups $ reportMenuFor jHasLots
         -- What the sidebar's bottom row is, in the current amounts mode:
         -- the whole journal's net. Label it by what that means.
         (totlabel, tottitle) = case amountModeOf ropts' of
