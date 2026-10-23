@@ -316,10 +316,21 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('a depth typed in the search moves to the Depth row', async ({ page }) => {
+    await page.goto('/balance');
+    const search = page.locator('#searchform input[name=q]');
+    await search.fill('assets depth:1');
+    await search.press('Enter');
+    await expect(page).toHaveURL(/q=assets&depth=1$/);
+    await expect(search).toHaveValue('assets');
+    await expect(page.locator('#main-content .depth .current')).toHaveText('1');
+    expect(pageErrors).toEqual([]);
+  });
+
   test('the report keys follow control links: digits set depth, "V" value, "t" tree, "M" monthly', async ({ page }) => {
     await page.goto('/balance');
     await page.locator('body').press('3');
-    await expect(page).toHaveURL(/depth%3A3/);
+    await expect(page).toHaveURL(/depth=3/);
     await page.locator('body').press('V');
     await expect(page).toHaveURL(/value=end/);
     await page.locator('body').press('t');
@@ -526,11 +537,10 @@ test.describe('sidebar', () => {
 
 test.describe('report tree folding', () => {
 
-  // A tree-mode report serves every depth and folds to the search's
-  // depth: term; the carets open and close groups in place, without
-  // changing the URL.
-  test('folds to the depth in the search, and carets unfold groups in place', async ({ page }) => {
-    await page.goto('/balance?list=tree&q=depth:1');
+  // A tree-mode report serves every depth and folds to the depth limit;
+  // the carets open and close groups in place, without changing the URL.
+  test('folds to the depth limit, and carets unfold groups in place', async ({ page }) => {
+    await page.goto('/balance?list=tree&depth=1');
     // expenses is the branching group; the boring chains squash to leaves
     const top = page.locator('td.account.depth-0', { hasText: 'expenses' });
     const deep = page.locator('td.account.depth-1').first();
@@ -538,7 +548,7 @@ test.describe('report tree folding', () => {
     await expect(deep).toBeHidden();
     await top.locator('.tree-caret').click();
     await expect(deep).toBeVisible();
-    await expect(page).toHaveURL('/balance?list=tree&q=depth:1');
+    await expect(page).toHaveURL('/balance?list=tree&depth=1');
     await top.locator('.tree-caret').click();
     await expect(deep).toBeHidden();
     expect(pageErrors).toEqual([]);
@@ -563,7 +573,7 @@ test.describe('report tree folding', () => {
   // it, groups opened or closed by hand are remembered over it, and a
   // caret clicked back to its page's baseline is forgotten.
   test('a depth limit folds the sidebar, and caret choices are remembered over it', async ({ page }) => {
-    await page.goto('/journal?list=tree&q=depth:2');
+    await page.goto('/journal?list=tree&depth=2');
     const food = () => page.locator('#sidebar-menu tr[data-acct="expenses:food"]');
     const groceries = () => page.locator('#sidebar-menu tr[data-acct="expenses:food:groceries"]');
     await expect(food()).toBeVisible();
@@ -571,7 +581,7 @@ test.describe('report tree folding', () => {
     // opening past the limit is remembered on the next page
     await food().locator('.tree-caret').click();
     await expect(groceries()).toBeVisible();
-    await page.goto('/balance?list=tree&q=depth:2');
+    await page.goto('/balance?list=tree&depth=2');
     await expect(groceries()).toBeVisible();
     // closing it again returns it to the baseline, so a page without a
     // depth limit, whose baseline is fully open, shows it open
@@ -589,7 +599,7 @@ test.describe('report tree folding', () => {
     const food = () => page.locator('#sidebar-menu tr[data-acct="expenses:food"]');
     await page.locator('#sidebar-menu tr[data-acct="expenses"] .tree-caret').click();
     await expect(food()).toBeHidden();
-    await page.goto('/journal?list=tree&q=depth:3');
+    await page.goto('/journal?list=tree&depth=3');
     await expect(food()).toBeHidden();
     expect(pageErrors).toEqual([]);
   });

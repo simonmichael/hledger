@@ -36,6 +36,8 @@ module Hledger.Web.Widget.Common
   , listWord
   , valueWord
   , searchTerms
+  , searchDepth
+  , removeDepth
   , helplink
   , mixedAmountAsHtml
   , mixedAmountAsHtmlWith
@@ -118,11 +120,12 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
   where u = textValue $ manualurl <> if T.null topic then "" else T.cons '#' topic
 
 -- | Of the parameters the page links keep, those the sidebar's register
--- links keep: the states the register reads, ie the amounts mode, the
--- accounts mode, inferred prices, zero balances, and lot detail. Each such
--- link rewrites the search itself.
+-- links keep: the states the register reads, ie the depth limit (which
+-- clips its sidebar), the amounts mode, the accounts mode, inferred
+-- prices, zero balances, and lot detail. Each such link rewrites the
+-- search itself.
 registerKeptParams :: [(Text, Text)] -> [(Text, Text)]
-registerKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["value", "list", "infer", "empty", "lots"]]
+registerKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["depth", "value", "list", "infer", "empty", "lots"]]
 
 -- | Render a "BalanceReport" as the sidebar: the page links (each page's
 -- route, label, and title, with the parameters their links carry), then
@@ -250,12 +253,12 @@ valueWord = \case
 -- | Links to the same report page limited to each account depth, from 1
 -- up to and including the given deepest one, after an All link that
 -- removes the limit. The deepest link shows the same accounts as All,
--- but holds the depth in the query, where it keeps clipping if showing
--- lots deepens the tree. Each replaces the search's depth limit and
--- keeps its other terms and the given parameters; the depth being shown
--- is marked, on All when the search's depth exceeds the deepest, as
--- hledger-ui's digits treat one. (A depth:0 term, a single total, can
--- be typed in the search.)
+-- but holds the depth, which keeps clipping if showing lots deepens the
+-- tree. Each sets the depth parameter, keeping the search and the given
+-- parameters; the depth being shown, the given parameters' depth, is
+-- marked, on All when it exceeds the deepest, as hledger-ui's digits
+-- treat one. (A depth of 0, a single total, can be typed in the search,
+-- as depth:0.)
 -- The digit keys set a depth through the All link's url (hledger.js).
 depthLinks :: Translations -> r -> [(Text, Text)] -> Text -> Int -> HtmlUrl r
 depthLinks trs route kept qparam deepest =
@@ -265,11 +268,11 @@ depthLinks trs route kept qparam deepest =
     : [ (T.pack (show n), depthTitle n, link (Just n), current == Just n)
       | n <- [1 .. deepest] ]
   where
-    current = searchDepth qparam
+    current = readMay . T.unpack =<< lookup "depth" kept
     -- TRANSLATORS: the tooltips of a report's depth links.
     depthTitle n = trf trs "Show accounts down to depth {depth}" [("depth", T.pack (show n))]
     link mn =
-      (route, [("q", t) | let t = T.unwords $ removeDepth qparam ++ ["depth:" <> T.pack (show (n :: Int)) | Just n <- [mn]], not (T.null t)] ++ kept)
+      (route, [("q", qparam) | not (T.null qparam)] ++ filter ((/= "depth") . fst) kept ++ [("depth", T.pack (show (n :: Int))) | Just n <- [mn]])
 
 -- | Links to the same report page showing amounts as recorded, at cost,
 -- or at market value, keeping the given parameters; the mode being

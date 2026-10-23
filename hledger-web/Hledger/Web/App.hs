@@ -34,7 +34,8 @@ import Data.Text.Encoding qualified as TE
 import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
 import Network.HTTP.Types (status403)
-import Network.Wai (rawPathInfo, rawQueryString, requestHeaders)
+import Network.Wai (rawPathInfo, rawQueryString, requestHeaders, requestMethod)
+import Safe (readMay)
 import System.Directory (XdgDirectory (..), createDirectoryIfMissing,
                          getXdgDirectory)
 import System.Entropy (getEntropy)
@@ -60,7 +61,7 @@ import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, parseLis
 import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (balanceReportAsHtml, removeInacct)
+import Hledger.Web.Widget.Common (balanceReportAsHtml, removeDepth, removeInacct, searchDepth)
 import Data.List (isPrefixOf, partition)
 
 -- | The site argument for your application. This can be a good place to
@@ -382,7 +383,8 @@ data ViewData = VD
   , jHasLots :: Bool    -- ^ does the journal use lots at all ?
   , lotsShown :: Bool   -- ^ is lot detail shown, by the lots=1 parameter ?
   , qparam :: Text       -- ^ the current "q" request parameter
-  , q     :: Query      -- ^ a query parsed from the q parameter
+  , q     :: Query      -- ^ a query parsed from the q parameter. A depth parameter's limit
+                        --   is also added hereas a Depth term, since the reports use it.
   , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
   , perms :: [Permission]  -- ^ permissions enabled for this request (by --allow and/or X-Sandstorm-Permissions)
   , trs   :: Translations  -- ^ translations for this request's language
@@ -425,9 +427,14 @@ getViewData = do
 
   -- Get the query specified by the q request parameter, or no query if this fails.
   qparam <- fromMaybe "" <$> lookupGetParam "q"
+  setDepthFromSearch qparam
+  -- The depth parameter's limit joins the parsed query, as a depth:N term
+  -- would, since the reports read depth limits from the query; qparam,
+  -- the search text that the search box and links show, is left as it is.
+  mdepth <- (mfilter (>= 0) . readMay . T.unpack =<<) <$> lookupGetParam "depth"
   (q, qopts, mqerr) <- do
     case parseQuery today qparam of
-      Right (q0, qopts) -> return (q0, qopts, Nothing)
+      Right (q0, qopts) -> return (maybe q0 (\d -> simplifyQuery $ And [q0, Depth d]) mdepth, qopts, Nothing)
       Left err         -> return (Any, [], Just err)
   dbg1IO "q parameter" qparam
   dbg1IO "query" q
@@ -453,6 +460,27 @@ getViewData = do
   commoditiesOpen <- showCommodities
 
   return VD{opts, today, j, jfull, jHasLots, lotsShown, qparam, q, qopts, perms, trs, hideEmpty, controlsOpen, commoditiesOpen}
+
+-- | A depth:N term in a page's search (typed there, or from a link
+-- written before hledger-web had a depth parameter) is moved to the depth
+-- parameter, by reloading the page: the search holds the terms selecting
+-- data, and the Depth links and keys set the depth, as the other controls
+-- set theirs. The last such term wins, as in the search. A depth:REGEX=N
+-- term, limiting some accounts only, stays in the search.
+setDepthFromSearch :: Text -> Handler ()
+setDepthFromSearch qparam = do
+  isget <- (== "GET") . requestMethod <$> waiRequest
+  mroute <- getCurrentRoute
+  case (isget, searchDepth qparam, mroute) of
+    (True, Just n, Just route) -> do
+      params <- reqGetParams <$> getRequest
+      let qparam' = T.unwords $ removeDepth qparam
+          params' =
+            [ if k == "q" then (k, qparam') else p
+            | p@(k, _) <- params, k /= "depth", k /= "q" || not (T.null qparam') ] ++
+            [("depth", T.pack (show n))]
+      redirect (route, params')
+    _ -> return ()
 
 checkServerSideUiEnabled :: Handler ()
 checkServerSideUiEnabled = do
@@ -541,7 +569,7 @@ keptParamNames route
 -- only the control it names. date2 has no control, being deprecated,
 -- but is preserved like the rest.
 stickyParamNames :: [Text]
-stickyParamNames = ["period", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty", "lots"]
+stickyParamNames = ["period", "depth", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty", "lots"]
 
 -- | Are zero-balance accounts hidden ? The empty parameter says (1
 -- shows them, 0 hides them, the direction of the command line's
