@@ -209,6 +209,13 @@ td.date {
   font-weight: 600;
   color: inherit;
 }
+/* A faint rule between the links, so that a row of several-word labels
+   ("Income statement", "Cashflow statement") does not read as one sentence.
+   Not on the paging rows, whose numbers and arrows read fine as they are. */
+.report-links:not(.paging):not(.paging-nav) > :is(a, .current) + :is(a, .current) {
+  border-left: 1px solid var(--border);
+  padding-left: 0.5em;
+}
 /* A second group of links, eg the general reports after the named ones,
    starts a little apart. */
 .report-links .group-start {
