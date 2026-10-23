@@ -114,6 +114,7 @@ $# keyboard scrolls it (see focusPage).
   $maybe m <- msg
     <div #message .alert.alert-info>#{m}
   $if elem ViewPermission perms
+    ^{reportsRow}
     <form#searchform.input-group method=GET>
       <input .form-control name=q value=#{qparam} placeholder=_{HMsgc "search box" "Search"}
         title=_{HMsg "Enter hledger search patterns to filter the data below"}>

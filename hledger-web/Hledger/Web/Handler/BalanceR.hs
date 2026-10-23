@@ -22,7 +22,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsHint, controlsToggle,
    depthLinks, listModeLinks, lotsLinks,
-   percentLinks, pricesLinks, realLinks, removeInacct, sortLinks,
+   percentLinks, pricesLinks, realLinks, sortLinks,
    statusLinks, typeLinks, zeroBalanceLinks)
 
 
@@ -89,10 +89,6 @@ getBalanceR = do
               totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
               inferParams ++ date2Params ++ emptyParams ++ lotsParams
             qParams = [("q", qparam) | not (T.null qparam)]
-            -- links to the other reports keep the search, minus any account
-            -- term, which the reports ignore, and this page's parameters,
-            -- apart from the accumulation mode, which each report defaults
-            menuParams = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ removeAttributes ["accum"] pageParams
             -- The figures' registers convert amounts as the report does. One
             -- showing them as recorded must say so when the register's
             -- default, the startup options', converts them. The sticky
@@ -129,10 +125,6 @@ getBalanceR = do
             (acctsPrefix, body')
               | isTree = (Nothing, body)
               | otherwise = splitAccountNames body
-            -- The links to the other reports stay visible; every other
-            -- control the page responds to, one row of links each, sits
-            -- behind the controls disclosure.
-            reportsRow = reportLinks trs BalanceR menuParams $ reportLinkGroups $ reportMenuFor jHasLots
             -- The years the search matches in, ignoring all date
             -- narrowing, as a row of links among the controls; the year
             -- links rewrite the date narrowing themselves, so they
@@ -164,9 +156,8 @@ getBalanceR = do
               [ sortLinks trs BalanceR (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts)
               , percentLinks trs BalanceR (qParams ++ removeAttributes ["pct"] pageParams) (percent_ ropts)
               , calcLinks trs BalanceR (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
-        Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
-        Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
+        Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
         for_ pctErr $ Yesod.toWidget . pctError trs
         Yesod.toWidget $ reportTable isTree mfold header [(acctsPrefix, body', [])] totals
 

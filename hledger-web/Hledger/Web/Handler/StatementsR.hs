@@ -36,7 +36,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsToggle,
    depthLinks, helplink,
-   listModeLinks, lotsLinks, percentLinks, pricesLinks, realLinks, removeInacct,
+   listModeLinks, lotsLinks, percentLinks, pricesLinks, realLinks,
    sortLinks, statusLinks, zeroBalanceLinks)
 
 getBalancesheetR, getBalancesheetequityR, getIncomestatementR, getCashflowR :: Handler Html
@@ -62,7 +62,6 @@ statementPage here tabtitle spec = do
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
-      menu = reportLinkGroups $ reportMenuFor jHasLots
       deepest = deepestDepth j
 
   defaultLayout $ do
@@ -115,10 +114,6 @@ statementPage here tabtitle spec = do
               totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
               inferParams ++ date2Params ++ emptyParams ++ lotsParams
             qParams = [("q", qparam) | not (T.null qparam)]
-            -- Links to the other reports keep the search, minus any account
-            -- term, which the reports ignore, and this page's parameters,
-            -- apart from the accumulation mode, which each report defaults.
-            menuParams = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ removeAttributes ["accum"] pageParams
             -- The figures' registers convert amounts as the report does. One
             -- showing them as recorded must say so when the register's
             -- default, the startup options', converts them.
@@ -156,11 +151,8 @@ statementPage here tabtitle spec = do
             zerosHidden = hideEmpty && not (noRows $ compoundBalanceReport rspecR{_rsReportOpts = roptsR{empty_ = True}} j (cbcqueries spec))
         let isTree = accountlistmode_ ropts == ALTree
             mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
-            -- The links to the other reports stay visible; every other
-            -- control the page responds to, one row of links each, sits
-            -- behind the controls disclosure.
-            -- No type row: the statements choose their own account types.
-            reportsRow = reportLinks trs here menuParams menu
+            -- No type row among the controls: the statements choose their
+            -- own account types.
             -- The years the search matches in, ignoring all date
             -- narrowing, as a row of links among the controls; the year
             -- links rewrite the date narrowing themselves, so they
@@ -189,9 +181,8 @@ statementPage here tabtitle spec = do
               [ sortLinks trs here (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts)
               , percentLinks trs here (qParams ++ removeAttributes ["pct"] pageParams) (percent_ ropts)
               , calcLinks trs here (qParams ++ removeAttributes ["calc"] pageParams) (balancecalc_ ropts) ]
-        Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
-        Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
+        Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
         for_ pctErr $ Yesod.toWidget . pctError trs
         if empty
           then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)

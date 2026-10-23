@@ -26,7 +26,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
   (accountQuery, closedLinks, commodityLinks, controlsHint, controlsToggle,
    depthLinks, holdingsValueLinks, listModeLinks,
-   lotsLinks, pricesLinks, realLinks, removeInacct, replaceInacct, searchTerms,
+   lotsLinks, pricesLinks, realLinks, replaceInacct, searchTerms,
    sortLinks, statusLinks, typeLinks, zeroBalanceLinks)
 
 -- | The holdings view: investment holdings and their performance at the
@@ -37,7 +37,7 @@ import Hledger.Web.Widget.Common
 getHoldingsR :: Handler Html
 getHoldingsR = do
   checkServerSideUiEnabled
-  VD{perms, j, jfull, jHasLots, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{perms, j, jfull, lotsShown, q, qopts, qparam, opts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
@@ -99,10 +99,6 @@ getHoldingsR = do
               periodParams ++ valParams ++ listParams ++ sortParams ++
               inferParams ++ closedParams ++ emptyParams ++ lotsParams
             qParams = [("q", qparam) | not (T.null qparam)]
-            -- Links to the other reports keep the search, minus any
-            -- account term, which the reports ignore, and this page's
-            -- parameters.
-            menuParams = [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ pageParams
             -- An account cell links to the account's register, keeping
             -- the states that page reads.
             registerKept = removeAttributes ["period", "sort", "closed"] pageParams
@@ -270,11 +266,6 @@ getHoldingsR = do
                   -- TRANSLATORS: the heading of the holdings table's totals row.
                   [tr trs "Total:"] : totalsParts (hrTotals rpt)
               ]
-
-            -- The links to the other reports stay visible; every other
-            -- control the page responds to, one row of links each, sits
-            -- behind the controls disclosure, in the report pages' order.
-            reportsRow = reportLinks trs HoldingsR menuParams $ reportLinkGroups $ reportMenuFor jHasLots
             -- The years the search matches in, ignoring all date
             -- narrowing: a year link sets the period, so the page shows
             -- the holdings at that year's end.
@@ -299,7 +290,6 @@ getHoldingsR = do
               , lotsLinks trs HoldingsR (qParams ++ removeAttributes ["lots"] pageParams) lotsShown
               , closedLinks trs HoldingsR (qParams ++ removeAttributes ["closed"] pageParams) (not $ empty_ roptsOrig) (not closedShown)
               , sortLinks trs HoldingsR (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts) ]
-        Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
-        Yesod.toWidget reportsRow
         Yesod.toWidget controlRows
+        Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
         Yesod.toWidget $ reportTable isTree mfold header [(mprefixHeading, body, [])] totals

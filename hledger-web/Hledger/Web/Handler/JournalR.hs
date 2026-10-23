@@ -15,13 +15,13 @@ import Hledger.Web.Import
 import Hledger.Web.Paging
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, removeAttributes, reportLinks, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
             (accountQuery, amountLinks, calcLinks, columnsLinks, commodityLinks,
              controlsHint, controlsToggle,
              depthLinks, inertControls, listModeLinks, lotsLinks,
              mixedAmountAsHtml, percentLinks, pricesLinks, realLinks, sortLinks,
-             removeInacct, statusLinks, typeLinks,
+             statusLinks, typeLinks,
              transactionFragment, replaceInacct, journalDayQuery, zeroBalanceLinks)
 
 -- | The formatted journal view, with sidebar.
@@ -87,11 +87,6 @@ getJournalR = do
       qps = [("q", qparam) | not (T.null qparam)]
       -- An entry's date link: the journal on that date, same modes.
       dayParams t = ("q", journalDayQuery qparam (tdate t)) : carried
-      -- Links to the report pages, as on those pages: they keep the search,
-      -- minus any account term, which the reports ignore, and the carried state.
-      reportsRow = reportLinks trs JournalR
-        ([("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ carried)
-        (reportLinkGroups $ reportMenuFor jHasLots)
       -- the rows of links above the entries: the filters (status,
       -- realness, type, tag, commodity, and depth), and the sidebar's
       -- accounts and amounts modes

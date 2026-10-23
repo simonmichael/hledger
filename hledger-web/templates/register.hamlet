@@ -1,7 +1,7 @@
+^{controlsRows}
+
 <h2>
   #{header}
-
-^{controlsRows}
 
 ^{pagingLinks trs RegisterR qparam modeParams page}
 
