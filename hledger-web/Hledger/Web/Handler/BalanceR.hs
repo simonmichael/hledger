@@ -44,7 +44,7 @@ getBalanceR = do
     setTitleI (HMsg "balance - hledger-web")
     case reportParams today rspecOrig qparam q qopts hideEmpty params of
       Left err -> Yesod.toWidget $ do
-        H.h2 $ H.toHtml $ withFilter $ reportTitle roptsOrig $ tr trs "Balance report"
+        H.h2 $ H.toHtml $ withFilter $ reportTitle roptsOrig $ tr trs "All accounts"
         paramError trs err
       Right ReportParams{rpRopts, rpRspec, rpSpan, rpInterval, rpPeriod, rpAccum, rpValue} -> do
         let -- The page shows balance changes unless another mode was asked for.
@@ -111,7 +111,7 @@ getBalanceR = do
                     -- The plain page has its own name; one narrowed to a
                     -- period, or showing ending balances, says so like the
                     -- multi-period page does.
-                    dflt | queryDateSpan (date2_ ropts) (_rsQuery rspec) == nulldatespan && accum == PerPeriod = tr trs "Balance report"
+                    dflt | queryDateSpan (date2_ ropts) (_rsQuery rspec) == nulldatespan && accum == PerPeriod = tr trs "All accounts"
                          | otherwise = trimColon $ Balance.multiBalanceReportTitle roptsR mbr
                 in (reportTitle ropts dflt, [toList h], relink $ map toList b, relink $ map toList t)
               _ ->

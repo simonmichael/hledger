@@ -162,7 +162,7 @@ hledger-web's main views are:
   with a running balance and a balance chart; and
 - the **report views**, described [below](#reports): the balance sheet, income statement,
   and cashflow statement, linked from the sidebar, and the balance sheet with equity and
-  the general balance report, linked from those.
+  the All accounts report, linked from those.
 
 The journal and register views show the newest 1000 matching transactions, with links to the older
 and newer pages and to pages by number, so that a page stays a reasonable size
@@ -266,7 +266,7 @@ reports of the command line's
 [incomestatement](hledger.md#incomestatement), and
 [cashflow](hledger.md#cashflow) commands, at `/balancesheet`,
 `/balancesheetequity`, `/incomestatement`, and `/cashflow`, and the
-general [balance report](hledger.md#balance) at `/balance`.
+general [balance report](hledger.md#balance), named All accounts (as in hledger-ui), at `/balance`.
 The sidebar links to the balance sheet, income statement, and cashflow
 statement, and each report page links to the others.
 
@@ -317,7 +317,7 @@ to the target page's own default.
 The balance sheets show ending balances and the income statement and
 cashflow statement show changes, as their commands do; an `accum`
 parameter (`historical` or `change`) overrides that, and the heading
-then says so, as the commands' does. The balance report shows changes,
+then says so, as the commands' does. The All accounts report shows changes,
 or with `accum=historical`, which its "Ending balances" link sets,
 each account's balance at the end of each period.
 Like the commands, the statements show all balances as positive

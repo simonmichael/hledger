@@ -476,7 +476,7 @@ reportMenu =
   , ReportMenuItem BalancesheetequityR (i18n "Balance sheet with equity") (i18n "Show assets, liabilities, and equity")             (cbcaccum balancesheetequitySpec) False
   , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                       (cbcaccum incomestatementSpec)    True
   , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                    (cbcaccum cashflowSpec)           True
-  , ReportMenuItem BalanceR            (i18n "Balance report")            (i18n "Show the balance report: any accounts, by period") PerPeriod                         False
+  , ReportMenuItem BalanceR            (i18n "All accounts")              (i18n "Show the balances of all accounts, by period, like the balance command") PerPeriod                         False
   , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")        PerPeriod                         True
   ]
 

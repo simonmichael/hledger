@@ -582,7 +582,7 @@ hledgerWebTest = do
         addRequestHeader ("Accept-Language", "de")
       statusIs 200
       bodyContains "<title>Salden - hledger-web</title>"
-      bodyContains "<h2>Saldenbericht</h2>"
+      bodyContains "<h2>Alle Konten</h2>"
       bodyContains "Intervall:"
       bodyContains "title=\"Eine Spalte pro Monat anzeigen\">Monatlich</a>"
 
@@ -671,7 +671,7 @@ hledgerWebTest = do
     yit "serves the balance report, linking accounts to their register" $ do
       get BalanceR
       statusIs 200
-      bodyContains "<h2>Balance report</h2>"
+      bodyContains "<h2>All accounts</h2>"
       bodyContains "href=\"register?q=inacct:assets:bank:checking\""
       bodyContains "<tfoot>"
       bodyContains "class=\"amount negative\""
@@ -887,7 +887,7 @@ hledgerWebTest = do
     yit "uses --title for the heading, unaltered" $ do
       get BalanceR
       statusIs 200
-      bodyContains "<h2>Balance report</h2>"
+      bodyContains "<h2>All accounts</h2>"
 
     yit "escapes account names and search terms in the page" $ do
       request $ do
@@ -1278,7 +1278,7 @@ hledgerWebTest = do
       bodyContains ">Equity</th>"
       bodyContains "href=\"register?q=type:ALE+date:2025-01-01..2025-02-07&amp;accum=historical\""
 
-    yit "links the reports to one another, marking the one shown, and to the balance report" $ do
+    yit "links the reports to one another, marking the one shown, and to All accounts" $ do
       request $ do
         setMethod "GET"
         setUrl IncomestatementR
@@ -1288,12 +1288,12 @@ hledgerWebTest = do
       -- the links keep the period and the search minus its account term
       bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/incomestatement?q=expenses&amp;period=quarterly\" title=\"Show revenues and expenses\"")
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=expenses&amp;period=quarterly\" title=\"Show assets, liabilities, and net worth\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=expenses&amp;period=quarterly\" title=\"Show the balance report: any accounts, by period\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=expenses&amp;period=quarterly\" title=\"Show the balances of all accounts, by period, like the balance command\"")
 
-    yit "links the balance report to the statements too" $ do
+    yit "links All accounts to the statements too" $ do
       get BalanceR
       statusIs 200
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show the balance report: any accounts, by period\"")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show the balances of all accounts, by period, like the balance command\"")
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/incomestatement\" title=\"Show revenues and expenses\"")
 
     yit "lists the balance sheet, income statement, and cashflow statement in the sidebar, marking the one shown" $ do
@@ -1765,7 +1765,7 @@ hledgerWebTest = do
     yit "serves the stock view on a bare url, despite startup options" $ do
       get BalanceR
       statusIs 200
-      bodyContains "Balance report"
+      bodyContains "All accounts"
       bodyNotContains ">2025-01<"
 
     yit "takes the startup interval from the url instead" $ do

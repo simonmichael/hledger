@@ -664,7 +664,10 @@ msgid "Income statement accounts"
 msgstr "损益表账户"
 
 #. the menu screen's entries; translated when drawn.
-#: hledger-ui/Hledger/UI/UIScreens.hs
+#. the report links above each report page and in the sidebar: each link's text, and its tooltip.
+#. the browser tab title of this page.
+#: hledger-ui/Hledger/UI/UIScreens.hs hledger-web/Hledger/Web/App.hs
+#: hledger-web/Hledger/Web/Handler/BalanceR.hs
 msgid "All accounts"
 msgstr "所有账户"
 
@@ -739,15 +742,9 @@ msgid "Show changes in liquid assets"
 msgstr "显示流动资产的变动"
 
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
-#. the browser tab title of this page.
-#: hledger-web/Hledger/Web/App.hs hledger-web/Hledger/Web/Handler/BalanceR.hs
-msgid "Balance report"
-msgstr "余额报告"
-
-#. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/App.hs
-msgid "Show the balance report: any accounts, by period"
-msgstr "显示余额报表：按期间显示任意账户"
+msgid "Show the balances of all accounts, by period, like the balance command"
+msgstr ""
 
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #. the browser tab title of this page.
@@ -1790,7 +1787,7 @@ msgstr ""
 msgid "Show only amounts in {commodity}"
 msgstr ""
 
-#. the sidebar's note for a balance with more commodities than it shows.
+#. the note for a balance, or the register chart, showing fewer commodities than it has.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 #, python-brace-format
 msgid "… and {n} more"
@@ -2235,6 +2232,12 @@ msgstr "显示所有年份"
 msgctxt "years row"
 msgid "All"
 msgstr "全部"
+
+#~ msgid "Balance report"
+#~ msgstr "余额报告"
+
+#~ msgid "Show the balance report: any accounts, by period"
+#~ msgstr "显示余额报表：按期间显示任意账户"
 
 #~ msgid "Show the yearly balance report"
 #~ msgstr "显示年度余额报告"
