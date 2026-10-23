@@ -682,6 +682,15 @@ hledgerWebTest = do
       bodyContains ">Cashflow statement</a><a class=\"current group-start\""
       bodyContains ">All accounts</a><a href="
 
+    yit "offers each page in the g key's menu, with its key" $ do
+      get BalanceR
+      statusIs 200
+      bodyContains "<div id=\"gomenu\" hidden"
+      bodyContains "data-gokey=\"j\""
+      bodyContains "<code>b</code> Balance sheet</a>"
+      bodyContains "<code>a</code> All accounts</a>"
+      bodyContains "<code>e</code> Balance sheet with equity</a>"
+
     yit "styles the report through the stylesheet, not inline styles" $ do
       get BalanceR
       statusIs 200

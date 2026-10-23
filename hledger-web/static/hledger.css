@@ -488,6 +488,41 @@ dialog:focus {
   outline: none;
 }
 
+/* The g key's menu of pages: a small panel near the top, over the page,
+   styled like the dialogs but without a backdrop, since it closes as soon
+   as a key is pressed. */
+#gomenu {
+  position: fixed;
+  top: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1050;
+  min-width: 16em;
+  padding: 10px 20px;
+  background-color: var(--surface);
+  border: 1px solid var(--dialog-border);
+  border-radius: 6px;
+  box-shadow: 0 3px 9px rgba(0, 0, 0, .5);
+}
+#gomenu[hidden] {
+  display: none;
+}
+#gomenu p {
+  font-weight: 600;
+  margin-bottom: 5px;
+}
+#gomenu ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+#gomenu li {
+  padding: 2px 0;
+}
+#gomenu code {
+  margin-right: 0.5em;
+}
+
 /* In the help dialog's lists, an item that starts a new group. */
 .modal-body li.gap-above {
   margin-top: 1em;

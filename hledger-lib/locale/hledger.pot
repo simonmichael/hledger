@@ -1747,11 +1747,11 @@ msgstr ""
 msgid "Save"
 msgstr ""
 
-#: hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Show general journal entries, most recent first"
 msgstr ""
 
-#: hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Journal"
 msgstr ""
 
@@ -1805,6 +1805,10 @@ msgid "Show search and general help"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "Go to"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgid "Help"
 msgstr ""
 
@@ -1814,6 +1818,10 @@ msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "go to the Journal view (home)"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "go to a report: shows the reports, then press a report's key"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet

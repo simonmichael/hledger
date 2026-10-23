@@ -147,6 +147,16 @@ $if elem ViewPermission perms
       } catch (e) {}
     })();
 
+$# The g key's menu of pages, each with the key that goes to it (hledger.js).
+$# The keys are not translated, like the other keys.
+$if elem ViewPermission perms
+  <div #gomenu hidden aria-labelledby="gomenuLabel">
+    <p #gomenuLabel>_{HMsg "Go to"}
+    <ul>
+      $forall (key, link, label, title) <- goItems
+        <li>
+          <a href=@?{link} data-gokey=#{key} title=#{title}><code>#{key}</code> #{label}
+
 <dialog #helpmodal tabindex=-1 aria-labelledby="helpLabel">
   <div .modal-header>
     <button type="button" .close data-dismiss="modal" aria-label=_{HMsg "Close"}>&times;
@@ -161,6 +171,7 @@ $if elem ViewPermission perms
               <ul>
                 <li> <code>h</code> _{HMsg "or"} <code>?</code> - _{HMsg "view this help (again or escape to exit)"}
                 <li> <code>j</code> - _{HMsg "go to the Journal view (home)"}
+                <li> <code>g</code> - _{HMsg "go to a report: shows the reports, then press a report's key"}
                 <li> <code>a</code> - _{HMsg "add a transaction (escape to cancel)"}
                 <li> <code>s</code> - _{HMsg "toggle sidebar"}
                 <li> <code>o</code> - _{HMsg "toggle report options"}

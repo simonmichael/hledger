@@ -1805,11 +1805,11 @@ msgstr "添加："
 msgid "Save"
 msgstr "保存"
 
-#: hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Show general journal entries, most recent first"
 msgstr "显示总账分录，最近的分录在前"
 
-#: hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Journal"
 msgstr "日记账"
 
@@ -1868,6 +1868,10 @@ msgid "Show search and general help"
 msgstr "显示搜索与常规帮助"
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "Go to"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgid "Help"
 msgstr "帮助"
 
@@ -1878,6 +1882,10 @@ msgstr "快捷键"
 #: hledger-web/templates/default-layout.hamlet
 msgid "go to the Journal view (home)"
 msgstr "转到日记账视图（主页）"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "go to a report: shows the reports, then press a report's key"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "add a transaction (escape to cancel)"

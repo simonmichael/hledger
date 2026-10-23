@@ -1808,11 +1808,11 @@ msgstr "Añadir a:"
 msgid "Save"
 msgstr "Guardar"
 
-#: hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Show general journal entries, most recent first"
 msgstr "Mostrar los asientos del libro diario, los más recientes primero"
 
-#: hledger-web/templates/balance-report.hamlet
+#: hledger-web/Hledger/Web/App.hs hledger-web/templates/balance-report.hamlet
 msgid "Journal"
 msgstr "Libro diario"
 
@@ -1874,6 +1874,10 @@ msgid "Show search and general help"
 msgstr "Mostrar la ayuda general y de búsqueda"
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "Go to"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgid "Help"
 msgstr "Ayuda"
 
@@ -1884,6 +1888,10 @@ msgstr "Atajos de teclado"
 #: hledger-web/templates/default-layout.hamlet
 msgid "go to the Journal view (home)"
 msgstr "ir a la vista Libro diario (inicio)"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "go to a report: shows the reports, then press a report's key"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "add a transaction (escape to cancel)"

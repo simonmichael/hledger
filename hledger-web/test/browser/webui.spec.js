@@ -227,6 +227,29 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('"g" shows the pages menu, and a page\'s key goes there', async ({ page }) => {
+    await page.goto('/journal');
+    const menu = page.locator('#gomenu');
+    await expect(menu).toBeHidden();
+    await page.locator('body').press('g');
+    await expect(menu).toBeVisible();
+    await expect(menu.locator('a[data-gokey="i"]')).toContainText('Income statement');
+    await page.locator('body').press('i');
+    await expect(page).toHaveURL(/\/incomestatement/);
+    // escape closes the menu without going anywhere
+    await page.locator('body').press('g');
+    await expect(page.locator('#gomenu')).toBeVisible();
+    await page.locator('body').press('Escape');
+    await expect(page.locator('#gomenu')).toBeHidden();
+    await expect(page).toHaveURL(/\/incomestatement/);
+    // after g, "a" goes to All accounts rather than opening the add form
+    await page.locator('body').press('g');
+    await page.locator('body').press('a');
+    await expect(page).toHaveURL(/\/balance/);
+    await expect(page.locator('#main-content h2').first()).toHaveText('All accounts');
+    expect(pageErrors).toEqual([]);
+  });
+
   test('"o" toggles the report options, like clicking their summary', async ({ page }) => {
     await page.goto('/journal');
     const details = page.locator('#main-content details.report-controls');

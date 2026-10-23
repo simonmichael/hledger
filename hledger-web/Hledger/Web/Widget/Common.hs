@@ -14,6 +14,7 @@ module Hledger.Web.Widget.Common
   , linksRow
   , linksRowClass
   , linksRowGroups
+  , journalKeptParams
   , pricesLinks
   , commodityLinks
   , depthLinks
@@ -117,6 +118,13 @@ helplink :: Text -> Text -> HtmlUrl r
 helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
   where u = textValue $ manualurl <> if T.null topic then "" else T.cons '#' topic
 
+-- | Of the parameters the report links keep, those the journal and
+-- register links keep: the states those pages read, ie the amounts mode,
+-- the accounts mode, inferred prices, zero balances, and lot detail.
+-- Each such link rewrites the search itself.
+journalKeptParams :: [(Text, Text)] -> [(Text, Text)]
+journalKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["value", "list", "infer", "empty", "lots"]]
+
 -- | Render a "BalanceReport" as the sidebar: the journal and report
 -- links (each report's route, label, and title, with the parameters
 -- their links carry), then the accounts. The current page's row is marked.
@@ -135,10 +143,7 @@ balanceReportAsHtml (journalR, registerR) here reports reportParams hideEmpty to
       -- displays such balances as zero.
       where isInteresting a = not (all (mixedAmountLooksZero . mixedAmountStripCosts . bdexcludingsubs) . pdperiods $ adata a) || any isInteresting (asubs a)
     matchesAcctSelector acct = Just True == ((`matchesAccount` acct) <$> inAccountQuery qopts)
-    -- The journal and register links keep the states those pages read:
-    -- the amounts mode, the accounts mode, inferred prices, zero
-    -- balances, and lot detail; each link rewrites the search itself.
-    kept = [p | p@(k, _) <- reportParams, k `elem` ["value", "list", "infer", "empty", "lots"]]
+    kept = journalKeptParams reportParams
     acctlink acct = (registerR, ("q", replaceInacct qparam $ accountQuery acct) : kept)
     acctonlylink acct = (registerR, ("q", replaceInacct qparam $ accountOnlyQuery acct) : kept)
     -- The journal, and the register of everything, for the sidebar's

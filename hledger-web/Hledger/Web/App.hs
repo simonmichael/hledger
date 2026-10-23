@@ -60,7 +60,7 @@ import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, parseLis
 import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (balanceReportAsHtml, removeInacct)
+import Hledger.Web.Widget.Common (balanceReportAsHtml, journalKeptParams, removeInacct)
 import Data.List (isPrefixOf, partition)
 
 -- | The site argument for your application. This can be a good place to
@@ -231,6 +231,14 @@ instance Yesod App where
           [p | p@("period", _) <- keptParams] ++
           [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
           [p | p@(k, _) <- keptParams, k /= "period", k `elem` stickyParamNames]
+        -- The pages g then a key goes to (hledger.js), with the sidebar
+        -- links' parameters: the journal, and the report pages.
+        goItems :: [(Text, (Route App, [(Text, Text)]), Text, Text)]
+        goItems =
+          ( "j"
+          , (JournalR, [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++ journalKeptParams sidebarParams)
+          , tr trs "Journal", tr trs "Show general journal entries, most recent first" ) :
+          [ (rmGoKey i, (rmRoute i, sidebarParams), tr trs (rmLabel i), tr trs (rmTitle i)) | i <- reportMenuFor jHasLots ]
         -- What the sidebar's bottom row is, in the current amounts mode:
         -- the whole journal's net. Label it by what that means.
         (totlabel, tottitle) = case amountModeOf ropts' of
@@ -466,20 +474,23 @@ data ReportMenuItem = ReportMenuItem {
     rmInSidebar :: Bool,
       -- ^ has a row in the sidebar (the others are one click away, in the
       --   report pages' own Report row)
-    rmGeneral   :: Bool
+    rmGeneral   :: Bool,
       -- ^ a general report, listed after the named reports, a little apart
+    rmGoKey     :: Text
+      -- ^ the key that goes to it after g (hledger.js); not translated,
+      --   like the other keys
 }
 
 -- | The report pages, in menu order: the named reports, then the general ones.
 reportMenu :: [ReportMenuItem]
 reportMenu =
   -- TRANSLATORS: the report links above each report page and in the sidebar: each link's text, and its tooltip.
-  [ ReportMenuItem BalancesheetR       (i18n "Balance sheet")             (i18n "Show assets, liabilities, and net worth")             (cbcaccum balancesheetSpec)       True  False
-  , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                          (cbcaccum incomestatementSpec)    True  False
-  , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                       (cbcaccum cashflowSpec)           True  False
-  , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")           PerPeriod                         True  False
-  , ReportMenuItem BalanceR            (i18n "All accounts")              (i18n "Show the balances of all accounts, by period, like the balance command") PerPeriod     False True
-  , ReportMenuItem BalancesheetequityR (i18n "Balance sheet with equity") (i18n "Show assets, liabilities, and equity")                (cbcaccum balancesheetequitySpec) False True
+  [ ReportMenuItem BalancesheetR       (i18n "Balance sheet")             (i18n "Show assets, liabilities, and net worth")             (cbcaccum balancesheetSpec)       True  False "b"
+  , ReportMenuItem IncomestatementR    (i18n "Income statement")          (i18n "Show revenues and expenses")                          (cbcaccum incomestatementSpec)    True  False "i"
+  , ReportMenuItem CashflowR           (i18n "Cashflow statement")        (i18n "Show changes in liquid assets")                       (cbcaccum cashflowSpec)           True  False "c"
+  , ReportMenuItem HoldingsR           (i18n "Holdings")                  (i18n "Show investment holdings, lots, and gains")           PerPeriod                         True  False "h"
+  , ReportMenuItem BalanceR            (i18n "All accounts")              (i18n "Show the balances of all accounts, by period, like the balance command") PerPeriod     False True  "a"
+  , ReportMenuItem BalancesheetequityR (i18n "Balance sheet with equity") (i18n "Show assets, liabilities, and equity")                (cbcaccum balancesheetequitySpec) False True  "e"
   ]
 
 -- | The report pages that apply to this journal: a journal with no lot

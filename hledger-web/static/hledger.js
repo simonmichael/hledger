@@ -97,6 +97,13 @@ document.addEventListener('DOMContentLoaded', function() {
       return;
     }
     if (document.querySelector('dialog[open]')) { return; }
+    if (gomenuOpen()) {
+      // After g, a page's key goes there; escape or any other key closes the menu.
+      if (e.key.length > 1 && e.key !== 'Escape') { return; }
+      gomenuChoose(e.key);
+      e.preventDefault();
+      return;
+    }
     if (e.key >= '0' && e.key <= '9') {
       if (depthSet(e.key)) { e.preventDefault(); }
       return;
@@ -104,6 +111,7 @@ document.addEventListener('DOMContentLoaded', function() {
     switch (e.key) {
       case 'h': case '?': helpToggle();                                     break;
       case 'j': journalGo();                                                break;
+      case 'g': gomenuShow();                                               break;
       case 's': sidebarToggle();                                            break;
       case 'o': controlsToggle();                                           break;
       case 'z': emptyAccountsToggle();                                      break;
@@ -131,6 +139,10 @@ document.addEventListener('DOMContentLoaded', function() {
       default: return;
     }
     e.preventDefault();
+  });
+  // A click elsewhere closes the g key's menu, as escape does.
+  document.addEventListener('click', function(e) {
+    if (gomenuOpen() && !e.target.closest('#gomenu')) { gomenuHide(); }
   });
 
   // Name the chosen file beside the upload button. Set as text, so a file whose
@@ -261,6 +273,32 @@ function addformAddPosting() {
 function journalGo() {
   var a = document.getElementById('sidebar-journal-link');
   location.href = a ? a.href : document.hledgerWebBaseurl + '/journal';
+}
+
+// The g key's menu (default-layout.hamlet): it lists the pages, each with
+// the key that goes to it, keyed by page rather than position, so that
+// reordering the menu keeps the keys.
+function gomenuOpen() {
+  var menu = document.getElementById('gomenu');
+  return !!menu && !menu.hidden;
+}
+
+function gomenuShow() {
+  var menu = document.getElementById('gomenu');
+  if (menu) { menu.hidden = false; }
+}
+
+function gomenuHide() {
+  var menu = document.getElementById('gomenu');
+  if (menu) { menu.hidden = true; }
+}
+
+function gomenuChoose(key) {
+  var target = Array.prototype.find.call(
+    document.querySelectorAll('#gomenu a[data-gokey]'),
+    function (a) { return a.getAttribute('data-gokey') === key; });
+  gomenuHide();
+  if (target) { location.href = target.href; }
 }
 
 // A shift-click on a link in the years, account type, or commodity rows is
