@@ -165,7 +165,7 @@ $if elem ViewPermission perms
                 <li> <code>s</code> - _{HMsg "toggle sidebar"}
                 <li> <code>o</code> - _{HMsg "toggle report options"}
                 <li> <code>f</code> - _{HMsg "focus search form"} ("find")
-                <li> <code>e</code> - _{HMsg "hide empty accounts in sidebar"}
+                <li> <code>z</code> - _{HMsg "hide empty accounts"}
                 <li> <code>t</code> - _{HMsg "toggle tree mode"}
                 <li> <code>H</code> - _{HMsg "toggle historical balances"}
                 <li> <code>L</code> - _{HMsg "toggle lot detail"}

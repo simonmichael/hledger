@@ -199,7 +199,7 @@ which work when you are not typing in a field:
 - `a` or `n` - add a transaction (escape to cancel)
 - `s` - show or hide the sidebar
 - `o` - show or hide the report options
-- `e` - show or hide empty accounts in the sidebar
+- `z` - show or hide accounts with zero balances
 - `t` - show accounts as a tree, or a list
 - `H` - show ending balances, or balance changes
 - `L` - show or hide lot detail
@@ -301,7 +301,7 @@ cost (like `-B`), or at market value at the end of each period (like
 or a date; all but `cost` take an optional commodity, as
 `--value WHEN[,COMM]`) that is carried to the other reports; and
 whether accounts with zero balances are shown, with an `empty`
-parameter that the `e` key toggles and the pages' links carry.
+parameter that the `z` key toggles and the pages' links carry.
 Other rows filter what every page shows, each rewriting its own search
 term: transaction status, posting realness, account type, and
 commodity, the last two selecting several at once with shift-click.

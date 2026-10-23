@@ -1137,9 +1137,9 @@ msgstr ""
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid ""
 "All the accounts this report shows have zero balances, which are hidden. "
-"Press e to show them."
+"Press z to show them."
 msgstr ""
-"本报告中显示的所有账户余额均为零，且处于隐藏状态。请按“e”键显示这些账户。"
+"本报告中显示的所有账户余额均为零，且处于隐藏状态。请按“z”键显示这些账户。"
 
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid ""
@@ -1904,8 +1904,8 @@ msgid "focus search form"
 msgstr "聚焦搜索表单"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "hide empty accounts in sidebar"
-msgstr "聚焦搜索表单"
+msgid "hide empty accounts"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle tree mode"

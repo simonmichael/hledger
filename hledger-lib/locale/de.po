@@ -1134,10 +1134,10 @@ msgstr ""
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid ""
 "All the accounts this report shows have zero balances, which are hidden. "
-"Press e to show them."
+"Press z to show them."
 msgstr ""
 "Alle Konten dieses Berichts haben den Saldo null und sind ausgeblendet. "
-"Drücken Sie e, um sie anzuzeigen."
+"Drücken Sie z, um sie anzuzeigen."
 
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid ""
@@ -1905,8 +1905,8 @@ msgid "focus search form"
 msgstr "zum Suchfeld springen"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "hide empty accounts in sidebar"
-msgstr "leere Konten in der Seitenleiste ausblenden"
+msgid "hide empty accounts"
+msgstr "leere Konten ausblenden"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle tree mode"

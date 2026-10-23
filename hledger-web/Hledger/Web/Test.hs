@@ -426,7 +426,7 @@ hledgerWebTest = do
       bodyContains "0 BBB"
       bodyContains "$3.00"
       -- the page also has the usual zero-balances control, which the
-      -- empty parameter drives, so the e key keeps working here
+      -- empty parameter drives, so the z key keeps working here
       bodyContains "Zero balances:"
 
     yit "tree mode shows a single-commodity account as one combined row" $ do

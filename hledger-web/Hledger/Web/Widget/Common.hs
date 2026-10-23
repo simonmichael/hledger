@@ -284,7 +284,7 @@ amountLinks trs route kept startup current =
 -- the empty parameter (1 shows them, 0 hides them, the direction of
 -- the command line's -E), keeping the given parameters; the state
 -- being shown is marked. The page's startup default needs no
--- parameter. The e key follows the other link (hledger.js).
+-- parameter. The z key follows the other link (hledger.js).
 zeroBalanceLinks :: Translations -> r -> [(Text, Text)] -> Bool -> Bool -> HtmlUrl r
 zeroBalanceLinks trs route kept dfltHidden hidden =
   -- TRANSLATORS: the label before the links that show or hide zero balances, and the links' text and tooltips.

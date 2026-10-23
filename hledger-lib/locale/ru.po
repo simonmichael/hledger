@@ -1139,9 +1139,9 @@ msgstr ""
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid ""
 "All the accounts this report shows have zero balances, which are hidden. "
-"Press e to show them."
+"Press z to show them."
 msgstr ""
-"Все счета в этом отчёте имеют нулевое сальдо и скрыты. Нажмите e, чтобы "
+"Все счета в этом отчёте имеют нулевое сальдо и скрыты. Нажмите z, чтобы "
 "показать их."
 
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
@@ -1908,8 +1908,8 @@ msgid "focus search form"
 msgstr "перейти к форме поиска"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "hide empty accounts in sidebar"
-msgstr "скрыть пустые счета на боковой панели"
+msgid "hide empty accounts"
+msgstr "скрыть пустые счета"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle tree mode"

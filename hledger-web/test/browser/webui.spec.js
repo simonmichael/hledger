@@ -315,7 +315,7 @@ test.describe('keyboard shortcuts', () => {
 
   // Zero balances state is the empty parameter; the row's links set it,
   // and the "e" key presses the row's other link.
-  test('"e" and the Zero balances links switch a page between showing and hiding zero balances', async ({ page }) => {
+  test('"z" and the Zero balances links switch a page between showing and hiding zero balances', async ({ page }) => {
     await page.goto('/balance');
     const current = page.locator('#main-content .zero-balances a.current');
     await expect(current).toHaveText('Shown');
@@ -323,7 +323,7 @@ test.describe('keyboard shortcuts', () => {
     await page.locator('#main-content .zero-balances a', { hasText: 'Hidden' }).click();
     await expect(page).toHaveURL(/empty=0/);
     await expect(current).toHaveText('Hidden');
-    await page.locator('body').press('e');
+    await page.locator('body').press('z');
     await expect(page).not.toHaveURL(/empty=/);
     await expect(current).toHaveText('Shown');
     expect(pageErrors).toEqual([]);
@@ -386,11 +386,11 @@ test.describe('sidebar', () => {
     expect(await page.locator('#sidebar-menu').evaluate(el => el.scrollTop)).toBeGreaterThan(0);
   });
 
-  test('"e" hides empty accounts, as the empty parameter', async ({ page }) => {
+  test('"z" hides empty accounts, as the empty parameter', async ({ page }) => {
     await page.goto('/journal');
-    await page.locator('body').press('e');
+    await page.locator('body').press('z');
     await expect(page).toHaveURL(/\/journal\?empty=0/);
-    await page.locator('body').press('e');
+    await page.locator('body').press('z');
     await expect(page).not.toHaveURL(/empty=/);
     expect(pageErrors).toEqual([]);
   });

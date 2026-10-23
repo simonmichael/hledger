@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', function() {
       case 'j': journalGo();                                                break;
       case 's': sidebarToggle();                                            break;
       case 'o': controlsToggle();                                           break;
-      case 'e': emptyAccountsToggle();                                      break;
+      case 'z': emptyAccountsToggle();                                      break;
       case 't': rowToggle('accounts', -1);                                  break;
       case 'H': rowToggle('accum', 1);                                      break;
       case 'L': rowToggle('lots', 1);                                       break;
@@ -374,7 +374,7 @@ function sidebarToggle() {
 }
 
 function emptyAccountsToggle() {
-  // The e key follows the Zero balances row's other link: the state is
+  // The z key follows the Zero balances row's other link: the state is
   // the page's empty parameter, so showing or hiding is a navigation.
   var other = document.querySelector('.zero-balances a:not(.current)');
   if (other) { location.href = other.href; }

@@ -202,7 +202,7 @@ statementPage here tabtitle spec = do
 emptyNotice :: Translations -> Bool -> Bool -> HtmlUrl AppRoute
 emptyNotice trs zerosHidden whole render =
   H.div ! A.class_ "alert alert-info" $
-    if zerosHidden then H.toHtml $ tr trs "All the accounts this report shows have zero balances, which are hidden. Press e to show them."
+    if zerosHidden then H.toHtml $ tr trs "All the accounts this report shows have zero balances, which are hidden. Press z to show them."
     else if whole
       then do
         H.toHtml $ tr trs "No accounts of the types this report shows were found. Declare account types, or use hledger's standard top-level account names. "

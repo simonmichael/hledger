@@ -1092,7 +1092,7 @@ msgid "Shift-click selects several commodities."
 msgstr ""
 
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
-msgid "All the accounts this report shows have zero balances, which are hidden. Press e to show them."
+msgid "All the accounts this report shows have zero balances, which are hidden. Press z to show them."
 msgstr ""
 
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
@@ -1841,7 +1841,7 @@ msgid "focus search form"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "hide empty accounts in sidebar"
+msgid "hide empty accounts"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
