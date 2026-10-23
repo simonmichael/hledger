@@ -1319,6 +1319,13 @@ hledgerWebTest = do
       statusIs 200
       bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=expenses\" title=\"Show assets, liabilities, and net worth\"")
       bodyContains ("class=\"group-start\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=expenses\"")
+      -- the journal leads the row, marked as the page shown
+      bodyContains ("<span class=\"row-label\">Report:</span><a class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/journal?q=expenses\" title=\"Show general journal entries, most recent first\">Journal</a>")
+
+    yit "links the report pages to the journal, first in their row of report links" $ do
+      get IncomestatementR
+      statusIs 200
+      bodyContains ("<span class=\"row-label\">Report:</span><a href=\"" ++ defbaseurl defhost defport ++ "/journal\" title=\"Show general journal entries, most recent first\">Journal</a>")
 
     yit "lists the balance sheet, income statement, and cashflow statement in the sidebar, marking the one shown" $ do
       get BalancesheetR

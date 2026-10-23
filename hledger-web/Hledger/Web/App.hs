@@ -502,11 +502,14 @@ reportMenuFor hasLots = [i | i <- reportMenu, hasLots || rmRoute i /= HoldingsR]
 reportLinkItems :: [ReportMenuItem] -> [(Route App, Text, Text)]
 reportLinkItems items = [(rmRoute i, rmLabel i, rmTitle i) | i <- items]
 
--- | 'reportLinkItems' in two groups, the named reports and the general ones,
--- for a row of links that shows the groups apart.
+-- | The links above each page: the journal and the named reports, as in
+-- the sidebar, then the general reports, for a row of links that shows
+-- the groups apart.
 reportLinkGroups :: [ReportMenuItem] -> [[(Route App, Text, Text)]]
-reportLinkGroups items = filter (not . null) [reportLinkItems named, reportLinkItems general]
-  where (general, named) = partition rmGeneral items
+reportLinkGroups items = filter (not . null) [journalLink : reportLinkItems named, reportLinkItems general]
+  where
+    (general, named) = partition rmGeneral items
+    journalLink = (JournalR, i18n "Journal", i18n "Show general journal entries, most recent first")
 
 -- | The report pages: those that take a period and an accumulation mode.
 reportRoutes :: [Route App]

@@ -272,8 +272,9 @@ reports of the command line's
 `/balancesheetequity`, `/incomestatement`, and `/cashflow`, and the
 general [balance report](hledger.md#balance), named All accounts (as in hledger-ui), at `/balance`.
 The sidebar links to the balance sheet, income statement, and cashflow
-statement, and each report page links to the others: the named reports
-first, then the general ones (All accounts, and the balance sheet with equity).
+statement, and a row of links above each page, the journal included, links
+to them all: the journal and the named reports first, as in the sidebar,
+then the general ones (All accounts, and the balance sheet with equity).
 
 For journals that use [lots](hledger.md#lots-and-capital-gains), the
 [holdings](hledger.md#holdings) report is at `/holdings`, and appears
