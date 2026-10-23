@@ -216,6 +216,11 @@ td.date {
   border-left: 1px solid var(--border);
   padding-left: 0.5em;
 }
+/* The row of links to the reports, at the top of every page, has no
+   label, so its first link lines up with the search form below. */
+.report-links.reports > :first-child {
+  margin-left: 0;
+}
 /* A second group of links, eg the general reports after the named ones,
    starts a little apart. */
 .report-links .group-start {

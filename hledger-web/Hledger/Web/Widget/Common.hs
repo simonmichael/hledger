@@ -52,7 +52,7 @@ module Hledger.Web.Widget.Common
   , journalDayQuery
   ) where
 
-import Control.Monad (when)
+import Control.Monad (unless, when)
 import Control.Monad.Except (ExceptT, mapExceptT)
 import Data.Char (isDigit)
 import Data.Foldable (find, for_)
@@ -166,7 +166,7 @@ linksRowClass cls rowlabel items = linksRowGroups cls rowlabel [items]
 linksRowGroups :: Text -> Text -> [[(Text, Text, (r, [(Text, Text)]), Bool)]] -> HtmlUrl r
 linksRowGroups cls rowlabel groups renderUrl =
     H.p ! A.class_ (H.toValue $ T.unwords $ "report-links" : [cls | not (T.null cls)]) $ do
-      H.span ! A.class_ "row-label" $ H.toHtml rowlabel
+      unless (T.null rowlabel) $ H.span ! A.class_ "row-label" $ H.toHtml rowlabel
       for_ (zip [0 :: Int ..] groups) $ \(g, items) ->
         for_ (zip [0 :: Int ..] items) $ \(i, (label, title, link, current)) ->
           let classes = ["current" | current] ++ ["group-start" | g > 0, i == 0]
