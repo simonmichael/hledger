@@ -195,7 +195,6 @@ The **help dialog** (press `?`, or click the question mark button) lists these k
 which work when you are not typing in a field:
 
 - `h` or `?` - show or hide the help dialog
-- `j` - go to the journal view
 - `g` - go to another page: shows a menu of the pages, each with its key;
   then `j` journal, `b` balance sheet, `i` income statement, `c` cashflow statement,
   `h` holdings (for journals using lots), `a` all accounts, `e` balance sheet with equity

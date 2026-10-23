@@ -1886,14 +1886,6 @@ msgid "Keyboard shortcuts"
 msgstr "Atajos de teclado"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "go to the Journal view (home)"
-msgstr "ir a la vista Libro diario (inicio)"
-
-#: hledger-web/templates/default-layout.hamlet
-msgid "go to a report: shows the reports, then press a report's key"
-msgstr ""
-
-#: hledger-web/templates/default-layout.hamlet
 msgid "add a transaction (escape to cancel)"
 msgstr "añadir una transacción (Escape para cancelar)"
 
@@ -2061,6 +2053,11 @@ msgstr "o"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "view this help (again or escape to exit)"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid ""
+"go to a page: shows the journal and reports with their keys, then press one"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
@@ -2252,6 +2249,9 @@ msgstr "Mostrar todos los años"
 msgctxt "years row"
 msgid "All"
 msgstr "Todos"
+
+#~ msgid "go to the Journal view (home)"
+#~ msgstr "ir a la vista Libro diario (inicio)"
 
 #~ msgid "or maybe"
 #~ msgstr "o quizás"

@@ -368,11 +368,12 @@ test.describe('modal dialogs', () => {
     await page.goto('/register');
     await page.locator('body').press('h');
     await expect(page.locator('#helpmodal')).toBeVisible();
-    await page.locator('body').press('j');   // would go to /journal
+    await page.locator('body').press('g');   // would open the pages menu
     await page.locator('body').press('a');   // would open the add form
     await expect(page).toHaveURL(/register/);
     await expect(page.locator('#helpmodal')).toBeVisible();
     await expect(page.locator('#addmodal')).toBeHidden();
+    await expect(page.locator('#gomenu')).toBeHidden();
     expect(pageErrors).toEqual([]);
   });
 

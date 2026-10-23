@@ -110,7 +110,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     switch (e.key) {
       case 'h': case '?': helpToggle();                                     break;
-      case 'j': journalGo();                                                break;
       case 'g': gomenuShow();                                               break;
       case 's': sidebarToggle();                                            break;
       case 'o': controlsToggle();                                           break;
@@ -266,14 +265,6 @@ function addformAddPosting() {
 
 //----------------------------------------------------------------------
 // SIDEBAR
-
-// The j key follows the sidebar's Journal link, which keeps the page's
-// state (its amounts and accounts modes, zero balances, and search);
-// without a sidebar, the plain journal page.
-function journalGo() {
-  var a = document.getElementById('sidebar-journal-link');
-  location.href = a ? a.href : document.hledgerWebBaseurl + '/journal';
-}
 
 // The g key's menu (default-layout.hamlet): it lists the pages, each with
 // the key that goes to it, keyed by page rather than position, so that

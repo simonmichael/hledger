@@ -109,7 +109,7 @@ both, so where they share a feature they share its name and its key.
   period to today, while here it toggles the total column.)
 - **Uppercase letters mirror the command line's short flags** (`-H`, `-V`, `-M`,
   `-S`, `-T`..), as hledger-ui's toggles do; **lowercase letters are actions in
-  the UI**, like going to the journal or opening a dialog. **`g` then a letter
+  the UI**, like adding a transaction or opening a dialog. **`g` then a letter
   goes to a page** (the g menu in `default-layout.hamlet`), keyed by page, not
   by position, so reordering the pages keeps their keys.
 - **Keys are not translated**, here or in hledger-ui: translated keys would break
