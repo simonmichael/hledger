@@ -1882,10 +1882,6 @@ msgid "Keyboard shortcuts"
 msgstr "快捷键"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "add a transaction (escape to cancel)"
-msgstr "添加交易（按 Esc 键取消）"
-
-#: hledger-web/templates/default-layout.hamlet
 msgid "toggle sidebar"
 msgstr "切换侧边栏"
 
@@ -1896,10 +1892,6 @@ msgstr ""
 #: hledger-web/templates/default-layout.hamlet
 msgid "focus search form"
 msgstr "聚焦搜索表单"
-
-#: hledger-web/templates/default-layout.hamlet
-msgid "escape to leave"
-msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "hide empty accounts"
@@ -1948,6 +1940,10 @@ msgstr ""
 #: hledger-web/templates/default-layout.hamlet
 msgid "set or adjust the depth limit"
 msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "cancel"
+msgstr "取消"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "General"
@@ -2045,13 +2041,17 @@ msgid "or"
 msgstr "或者"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "view this help (again or escape to exit)"
+msgid "view this help"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
 "go to a page: shows the journal and reports with their keys, then press one"
 msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "add a transaction"
+msgstr "添加交易"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
@@ -2239,6 +2239,9 @@ msgstr "显示所有年份"
 msgctxt "years row"
 msgid "All"
 msgstr "全部"
+
+#~ msgid "add a transaction (escape to cancel)"
+#~ msgstr "添加交易（按 Esc 键取消）"
 
 #~ msgid "go to the Journal view (home)"
 #~ msgstr "转到日记账视图（主页）"

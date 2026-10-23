@@ -1883,10 +1883,6 @@ msgid "Keyboard shortcuts"
 msgstr "Tastenkürzel"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "add a transaction (escape to cancel)"
-msgstr "eine Buchung hinzufügen (Escape zum Abbrechen)"
-
-#: hledger-web/templates/default-layout.hamlet
 msgid "toggle sidebar"
 msgstr "Seitenleiste ein-/ausblenden"
 
@@ -1897,10 +1893,6 @@ msgstr ""
 #: hledger-web/templates/default-layout.hamlet
 msgid "focus search form"
 msgstr "zum Suchfeld springen"
-
-#: hledger-web/templates/default-layout.hamlet
-msgid "escape to leave"
-msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "hide empty accounts"
@@ -1949,6 +1941,10 @@ msgstr ""
 #: hledger-web/templates/default-layout.hamlet
 msgid "set or adjust the depth limit"
 msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "cancel"
+msgstr "abbrechen"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "General"
@@ -2053,13 +2049,17 @@ msgid "or"
 msgstr "oder"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "view this help (again or escape to exit)"
+msgid "view this help"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
 "go to a page: shows the journal and reports with their keys, then press one"
 msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "add a transaction"
+msgstr "eine Buchung hinzufügen"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
@@ -2250,6 +2250,9 @@ msgstr "Alle Jahre anzeigen"
 msgctxt "years row"
 msgid "All"
 msgstr "Alle"
+
+#~ msgid "add a transaction (escape to cancel)"
+#~ msgstr "eine Buchung hinzufügen (Escape zum Abbrechen)"
 
 #~ msgid "go to the Journal view (home)"
 #~ msgstr "zur Journalansicht (Startseite)"
