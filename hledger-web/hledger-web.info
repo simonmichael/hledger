@@ -103,9 +103,6 @@ Flags:
                             with auto, use each viewer's browser language if
                             available, otherwise the server's. (Default: the
                             browser's language if available, otherwise en.)
-     --test                 run hledger-web's tests and exit. hspec test
-                            runner args may follow a --, eg: hledger-web --test
-                            --help
 
    By default hledger-web listens only on IP address '127.0.0.1', which
 can be accessed only from the local machine.
@@ -236,6 +233,8 @@ General help flags:
      --webman               show this command's manual on the web
      --examples             show examples for this command
      --version              show version information
+     --test[=PATTERN]       run built-in tests (those matching PATTERN) and
+                            exit
      --debug=[1-9]          show this much debug output (default: 1)
      --pager=YN             use a pager when needed ? y/yes (default) or n/no
      --color=YNA --colour   use ANSI color ? y/yes, n/no, or auto (default)
@@ -247,9 +246,22 @@ balance, but cannot be hidden with '-E', it's because they have a
 mixed-cost balance, which looks like zero when costs are hidden.
 (hledger-web does not show costs.)
 
-   Reporting options and/or query arguments can be used to set an
-initial query, which although not shown in the UI, will restrict the
-data shown (in addition to any search query entered in the UI).
+   Report options and query arguments given at startup become url state:
+hledger-web translates them into the url that browse mode opens, and
+that '--serve' prints, eg 'hledger-web -V -M' opens
+'/journal?period=monthly&value=end', and 'hledger-web --cleared -3
+assets' opens '/journal?q=assets status:* depth:3' (url-encoded).  The
+server itself keeps the defaults, so every view is fully described by
+its url: a bare url shows the default view, and editing the url (or the
+search and the links above each page) changes the view.  Report options
+the web UI has no equivalent for are ignored; options that map to
+page-local state, like '--historical', shape the opening page only.
+
+   This means a startup query is a starting search, not a restriction: a
+viewer can edit or clear it, and the JSON API serves the whole journal
+regardless.  To actually restrict what hledger-web serves, give it a
+file holding only the entries to serve (eg one written by 'hledger print
+QUERY').
 
    If you use the bash shell, you can auto-complete flags by pressing
 TAB in the command line.  If this is not working see Install > Shell
@@ -269,24 +281,32 @@ hledger-web's main views are:
      (and its subaccounts), with a running balance and a balance chart;
      and
    * the *report views*, described below: the balance sheet, income
-     statement, and cashflow statement, linked from the sidebar, and the
-     balance sheet with equity and the general balance report, linked
-     from those.
+     statement, and cashflow statement (and holdings, for journals using
+     lots), linked from the sidebar, and the All accounts report and the
+     balance sheet with equity, linked from those.
 
    The journal and register views show the newest 1000 matching
 transactions, with links to the older and newer pages and to pages by
 number, so that a page stays a reasonable size however large the journal
 is (a 'page' parameter in the URL names the page).  When the matching
-transactions span more than one year, a row of years above the table
-links to each year's transactions; "All" widens the view again.  When
-they span more than twenty years, the years are shown one row per
-decade.
+transactions span more than one year, a row of years among the controls
+links to the view narrowed to each year; "All" widens it again, and
+shift-clicking a year selects a range of years (a 'date:FIRST..END'
+search term, whose years the row marks).  When they span more than
+twenty years, the years are shown one row per decade.
 
    The *sidebar* lists accounts and their balances (parent balances
 include subaccounts, and multiple commodities are shown one above the
-other).  Click an account name to see its register, or an amount to see
-the transactions it is made of.  In the journal and register views,
-click a date to see that day's journal entries.
+other).  When a report shows its accounts as a tree (the Accounts row),
+the sidebar does too, with carets that fold and open each group in
+place.  Folds are remembered in the browser, as choices laid over each
+page's baseline: a page with a 'depth:' limit starts folded to it, one
+without starts fully open, and either way the groups you have opened or
+closed by hand stay as you left them.  A caret clicked back to its
+page's baseline is forgotten.  Click an account name to see its
+register, or an amount to see the transactions it is made of.  In the
+journal and register views, click a date to see that day's journal
+entries.
 
    The *search form* filters every view with hledger's query syntax, eg
 'expenses date:thismonth'; the help dialog summarises the query types.
@@ -303,11 +323,29 @@ lists these keyboard shortcuts, which work when you are not typing in a
 field:
 
    * 'h' or '?' - show or hide the help dialog
-   * 'j' - go to the journal view
+   * 'g' - go to another page: shows a menu of the pages, each with its
+     key; then 'j' journal, 'b' balance sheet, 'i' income statement, 'c'
+     cashflow statement, 'h' holdings (for journals using lots), 'a' all
+     accounts, 'e' balance sheet with equity (escape to cancel)
    * 'a' or 'n' - add a transaction (escape to cancel)
    * 's' - show or hide the sidebar
-   * 'e' - show or hide empty accounts in the sidebar
-   * 'f' - focus the search form
+   * 'o' - show or hide the report options
+   * 'z' - show or hide accounts with zero balances
+   * 't' - show accounts as a tree, or a list
+   * 'H' - show ending balances, or balance changes
+   * 'L' - show or hide lot detail
+   * 'V' - show amounts at market value, or as recorded
+   * 'B' - show amounts at cost, or as recorded
+   * 'R' - show only real postings, or all
+   * 'U', 'P', 'C' - show only unmarked, pending, or cleared
+     transactions, or all
+   * 'S' - sort by amount, or by account
+   * 'T', 'A' - add or remove the row total and average columns
+     (multi-period reports)
+   * 'D', 'W', 'M', 'Q', 'Y' - set the report interval (daily, weekly,
+     monthly, quarterly, yearly); pressed again, remove it
+   * '0'-'9', '-', '+' - set or adjust the account depth limit
+   * 'f' or '/' - focus the search form
 
    The pages are light or dark, following your OS or browser's color
 scheme setting, and switch when it changes.
@@ -376,29 +414,64 @@ Besides the journal and account registers, hledger-web can show the
 reports of the command line's balancesheet, balancesheetequity,
 incomestatement, and cashflow commands, at '/balancesheet',
 '/balancesheetequity', '/incomestatement', and '/cashflow', and the
-general balance report at '/balance'.  The sidebar links to the balance
-sheet, income statement, and cashflow statement, and each report page
-links to all five.
+general balance report, named All accounts (as in hledger-ui), at
+'/balance'.  The sidebar links to the balance sheet, income statement,
+and cashflow statement, and a row of links above each page, the journal
+included, links to them all: the journal and the named reports first, as
+in the sidebar, then the general ones (All accounts, and the balance
+sheet with equity).
+
+   For journals that use lots, the holdings report is at '/holdings',
+and appears in the sidebar and the report links.  It shows one row per
+account and held commodity by default; its links can show each
+individual lot (a 'lots=1' parameter), fully disposed positions (a
+'closed=1' parameter; 'empty' keeps meaning zero-balance accounts, as on
+the other pages), accounts as a tree (positions grouped under account
+headings that subtotal the dollar columns, with each position's lots
+folding into it, opened in place by a caret), values converted to the
+market valuation commodity ('value=end', like '-V'), and rows sorted by
+value.  On such journals every page also gains a Lots link, showing lot
+subaccounts and per-lot postings everywhere with the same 'lots'
+parameter.
 
    A 'period' parameter, like the command line's '-p/--period', selects
 the interval and/or the period, eg '/balancesheet?period=monthly' or
 '/incomestatement?period=quarterly in 2025'; the links above each report
 offer the usual intervals, and column headings link to the report for
 that period.  The search box filters the reports like the other pages,
-including 'depth:' terms, and the general report options given at
-startup, such as '--depth', '-B', or '-V', apply.  A 'date:' term can
-set the interval too, as on the command line ('date:monthly', or
-'"date:quarterly in 2025"'), and wins over the 'period' parameter.
+including 'depth:' terms.  A 'date:' term can set the interval too, as
+on the command line ('date:monthly', or '"date:quarterly in 2025"'), and
+wins over the 'period' parameter.
+
+   The links above each report also set its depth, which they write as a
+'depth:' term in the search; how amounts are shown, as recorded, at cost
+(like '-B'), or at market value at the end of each period (like '-V'),
+with a 'value' parameter ('none', 'cost', 'then', 'end', 'now', or a
+date; all but 'cost' take an optional commodity, as '--value
+WHEN[,COMM]') that is carried to the other reports; and whether accounts
+with zero balances are shown, with an 'empty' parameter that the 'z' key
+toggles and the pages' links carry.  Other rows filter what every page
+shows, each rewriting its own search term: transaction status, posting
+realness, account type, and commodity, the last two selecting several at
+once with shift-click.
+
+   Every page shows and preserves the report state its url carries: a
+link changes only the control it names, and controls that take effect on
+another page (the report-shaping rows, on the journal and register) show
+muted labels, their state marked all the same.  Only the accumulation
+mode and the register's costs toggle are page-local: each report
+accumulates its own way, and following a link returns to the target
+page's own default.
 
    The balance sheets show ending balances and the income statement and
 cashflow statement show changes, as their commands do; an 'accum'
 parameter ('historical' or 'change') overrides that, and the heading
-then says so, as the commands' does.  The balance report shows changes,
-or with 'accum=historical', which its "Ending balances" link sets, each
-account's balance at the end of each period.  Like the commands, the
-statements show all balances as positive amounts, so liabilities,
-equity, and revenues appear with the opposite sign to the register's;
-the link on such a figure says so.
+then says so, as the commands' does.  The All accounts report shows
+changes, or with 'accum=historical', which its "Ending balances" link
+sets, each account's balance at the end of each period.  Like the
+commands, the statements show all balances as positive amounts, so
+liabilities, equity, and revenues appear with the opposite sign to the
+register's; the link on such a figure says so.
 
    Every figure links to the register it is derived from: the account's
 transactions in that period, whose final balance is the figure, or its
@@ -410,7 +483,8 @@ section's account types.  An ending balance's register runs in
 historical mode (its own 'accum=historical'): its running balance starts
 from the balance brought forward from before the period, shown as its
 oldest row, and its balance column's heading switches between the two
-modes.
+modes.  A figure at cost or at market value links to a register showing
+its amounts the same way (with the same 'value' parameter).
 
 
 File: hledger-web.info,  Node: RELOADING,  Next: JSON API,  Prev: REPORTS,  Up: Top
@@ -682,16 +756,16 @@ We welcome bug reports in the hledger issue tracker
 Tag Table:
 Node: Top223
 Node: OPTIONS2573
-Node: WEB UI13402
-Node: PERMISSIONS15912
-Node: EDITING UPLOADING DOWNLOADING17166
-Node: REPORTS18082
-Node: RELOADING20556
-Node: JSON API21115
-Node: DEBUG OUTPUT26863
-Node: LANGUAGE27402
-Node: ENVIRONMENT28525
-Node: BUGS28759
+Node: WEB UI14100
+Node: PERMISSIONS18194
+Node: EDITING UPLOADING DOWNLOADING19448
+Node: REPORTS20364
+Node: RELOADING25034
+Node: JSON API25593
+Node: DEBUG OUTPUT31341
+Node: LANGUAGE31880
+Node: ENVIRONMENT33003
+Node: BUGS33237
 
 End Tag Table
 
