@@ -1876,14 +1876,6 @@ msgid "Keyboard shortcuts"
 msgstr "快捷键"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "or maybe"
-msgstr "或者也许"
-
-#: hledger-web/templates/default-layout.hamlet
-msgid "view this help (escape or click to exit)"
-msgstr "查看此帮助（按 Esc 键或点击以退出）"
-
-#: hledger-web/templates/default-layout.hamlet
 msgid "go to the Journal view (home)"
 msgstr "转到日记账视图（主页）"
 
@@ -2045,6 +2037,10 @@ msgstr "匹配交易代码"
 #: hledger-web/templates/default-layout.hamlet
 msgid "or"
 msgstr "或者"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "view this help (again or escape to exit)"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
@@ -2232,6 +2228,12 @@ msgstr "显示所有年份"
 msgctxt "years row"
 msgid "All"
 msgstr "全部"
+
+#~ msgid "or maybe"
+#~ msgstr "或者也许"
+
+#~ msgid "view this help (escape or click to exit)"
+#~ msgstr "查看此帮助（按 Esc 键或点击以退出）"
 
 #~ msgid "Balance report"
 #~ msgstr "余额报告"

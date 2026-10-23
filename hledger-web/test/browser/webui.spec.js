@@ -214,10 +214,16 @@ test.describe('keyboard shortcuts', () => {
     await expect(page.locator('#addmodal')).not.toBeVisible();
   });
 
-  test('"h" opens the help dialog', async ({ page }) => {
+  test('"h" and "?" toggle the help dialog', async ({ page }) => {
     await page.goto('/journal');
     await page.locator('body').press('h');
     await expect(page.locator('#helpmodal')).toBeVisible();
+    await page.locator('body').press('h');
+    await expect(page.locator('#helpmodal')).toBeHidden();
+    await page.locator('body').press('?');
+    await expect(page.locator('#helpmodal')).toBeVisible();
+    await page.locator('body').press('?');
+    await expect(page.locator('#helpmodal')).toBeHidden();
     expect(pageErrors).toEqual([]);
   });
 

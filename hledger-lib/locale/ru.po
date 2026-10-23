@@ -1880,14 +1880,6 @@ msgid "Keyboard shortcuts"
 msgstr "Горячие клавиши"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "or maybe"
-msgstr "или"
-
-#: hledger-web/templates/default-layout.hamlet
-msgid "view this help (escape or click to exit)"
-msgstr "показать эту справку (Escape или клик для выхода)"
-
-#: hledger-web/templates/default-layout.hamlet
 msgid "go to the Journal view (home)"
 msgstr "перейти к виду журнала (главная)"
 
@@ -2056,6 +2048,10 @@ msgstr "найти коды транзакций"
 #: hledger-web/templates/default-layout.hamlet
 msgid "or"
 msgstr "или"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "view this help (again or escape to exit)"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
@@ -2246,6 +2242,12 @@ msgstr "Показать все годы"
 msgctxt "years row"
 msgid "All"
 msgstr "Все"
+
+#~ msgid "or maybe"
+#~ msgstr "или"
+
+#~ msgid "view this help (escape or click to exit)"
+#~ msgstr "показать эту справку (Escape или клик для выхода)"
 
 #~ msgid "Balance report"
 #~ msgstr "Отчёт о сальдо"

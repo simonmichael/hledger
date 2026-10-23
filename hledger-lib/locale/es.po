@@ -1882,14 +1882,6 @@ msgid "Keyboard shortcuts"
 msgstr "Atajos de teclado"
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "or maybe"
-msgstr "o quizás"
-
-#: hledger-web/templates/default-layout.hamlet
-msgid "view this help (escape or click to exit)"
-msgstr "ver esta ayuda (Escape o clic para salir)"
-
-#: hledger-web/templates/default-layout.hamlet
 msgid "go to the Journal view (home)"
 msgstr "ir a la vista Libro diario (inicio)"
 
@@ -2058,6 +2050,10 @@ msgstr "buscar por código de transacción"
 #: hledger-web/templates/default-layout.hamlet
 msgid "or"
 msgstr "o"
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "view this help (again or escape to exit)"
+msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid ""
@@ -2248,6 +2244,12 @@ msgstr "Mostrar todos los años"
 msgctxt "years row"
 msgid "All"
 msgstr "Todos"
+
+#~ msgid "or maybe"
+#~ msgstr "o quizás"
+
+#~ msgid "view this help (escape or click to exit)"
+#~ msgstr "ver esta ayuda (Escape o clic para salir)"
 
 #~ msgid "Balance report"
 #~ msgstr "Informe de saldos"

@@ -88,6 +88,14 @@ document.addEventListener('DOMContentLoaded', function() {
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey || e.metaKey || e.altKey) { return; }
     if (e.target.closest('input, textarea, select')) { return; }
+    // The help keys toggle the help, so they close it too; while a dialog
+    // is open the other keys do nothing.
+    var help = document.getElementById('helpmodal');
+    if (help && help.open && (e.key === 'h' || e.key === '?')) {
+      helpToggle();
+      e.preventDefault();
+      return;
+    }
     if (document.querySelector('dialog[open]')) { return; }
     if (e.key >= '0' && e.key <= '9') {
       if (depthSet(e.key)) { e.preventDefault(); }

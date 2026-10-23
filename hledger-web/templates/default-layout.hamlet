@@ -159,7 +159,7 @@ $if elem ViewPermission perms
             <p>
               <b>_{HMsg "Keyboard shortcuts"}
               <ul>
-                <li> <code>h</code> _{HMsg "or maybe"} <code>?</code> - _{HMsg "view this help (escape or click to exit)"}
+                <li> <code>h</code> _{HMsg "or"} <code>?</code> - _{HMsg "view this help (again or escape to exit)"}
                 <li> <code>j</code> - _{HMsg "go to the Journal view (home)"}
                 <li> <code>a</code> - _{HMsg "add a transaction (escape to cancel)"}
                 <li> <code>s</code> - _{HMsg "toggle sidebar"}

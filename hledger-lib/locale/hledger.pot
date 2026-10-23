@@ -1813,14 +1813,6 @@ msgid "Keyboard shortcuts"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
-msgid "or maybe"
-msgstr ""
-
-#: hledger-web/templates/default-layout.hamlet
-msgid "view this help (escape or click to exit)"
-msgstr ""
-
-#: hledger-web/templates/default-layout.hamlet
 msgid "go to the Journal view (home)"
 msgstr ""
 
@@ -1963,6 +1955,10 @@ msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "or"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "view this help (again or escape to exit)"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
