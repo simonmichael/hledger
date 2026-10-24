@@ -204,8 +204,8 @@ which work when you are not typing in a field:
 - `h` or `?` - show or hide the help dialog
 - `g` - go to another page: shows a menu of the pages, each with its key;
   then `j` journal, `b` balance sheet, `i` income statement, `c` cashflow statement,
-  `h` holdings (for journals using lots), `a` all accounts, `e` balance sheet with equity
-  (escape to cancel)
+  `h` holdings (for journals using lots), `a` all accounts, `e` balance sheet with equity,
+  or `n` / `p` the next / previous page in that order, wrapping round (escape to cancel)
 - `a` or `n` - add a transaction (escape to cancel)
 - `s` - show or hide the sidebar
 - `o` - show or hide the report options

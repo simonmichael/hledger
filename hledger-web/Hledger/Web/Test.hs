@@ -754,6 +754,21 @@ hledgerWebTest = do
       bodyContains "<code>a</code> All accounts</a>"
       bodyContains "<code>e</code> Balance sheet with equity</a>"
 
+    yit "offers the next and previous pages in the g key's menu, going round" $ do
+      let base = defbaseurl defhost defport
+      get BalanceR
+      statusIs 200
+      -- All accounts is between the cashflow statement and the balance
+      -- sheet with equity (this journal has no lots, so no Holdings page)
+      bodyContains ("<a href=\"" ++ base ++ "/balancesheetequity\" data-gokey=\"n\"")
+      bodyContains "<code>n</code> Next report</a>"
+      bodyContains ("<a href=\"" ++ base ++ "/cashflow\" data-gokey=\"p\"")
+      bodyContains "<code>p</code> Previous report</a>"
+      -- the journal, first, follows the last
+      get JournalR
+      statusIs 200
+      bodyContains ("<a href=\"" ++ base ++ "/balancesheetequity\" data-gokey=\"p\"")
+
     yit "styles the report through the stylesheet, not inline styles" $ do
       get BalanceR
       statusIs 200

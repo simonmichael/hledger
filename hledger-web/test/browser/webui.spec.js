@@ -288,6 +288,13 @@ test.describe('keyboard shortcuts', () => {
     await expect(menu.locator('a[data-gokey="i"]')).toContainText('Income statement');
     await page.locator('body').press('i');
     await expect(page).toHaveURL(/\/incomestatement/);
+    // n and p go to the next and previous pages
+    await page.locator('body').press('g');
+    await page.locator('body').press('n');
+    await expect(page).toHaveURL(/\/cashflow/);
+    await page.locator('body').press('g');
+    await page.locator('body').press('p');
+    await expect(page).toHaveURL(/\/incomestatement/);
     // escape closes the menu without going anywhere
     await page.locator('body').press('g');
     await expect(page.locator('#gomenu')).toBeVisible();
