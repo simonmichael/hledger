@@ -396,7 +396,7 @@ STACKTEST := STACK + ' test --fast'
     tools/i18n-extract.py --check hledger-lib/locale/hledger.pot hledger-lib/locale/*.po
 
 # (Without fuzzy matching, since its guesses are often translations of unrelated strings: new and changed ones arrive empty.)
-# merge new and changed source strings into the translation catalogs (needs gettext's msgmerge).
+# merge new and changed source strings into the translation catalogs, during the pre-release message freeze (needs gettext's msgmerge).
 @i18n-merge: i18n-pot
     for f in hledger-lib/locale/*.po; do msgmerge --update --no-fuzzy-matching --backup=none "$f" hledger-lib/locale/hledger.pot; done
 

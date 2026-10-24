@@ -32,6 +32,11 @@ Before producing anything meant to be contributed, read the current
   submitted) is not a contribution, and the policy does not restrict it.
 - Non-trivial AI usage must be disclosed in the commit, in the format
   `doc/AI.md` gives.
+- Changes to hledger's text update only the template; a maintainer
+  refreshes the built-in catalogs during the message freeze and
+  translation sprint before each release (see `doc/RELEASING.md`). So
+  don't merge catalogs in feature work, and expect main's catalogs to lag
+  behind the template between releases.
 
 Establish, asking if it isn't clear:
 

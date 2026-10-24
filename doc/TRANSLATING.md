@@ -292,8 +292,13 @@ usually can not check a language themselves.
 
 ## Keeping a translation up to date
 
-When hledger's English text changes, the template changes with it. To
-refresh your file:
+When hledger's English text changes, the template changes with it. The
+built-in catalogs on main are refreshed only before a release, so
+between releases they can lag behind the template: refresh your file
+first. Before each major or preview release there is a short message
+freeze, when the English text stops changing and the catalogs are
+refreshed, and a translation sprint; that is the best time to update a
+translation. To refresh your file:
 
 - With the gettext tools: `msgmerge --update --no-fuzzy-matching fr.po hledger.pot`.
   New entries, and entries whose English changed, appear untranslated.
@@ -343,7 +348,10 @@ translatable:
 - When you add, change or remove a translatable string, or its
   `TRANSLATORS:` comment, run `just i18n-pot` and commit the regenerated
   template with the change. Translators work from the template on main,
-  so one left behind gives them an incomplete list.
+  so one left behind gives them an incomplete list. Don't run
+  `just i18n-merge` or commit catalog changes with it: the catalogs are
+  refreshed during the message freeze before a release, which keeps
+  their empty new entries out of every pull request.
 - Tooling: `just i18n-pot` regenerates `hledger-lib/locale/hledger.pot`
   from the sources with `tools/i18n-extract.py`, keeping existing
   entries in their order so that moving code between files doesn't

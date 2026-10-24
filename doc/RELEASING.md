@@ -56,7 +56,7 @@ Release readiness and the release process go from the bottom of this diagram to 
 <!-- source: RELEASING.canvas (Obsidian) -->
 
 ## Release script
-Last updated: 2026-09\
+Last updated: 2026-10\
 This is the canonical step sequence for making a release, annotated with lessons from past releases.
 For extra how-to's not covered here, see the "How to.." and "Tips" sections below.\
 Key: main: = in hledger repo main branch, rel: = in hledger repo release branch, site: = in site repo,
@@ -75,6 +75,11 @@ to avoid interfering with branch switching; RELEASING.md should be updated from 
 ### Phase 1: prepare main
 
 1. **main: finish fixes/features/docs/issues/prs**
+1. **(major or preview release) main: message freeze and translation sprint:** `just i18n-pot`, `just i18n-merge`,
+   `just i18n-check`; commit the template and catalogs. Tell the translators which entries each language lacks
+   (`just i18n-check` counts them), and allow a few days for their updates; until the release, avoid changing
+   translatable text. (Feature work updates only the template, so this is when the catalogs catch up.)
+   A bugfix release skips this unless its changes touch translatable text.
 1. **main: begin/fix release builds:** `just oldest` (and `just ghbin` if needed)
 1. **main: update general flags help:** `just generaloptionshelp` (updates doc/common.m4 from the build's --help output; review the diff)
 1. **main: update command docs and manuals ?** `just manuals`; check the manuals' internal links: `just anchortest`
