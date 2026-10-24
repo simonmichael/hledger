@@ -990,10 +990,10 @@ $ hledger -f- holdings -e 2026-03-01 --tree -O csv
 "account","commodity","date","age","units","unitcost","unitprice","totalcost","totalvalue","weight","ugain","ugainpct","rgain","xirr"
 "assets:broker","AAA","2026-01-01","58","5","$10.60","$12.00","$53.00","$60.00","100.0","$7.00","13.2","","118.4"
 
-# ** 54. The html output's register links quote labeled lot subaccount
-# names, so they round-trip as queries.
+# ** 54. The html output's register links name labeled lot subaccounts
+# whole, url-encoded, in the account parameter.
 $ hledger -f- bal --lots -O html --base-url https://h | tr '<' '\n' | grep -F 0001 | head -1
-a href="https://h/register?q=&#39;inacct:assets:broker:%7b2026-01-01,+%220001%22,+$10.00%7d&#39;" title="Show transactions affecting this account and subaccounts">assets:broker:{2026-01-01, &quot;0001&quot;, $10.00}
+a href="https://h/register?account=assets:broker:%7b2026-01-01,+%220001%22,+$10.00%7d" title="Show transactions affecting this account and subaccounts">assets:broker:{2026-01-01, &quot;0001&quot;, $10.00}
 
 <
 account investments  ; type:A

@@ -249,12 +249,21 @@ A rule of thumb: the query selects the data; report options control what is done
 On the command line these are query arguments and flags; in hledger-web, the search box and the URL parameters set by the page's links.
 A few query terms also affect the report: `date:` sets the report period, `depth:` summarises,
 and `inacct:` (a `QueryOpt`, not a filter) sets a register's focus account.
+hledger-web follows the rule for depth, the interval and the register's account: a flat depth is its `depth` URL parameter, the
+interval its `interval` parameter, the register's account its `account` parameter (with `subs=0` to exclude subaccounts), and a `depth:N`,
+a `date:` term's interval, or an `inacct:`/`inacctonly:` term typed in the search is moved there by reloading the page
+(`App.normaliseUrlState`); only per-account `depth:REGEX=N` terms stay in its search. Its report dates are only ever the search's `date:` terms.
+Internally, each parameter goes where hledger-lib reads that setting: the interval into the report options, the account
+into `ViewData.account`, which the register passes to `accountTransactionsReport`, and the depth into the parsed query
+(`ViewData.q`), since the reports read depth limits from the query, as the command line's `--depth` does (`queryFromFlags`).
+The search text (`ViewData.qparam`) never shows the depth, and links turn it back into the parameter (`ReportPage.depthParams`).
 
 The period and the query overlap on the span: `queryFromFlags` turns `period_` into a `Date` query,
 and the report's dates are the intersection of that and any `date:` terms.
 
 Since 1.52 a `date:` term can also carry an interval (`date:monthly`), which goes against the rule above.
-The CLI and hledger-web use it; removing it is being discussed in [#2777](https://github.com/hledgerorg/hledger/issues/2777).
+The CLI uses it, and hledger-web accepts it as typed input, moving the interval to its `interval` parameter;
+removing it is being discussed in [#2777](https://github.com/hledgerorg/hledger/issues/2777).
 
 When converting a `Period` to a `DateSpan`, the period's unit awareness is lost; code that needs it (eg for a title)
 must look at the period, or reconstruct it with `dateSpanAsPeriod`.

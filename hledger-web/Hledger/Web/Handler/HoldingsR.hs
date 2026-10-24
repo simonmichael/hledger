@@ -24,9 +24,9 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (accountQuery, closedLinks, commodityLinks, controlsHint, controlsToggle,
+  (accountParams, closedLinks, commodityLinks, controlsHint, controlsToggle, optionsSummary,
    depthLinks, holdingsValueLinks, listModeLinks,
-   lotsLinks, pricesLinks, realLinks, replaceInacct, searchTerms,
+   lotsLinks, pricesLinks, realLinks, searchTerms,
    sortLinks, statusLinks, typeLinks, zeroBalanceLinks)
 
 -- | The holdings view: investment holdings and their performance at the
@@ -42,7 +42,7 @@ getHoldingsR = do
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
   mclosedparam <- lookupGetParam "closed"
-  let withFilter t = if q /= Any then trf trs "{title}, filtered" [("title", t)] else t
+  let withFilter t = if filterQuery (not . queryIsDepth) q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
       -- The journal as displayed: with lots shown it includes the lot
@@ -67,11 +67,11 @@ getHoldingsR = do
     when (AddPermission `elem` perms) $ addModal AddR j today
     -- TRANSLATORS: the browser tab title of this page.
     setTitleI (HMsg "holdings - hledger-web")
-    case reportParams today rspecOrig qparam q qopts hideEmpty params >>= checkValue of
+    case reportParams rspecOrig qparam q qopts hideEmpty params >>= checkValue of
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ reportTitle roptsOrig $ tr trs "Holdings"
         paramError trs err
-      Right ReportParams{rpRopts, rpRspec, rpSpan, rpPeriod, rpValue} -> do
+      Right ReportParams{rpRopts, rpRspec, rpInterval, rpValue} -> do
         let ropts = rpRopts{empty_ = closedShown}
             rspec = rpRspec{_rsReportOpts = ropts}
             -- The report's display lines: flat positions (or lots with
@@ -84,9 +84,10 @@ getHoldingsR = do
               -- TRANSLATORS: the holdings page's heading; {date} is the report date.
               trf trs "Holdings on {date}" [("date", showDate (hrDate rpt))]
 
-            -- What links staying on this page keep: the period as given, and each
-            -- report-shaping parameter that is not at its default.
-            periodParams = [("period", p) | Just p <- [rpPeriod]]
+            -- What links staying on this page keep: each report-shaping
+            -- parameter that is not at its default, the interval too, which
+            -- this page does not use but passes along.
+            intervalParams = [("interval", w) | Just w <- [intervalPeriodExpr rpInterval]]
             valParams   = valueParams roptsOrig rpValue
             listParams  = [("list", listWord (accountlistmode_ ropts)) | accountlistmode_ ropts /= accountlistmode_ roptsOrig]
             sortParams  = [("sort", "amount") | sort_amount_ ropts]
@@ -96,20 +97,20 @@ getHoldingsR = do
             lotsParams  = [("lots", "1") | lotsShown]
             pageParams =
               dbg1 "holdings pageParams" $
-              periodParams ++ valParams ++ listParams ++ sortParams ++
-              inferParams ++ closedParams ++ emptyParams ++ lotsParams
+              intervalParams ++ valParams ++ listParams ++ sortParams ++
+              inferParams ++ closedParams ++ emptyParams ++ lotsParams ++ depthParams q
             qParams = [("q", qparam) | not (T.null qparam)]
             -- An account cell links to the account's register, keeping
             -- the states that page reads.
-            registerKept = removeAttributes ["period", "sort", "closed"] pageParams
+            registerKept = removeAttributes ["interval", "sort", "closed"] pageParams
             acctlink acct = urlrender RegisterR $
-              ("q", replaceInacct qparam $ accountQuery acct) : registerKept
+              qParams ++ accountParams True acct ++ registerKept
             -- A position's cell links to that register filtered to the
             -- holding's commodity: the transactions behind the row's figures.
             poslink acct com = urlrender RegisterR $
               ("q", T.unwords $
-                 map quoteIfSpaced (filter (not . T.isPrefixOf "cur:") (searchTerms $ replaceInacct qparam $ accountQuery acct))
-                 ++ [quoteIfSpaced $ "cur:" <> regexEscape com]) : registerKept
+                 map quoteIfSpaced (filter (not . T.isPrefixOf "cur:") (searchTerms qparam))
+                 ++ [quoteIfSpaced $ "cur:" <> regexEscape com]) : accountParams True acct ++ registerKept
 
             -- TRANSLATORS: the holdings table's column headings. The cost
             -- heading is "Unit cost", "Avg cost", or "Unit/Avg cost".
@@ -271,8 +272,8 @@ getHoldingsR = do
             -- the holdings at that year's end.
             yearsDays = map tdate $
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} jfull
-            yearsNav = yearsRow trs HoldingsR qparam today rpSpan (removeAttributes ["period"] pageParams) yearsDays
-            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
+            yearsNav = yearsRow trs HoldingsR qparam today pageParams yearsDays
+            controlRows = controlsToggle trs controlsOpen (optionsSummary trs deepest pageParams) $ \render -> foldMap ($ render) $
               [ yearsNav
               , statusLinks trs HoldingsR pageParams qparam
               , realLinks trs HoldingsR pageParams qparam

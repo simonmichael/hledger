@@ -29,6 +29,8 @@ module Hledger.Web.ReportPage (
   valueParams,
   addLinkParams,
   deepestDepth,
+  parseInterval,
+  depthParams,
   accumWord,
   calcWord,
   columnHeading,
@@ -51,11 +53,11 @@ import Data.Text.Encoding qualified as TE
 import Network.HTTP.Types.URI (urlEncode)
 import Data.Text (Text)
 import Data.Text qualified as T
-import Data.Time.Calendar (Day)
 import Data.Set qualified as Set
 import Text.Blaze.Html5 ((!))
 import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
+import Text.Megaparsec (eof)
 import Text.Megaparsec.Error (errorBundlePretty)
 
 import Yesod (HtmlUrl)
@@ -76,13 +78,8 @@ data ReportParams = ReportParams {
       --   accumulation mode is left for the page to set.
     rpRspec    :: ReportSpec,
       -- ^ The startup report spec with those options and the page's query.
-    rpSpan     :: DateSpan,
-      -- ^ The period parameter's date span, or the unbounded span.
     rpInterval :: Interval,
-      -- ^ The reporting interval: from a date: search term, else the period
-      --   parameter, else none.
-    rpPeriod   :: Maybe Text,
-      -- ^ The period parameter as given, for links that keep it.
+      -- ^ The reporting interval: from the interval parameter, else none.
     rpAccum    :: Maybe BalanceAccumulation,
       -- ^ The accum parameter, if one was given.
     rpValue    :: Maybe AmountMode
@@ -93,32 +90,26 @@ data ReportParams = ReportParams {
 -- | A parameter the page cannot use, with what was given; or a
 -- combination of parameters that contradict each other.
 data ReportParamError
-  = BadPeriod String | BadAccum Text | BadValue Text | BadParamValue Text Text
+  = BadInterval String | BadAccum Text | BadValue Text | BadParamValue Text Text
   | ValuechangeNeedsEnd | GainNotCost | ValueThenUnsupported
 
--- | Resolve a report page's parameters: today's date, the startup report
--- spec, the search parameter and its parsed query and options, whether
+-- | Resolve a report page's parameters: the startup report spec, the search parameter and its parsed query and options, whether
 -- zero items are hidden, and a lookup for the page's other parameters:
--- period, accum, value, list, total, avg, sort, pct, and calc.
+-- interval, accum, value, list, total, avg, sort, pct, and calc.
 --
--- The period parameter is a period expression as for -p: an interval
--- ("monthly"), a date span ("2024"), or both ("monthly in 2024"). An
--- empty one is no period at all, as from a search form with nothing in
--- it. A date: search term can carry
--- an interval too (date:monthly), and as on the command line it wins
--- over the period; cf reportOptsToSpec. The period's date span restricts
--- the report like a date: search term would, and the report's links
--- carry it, so that a row's register is restricted the same way.
+-- The interval parameter is a reporting interval as in a period
+-- expression ("monthly", "every 2 weeks"), with no dates: the report's
+-- dates are the search's date: terms (App.normaliseUrlState moves the
+-- intervals typed there to this parameter). An empty one is no interval.
 reportParams ::
-  Day -> ReportSpec -> Text -> Query -> [QueryOpt] -> Bool -> [(Text, Text)] ->
+  ReportSpec -> Text -> Query -> [QueryOpt] -> Bool -> [(Text, Text)] ->
   Either ReportParamError ReportParams
-reportParams today rspecOrig qparam q qopts hideEmpty params = do
+reportParams rspecOrig qparam q qopts hideEmpty params = do
   let roptsOrig = _rsReportOpts rspecOrig
       param k = lookup k params
-      rpPeriod = mfilter (not . T.null) (param "period")
-  (ivl, rpSpan) <- case rpPeriod of
-    Nothing -> Right (interval_ roptsOrig, nulldatespan)
-    Just p  -> either (Left . BadPeriod . errorBundlePretty) Right $ parsePeriodExpr today p
+  ivl <- case mfilter (not . T.null) (param "interval") of
+    Nothing -> Right (interval_ roptsOrig)
+    Just t  -> either (Left . BadInterval . errorBundlePretty) Right $ parseInterval t
   rpAccum <- parseAccum (param "accum")
   rpValue <- parseValue (param "value")
   mlist   <- parseListMode (param "list")
@@ -138,7 +129,7 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
           balance_base_url_ = Just "",
           date2_ = date2_ roptsOrig || dat2,
           infer_prices_ = infer_prices_ roptsOrig || infer,
-          querystring_ = filter (not . T.null) (Query.words'' queryprefixes qparam) ++ dateTerm (date2_ roptsOrig || dat2) rpSpan,
+          querystring_ = filter (not . T.null) (Query.words'' queryprefixes qparam),
           interval_ = rpInterval
         }
       tree = fromMaybe (accountlistmode_ roptsOrig) mlist == ALTree
@@ -167,11 +158,6 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
           percent_         = pct,
           balancecalc_     = calc
         }
-      -- cf queryFromFlags
-      dateq
-        | rpSpan == nulldatespan = Any
-        | date2_ rpRopts         = Date2 rpSpan
-        | otherwise              = Date rpSpan
       -- Unlike the journal and register pages, keep any depth limit:
       -- the report reads it from the query, and it is how a balance
       -- report gets summarized (--depth at startup, or depth: in the
@@ -180,7 +166,7 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
       -- deeper group openable in place (see reportTable and hledger.js).
       rpRspec =
         rspecOrig {
-          _rsQuery = simplifyQuery $ And [if tree then filterQuery (not . queryIsDepth) q else q, dateq],
+          _rsQuery = if tree then simplifyQuery $ filterQuery (not . queryIsDepth) q else q,
           _rsReportOpts = rpRopts
         }
   Right ReportParams{..}
@@ -188,8 +174,9 @@ reportParams today rspecOrig qparam q qopts hideEmpty params = do
 -- | The startup report options and query arguments, expressed as url
 -- state: the parameters for the url that browse mode opens and --serve
 -- prints. Query arguments and query-expressible options
--- (periods, depths, statuses, -R) become the q parameter's search
--- terms the other options the pages know become their parameters.
+-- (periods, per-account depths, statuses, -R) become the q parameter's
+-- search terms; the other options the pages know, a flat --depth
+-- among them, become their parameters.
 -- Display preferences without a url spelling (the language, period
 -- title style, report titles) stay in the spec; report options the web
 -- ui has no vocabulary for (--invert, --transpose, ...) are dropped.
@@ -197,7 +184,8 @@ startupUrlState :: ReportSpec -> ([(Text, Text)], ReportSpec)
 startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
   where
     params =
-      [("period", p)          | Just p <- [intervalPeriodExpr $ interval_ ropts]] ++
+      [("interval", p)        | Just p <- [intervalPeriodExpr $ interval_ ropts]] ++
+      [("depth", T.pack (show n)) | Just n <- [dsFlatDepth $ depth_ ropts]] ++
       [("accum", accumWord a) | let a = balanceaccum_ ropts, a /= PerPeriod] ++
       [("value", valueWord m) | Just m <- [amountModeOf ropts], m /= AsRecorded] ++
       [("list", "tree")       | accountlistmode_ ropts == ALTree] ++
@@ -223,8 +211,7 @@ startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
       Unmarked -> ""
       Pending  -> "!"
       Cleared  -> "*"
-    depthTerms (DepthSpec mflat regexps) =
-      ["depth:" <> T.pack (show n) | Just n <- [mflat]] ++
+    depthTerms (DepthSpec _ regexps) =
       -- quoted when the regexp has a space, like the query terms
       [textQuoteIfNeeded $ "depth:" <> reString r <> "=" <> T.pack (show n) | (r, n) <- regexps]
     rspec' = rspec{
@@ -245,8 +232,13 @@ startupUrlState rspec@ReportSpec{_rsReportOpts = ropts} = (params, rspec')
       }
     }
 
+-- | Parse a reporting interval as in a period expression ("monthly",
+-- "every 2 weeks"), with nothing else.
+parseInterval :: Text -> Either HledgerParseErrors Interval
+parseInterval = parsewith (skipNonNewlineSpaces *> reportingintervalp <* skipNonNewlineSpaces <* eof) . T.toLower
+
 -- | A period expression naming the given reporting interval, none for
--- NoInterval: the inverse of parsePeriodExpr's interval part.
+-- NoInterval: the inverse of parseInterval.
 intervalPeriodExpr :: Interval -> Maybe Text
 intervalPeriodExpr = \case
   NoInterval -> Nothing
@@ -287,10 +279,10 @@ reportLinks trs here kept groups =
     [ [ (tr trs label, tr trs title, (route, kept), route == here) | (route, label, title) <- grp ] | grp <- groups ]
 
 -- | Links to the same report page for each reporting interval, keeping
--- the search, the period's date span, and the given parameters; the
--- interval being shown is marked.
-intervalLinks :: Translations -> r -> [(Text, Text)] -> Text -> DateSpan -> Interval -> HtmlUrl r
-intervalLinks trs route kept qparam spn current =
+-- the search (and its dates) and the given parameters; the interval
+-- being shown is marked.
+intervalLinks :: Translations -> r -> [(Text, Text)] -> Text -> Interval -> HtmlUrl r
+intervalLinks trs route kept qparam current =
   -- The D, W, M, Q, and Y keys follow these links, by their order
   -- here (hledger.js).
   -- TRANSLATORS: the label before a report's interval links.
@@ -307,17 +299,8 @@ intervalLinks trs route kept qparam spn current =
       , (tr trs "Weekly",    tr trs "Show a column per week",               Just "weekly",    Weeks 1)
       , (tr trs "Daily",     tr trs "Show a column per day",                Just "daily",     Days 1)
       ]
-    -- Each link keeps the period's date span, so that changing the
-    -- interval does not silently widen the report to the whole journal.
-    -- "monthly 2025-01-01..2025-12-31" is a period expression like any other.
-    spantext = if spn == nulldatespan then "" else showDateSpanForQuery spn
-    periodparam mword = case (mword, spantext) of
-      (Nothing,   "") -> []
-      (Nothing,   sp) -> [("period", sp)]
-      (Just w,    "") -> [("period", w)]
-      (Just w,    sp) -> [("period", w <> " " <> sp)]
     link mword =
-      (route, periodparam mword ++ [("q", qparam) | not (T.null qparam)] ++ kept)
+      (route, [("q", qparam) | not (T.null qparam)] ++ kept ++ [("interval", w) | Just w <- [mword]])
 
 -- | Links to the same report page for each accumulation mode: balance
 -- changes, ending balances, or cumulative totals. They keep the given
@@ -475,9 +458,9 @@ pctError trs e =
 -- | Explain a parameter the page could not use.
 paramError :: Translations -> ReportParamError -> Html
 paramError trs = \case
-  BadPeriod err ->
+  BadInterval err ->
     H.div ! A.class_ "alert alert-danger" $ do
-      H.toHtml $ tr trs "Could not parse the period expression:"
+      H.toHtml $ tr trs "Could not parse the reporting interval:"
       H.pre $ H.toHtml err
   BadAccum v ->
     H.div ! A.class_ "alert alert-danger" $ do
@@ -500,6 +483,12 @@ paramError trs = \case
   ValueThenUnsupported ->
     H.div ! A.class_ "alert alert-danger" $
       H.toHtml $ tr trs "This report is at a single date, so value=then does not apply: use value=end, value=now, or a date."
+
+-- | The depth parameter for the query's depth limit, if it has one, for
+-- links keeping it. (Only a depth:REGEX=N term can be in the search,
+-- which keeps it there: see App.setDepthFromSearch.)
+depthParams :: Query -> [(Text, Text)]
+depthParams q = [("depth", T.pack (show n)) | Just n <- [dsFlatDepth $ queryDepth q]]
 
 -- | The deepest account depth a report page can show: that of the
 -- journal's deepest account. The journal as displayed with lots shown
@@ -525,8 +514,8 @@ headingParams ivl qparam params spn =
   [("q", T.unwords qt) |
       let qt = dateTerm False spn ++ removeDates qparam,
       not (null qt)] ++
-  [("period", w) | Just w <- [intervalPeriodExpr ivl]] ++
-  removeAttributes ["q", "period"] params
+  removeAttributes ["q", "interval"] params ++
+  [("interval", w) | Just w <- [intervalPeriodExpr ivl]]
 
 removeAttributes :: [Text] -> [(Text, Text)] -> [(Text, Text)]
 removeAttributes attrs =

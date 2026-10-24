@@ -5,11 +5,12 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Web.Widget.Common
-  ( accountQuery
-  , accountOnlyQuery
+  ( accountParams
+  , accountRegisterQuery
   , balanceReportAsHtml
   , controlsHint
   , controlsToggle
+  , optionsSummary
   , inertControls
   , linksRow
   , linksRowClass
@@ -36,6 +37,9 @@ module Hledger.Web.Widget.Common
   , listWord
   , valueWord
   , searchTerms
+  , MovedOptions(..)
+  , normalisedSearch
+  , splitPeriodExpr
   , helplink
   , mixedAmountAsHtml
   , mixedAmountAsHtmlWith
@@ -47,18 +51,17 @@ module Hledger.Web.Widget.Common
   , journalFile404
   , transactionFragment
   , removeDates
-  , removeInacct
-  , replaceInacct
   , journalDayQuery
   ) where
 
-import Control.Monad (unless, when)
+import Control.Applicative ((<|>))
+import Control.Monad (guard, unless, when)
 import Control.Monad.Except (ExceptT, mapExceptT)
 import Data.Char (isDigit)
 import Data.Foldable (find, for_)
-import Data.List (elemIndex)
+import Data.List (elemIndex, sortOn)
 import Data.Set qualified as Set
-import Data.Maybe (isNothing, mapMaybe, maybeToList)
+import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe, mapMaybe, maybeToList)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
@@ -69,6 +72,7 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 import Text.Blaze.Internal (preEscapedString)
 import Text.Hamlet (hamletFile)
+import Text.Megaparsec (getInput)
 import Text.Printf (printf)
 import Yesod
 
@@ -118,18 +122,19 @@ helplink topic label _ = H.a ! A.href u ! A.target "hledgerhelp" $ toHtml label
   where u = textValue $ manualurl <> if T.null topic then "" else T.cons '#' topic
 
 -- | Of the parameters the page links keep, those the sidebar's register
--- links keep: the states the register reads, ie the amounts mode, the
--- accounts mode, inferred prices, zero balances, and lot detail. Each such
--- link rewrites the search itself.
+-- links keep: the states the register reads, ie the depth limit (which
+-- clips its sidebar), the amounts mode, the accounts mode, inferred
+-- prices, zero balances, and lot detail. Each such link rewrites the
+-- search itself.
 registerKeptParams :: [(Text, Text)] -> [(Text, Text)]
-registerKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["value", "list", "infer", "empty", "lots"]]
+registerKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["depth", "value", "list", "infer", "empty", "lots"]]
 
 -- | Render a "BalanceReport" as the sidebar: the page links (each page's
 -- route, label, and title, with the parameters their links carry), then
 -- the accounts, linking to their registers. The current page's row is marked.
 balanceReportAsHtml ::
-  Eq r => r -> r -> [(r, Text, Text)] -> [(Text, Text)] -> Bool -> Text -> Text -> Translations -> Journal -> Text -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel tottitle trs j qparam qopts (items, total) =
+  Eq r => r -> r -> [(r, Text, Text)] -> [(Text, Text)] -> Bool -> Text -> Text -> Translations -> Journal -> Text -> Maybe (AccountName, Bool) -> BalanceReport -> HtmlUrl r
+balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel tottitle trs j qparam maccount (items, total) =
   $(hamletFile "templates/balance-report.hamlet")
   where
     l = ledgerFromJournal Any j
@@ -141,13 +146,14 @@ balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel totti
       -- lot, +10 A @ one cost and -10 A at another), and the sidebar
       -- displays such balances as zero.
       where isInteresting a = not (all (mixedAmountLooksZero . mixedAmountStripCosts . bdexcludingsubs) . pdperiods $ adata a) || any isInteresting (asubs a)
-    matchesAcctSelector acct = Just True == ((`matchesAccount` acct) <$> inAccountQuery qopts)
+    matchesAcctSelector acct = maybe False ((`matchesAccount` acct) . accountRegisterQuery) maccount
     kept = registerKeptParams reportParams
-    acctlink acct = (registerR, ("q", replaceInacct qparam $ accountQuery acct) : kept)
-    acctonlylink acct = (registerR, ("q", replaceInacct qparam $ accountOnlyQuery acct) : kept)
-    -- The register of everything, for the sidebar's search minus any
-    -- account term; the search form's clear button is the way out of a search.
-    totallink = (registerR, [("q", t) | let t = T.unwords $ removeInacct qparam, not (T.null t)] ++ kept)
+    qps = [("q", qparam) | not (T.null qparam)]
+    acctlink acct = (registerR, qps ++ accountParams True acct ++ kept)
+    acctonlylink acct = (registerR, qps ++ accountParams False acct ++ kept)
+    -- The register of everything, for the sidebar's search; the search
+    -- form's clear button is the way out of a search.
+    totallink = (registerR, qps ++ kept)
 
 -- | A row of links above a report: a label, then each link's label,
 -- title, target, and whether it is the one being shown.
@@ -180,14 +186,69 @@ linksRowGroups cls rowlabel groups renderUrl =
 -- browser in the showcontrols cookie (hledger.js), which the server
 -- reads (App.showControls), so each page is born the way the last one
 -- was left and nothing moves after paint.
-controlsToggle :: Translations -> Bool -> HtmlUrl r -> HtmlUrl r
-controlsToggle trs open rows =
+-- Closed, it lists the options in effect, so that the page's state is
+-- never hidden (see optionsSummary).
+controlsToggle :: Translations -> Bool -> [Text] -> HtmlUrl r -> HtmlUrl r
+controlsToggle trs open summary rows =
   -- TRANSLATORS: the disclosure hiding each page's rows of report controls: its text, and its tooltip.
   [hamlet|
 <details .report-controls :open:open>
-  <summary title=#{tr trs "Show the options that reshape this view"}>#{tr trs "Options"}
+  <summary title=#{tr trs "Show the options that reshape this view"}>
+    #{tr trs "Options"}
+    $if not (null summary)
+      <span .options-summary>#{T.intercalate " · " summary}
   ^{rows}
 |]
+
+-- | The report options a page's parameters set, as short phrases for the
+-- closed controls disclosure: the controls' own words where those stand
+-- alone ("Monthly", "Tree"), a phrase where a control's word would not
+-- ("Shown"). The pages' links carry only the options not at their
+-- defaults, so these are the options in effect, listed in the order of
+-- the controls' rows. The filters are not here: they are search terms,
+-- shown in the search box. A depth limit below none of the accounts
+-- (deeper than the given deepest account) is not one: the Depth links
+-- show it as All.
+optionsSummary :: Translations -> Int -> [(Text, Text)] -> [Text]
+optionsSummary trs deepest = mapMaybe phrase . sortOn (rowOrder . fst)
+  where
+    rowOrder k = fromMaybe maxBound $ elemIndex k
+      ["interval", "accum", "depth", "list", "value", "infer", "empty", "lots", "closed",
+       "total", "avg", "costs", "sort", "pct", "calc", "date2"]
+    phrase = \case
+      ("interval", w)     -> Just $ fromMaybe w $ lookup w
+        [ ("yearly", tr trs "Yearly"), ("quarterly", tr trs "Quarterly"), ("monthly", tr trs "Monthly")
+        , ("weekly", tr trs "Weekly"), ("daily", tr trs "Daily") ]
+      -- TRANSLATORS: the depth limit, in the list of options in effect.
+      ("depth", n)        -> do
+        d <- readMay (T.unpack n) :: Maybe Int
+        guard (d <= deepest)
+        Just $ trf trs "Depth {depth}" [("depth", n)]
+      ("accum", a)        -> lookup a
+        [ ("change", tr trs "Balance changes"), ("historical", tr trs "Ending balances")
+        , ("cumulative", tr trs "Cumulative totals") ]
+      ("value", "none")   -> Just $ tr trs "As recorded"
+      ("value", "cost")   -> Just $ tr trs "At cost"
+      ("value", _)        -> Just $ tr trs "At market value"
+      ("list", "tree")    -> Just $ trc trs "accounts" "Tree"
+      ("list", "flat")    -> Just $ trc trs "accounts" "List"
+      ("sort", "amount")  -> Just $ tr trs "By amount"
+      ("pct", "1")        -> Just $ tr trs "Percentages"
+      ("calc", c)         -> lookup c
+        [ ("valuechange", tr trs "Value change"), ("gain", tr trs "Unrealized gain")
+        , ("count", tr trs "Posting counts") ]
+      -- TRANSLATORS: options in effect, listed on the closed options disclosure.
+      ("total", "1")      -> Just $ tr trs "Row totals"
+      ("avg", "1")        -> Just $ tr trs "Row averages"
+      ("infer", "1")      -> Just $ tr trs "Inferred prices"
+      ("empty", "0")      -> Just $ tr trs "Zero balances hidden"
+      ("empty", "1")      -> Just $ tr trs "Zero balances shown"
+      ("lots", "1")       -> Just $ tr trs "Lots shown"
+      ("costs", "1")      -> Just $ tr trs "Costs shown"
+      ("closed", "1")     -> Just $ tr trs "Closed positions shown"
+      ("closed", "0")     -> Just $ tr trs "Closed positions hidden"
+      ("date2", "1")      -> Just $ tr trs "Secondary dates"
+      _                   -> Nothing
 
 -- | Rows of controls that take effect on other pages, their labels
 -- muted: they show and preserve the url's report state here too, so it
@@ -250,12 +311,12 @@ valueWord = \case
 -- | Links to the same report page limited to each account depth, from 1
 -- up to and including the given deepest one, after an All link that
 -- removes the limit. The deepest link shows the same accounts as All,
--- but holds the depth in the query, where it keeps clipping if showing
--- lots deepens the tree. Each replaces the search's depth limit and
--- keeps its other terms and the given parameters; the depth being shown
--- is marked, on All when the search's depth exceeds the deepest, as
--- hledger-ui's digits treat one. (A depth:0 term, a single total, can
--- be typed in the search.)
+-- but holds the depth, which keeps clipping if showing lots deepens the
+-- tree. Each sets the depth parameter, keeping the search and the given
+-- parameters; the depth being shown, the given parameters' depth, is
+-- marked, on All when it exceeds the deepest, as hledger-ui's digits
+-- treat one. (A depth of 0, a single total, can be typed in the search,
+-- as depth:0.)
 -- The digit keys set a depth through the All link's url (hledger.js).
 depthLinks :: Translations -> r -> [(Text, Text)] -> Text -> Int -> HtmlUrl r
 depthLinks trs route kept qparam deepest =
@@ -265,11 +326,11 @@ depthLinks trs route kept qparam deepest =
     : [ (T.pack (show n), depthTitle n, link (Just n), current == Just n)
       | n <- [1 .. deepest] ]
   where
-    current = searchDepth qparam
+    current = readMay . T.unpack =<< lookup "depth" kept
     -- TRANSLATORS: the tooltips of a report's depth links.
     depthTitle n = trf trs "Show accounts down to depth {depth}" [("depth", T.pack (show n))]
     link mn =
-      (route, [("q", t) | let t = T.unwords $ removeDepth qparam ++ ["depth:" <> T.pack (show (n :: Int)) | Just n <- [mn]], not (T.null t)] ++ kept)
+      (route, [("q", qparam) | not (T.null qparam)] ++ filter ((/= "depth") . fst) kept ++ [("depth", T.pack (show (n :: Int))) | Just n <- [mn]])
 
 -- | Links to the same report page showing amounts as recorded, at cost,
 -- or at market value, keeping the given parameters; the mode being
@@ -551,11 +612,16 @@ commodityLinks trs route kept qparam open hint j renderUrl
             | otherwise -> a : go b
           (a, _) -> [a]
 
-accountQuery :: AccountName -> Text
-accountQuery = ("inacct:" <>) . quoteForQuery
+-- | The parameters naming an account register's account: with its
+-- subaccounts, or with subs=0, without them. (An inacct: or inacctonly:
+-- term typed in the search becomes these; see App.normaliseUrlState.)
+accountParams :: Bool -> AccountName -> [(Text, Text)]
+accountParams = Anchor.accountParams
 
-accountOnlyQuery :: AccountName -> Text
-accountOnlyQuery = ("inacctonly:" <>) . quoteForQuery
+-- | The query selecting an account register's account, with its
+-- subaccounts or without them (as inacct: and inacctonly: do).
+accountRegisterQuery :: (AccountName, Bool) -> Query
+accountRegisterQuery (a, subs) = Acct $ (if subs then accountNameToAccountRegex else accountNameToAccountOnlyRegex) a
 
 mixedAmountAsHtml :: MixedAmount -> HtmlUrl a
 mixedAmountAsHtml = mixedAmountAsHtmlWith noCostFmt{displayZeroCommodity=True}
@@ -644,18 +710,62 @@ transactionFragment j Transaction{tindex, tsourcepos} =
 removeDates :: Text -> [Text]
 removeDates = map quoteIfSpaced . Anchor.removeDates . searchTerms
 
--- | The search's terms without those naming an account, each quoted if it needs to be.
-removeInacct :: Text -> [Text]
-removeInacct = map quoteIfSpaced . Anchor.removeInacct . searchTerms
+-- | What 'normalisedSearch' moves out of a search: the search without
+-- it, and the options found.
+data MovedOptions = MovedOptions {
+    moSearch   :: Text,
+    moDepth    :: Maybe Int,
+    moInterval :: Maybe Interval,
+    moAccount  :: Maybe (AccountName, Bool)  -- ^ the account, and whether with subaccounts
+  } deriving (Eq, Show)
 
--- | The search's terms without its depth:N terms, each quoted if it needs
--- to be. Its depth:REGEX=N terms, which limit some accounts, stay.
-removeDepth :: Text -> [Text]
-removeDepth = map quoteIfSpaced . filter (isNothing . flatDepth) . searchTerms
+-- | The report options in a search and in the old period parameter, which
+-- hledger-web keeps in their own parameters (see App.normaliseUrlState):
+-- the search without them, the depth of its last depth:N term, the
+-- interval of its last date:INTERVAL term, else of the period parameter,
+-- and the account of its first inacct: or inacctonly: term (the one an
+-- account register used). A date:INTERVAL term is reduced to its date
+-- span, if it has one, and the period parameter's date span joins the
+-- search as a date: term. A depth:REGEX=N term, limiting some accounts
+-- only, stays in the search. Nothing when there is nothing to move.
+normalisedSearch :: Day -> Text -> Maybe Text -> Maybe MovedOptions
+normalisedSearch today qparam mperiod
+  | isNothing mdepth && null termIntervals && isNothing macct && isNothing mperiod = Nothing
+  | otherwise = Just $ MovedOptions (T.unwords $ map quoteIfSpaced $ periodTerms ++ concatMap rest terms) mdepth mivl macct
+  where
+    terms = searchTerms qparam
+    mdepth = lastMay $ mapMaybe flatDepth terms
+    dateInterval t = T.stripPrefix "date:" t >>= splitPeriodExpr today
+    termIntervals = [i | t <- terms, Just (i, _) <- [dateInterval t]]
+    accountTerm t = (\a -> (a, False)) <$> T.stripPrefix "inacctonly:" t
+                <|> (\a -> (a, True))  <$> T.stripPrefix "inacct:" t
+    macct = listToMaybe $ mapMaybe accountTerm terms
+    rest t
+      | isJust (flatDepth t)           = []
+      | isJust (accountTerm t)         = []
+      | Just (_, sp) <- dateInterval t = ["date:" <> sp | not (T.null sp)]
+      | otherwise                      = [t]
+    -- A period that is not an interval and a span is a span only (or
+    -- unparseable, which its date: term then reports).
+    (periodInterval, periodTerms) = case mperiod of
+      Nothing -> (Nothing, [])
+      Just p  -> case splitPeriodExpr today p of
+        Just (i, sp) -> (Just i, ["date:" <> sp | not (T.null sp)])
+        Nothing      -> (Nothing, ["date:" <> p])
+    mivl = lastMay termIntervals <|> periodInterval
 
--- | The search's depth limit, from its last depth:N term.
-searchDepth :: Text -> Maybe Int
-searchDepth = lastMay . mapMaybe flatDepth . searchTerms
+-- | Split a period expression's reporting interval from its date span,
+-- keeping the span as written, eg "monthly in 2025" gives monthly and
+-- "in 2025". Nothing when it does not start with an interval, or what
+-- follows is not a date span.
+splitPeriodExpr :: Day -> Text -> Maybe (Interval, Text)
+splitPeriodExpr today s = do
+  (ivl, rest) <- either (const Nothing) Just $
+    parsewith ((,) <$> (skipNonNewlineSpaces *> reportingintervalp) <*> (skipNonNewlineSpaces *> getInput)) (T.toLower s)
+  let sp = T.strip rest
+  if T.null sp || either (const False) ((== NoInterval) . fst) (parsePeriodExpr today sp)
+    then Just (ivl, sp)
+    else Nothing
 
 -- | The depth a depth:N term limits all accounts to.
 flatDepth :: Text -> Maybe Int
@@ -668,11 +778,7 @@ searchTerms :: Text -> [Text]
 searchTerms = filter (not . T.null) . Query.words'' queryprefixes
 
 -- | The search for the journal page narrowed to a day: the day's date
--- term in place of any date terms, and without any account term, which
--- the journal page does not use.
+-- term in place of any date terms.
 journalDayQuery :: Text -> Day -> Text
 journalDayQuery qparam d =
-  T.unwords $ ("date:" <> showDate d) : removeDates (T.unwords $ removeInacct qparam)
-
-replaceInacct :: Text -> Text -> Text
-replaceInacct q acct = T.unwords $ acct : removeInacct q
+  T.unwords $ ("date:" <> showDate d) : removeDates qparam

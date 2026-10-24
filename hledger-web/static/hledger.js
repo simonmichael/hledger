@@ -484,13 +484,12 @@ function depthAdjust(delta) {
 
 function depthSet(n) {
   // The digit keys set the depth limit, like hledger-ui's: the Depth
-  // row's All link carries the page's url without a depth term, so the
-  // new term is appended to its search without parsing it.
+  // row's All link carries the page's url without a depth limit, which
+  // the depth parameter adds.
   var all = document.querySelector('#main-content .depth a');
   if (!all) { return false; }
   var url = new URL(all.href);
-  var q = url.searchParams.get('q');
-  url.searchParams.set('q', (q ? q + ' ' : '') + 'depth:' + n);
+  url.searchParams.set('depth', n);
   location.href = url.href;
   return true;
 }

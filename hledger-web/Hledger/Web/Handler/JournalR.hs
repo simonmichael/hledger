@@ -15,25 +15,25 @@ import Hledger.Web.Import
 import Hledger.Web.Paging
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, intervalLinks, listWord, parseCalc, parseInterval, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
-            (accountQuery, amountLinks, calcLinks, columnsLinks, commodityLinks,
-             controlsHint, controlsToggle,
+            (accountParams, amountLinks, calcLinks, columnsLinks, commodityLinks,
+             controlsHint, controlsToggle, optionsSummary,
              depthLinks, inertControls, listModeLinks, lotsLinks,
              mixedAmountAsHtml, percentLinks, pricesLinks, realLinks, sortLinks,
              statusLinks, typeLinks,
-             transactionFragment, replaceInacct, journalDayQuery, zeroBalanceLinks)
+             transactionFragment, journalDayQuery, zeroBalanceLinks)
 
 -- | The formatted journal view, with sidebar.
 getJournalR :: Handler Html
 getJournalR = do
   checkServerSideUiEnabled
-  VD{perms, j, jHasLots, lotsShown, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{perms, j, jHasLots, lotsShown, q, opts, qparam, account, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   mmode <- either (const Nothing) id . parseValue <$> lookupGetParam "value"
   mlist <- either (const Nothing) id . parseListMode <$> lookupGetParam "list"
   inferOn <- (== Just "1") <$> lookupGetParam "infer"
-  mperiod <- lookupGetParam "period"
+  minterval <- lookupGetParam "interval"
   totalOn <- (== Just "1") <$> lookupGetParam "total"
   avgOn   <- (== Just "1") <$> lookupGetParam "avg"
   sortAmt <- (== Just "amount") <$> lookupGetParam "sort"
@@ -41,13 +41,13 @@ getJournalR = do
   mcalc   <- lookupGetParam "calc"
   date2On <- (== Just "1") <$> lookupGetParam "date2"
   pagereq <- pageRequest
-  let title = case inAccount qopts of
+  let title = case account of
         Nothing         -> tr trs "General Journal"
         Just (a, True)  -> trf trs "Transactions in {account}" [("account", a)]
         Just (a, False) -> trf trs "Transactions in {account} (excluding subaccounts)" [("account", a)]
-      title' = if q /= Any then trf trs "{title}, filtered" [("title", title)] else title
+      title' = if filterQuery (not . queryIsDepth) q /= Any then trf trs "{title}, filtered" [("title", title)] else title
       -- An account's register, opened on the page holding this transaction.
-      acctlink a t = (RegisterR, ("q", replaceInacct qparam $ accountQuery a) : ("txn", T.pack $ show $ tindex t) : carried)
+      acctlink a t = (RegisterR, [("q", qparam) | not (T.null qparam)] ++ accountParams True a ++ ("txn", T.pack $ show $ tindex t) : carried)
       q' = filterQuery (not . queryIsDepth) q
       rspec = (reportspec_ $ cliopts_ opts){_rsQuery = q'}
       -- The matching transactions, newest first; this page shows one page of them.
@@ -75,7 +75,7 @@ getJournalR = do
       -- survives this landing page and the url's state is never
       -- invisible.
       stickyParams =
-        [("period", p) | Just p <- [mperiod], not (T.null p)] ++
+        [("interval", w) | Just w <- [mfilter (not . T.null) minterval]] ++
         [("total", "1") | totalOn] ++
         [("avg", "1") | avgOn] ++
         [("sort", "amount") | sortAmt] ++
@@ -83,7 +83,7 @@ getJournalR = do
         [("calc", c) | Just c <- [mcalc], not (T.null c)] ++
         [("date2", "1") | date2On]
       lotsParams = [("lots", "1") | lotsShown]
-      carried = dbg1 "journal carried params" $ stickyParams ++ valParams ++ listParams ++ inferParams ++ emptyParams ++ lotsParams
+      carried = dbg1 "journal carried params" $ stickyParams ++ valParams ++ listParams ++ inferParams ++ emptyParams ++ lotsParams ++ depthParams q
       qps = [("q", qparam) | not (T.null qparam)]
       -- An entry's date link: the journal on that date, same modes.
       dayParams t = ("q", journalDayQuery qparam (tdate t)) : carried
@@ -116,19 +116,12 @@ getJournalR = do
         else const mempty
       -- The report-shaping controls, operative on the report pages,
       -- shown dimmed with the url's state marked.
-      (pivl, pspan) = case mperiod of
-        Just p | not (T.null p), Right r <- parsePeriodExpr today p -> r
-        _ -> (NoInterval, nulldatespan)
-      rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
+      rpInterval = maybe NoInterval (either (const NoInterval) id . parseInterval) minterval
       calcCur = either (const CalcChange) id $ parseCalc mcalc
-      -- The years row; its links rewrite the date narrowing themselves,
-      -- so they reduce the period parameter to its interval. The period
-      -- does not narrow this page, so only the search's dates mark years
-      -- (hence nulldatespan, not pspan).
-      yearsKept = [("period", w) | Just w <- [intervalPeriodExpr pivl]] ++ removeAttributes ["period"] carried
-      yearsNav = yearsRow trs JournalR qparam today nulldatespan yearsKept years
+      -- The years row; its links rewrite the search's date narrowing themselves.
+      yearsNav = yearsRow trs JournalR qparam today carried years
       intervalRow = inertControls trs $
-        intervalLinks trs JournalR (removeAttributes ["period"] carried) qparam pspan rpInterval
+        intervalLinks trs JournalR (removeAttributes ["interval"] carried) qparam rpInterval
       inertRows = inertControls trs $ mconcat
         [ columnsLinks trs JournalR (qps ++ removeAttributes ["total", "avg"] carried) totalOn avgOn
         , sortLinks trs JournalR (qps ++ removeAttributes ["sort"] carried) sortAmt
@@ -137,7 +130,7 @@ getJournalR = do
         ]
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
-      controlsRows = controlsToggle trs controlsOpen $ mconcat $
+      controlsRows = controlsToggle trs controlsOpen (optionsSummary trs deepest carried) $ mconcat $
         [intervalRow, yearsNav, statusRow, realRow, typeRow, typeHintRow, commodityRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, pricesRow, zeroRow, lotsRow, inertRows]
 

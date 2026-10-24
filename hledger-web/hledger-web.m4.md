@@ -136,8 +136,8 @@ it's because they have a mixed-cost balance, which looks like zero when costs ar
 Report options and query arguments given at startup become url state:
 hledger-web translates them into the url that browse mode opens, and
 that `--serve` prints, eg `hledger-web -V -M` opens
-`/journal?period=monthly&value=end`, and `hledger-web --cleared -3 assets`
-opens `/journal?q=assets status:* depth:3` (url-encoded). The server
+`/journal?interval=monthly&value=end`, and `hledger-web --cleared -3 assets`
+opens `/journal?q=assets status:*&depth=3` (url-encoded). The server
 itself keeps the defaults, so every view is fully described by its
 url: a bare url shows the default view, and editing the url (or the
 search and the links above each page) changes the view. Report options
@@ -159,13 +159,17 @@ hledger-web's main views are:
 
 - the **journal view** (the home page), showing journal entries, newest first, with their postings;
 - the **register view**, showing the transactions affecting one account (and its subaccounts),
-  with a running balance and a balance chart; and
+  with a running balance and a balance chart, the account named by an `account` parameter,
+  eg `/register?account=assets:bank` (with `subs=0`, excluding its subaccounts), which the
+  register's links and search keep; and
 - the **report views**, described [below](#reports): the balance sheet, income statement,
   and cashflow statement (and holdings, for journals using lots), also linked from the sidebar,
   and the All accounts report and the balance sheet with equity.
 
 A row of links at the top of every page leads to the journal and report views.
 Below it are the search form, the options, and then the view's heading and content.
+The options are hidden until opened (click them, or press `o`); while hidden, they list
+the ones in effect, eg "Monthly · Depth 2 · Tree", so a view's shape is always visible.
 
 The journal and register views show the newest 1000 matching transactions, with links to the older
 and newer pages and to pages by number, so that a page stays a reasonable size
@@ -179,7 +183,7 @@ The **sidebar** lists accounts and their balances (parent balances include subac
 and multiple commodities are shown one above the other).
 When a report shows its accounts as a tree (the Accounts row), the sidebar does too,
 with carets that fold and open each group in place. Folds are remembered in the browser,
-as choices laid over each page's baseline: a page with a `depth:` limit starts folded
+as choices laid over each page's baseline: a page with a depth limit starts folded
 to it, one without starts fully open, and either way the groups you have opened or
 closed by hand stay as you left them. A caret clicked back to its page's baseline
 is forgotten.
@@ -292,18 +296,27 @@ value. On such journals
 every page also gains a Lots link, showing lot subaccounts and per-lot
 postings everywhere with the same `lots` parameter.
 
-A `period` parameter, like the command line's `-p/--period`, selects
-the interval and/or the period, eg `/balancesheet?period=monthly` or
-`/incomestatement?period=quarterly in 2025`; the links above each
+The search box filters the reports like the other pages, its `date:`
+terms setting the report's dates. An `interval` parameter, like the
+command line's `-D`/`-W`/`-M`/`-Q`/`-Y` or the interval part of
+`-p/--period`, divides them into columns, eg `/balancesheet?interval=monthly`
+or `/incomestatement?q=date:2025&interval=quarterly`; the links above each
 report offer the usual intervals, and column headings link to the
-report for that period.
-The search box filters the reports like the other pages, including
-`depth:` terms. A `date:` term can set the interval
-too, as on the command line (`date:monthly`, or
-`"date:quarterly in 2025"`), and wins over the `period` parameter.
+report for that column's dates.
+A `date:` term typed with an interval, as on the command line
+(`date:monthly`, or `"date:quarterly in 2025"`), moves its interval to
+the `interval` parameter (the page reloads), leaving its dates in the
+search.
 
-The links above each report also set its depth, which they write as a
-`depth:` term in the search; how amounts are shown, as recorded, at
+A `depth` parameter, like `--depth`, limits the account depth, eg
+`/balancesheet?depth=2`; the Depth links and the digit keys set it, and
+the pages' links carry it. A `depth:N` term typed in the search moves
+there too (the page reloads with it as the `depth` parameter), so the
+search holds only the terms selecting data. A per-account depth limit,
+like `depth:assets=3`, stays in the search, and applies to its accounts
+as on the command line.
+
+The links above each report also set how amounts are shown, as recorded, at
 cost (like `-B`), or at market value at the end of each period (like
 `-V`), with a `value` parameter (`none`, `cost`, `then`, `end`, `now`,
 or a date; all but `cost` take an optional commodity, as

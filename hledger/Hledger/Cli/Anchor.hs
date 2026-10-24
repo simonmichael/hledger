@@ -13,7 +13,7 @@ module Hledger.Cli.Anchor (
     valueParam,
     composeAnchor,
     composeAnchorWith,
-    accountTerm,
+    accountParams,
     dateTerm,
     removeDates,
     removeInacct,
@@ -58,7 +58,7 @@ data LinkOpts = LinkOpts {
     loDate2        :: Bool,
       -- ^ Does the report use secondary dates ? Then so must the register.
     loIncludesSubs :: Bool,
-      -- ^ Does the row's figure include subaccounts (inacct:) or not (inacctonly:) ?
+      -- ^ Does the row's figure include subaccounts, or not (subs=0) ?
     loNegated      :: Bool,
       -- ^ Are the figures shown with the opposite sign to the register's ?
     loValue        :: Maybe Text
@@ -104,10 +104,10 @@ linkSpan lo spn@(DateSpan _ e) =
         Cumulative -> let DateSpan s _ = loSpan lo in DateSpan s e
         _          -> spn
 
--- | The query term naming the account a link is for.
-accountTerm :: Bool -> Text -> Text
-accountTerm includesSubs acct =
-    (if includesSubs then "inacct:" else "inacctonly:") <> acct
+-- | The query parameters naming the account a link's register is for:
+-- with its subaccounts, or with subs=0, without them.
+accountParams :: Bool -> Text -> [(Text, Text)]
+accountParams includesSubs acct = ("account", acct) : [("subs", "0") | not includesSubs]
 
 -- | A date: term for the span (date2: for a report using secondary
 -- dates), or none for the unbounded span.
@@ -120,11 +120,11 @@ registerQueryUrl params query =
     Uri.render $
     [UriQQ.uri|register|] {
         Uri.uriQuery =
-            Uri.QueryParam [UriQQ.queryKey|q|]
-                (queryValue $ Text.unwords $ map quoteForQuery $ filter (not . Text.null) query)
-            : [Uri.QueryParam (queryKey k) (queryValue v) | (k, v) <- params]
+            [Uri.QueryParam [UriQQ.queryKey|q|] (queryValue q) | not $ Text.null q]
+            ++ [Uri.QueryParam (queryKey k) (queryValue v) | (k, v) <- params]
     }
   where
+    q = Text.unwords $ map quoteForQuery $ filter (not . Text.null) query
     queryKey   = fromMaybe (error' "register URI query construction failed") . Uri.mkQueryKey
     queryValue = fromMaybe (error' "register URI query construction failed") . Uri.mkQueryValue
 
@@ -204,8 +204,7 @@ dateSpanCellWith ::
     LinkOpts -> PeriodTitles -> Maybe Text -> [Text] -> Text -> DateSpan -> Spr.Cell border Text
 dateSpanCellWith lo ph base query acct spn =
     withLink
-        (composeAnchorWith (linkParams lo) base $
-            accountTerm (loIncludesSubs lo) acct :
+        (composeAnchorWith (accountParams (loIncludesSubs lo) acct ++ linkParams lo) base $
             dateTerm (loDate2 lo) (linkSpan lo spn) ++ removeDates (removeInacct query))
         "Show transactions affecting this account in this period" $
     Spr.defaultCell $ renderPeriodHeading ph spn
@@ -222,8 +221,8 @@ dateCell ::
     Maybe Text -> [Text] -> Text -> Day -> Spr.Cell border Text
 dateCell base query acct d =
     withLink
-        (composeAnchor base $
-            accountTerm True acct : ("date:" <> showDate d) : removeDates (removeInacct query))
+        (composeAnchorWith (accountParams True acct) base $
+            ("date:" <> showDate d) : removeDates (removeInacct query))
         "Show transactions affecting this account on this date" $
     Spr.defaultCell $ showDate d
 
@@ -252,8 +251,8 @@ setAccountAnchorWith ::
     LinkOpts -> Maybe Text -> [Text] -> Text -> Spr.Cell border text -> Spr.Cell border text
 setAccountAnchorWith lo base query acct =
     withLink
-        (composeAnchorWith (linkParams lo) base $
-            accountTerm (loIncludesSubs lo) acct : removeInacct query)
+        (composeAnchorWith (accountParams (loIncludesSubs lo) acct ++ linkParams lo) base $
+            removeInacct query)
         (if loIncludesSubs lo
             then "Show transactions affecting this account and subaccounts"
             else "Show transactions affecting this account but not subaccounts")

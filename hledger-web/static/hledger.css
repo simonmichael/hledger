@@ -252,6 +252,16 @@ details.report-controls[open] {
 details.report-controls > summary {
   cursor: pointer;
   width: max-content;
+  max-width: 100%;
+}
+/* Closed, the options in effect follow, muted (Widget.Common.optionsSummary);
+   open, the rows show them. */
+details.report-controls > summary .options-summary {
+  margin-left: 1em;
+  color: var(--muted);
+}
+details.report-controls[open] > summary .options-summary {
+  display: none;
 }
 details.report-controls > summary::before {
   content: "▸";
