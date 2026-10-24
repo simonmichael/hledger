@@ -12,12 +12,11 @@ highlighting.
   contains html/javascript payloads for this. Also the Content-Security-Policy: it is
   sent, nothing on any page violates it, and a script without the nonce is blocked.
 - `color-scheme.spec.js` — the dark color scheme: no page or dialog is left light or
-  hard to read in it, and the register chart is drawn again when the scheme changes, and
-  for printing.
+  hard to read in it, and the register chart takes its dark colors on screen, and prints
+  light.
 - `paging.spec.js` — the journal and register views page their transactions (#586):
   what only a browser shows, a paged page loading without policy violations or
-  errors, the register chart drawn from the page's rows, and a link to a
-  transaction on another page scrolling to it. This spec starts a second
+  errors, and a link to a transaction on another page scrolling to it. This spec starts a second
   hledger-web on a generated journal of 2300 transactions.
 - `helpers.js`, `server.js` — shared by the specs: collecting policy violations and page
   errors, and starting hledger-web.

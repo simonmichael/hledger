@@ -188,6 +188,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
   entryTooltipInit();
   registerChartInit();
+  chartWidthRecord();
+  var resizing;
+  window.addEventListener('resize', function() {
+    clearTimeout(resizing);
+    resizing = setTimeout(chartWidthRecord, 250);
+  });
 
   // Unless something has focus already: a long page can be clicked or
   // tabbed in before it has finished loading.
@@ -449,6 +455,7 @@ function sidebarToggle() {
   }
   // The server reads this cookie, so the next page renders the way we left it.
   setCookie('showsidebar', sidebar && sidebar.classList.contains('col-any-0') ? '0' : '1');
+  chartWidthRecord();
 }
 
 function fullWindowOn() {
@@ -465,6 +472,7 @@ function fullWindowToggle() {
   try {
     if (on) { sessionStorage.setItem('fullwindow', '1'); } else { sessionStorage.removeItem('fullwindow'); }
   } catch (e) {}
+  chartWidthRecord();
 }
 
 function fullWindowLeave() {
@@ -759,173 +767,119 @@ function entryTooltipPlace(tip, x, y) {
 //----------------------------------------------------------------------
 // REGISTER CHART
 //
-// The register page's balance chart, drawn with flot. chart.hamlet renders
-// only the markup, with the data as JSON on #register-chart, so that pages
-// carry no inline scripts beyond the nonced ones (#2703). flot needs jquery,
-// so this section uses it too.
+// The register page's balance chart is SVG, drawn by the server (see
+// registerChartHtml and chart.hamlet), its points linking to their rows. Here,
+// dragging across one of its plots shows the register for the dates dragged
+// across. Each plot carries its date scale, on a transparent rect.plot under
+// it: its first and last dates (data-d0, data-d1) and their x positions
+// (data-x0, data-x1), between which dates are spaced evenly. The chart carries
+// this register's url without its date terms (data-baselink).
 
-// Draw the register chart, if this page has one.
+// Keep the width of the page's main column in the chartwidth cookie, for
+// the server to draw the register chart that wide (registerChartHtml): a
+// chart drawn wider than its column is shrunk to fit, its text with it.
+// Measured on every page, so that it is known before a register is shown.
+function chartWidthRecord() {
+  var main = document.getElementById('main-content');
+  if (!main) { return; }
+  var style = getComputedStyle(main);
+  var w = Math.floor(main.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight));
+  if (w > 0 && String(w) !== getCookie('chartwidth')) { setCookie('chartwidth', w); }
+}
+
+// Let the register chart's plots, if this page has any, be dragged across.
 function registerChartInit() {
-  var $chartdiv = $('#register-chart');
-  // flot needs a container with a size, so do nothing while it is hidden.
-  if (!$chartdiv.length || !$chartdiv.is(':visible')) { return; }
-  var $label = $('#register-chart-label');
-  var commodities = JSON.parse($chartdiv.attr('data-series'));
-  // Each commodity is drawn as two flot series over the same points: a
-  // stepped line for the running balance, and one clickable, hoverable point
-  // per transaction. A point is [timestamp, balance, amount text, balance
-  // text, the transaction's row id]: flot reads the first two, the tooltip
-  // and click handlers the rest. The tooltip takes the transaction's entry
-  // from its row.
-  var series = [];
-  commodities.forEach(function(c, i) {
-    series.push({
-      data: c.points, label: c.label, color: i,
-      lines: { show: true, steps: true }, points: { show: false },
-      clickable: false, hoverable: false,
+  document.querySelectorAll('.register-chart[data-baselink] svg').forEach(function(svg) {
+    var plots = Array.prototype.slice.call(svg.querySelectorAll('rect.plot[data-d0]'));
+    if (!plots.length) { return; }
+    var drag = null;       // the drag in progress: its plot, where it started, and its selection
+    var dragged = false;   // was the last press a drag, rather than a click ?
+    // The pointer's position in the chart's own coordinates, whatever size
+    // the page draws it at.
+    var point = function(ev) {
+      return new DOMPoint(ev.clientX, ev.clientY).matrixTransform(svg.getScreenCTM().inverse());
+    };
+    svg.addEventListener('pointerdown', function(ev) {
+      dragged = false;
+      if (ev.button !== 0) { return; }
+      var p = point(ev);
+      var plot = plots.find(function(pl) {
+        var r = registerChartPlotBox(pl);
+        return p.x >= r.x && p.x <= r.x + r.width && p.y >= r.y && p.y <= r.y + r.height;
+      });
+      if (!plot) { return; }
+      drag = { plot: plot, x: p.x, selection: null };
+      // no text selection, and no dragging away the link of a point pressed on
+      ev.preventDefault();
     });
-    series.push({
-      data: c.points, color: i,
-      lines: { show: false }, points: { show: true },
+    svg.addEventListener('dragstart', function(ev) { ev.preventDefault(); });
+    svg.addEventListener('pointermove', function(ev) {
+      if (!drag) { return; }
+      var x = registerChartClamp(drag.plot, point(ev).x);
+      if (!drag.selection) {
+        // a click may wobble a little before it is a drag
+        if (Math.abs(x - drag.x) < 4) { return; }
+        // From here on the pointer is the drag's, wherever it goes. (Not
+        // before: a click would then land on the chart, not a point's link.)
+        svg.setPointerCapture(ev.pointerId);
+        var r = registerChartPlotBox(drag.plot);
+        drag.selection = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+        drag.selection.setAttribute('class', 'selection');
+        drag.selection.setAttribute('y', r.y);
+        drag.selection.setAttribute('height', r.height);
+        svg.appendChild(drag.selection);
+      }
+      drag.selection.setAttribute('x', Math.min(x, drag.x));
+      drag.selection.setAttribute('width', Math.abs(x - drag.x));
     });
+    svg.addEventListener('pointerup', function(ev) {
+      var d = drag;
+      drag = null;
+      if (!d || !d.selection) { return; }
+      dragged = true;
+      registerChartSelect(svg, d.plot, d.x, registerChartClamp(d.plot, point(ev).x));
+    });
+    svg.addEventListener('pointercancel', function() {
+      if (drag && drag.selection) { drag.selection.remove(); }
+      drag = null;
+    });
+    // A drag ending on a point is not a click on its link.
+    svg.addEventListener('click', function(ev) {
+      if (dragged) { ev.preventDefault(); }
+      dragged = false;
+    }, true);
   });
-  // The page follows a change of color scheme by itself, and prints in the
-  // light one, but the chart is drawn on a canvas; draw it again for those.
-  var draw = function() {
-    $label.text($chartdiv.attr('data-title'));
-    registerChartLegend($label, registerChart($chartdiv, series), $chartdiv.attr('data-more'));
+}
+
+// The position and size of a plot, in the chart's coordinates.
+function registerChartPlotBox(plot) {
+  return { x: +plot.getAttribute('x'), y: +plot.getAttribute('y'),
+           width: +plot.getAttribute('width'), height: +plot.getAttribute('height') };
+}
+
+// An x position kept within a plot.
+function registerChartClamp(plot, x) {
+  var r = registerChartPlotBox(plot);
+  return Math.max(r.x, Math.min(r.x + r.width, x));
+}
+
+// Show the register for the dates between two x positions on a plot, by
+// reloading it with a date: query for them.
+function registerChartSelect(svg, plot, xa, xb) {
+  var DAY = 24 * 60 * 60 * 1000;
+  // dates as YYYY-MM-DD are read, and written, as UTC
+  var d0 = Date.parse(plot.getAttribute('data-d0')), d1 = Date.parse(plot.getAttribute('data-d1'));
+  var x0 = +plot.getAttribute('data-x0'), x1 = +plot.getAttribute('data-x1');
+  var span = Math.round((d1 - d0) / DAY);
+  // the day nearest an x position, within the plot's dates
+  var day = function(x) {
+    var k = x1 > x0 ? Math.round((x - x0) / (x1 - x0) * span) : 0;
+    return d0 + Math.max(0, Math.min(span, k)) * DAY;
   };
-  draw();
-  ['(prefers-color-scheme: dark)', 'print'].forEach(function(query) {
-    window.matchMedia(query).addEventListener('change', draw);
-  });
-  $chartdiv.bind('plotclick', registerChartClick);
-  $chartdiv.bind('plotselected', registerChartSelect);
-}
-
-function registerChart($container, series) {
-  // The colors come from the palette in hledger.css, for the current scheme.
-  var style = getComputedStyle(document.documentElement);
-  var color = function(name) { return style.getPropertyValue(name).trim(); };
-  // https://github.com/flot/flot/blob/master/API.md
-  return $container.plot(
-    series,
-    {
-      series: {
-        // hollow points: filled with the page's own background
-        points: { fillColor: color('--bg') },
-      },
-      xaxis: {
-        mode: "time",
-        timeformat: "%Y/%m/%d",
-      },
-      selection: {
-        mode: "x"
-      },
-      // flot's legend is built from inline style attributes, which the
-      // Content-Security-Policy blocks; registerChartLegend draws ours.
-      legend: {
-        show: false
-      },
-      grid: {
-        color: color('--chart-grid'),
-        markings: function () {
-          var now = Date.now();
-          return [
-            {
-              xaxis: { to: now }, // past
-              yaxis: { to: 0 },   // <0
-              color: color('--chart-past-negative'),
-            },
-            {
-              xaxis: { from: now }, // future
-              yaxis: { from: 0 },   // >0
-              color: color('--chart-future'),
-            },
-            {
-              xaxis: { from: now }, // future
-              yaxis: { to: 0 },     // <0
-              color: color('--chart-future-negative'),
-            },
-            {
-              yaxis: { from: 0, to: 0 }, // =0
-              color: color('--chart-zero'),
-              lineWidth:1
-            },
-          ];
-        },
-        hoverable: true,
-        autoHighlight: true,
-        clickable: true,
-      },
-      // https://github.com/krzysu/flot.tooltip
-      tooltip: true,
-      tooltipOpts: {
-        // its look is in hledger.css (#flotTip), where the palette reaches it
-        defaultTheme: false,
-        xDateFormat: "%Y/%m/%d",
-        content:
-          function(label, x, y, flotitem) {
-            var data = flotitem.series.data[flotitem.dataIndex];
-            var row = document.getElementById(data[4]);
-            var entry = ((row && row.getAttribute('data-entry')) || '').replace(/\s+$/, '');
-            // The plugin renders this as html. Build it from text nodes and
-            // let the browser serialize it, so the journal text cannot be
-            // parsed as markup.
-            return $('<div>')
-              .append(document.createTextNode(data[3] + " balance on %x after " + data[2] + " posted by transaction:"))
-              .append($('<pre>').text(entry))
-              .html();
-          },
-        onHover: function(flotitem, $tooltipel) {
-          $tooltipel.css('border-color', flotitem.series.color);
-        },
-      },
-    }
-  ).data("plot");
-}
-
-// Add the legend to the label line: a color swatch and the commodity for
-// each balance line, then the note of how many commodities are left out, if
-// any are.
-function registerChartLegend($label, plot, more) {
-  plot.getData().forEach(function(s) {
-    if (typeof s.label !== 'string') { return; }
-    var $swatch = $('<span class="legend-swatch">').css('background-color', s.color);
-    $('<span class="legend-item">').append($swatch, document.createTextNode(s.label)).appendTo($label);
-  });
-  if (more) {
-    $('<span class="legend-item more-commodities">').text(more).appendTo($label);
-  }
-}
-
-// Handle a click on a chart point: scroll to that transaction's row.
-function registerChartClick(ev, pos, item) {
-  if (!item) { return; }
-  var id = String(item.series.data[item.dataIndex][4]);
-  var target = document.getElementById(id);
-  if (target) {
-    window.location.hash = '#' + id;
-    $('html, body').animate({ scrollTop: $(target).offset().top }, 1000);
-  }
-}
-
-// Handle a selection (zoom) on the chart: reload with a date: query for
-// the selected range.
-function registerChartSelect(ev, ranges) {
-  // Reconstruct from/to dates carefully based on the selected x-values.
-  // Those x values are unix timestamps (milliseconds since epoch) enclosing the data points' timestamps.
-  // Those are generated by dayToUtcNoonTimestamp, and are UTC times representing the transaction dates.
-  var from = new Date(ranges.xaxis.from);
-  var to = new Date(ranges.xaxis.to + 1 * 24 * 60 * 60 * 1000);
+  var iso = function(t) { return new Date(t).toISOString().slice(0, 10); };
   // as a date: term reads it: YYYY-MM-DD..YYYY-MM-DD, the end exclusive
-  var iso = function(d) {
-    return d.getUTCFullYear() + '-' + String(d.getUTCMonth() + 1).padStart(2, '0') +
-      '-' + String(d.getUTCDate()).padStart(2, '0');
-  };
-  var range = iso(from) + '..' + iso(to);
-  // The base link is this register's url without its date terms; add ours.
-  var url = new URL($('#register-chart').attr('data-baselink'), document.baseURI);
+  var range = iso(day(Math.min(xa, xb))) + '..' + iso(day(Math.max(xa, xb)) + DAY);
+  var url = new URL(svg.closest('.register-chart').getAttribute('data-baselink'), document.baseURI);
   var q = url.searchParams.get('q');
   url.searchParams.set('q', (q ? q + ' ' : '') + 'date:' + range);
   document.location = url.href;

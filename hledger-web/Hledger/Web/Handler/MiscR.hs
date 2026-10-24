@@ -14,6 +14,7 @@ module Hledger.Web.Handler.MiscR
   , getCommoditiesR
   , getAccountsR
   , getAccounttransactionsR
+  , getChartCssR
   , getDownloadR
   , getFaviconR
   , getManageR
@@ -27,8 +28,10 @@ import Data.Text qualified as T
 import Data.Yaml qualified as Yaml
 import Data.ByteString qualified as BS
 import Data.FileEmbed (embedFile)
+import Text.Printf (printf)
 
 import Hledger
+import Hledger.Write.Chart.Svg (chartStylesheet)
 import Hledger.Web.Import
 import Hledger.Web.WebOptions (packageversion)
 import Hledger.Web.Widget.Common (journalFile404)
@@ -41,6 +44,19 @@ getFaviconR = return $ TypedContent "image/x-icon" $ toContent $(embedFile "conf
 
 getRobotsR :: Handler TypedContent
 getRobotsR = return $ TypedContent typePlain $ toContent $(embedFile "config/robots.txt")
+
+-- | The chart stylesheet (see "Hledger.Write.Chart.Svg"), which the
+-- register page links rather than embedding it in its chart, since the
+-- Content-Security-Policy allows no inline styles. Its dark colors apply
+-- on screen only, like hledger.css's, so that a page prints light.
+-- The ETag, a checksum of the stylesheet, lets browsers keep it until a
+-- new build changes it.
+getChartCssR :: Handler TypedContent
+getChartCssR = do
+  setEtag $ T.pack $ printf "%x" $ T.foldl' (\h c -> h * 33 + fromIntegral (fromEnum c)) (5381 :: Word) css
+  return $ TypedContent typeCss $ toContent css
+  where
+    css = T.replace "@media (prefers-color-scheme:dark)" "@media screen and (prefers-color-scheme:dark)" $ chartStylesheet True
 
 getRootR :: Handler Html
 getRootR = do
