@@ -315,6 +315,11 @@ there too (the page reloads with it as the `depth` parameter), so the
 search holds only the terms selecting data. A per-account depth limit,
 like `depth:assets=3`, stays in the search, and applies to its accounts
 as on the command line.
+In tree mode, the reports and the sidebar show the accounts below the
+depth limit folded, with carets that open them in place; folded, they
+show the same rows as `--depth`. The holdings report is clipped to the
+limit instead, as on the command line, merging the clipped accounts'
+positions by commodity.
 
 The links above each report also set how amounts are shown, as recorded, at
 cost (like `-B`), or at market value at the end of each period (like

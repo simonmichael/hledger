@@ -494,8 +494,10 @@ function depthSet(n) {
   return true;
 }
 
-// Tree-mode report rows carry depth-N classes (and the table the depth
-// to fold to initially, if any). Give each group a caret that opens or
+// Tree-mode report rows carry indent-N classes, their indent, and
+// depth-N classes, their account's depth (and the table the depth
+// limit to fold to initially, if any; a row starts open when its
+// account is above the limit). Give each group a caret that opens or
 // closes its rows in place, leaving the page's URL alone.
 function reportTreeInit() {
   document.querySelectorAll('.report-table table').forEach(function(table) {
@@ -504,12 +506,13 @@ function reportTreeInit() {
       var rows = [];
       tbody.querySelectorAll('tr').forEach(function(tr) {
         var td = tr.querySelector('td.account');
-        var m = td && td.className.match(/\bdepth-(\d+)\b/);
-        if (m) { rows.push({tr: tr, td: td, depth: +m[1], expanded: true, parent: false}); }
+        var m = td && td.className.match(/\bindent-(\d+)\b/);
+        var d = td && td.className.match(/\bdepth-(\d+)\b/);
+        if (m) { rows.push({tr: tr, td: td, indent: +m[1], depth: d ? +d[1] : NaN, expanded: true, parent: false}); }
       });
       rows.forEach(function(r, i) {
-        r.parent = i + 1 < rows.length && rows[i + 1].depth > r.depth;
-        if (!isNaN(fold)) { r.expanded = r.depth < fold - 1; }
+        r.parent = i + 1 < rows.length && rows[i + 1].indent > r.indent;
+        if (!isNaN(fold)) { r.expanded = r.depth < fold; }
         var caret = document.createElement('span');
         caret.className = 'tree-caret';
         r.td.insertBefore(caret, r.td.firstChild);
@@ -522,7 +525,7 @@ function reportTreeInit() {
         // open flags of the current row's ancestors
         var stack = [];
         rows.forEach(function(r) {
-          while (stack.length > r.depth) { stack.pop(); }
+          while (stack.length > r.indent) { stack.pop(); }
           r.tr.classList.toggle('tree-fold-hide', !stack.every(function(open) { return open; }));
           r.td.querySelector('.tree-caret').textContent = r.parent ? (r.expanded ? '\u25be' : '\u25b8') : '';
           stack.push(r.expanded);

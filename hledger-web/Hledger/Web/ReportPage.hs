@@ -46,8 +46,8 @@ module Hledger.Web.ReportPage (
 
 import Control.Exception qualified as E
 import Control.Monad (mfilter, unless)
-import Data.Foldable (for_, traverse_)
-import Data.List (stripPrefix)
+import Data.Foldable (find, for_, traverse_)
+import Data.List (mapAccumL, stripPrefix)
 import Data.Maybe (fromMaybe, listToMaybe)
 import Data.Text.Encoding qualified as TE
 import Network.HTTP.Types.URI (urlEncode)
@@ -152,6 +152,7 @@ reportParams rspecOrig qparam q qopts hideEmpty params = do
           value_           = value',
           accountlistmode_ = fromMaybe (accountlistmode_ roptsOrig) mlist,
           depth_           = if tree then mempty else depth_ ropts1,
+          fold_depth_      = if tree then dsFlatDepth (queryDepth q) else Nothing,
           row_total_       = total,
           average_         = avg,
           sort_amount_     = sortAmt,
@@ -163,7 +164,8 @@ reportParams rspecOrig qparam q qopts hideEmpty params = do
       -- report gets summarized (--depth at startup, or depth: in the
       -- search). In tree mode the report is computed at full depth
       -- instead, and the page folds it to the depth limit, with each
-      -- deeper group openable in place (see reportTable and hledger.js).
+      -- deeper group openable in place (see reportTable and hledger.js);
+      -- fold_depth_ keeps boring parents from being elided across it.
       rpRspec =
         rspecOrig {
           _rsQuery = if tree then simplifyQuery $ filterQuery (not . queryIsDepth) q else q,
@@ -565,9 +567,9 @@ splitAccountNames rws = (mprefix, map (map split) rws)
 -- subtotal rows), then the total rows as the table's footer. It scrolls
 -- sideways within the page when it is wider (see .report-table in
 -- hledger.css; bootstrap's .table-responsive does that only on a phone).
--- In tree mode the rows carry depth classes, the indent becomes css
--- padding so hledger.js can put a fold caret at each group, and the
--- table says what depth to fold to initially, if any.
+-- In tree mode the rows carry indent and depth classes, the indent
+-- becomes css padding so hledger.js can put a fold caret at each group,
+-- and the table says what depth to fold to initially, if any.
 reportTable ::
   Bool -> Maybe Int ->
   [[Cell NumLines Text]] -> [(Maybe Text, [[Cell NumLines Text]], [[Cell NumLines Text]])] -> [[Cell NumLines Text]] -> Html
@@ -585,20 +587,31 @@ reportTable isTree mfold header sections footer =
         for_ mtitle $ \t ->
           H.tr ! A.class_ "section" $
             H.th ! A.colspan (H.toValue ncols) ! H.customAttribute "scope" "rowgroup" $ H.toHtml t
-        rowsWith foldcls body
+        traverse_ (uncurry row) $ zip (foldClasses body) body
         rows (Just "subtotal") subtotals
-    rows mcls = rowsWith (const mcls)
-    rowsWith cls = traverse_ $ \r ->
-      maybe id (\c -> (! A.class_ c)) (cls r) H.tr (traverse_ (formatCell . cellHtml) (stripIndents r)) <> nl
+    rows mcls = traverse_ (row mcls)
+    row mcls r =
+      maybe id (\c -> (! A.class_ c)) mcls H.tr (traverse_ (formatCell . cellHtml) (stripIndents r)) <> nl
     -- With a depth limit, the rows below it are served already folded,
     -- so the table paints at its folded height and nothing moves after
     -- paint; hledger.js's carets toggle the same class from there.
-    foldcls r
-      | Just d <- mfold, Just n <- rowDepth r, n >= d = Just "tree-fold-hide"
-      | otherwise = Nothing
-    rowDepth r = listToMaybe
+    -- A row is folded when one of its ancestor rows (the nearest row at
+    -- each lesser indent-N) is an account at or below the limit (its
+    -- depth-N). The limit counts account name levels, not indents,
+    -- which differ where boring parents are elided into a row.
+    foldClasses body = case mfold of
+      Nothing -> map (const Nothing) body
+      Just d -> snd $ mapAccumL (foldStep d) [] body
+    -- The ancestors stack holds the (indent, level) of the current
+    -- row's ancestor rows, nearest first.
+    foldStep d ancestors r = case (rowClassNum "indent-" r, rowClassNum "depth-" r) of
+      (Just dep, Just lvl) ->
+        let ancestors' = dropWhile ((>= dep) . fst) ancestors
+        in ((dep, lvl) : ancestors', "tree-fold-hide" <$ find ((>= d) . snd) ancestors')
+      _ -> (ancestors, Nothing)
+    rowClassNum prefix r = listToMaybe
       [ n | c <- r, cls <- T.words $ textFromClass $ cellClass c
-          , Just ns <- [T.stripPrefix "depth-" cls]
+          , Just ns <- [T.stripPrefix prefix cls]
           , ((n, "") : _) <- [reads (T.unpack ns) :: [(Int, String)]] ]
     -- An account cell marked acct-split renders as two spans, the parent
     -- path and the leaf name, so css can dim the path and shorten it from
@@ -621,5 +634,5 @@ reportTable isTree mfold header sections footer =
     stripIndents | isTree = map stripCell
                  | otherwise = id
     stripCell c
-      | "depth-" `T.isInfixOf` textFromClass (cellClass c) = c{cellContent = T.dropWhile (== '\160') (cellContent c)}
+      | "indent-" `T.isInfixOf` textFromClass (cellClass c) = c{cellContent = T.dropWhile (== '\160') (cellContent c)}
       | otherwise = c

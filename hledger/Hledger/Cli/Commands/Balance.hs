@@ -719,7 +719,7 @@ balanceReportAsSpreadsheetParts fmt opts (items, total) =
               setAccountAnchorWith lo
                   (guard (rc==Value) >> balance_base_url_ opts)
                   linkquery name $
-              (\c -> c{Ods.cellClass = case rc of Value -> treeAccountClass opts dep
+              (\c -> c{Ods.cellClass = case rc of Value -> treeAccountClass opts dep name
                                                   Total -> accountClass}) $
               cell $ case rc of
                 Total -> dispName  -- show the total row heading as is; --drop etc. don't apply (#2688)

@@ -167,11 +167,11 @@ getHoldingsR = do
                 }
 
             -- In tree mode, an account, commodity, or lot cell at the given
-            -- depth (a fold point; hledger.js), linking to the register.
+            -- indent (a fold point; hledger.js), linking to the register.
             treecell d extracls content acct =
               (defaultCell content)
                 { cellClass = Class $ T.unwords $
-                    ["account", "depth-" <> T.pack (show (d :: Int))] ++ extracls
+                    ["account", "indent-" <> T.pack (show (d :: Int))] ++ extracls
                 , cellAnchor = acctlink acct
                 , cellTitle = acct <> "\n" <> tr trs "Show this account's register"
                 }
