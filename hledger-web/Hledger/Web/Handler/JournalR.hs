@@ -18,7 +18,7 @@ import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, intervalLinks, listWord, parseCalc, parseInterval, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
             (accountParams, amountLinks, calcLinks, columnsLinks, commodityLinks,
-             controlsHint, controlsToggle, optionsSummary,
+             controlsHint, controlsToggle, optionsSummary, searchHeading,
              depthLinks, inertControls, listModeLinks, lotsLinks,
              mixedAmountAsHtml, percentLinks, pricesLinks, realLinks, sortLinks,
              statusLinks, typeLinks,
@@ -45,7 +45,7 @@ getJournalR = do
         Nothing         -> tr trs "General Journal"
         Just (a, True)  -> trf trs "Transactions in {account}" [("account", a)]
         Just (a, False) -> trf trs "Transactions in {account} (excluding subaccounts)" [("account", a)]
-      title' = if filterQuery (not . queryIsDepth) q /= Any then trf trs "{title}, filtered" [("title", title)] else title
+      title' = searchHeading trs (date2_ (_rsReportOpts (reportspec_ (cliopts_ opts))) || date2On) q title
       -- An account's register, opened on the page holding this transaction.
       acctlink a t = (RegisterR, [("q", qparam) | not (T.null qparam)] ++ accountParams True a ++ ("txn", T.pack $ show $ tindex t) : carried)
       q' = filterQuery (not . queryIsDepth) q

@@ -1307,6 +1307,17 @@ hledgerWebTest = do
   -- or with accum=historical, the account's balance from before the period.
   runTests "hledger-web register page" [] bj $ do
 
+    yit "headings name the search's dates, and say filtered for its other filters" $ do
+      get (JournalR, [("q", "date:2025")])
+      statusIs 200
+      bodyContains ">General Journal in 2025</h2>"
+      get (JournalR, [("q", "date:2025 lunch")])
+      statusIs 200
+      bodyContains ">General Journal in 2025, filtered</h2>"
+      get (RegisterR, [("account", "assets:bank:checking"), ("q", "date:2025")])
+      statusIs 200
+      bodyContains ">assets:bank:checking in 2025</h2>"
+
     -- The register's table has a tbody; the sidebar, which shows the same
     -- accounts, has none, so these assertions look only at the register.
     yit "totals the period from zero by default" $ do

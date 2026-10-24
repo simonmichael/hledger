@@ -933,9 +933,8 @@ msgstr "Buchung hinzugefügt."
 
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
 #: hledger-web/Hledger/Web/Handler/HoldingsR.hs
-#: hledger-web/Hledger/Web/Handler/JournalR.hs
-#: hledger-web/Hledger/Web/Handler/RegisterR.hs
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 #, python-brace-format
 msgid "{title}, filtered"
 msgstr "{title}, gefiltert"
@@ -1647,6 +1646,18 @@ msgstr ""
 #. options in effect, listed on the closed options disclosure.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Secondary dates"
+msgstr ""
+
+#. a journal or register page's heading when the search has dates, eg "General Journal in 2024".
+#: hledger-web/Hledger/Web/Widget/Common.hs
+#, python-brace-format
+msgid "{title} in {dates}"
+msgstr ""
+
+#. a journal or register page's heading when the search has dates, eg "General Journal in 2024".
+#: hledger-web/Hledger/Web/Widget/Common.hs
+#, python-brace-format
+msgid "{title} in {dates}, filtered"
 msgstr ""
 
 #. the label before a report's calculation links, and the links' text and tooltips.
