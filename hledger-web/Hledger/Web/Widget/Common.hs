@@ -11,6 +11,7 @@ module Hledger.Web.Widget.Common
   , controlsHint
   , controlsToggle
   , optionsSummary
+  , searchHeading
   , inertControls
   , linksRow
   , linksRowClass
@@ -253,6 +254,21 @@ optionsSummary trs deepest = mapMaybe phrase . sortOn (rowOrder . fst)
       ("closed", "0")     -> Just $ tr trs "Closed positions hidden"
       ("date2", "1")      -> Just $ tr trs "Secondary dates"
       _                   -> Nothing
+
+-- | A journal or register page's heading: the given title, then the
+-- search's dates, if it has any, shown as the balance pages show theirs
+-- (eg "General Journal in 2024"), then ", filtered" if it has other
+-- filters. A depth limit is not one.
+searchHeading :: Translations -> Bool -> Query -> Text -> Text
+searchHeading trs secondary q title = case (spn == nulldatespan, filtered) of
+  (True,  False) -> title
+  (True,  True)  -> trf trs "{title}, filtered" [("title", title)]
+  -- TRANSLATORS: a journal or register page's heading when the search has dates, eg "General Journal in 2024".
+  (False, False) -> trf trs "{title} in {dates}" [("title", title), ("dates", showDateSpan spn)]
+  (False, True)  -> trf trs "{title} in {dates}, filtered" [("title", title), ("dates", showDateSpan spn)]
+  where
+    spn = queryDateSpan secondary q
+    filtered = filterQuery (\t -> not (queryIsDepth t || queryIsDateOrDate2 t)) q /= Any
 
 -- | Rows of controls that take effect on other pages, their labels
 -- muted: they show and preserve the url's report state here too, so it
