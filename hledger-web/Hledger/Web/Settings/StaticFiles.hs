@@ -33,10 +33,5 @@ staticSite =
 -- Type-safe routes for the static files used by the app,
 -- verified to exist at compile time.
 css_bootstrap_min_css           = $(staticFileRoute "css/bootstrap.min.css")
-js_jquery_min_js                = $(staticFileRoute "js/jquery.min.js")
-js_jquery_flot_min_js           = $(staticFileRoute "js/jquery.flot.min.js")
-js_jquery_flot_selection_min_js = $(staticFileRoute "js/jquery.flot.selection.min.js")
-js_jquery_flot_time_min_js      = $(staticFileRoute "js/jquery.flot.time.min.js")
-js_jquery_flot_tooltip_min_js   = $(staticFileRoute "js/jquery.flot.tooltip.min.js")
 hledger_css                     = $(staticFileRoute "hledger.css")
 hledger_js                      = $(staticFileRoute "hledger.js")

@@ -76,19 +76,6 @@ test('shift-clicking a year selects a range of years', async ({ page }) => {
   expect(pageErrors).toEqual([]);
 });
 
-test('the register chart is drawn from the rows on the page', async ({ page }) => {
-  const pageErrors = watchPageErrors(page);
-  await page.goto(URL + '/register?q=inacct:assets:cash&page=2');
-  const chart = page.locator('#register-chart');
-  // the chart's points name this page's rows only, by their ids; the
-  // entries stay in the rows, where the chart's tooltip reads them (#2784)
-  await expect(chart).toHaveAttribute('data-series', /"transaction-1-1300"/);
-  await expect(chart).not.toHaveAttribute('data-series', /"transaction-1-1301"/);
-  await expect(chart).not.toHaveAttribute('data-series', /txn 1300/);
-  await expect(chart.locator('canvas').first()).toBeVisible();
-  expect(pageErrors).toEqual([]);
-});
-
 test('a link to a transaction on another page opens that page and scrolls to it', async ({ page }) => {
   await page.goto(URL + '/register?q=inacct:assets:cash&page=2');
   // the last row here is the oldest on the page; its account link opens

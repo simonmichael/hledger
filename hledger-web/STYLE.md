@@ -42,9 +42,11 @@ The pages follow the light or dark setting of the OS or browser
   the parts of them these pages use, in the dark scheme only. Using another
   part of bootstrap (a component, or a state such as `:hover` or `.has-error`)
   may need a line there too.
-- **The register chart takes its colors from the same properties.** flot draws
-  on a canvas, out of reach of css, so `hledger.js` hands it the `--chart-*`
-  values, and draws it again when the scheme changes, and for printing.
+- **The register chart brings its own colors.** hledger-lib draws it as SVG,
+  in its own palette (`Hledger.Write.Chart.Palette`), and the `/chart.css`
+  route serves its styles, light and dark, the dark on screen only.
+  `hledger.css` only fits it to the page: the page's background behind it, and
+  the page's muted color for its tick labels.
 - **Printing is always light**, whatever the setting.
 - **A new color keeps text readable**: at least 4.5:1 contrast with what is
   behind it (WCAG AA), in both schemes. `test/browser/color-scheme.spec.js`
@@ -62,9 +64,8 @@ The pages follow the light or dark setting of the OS or browser
 - **No inline event handlers or `javascript:` urls**, for the same reason.
   hledger.js binds its handlers to hooks in the markup such as `data-toggle`.
 - **Styles set from javascript are fine** as long as they go through the CSSOM
-  (`element.style`, jquery's `.css()`), which the policy does not govern. Markup
-  strings carrying `style=` attributes are not; flot's own legend was one, and
-  is turned off in favor of one drawn by hledger.js.
+  (`element.style`), which the policy does not govern. Markup
+  strings carrying `style=` attributes are not.
 - `test/browser/security.spec.js` fails on any policy violation, and
   `Hledger/Web/Test.hs` checks the header itself.
 
@@ -129,8 +130,8 @@ check that markup and behavior survive, but they cannot judge how it looks.
 
 Deliberately not addressed yet, in rough order of appeal:
 
-- **Bootstrap 3 itself.** It is the last large vendored asset besides jquery and
-  flot, and it pulls in glyphicons (7 in use, ~148KB of fonts). Bootstrap 4
+- **Bootstrap 3 itself.** It is the last vendored asset, and it pulls in
+  glyphicons (7 in use, ~148KB of fonts). Bootstrap 4
   dropped glyphicons, so any upgrade is also an icon migration. It has no dark
   scheme either, hence section 9 of `hledger.css`. Replacing it with plain
   modern css — the app has one layout — would remove more than it adds, but it
@@ -140,5 +141,3 @@ Deliberately not addressed yet, in rough order of appeal:
   touched.
 - **`.transactionsreport .posting td { border: none !important }`** fights any
   row-border work and should be reworked rather than layered on.
-- **Charts.** flot is dated and needs jquery. Rethinking them is likely part of
-  hledger 2.0, not a css change.

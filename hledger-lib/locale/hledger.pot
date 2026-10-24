@@ -1098,6 +1098,11 @@ msgstr ""
 msgid "register - hledger-web"
 msgstr ""
 
+#. the register chart's legend entry for amounts written without a commodity symbol.
+#: hledger-web/Hledger/Web/Handler/RegisterR.hs
+msgid "no symbol"
+msgstr ""
+
 #. the browser tab titles of the statement pages.
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
 msgid "balance sheet - hledger-web"

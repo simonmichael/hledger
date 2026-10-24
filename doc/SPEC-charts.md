@@ -10,7 +10,8 @@ This doc describes the current design, then the decisions and rejected alternati
 Easy, ubiquitous charts from hledger's reports: each report gets a chart mode reusing its logic and data;
 smart defaults always give a useful chart, no configuration needed; graphical (SVG) and terminal output;
 the same chart work reused by the CLI, `-O html`, hledger-web and hledger-ui.
-Non-goals for now: customisable charts, raster formats, interactive charts, pie charts.
+Non-goals for now: customisable charts, raster formats, pie charts, and interaction on the command line,
+whose charts stay static; a page embedding a chart can add interaction through `SvgOptions`.
 
 Prior art it replaces or improves on: the old activity command (rows of `*`), bin/hledger-bar (a bash wrapper drawing `bal -O csv`),
 hledger-web's flot register chart, and site/src/charts.md's "export CSV and chart it elsewhere" (to get a "built-in charts" lead at release).
@@ -154,12 +155,20 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   fill characters `█▓▒░` (`#=+:` in ASCII, chosen from the locale encoding); legend wrapped, listing only visible series; trailing spaces trimmed.
 - SVG: self-contained, deterministic (one-decimal coordinates, one element per line, for golden tests), system fonts, literal colours in CSS
   (librsvg doesn't support `var()`), a `prefers-color-scheme` dark variant (omitted when embedded in html, which is light).
-  Ticks by d3's 1-2-5 rule. Tooltips as `<title>` (marks wrapped in `<g>`, as blaze-svg leaf elements can't have children).
+  Ticks by d3's 1-2-5 rule. Tooltips as `<title>` (marks wrapped in `<g>`, as blaze-svg leaf elements can't have children);
+  a line's points have invisible 12px targets for them (by date, only where the line changes), or beyond 400, the last point
+  in each 4px column has one; a step line's flat stretches have no points inside them.
   880px wide (shrinking to fit narrower pages), 14px text (estimated widths per kind of character, measured in Chrome with SF Pro);
   bars at most 56px (64px for single-period columns), 2px gaps between segments, and 3px rounded ends
   (each stack is clipped to one rounded outline, so the end is the same however thin its outermost segment); lines 3px, thinned to 4 points per pixel column
   (a 100k-posting register: 286s to 44s). The unit is shown only on the outermost y tick. x labels are thinned to an even stride
   that leaves room for all of them, after the end ones are moved inward.
+- Embedded SVG (`SvgOptions`, for pages like hledger-web's): without its styles, for a page that supplies `chartStylesheet` itself
+  (eg when its Content-Security-Policy allows no inline styles); at another width than 880px, eg as wide as the page shows it;
+  with plots of another height than 260px, and about one y tick per 50px;
+  with links on lines' tooltip targets, one per x position (eg to a register's rows), left out of the tab order;
+  with each date plot's scale (`data-` attributes on a transparent rectangle under it), for a page's script to select dates by dragging;
+  shaded as of today: the future, and the past below zero (tinted with the expenses' red), with the zero line red.
 - Tests: shelltest; SVG goldens are separate files compared with diff, since shelltest treats lines starting with `<` as input.
 
 ## Decisions and rejected alternatives
@@ -216,7 +225,7 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 ## Possible future work
 
 - html: include the chart by default ?
-- hledger-web integration; could eventually replace the flot register chart
+- hledger-web integration: the register chart is the SVG chart; the report pages could show theirs
 - hledger-ui integration, a chart toggle ?
 - repeatable `-o`, for several outputs at once (see Decisions)
 - update hledger-bar doc, charts page
@@ -224,7 +233,7 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
     - use it in docs
     - explore this style of report, make it available to users
 - png output
-- clickable chart ?
+- clickable chart ? Lines' points can link, for embedding (`SvgOptions`); bars can't yet.
 - more charts (budget (goal marks), prices, roi, holdings)
 - more kinds of chart (line, hbar, pie); a sparkline column for tables ? Vega-Lite.
 - a default fixed scale, if users ask: a `--chart-scale=SCALE` option that sets the scale without enabling charts,
