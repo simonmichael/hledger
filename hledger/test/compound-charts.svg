@@ -8,7 +8,7 @@
 .hledger-chart .line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
 .hledger-chart .mark{stroke-width:2.5}
 .hledger-chart .average{stroke-width:2;stroke-dasharray:5 4}
-.hledger-chart .hit{fill:transparent}
+.hledger-chart .hit,.hledger-chart .plot{fill:transparent}
 .hledger-chart .hatch{stroke-width:2.5}
 .hledger-chart .bg{fill:#fcfcfb}
 .hledger-chart .title{fill:#0b0b0b}

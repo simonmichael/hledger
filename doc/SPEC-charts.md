@@ -164,7 +164,8 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   that leaves room for all of them, after the end ones are moved inward.
 - Embedded SVG (`SvgOptions`, for pages like hledger-web's): without its styles, for a page that supplies `chartStylesheet` itself
   (eg when its Content-Security-Policy allows no inline styles); with plots of another height than 260px, and about one y tick per 50px;
-  with links on lines' tooltip targets, one per x position (eg to a register's rows), left out of the tab order.
+  with links on lines' tooltip targets, one per x position (eg to a register's rows), left out of the tab order;
+  with each date plot's scale (`data-` attributes on a transparent rectangle under it), for a page's script to select dates by dragging.
 - Tests: shelltest; SVG goldens are separate files compared with diff, since shelltest treats lines starting with `<` as input.
 
 ## Decisions and rejected alternatives
