@@ -87,15 +87,19 @@ data SvgOptions = SvgOptions
                              --   (Horizontal bars are as tall as their rows.)
   , svgPointLink  :: Int -> Maybe Text  -- ^ a link for each x position (by index), if any: lines' tooltip targets there link to it,
                                         --   eg to a page's row for that transaction. They are left out of the tab order, being many.
+  , svgDateScale  :: Bool    -- ^ give each plot of values by date its date scale, for a page's script (eg to select dates by
+                             --   dragging across it): a transparent rectangle over the plot (class plot), with its first and last
+                             --   dates (data-d0, data-d1) and their x positions (data-x0, data-x1), between which dates are spaced evenly ?
   }
 
--- | A self-contained chart: with its styles, including their dark variant, plots 260px high, and no links.
+-- | A self-contained chart: with its styles, including their dark variant, plots 260px high, no links, and no date scale.
 defaultSvgOptions :: SvgOptions
 defaultSvgOptions = SvgOptions
   { svgStyles     = True
   , svgDark       = True
   , svgPlotHeight = 260
   , svgPointLink  = const Nothing
+  , svgDateScale  = False
   }
 
 -- | A chart as SVG markup, which can also be embedded in HTML, drawn with these options.
@@ -249,7 +253,13 @@ data XScale = EvenScale [Text] | DateScale [Day]
 -- | Draw series over time, along the given x scale:
 -- vertical stacked bars (with the grouped layout, a stack per group, side by side), lines, and total marks or lines.
 timeSvg :: SvgOptions -> Double -> Maybe Quantity -> BarLayout -> Amount -> [DrawSeries] -> Maybe Series -> Maybe (Text, Quantity) -> XScale -> (Double, Svg)
-timeSvg SvgOptions{svgPlotHeight = plotheight, svgPointLink} top mscale layout unit drawn mtotal maverage xscale = (plotheight + 32, do
+timeSvg SvgOptions{svgPlotHeight = plotheight, svgPointLink, svgDateScale} top mscale layout unit drawn mtotal maverage xscale = (plotheight + 32, do
+    -- the plot's area with its date scale, if wanted, beneath the rest so that their tooltips and links still work
+    when (svgDateScale && isJust datearray) $
+      S.rect ! A.class_ "plot"
+        ! A.x (toValue $ num plotleft) ! A.y (toValue $ num plottop) ! A.width (toValue $ num (plotright - plotleft)) ! A.height (toValue $ num plotheight)
+        ! customAttribute "data-d0" (toValue $ showDate d0) ! customAttribute "data-d1" (toValue $ showDate d1)
+        ! customAttribute "data-x0" (toValue $ num $ xofday d0) ! customAttribute "data-x1" (toValue $ num $ xofday d1)
     -- gridlines and y tick labels
     forM_ ticks $ \t -> do
       S.line ! A.class_ (if t == 0 then "axis" else "grid")
@@ -750,7 +760,7 @@ chartStylesheet dark = T.unlines $
   , ".hledger-chart .line{fill:none;stroke-width:3;stroke-linejoin:round;stroke-linecap:round}"
   , ".hledger-chart .mark{stroke-width:2.5}"
   , ".hledger-chart .average{stroke-width:2;stroke-dasharray:5 4}"
-  , ".hledger-chart .hit{fill:transparent}"
+  , ".hledger-chart .hit,.hledger-chart .plot{fill:transparent}"
   , ".hledger-chart .hatch{stroke-width:2.5}"
   ]
   ++ colourRules False lightcolours
@@ -801,6 +811,9 @@ tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
      let svg = svgText defaultSvgOptions{svgPointLink = \j -> if even j then Just ("#t" <> T.pack (show j)) else Nothing} $ lineChart 3
      assertBool "the third point links" $ "<a href=\"#t2\" tabindex=\"-1\">" `T.isInfixOf` svg
      assertBool "the second point does not" $ not $ "#t1" `T.isInfixOf` svg
+  ,testCase "a plot by date can give its date scale" $ do
+     let svg = svgText defaultSvgOptions{svgDateScale = True} $ lineChart 3
+     assertBool "its first and last dates" $ "data-d0=\"2024-01-01\" data-d1=\"2024-01-03\"" `T.isInfixOf` svg
   ]
   where
     svgText opts = TL.toStrict . renderSvg . chartSvgMarkupWith opts
