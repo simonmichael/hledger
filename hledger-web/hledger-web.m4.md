@@ -166,6 +166,12 @@ hledger-web's main views are:
   and cashflow statement (and holdings, for journals using lots), also linked from the sidebar,
   and the All accounts report and the balance sheet with equity.
 
+The register's chart shows the running balance over the page's transactions, across the page.
+With several commodities, a legend chooses the one charted, each on its own scale,
+starting with the one with the most transactions.
+Clicking a point goes to its transaction, and dragging across the chart
+shows the transactions of the dates dragged across.
+
 A row of links at the top of every page leads to the journal and report views.
 Below it are the search form, the options, and then the view's heading and content.
 The options are hidden until opened (click them, or press `o`); while hidden, they list

@@ -300,6 +300,13 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "Disallow: /"
 
+    yit "serves the chart stylesheet, with its dark colors for the screen only" $ do
+      get ChartCssR
+      statusIs 200
+      assertHeader "Content-Type" "text/css; charset=utf-8"
+      bodyContains "@media screen and (prefers-color-scheme:dark){"
+      bodyNotContains "@media (prefers-color-scheme:dark)"
+
     yit "hyperlinks use a base url made from the default host and port" $ do
       get JournalR
       statusIs 200
@@ -1266,8 +1273,9 @@ hledgerWebTest = do
       bodyContains ("<tr id=\"" ++ frag "lunch" ++ "\"")
       bodyContains ("href=\"" ++ base ++ "/journal?q=date%3A2025-02-05#" ++ frag "lunch" ++ "\" title=\"Show this entry and the other journal entries on its date\">")
       bodyContains ("href=\"" ++ base ++ "/register?account=expenses%3Afood&amp;txn=" ++ tix "lunch" ++ "#" ++ frag "lunch" ++ "\" title=\"expenses:food\">")
-      -- the chart's points name the entries the same way, and its base link is the register's
-      bodyContains ("&quot;" ++ frag "lunch" ++ "&quot;")
+      -- the chart's points link to the rows, its styles are linked, and its base link is the register's
+      bodyContains ("<a href=\"#" ++ frag "lunch" ++ "\"")
+      bodyContains ("<link rel=\"stylesheet\" href=\"" ++ base ++ "/chart.css\">")
       bodyContains ("data-baselink=\"" ++ base ++ "/register?account=assets%3Abank%3Achecking\"")
 
     yit "replaces the search's date terms in a date link, and keeps its other terms" $ do
@@ -1908,19 +1916,37 @@ hledgerWebTest = do
         setUrl RegisterR
         addGetParam "account" "assets:many"
       statusIs 200
-      -- KKK, posted twice, is charted though last alphabetically; of the
-      -- rest, posted once each, JJJ is left out
-      bodyContains "&quot;label&quot;:&quot;KKK&quot;"
-      bodyNotContains "&quot;label&quot;:&quot;JJJ&quot;"
-      bodyContains "data-more=\"… and 1 more\""
+      -- KKK, posted twice, comes first in the legend though last
+      -- alphabetically; of those posted once each, JJJ is left out
+      bodyContains "<label for=\"register-chart-0\">KKK</label>"
+      bodyContains "<label for=\"register-chart-9\">III</label>"
+      bodyNotContains ">JJJ</label>"
+      bodyContains "<p class=\"chart-note\">… and 1 more</p>"
       -- four commodities are all charted, with no note
       request $ do
         setMethod "GET"
         setUrl RegisterR
         addGetParam "account" "assets:broker"
       statusIs 200
-      bodyContains "&quot;label&quot;:&quot;AAA&quot;"
-      bodyNotContains "data-more"
+      bodyContains "<label for=\"register-chart-3\">"
+      bodyNotContains "chart-note"
+
+    yit "draws the register chart as wide as the browser measured the page's main column" $ do
+      let broker = request $ do
+            setMethod "GET"
+            setUrl RegisterR
+            addGetParam "account" "assets:broker"
+      -- not measured yet, the chart's own width
+      broker
+      statusIs 200
+      bodyContains "class=\"hledger-chart\" width=\"880\""
+      testSetCookie defaultSetCookie{setCookieName = uiCookieName "chartwidth", setCookieValue = "1200"}
+      broker
+      bodyContains "class=\"hledger-chart\" width=\"1200\""
+      -- too narrow to draw in, it is widened
+      testSetCookie defaultSetCookie{setCookieName = uiCookieName "chartwidth", setCookieValue = "100"}
+      broker
+      bodyContains "class=\"hledger-chart\" width=\"320\""
 
   -- A journal whose accounts have no recognizable types has empty statements.
   uj <- fmap (either error' id) . runExceptT . journalFinalise biopts "untyped.journal" "" =<<
@@ -2529,14 +2555,14 @@ hledgerWebTest = do
       bodyContains "amount\">1300</span>"
       bodyContains "amount\">301</span>"
       bodyNotContains "amount\">1301</span>"
-      -- the chart's data, JSON in an attribute naming the rows of its
-      -- points, covers this page's rows only
-      let chartpoint i = maybe (error' $ "no txn " ++ show i) (\t -> "&quot;" ++ transactionFragment pagingj t ++ "&quot;") $
+      -- the chart covers this page's rows only: its dates are theirs, and
+      -- its points link to them
+      let txn i = fromMaybe (error' $ "no txn " ++ show i) $
             find ((== T.pack ("txn " ++ show (i :: Int))) . tdescription) (jtxns pagingj)
+          chartpoint i = "<a href=\"#" ++ transactionFragment pagingj (txn i) ++ "\""
+      bodyContains ("data-d0=\"" ++ show (tdate $ txn 301) ++ "\" data-d1=\"" ++ show (tdate $ txn 1300) ++ "\"")
       bodyContains (chartpoint 1300)
-      bodyContains (chartpoint 301)
       bodyNotContains (chartpoint 1301)
-      bodyNotContains (chartpoint 300)
       -- the years row keeps the account
       bodyContains "/register?q=date%3A2024&amp;account=assets%3Acash\" title=\"Show only 2024\">2024</a>"
       request $ do

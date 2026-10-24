@@ -9,18 +9,20 @@
 
 module Hledger.Web.Handler.RegisterR where
 
-import Data.Aeson.Text (encodeToLazyText)
-import Data.List (intersperse, nub, partition, sort, sortOn)
+import Data.List (elemIndex, intersperse, nub, partition, sortOn, zip4)
 import Data.Map qualified as M
 import Data.Ord (Down(..))
 import Data.Text qualified as T
-import Safe (tailSafe)
+import Safe (atMay, readMay, tailSafe)
 import Text.Blaze.Html5 qualified as H
 import Text.Hamlet (hamletFile)
 
 import Hledger.Utils.I18n (Translations, tr, trc, trf)
 import Hledger
+import Hledger.Cli.Chart (accountTransactionsReportAsChart)
 import Hledger.Cli.CliOptions
+import Hledger.Write.Chart (Chart(..), Panel(..))
+import Hledger.Write.Chart.Svg (SvgOptions(..), chartSvgMarkupWith, defaultSvgOptions)
 import Hledger.Web.Import
 import Hledger.Web.Paging
 import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, removeAttributes, intervalLinks, listWord, parseCalc, parseInterval, parseListMode, parseValue, setAmountMode, valueParams)
@@ -62,12 +64,17 @@ getRegisterR = do
   pctOn   <- (== Just "1") <$> lookupGetParam "pct"
   mcalc   <- lookupGetParam "calc"
   pagereq <- pageRequest
+  -- How wide to draw the chart: as wide as the page's main column, which
+  -- the browser measures and keeps in the chartwidth cookie (hledger.js).
+  mchartwidth <- (>>= readMay . T.unpack) <$> uiCookie "chartwidth"
 
   let title = case account of
         Nothing         -> tr trs "all accounts"
         Just (a, True)  -> a
         Just (a, False) -> trf trs "{account} (excluding subaccounts)" [("account", a)]
       header = searchHeading trs (date2_ (_rsReportOpts (reportspec_ (cliopts_ opts))) || date2On) q title
+      -- what the chart's line is named in its tooltips: the account, or all accounts
+      chartacct = maybe title fst account
 
   let rspec0 = reportspec_ (cliopts_ opts)
       ropts = maybe id setAmountMode mmode $
@@ -219,6 +226,8 @@ getRegisterR = do
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.
     setTitleI (HMsg "register - hledger-web")
+    -- the chart's styles
+    unless (null items) $ addStylesheet ChartCssR
     $(widgetFile "register")
 
 -- cf. Hledger.Reports.AccountTransactionsReport.accountTransactionsReportItems
@@ -263,53 +272,49 @@ decorateLinks :: [(acct, ([char], [char]))] -> [(Maybe acct, char)]
 decorateLinks = concatMap $ \(acct, (name, comma)) ->
     map (Just acct,) name ++ map (Nothing,) comma
 
--- | The register balance chart: its markup, carrying the per-commodity
--- series as JSON in a data attribute. hledger.js draws it with flot on page
--- load; see registerChartInit there.
+-- | The register's chart: hledger's SVG chart of the running balance (see
+-- "Hledger.Cli.Chart"), drawn from this page's rows, as wide as the page's
+-- main column was last measured (or by default, 880px). It has a chart per
+-- commodity, each on its own scale; with several, a legend chooses the one
+-- shown, first the one with the most transactions on the page, and a note
+-- says how many more than ten are left out (searching for a commodity,
+-- cur:, charts it). Each point links to its row, and dragging across a
+-- plot shows the transactions on those dates (registerChartInit, in
+-- hledger.js), so each plot gives its date scale, and the chart the
+-- register's url without its date terms. Its styles are served by
+-- ChartCssR, since the Content-Security-Policy allows no inline styles.
 registerChartHtml ::
-  Translations -> Text -> [(Text, Text)] -> (Transaction -> String) -> String ->
+  Translations -> Journal -> Day -> Maybe Int -> Text -> [(Text, Text)] -> (Transaction -> String) -> Text -> Text ->
   AccountTransactionsReport -> HtmlUrl AppRoute
-registerChartHtml trs q modeParams transactionFrag title report = $(hamletFile "templates/chart.hamlet")
+registerChartHtml trs j today mwidth q modeParams transactionFrag acct balancelabel items = $(hamletFile "templates/chart.hamlet")
  where
-   charttitle = if null title then "" else title ++ ":"
    nodatelink = (RegisterR, [("q", t) | let t = T.unwords $ removeDates q, not (T.null t)] ++ modeParams)
-   -- The chart draws at most ten commodities: those with the most
-   -- transactions on the page, in alphabetical order. More lines, and a
-   -- legend as long, could not be read anyway. The legend notes how many
-   -- are left out; searching for a commodity (cur:) charts it. Each
-   -- commodity's transactions are counted first, so that only the charted
-   -- ones are taken out of the report, a pass over it each.
-   counts = M.toList $ M.fromListWith (+)
-     [(c, 1 :: Int) | i <- report, c <- nub $ map acommodity $ amounts $ triAmount i]
-   charted = [ (c, filterAccountTransactionsReportByCommodity c report)
-             | c <- sort . take 10 . map fst $ sortOn (\(c, n) -> (Down n, c)) counts ]
-   uncharted = length counts - length charted
-   leftout = uncharted > 0
-   morenote = moreCommodities trs uncharted
-   -- One entry per commodity: its symbol, and per transaction the point flot
-   -- plots, followed by the texts the tooltip shows and the id of the
-   -- transaction's row, from which the tooltip takes the entry and to which
-   -- a click scrolls.
-   seriesjson = encodeToLazyText $ map commoditySeries charted
-   commoditySeries (c, items) = object
-     [ "label"  .= c
-     , "points" .= [ [ toJSON . dayToUtcNoonTimestamp $ triDate i
-                     , toJSON . quantityAsDouble $ triCommodityBalance c i
-                     , toJSON . showZeroCommodity $ triCommodityAmount c i
-                     , toJSON . showZeroCommodity $ triCommodityBalance c i
-                     , toJSON . transactionFrag $ triOrigTransaction i
-                     ]
-                   | i <- reverse items ]
-     ]
-   -- The first amount's quantity, or 0. (Decimal's own ToJSON instance is an
-   -- object; the chart wants a plain number.)
-   quantityAsDouble :: MixedAmount -> Double
-   quantityAsDouble = maybe 0 (realToFrac . aquantity) . listToMaybe . amounts . mixedAmountStripCosts
-   showZeroCommodity = wbUnpack . showMixedAmountB oneLineNoCostFmt{displayCost=False,displayZeroCommodity=True}
-
--- | Makes a unix timestamp (milliseconds since epoch) corresponding to noon on the given date in UTC.
-dayToUtcNoonTimestamp :: Day -> Integer
-dayToUtcNoonTimestamp d =
-  read (formatTime defaultTimeLocale "%s" t) * 1000 -- XXX read
-  where
-    t = UTCTime d (secondsToDiffTime $ 12 * 60 * 60)
+   -- The commodities charted: at most ten, those with the most transactions
+   -- on the page. The balances keep only those before the chart is made,
+   -- which costs it a pass over the rest.
+   counts = M.fromListWith (+) [(c, 1 :: Int) | i <- items, c <- nub $ map acommodity $ amounts $ triAmount i]
+   charted = take 10 . map fst . sortOn (\(c, n) -> (Down n, c)) $ M.toList counts
+   leftout = M.size counts - length charted
+   -- the rows oldest first, as the chart's x positions are, each at its date in the register
+   rows = [ (t, ta, s, as, a, filterMixedAmount ((`elem` charted) . acommodity) b) | (t, ta, s, as, a, b) <- reverse items ]
+   regdates = M.fromList [(tindex $ triOrigTransaction i, triDate i) | i <- rows]
+   regdate t = M.findWithDefault (tdate t) (tindex t) regdates
+   chart = accountTransactionsReportAsChart (journalAccountType j) "" acct regdate rows
+   panels = sortOn (\p -> elemIndex (acommodity $ pnUnit p) charted) $ chPanels chart
+   -- the legend's entries: each panel's number, the panel, its commodity's name, and whether it is shown at first
+   legend = zip4 [0 :: Int ..] panels (map commodityName panels) (True : repeat False)
+   -- TRANSLATORS: the register chart's legend entry for amounts written without a commodity symbol.
+   commodityName p = let c = acommodity (pnUnit p) in if T.null c then tr trs "no symbol" else c
+   svgopts = defaultSvgOptions
+     { svgStyles     = False
+     , svgWidth      = maybe (svgWidth defaultSvgOptions) (fromIntegral . max 320 . min 2400) mwidth
+     , svgPlotHeight = 150
+     , svgPointLink  = \k -> T.pack . ('#' :) . transactionFrag . triOrigTransaction <$> rows `atMay` k
+     , svgDateScale  = True
+     , svgToday      = Just today
+     }
+   -- some panels as SVG, named for screen readers by the balance and their commodities
+   svg ps = chartSvgMarkupWith svgopts chart{chPanels = ps} H.! H.customAttribute "aria-label" (H.toValue $ label ps)
+   label ps = case filter (not . T.null) $ map (acommodity . pnUnit) ps of
+     [] -> balancelabel
+     cs -> balancelabel <> ": " <> T.intercalate ", " cs

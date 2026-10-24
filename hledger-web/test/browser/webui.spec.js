@@ -777,3 +777,66 @@ test.describe('entry tooltip', () => {
   });
 
 });
+
+test.describe('register chart', () => {
+
+  // Its plots carry their date scales, from which hledger.js reads the dates
+  // dragged across.
+  test('dragging across a plot shows the register for those dates', async ({ page }) => {
+    await page.goto('/register?account=assets:bank:checking');
+    const before = await page.locator('#main-content tbody td.date').count();
+    // from just before the second point to just after the next to last,
+    // leaving out the first and the last, whatever other specs add
+    const points = page.locator('.register-chart .hit');
+    const n = await points.count();
+    const a = await points.nth(1).boundingBox(), b = await points.nth(n - 2).boundingBox();
+    const plot = await page.locator('.register-chart rect.plot').first().boundingBox();
+    const y = plot.y + plot.height / 2;
+    await page.mouse.move(a.x + a.width / 2 - 2, y);
+    await page.mouse.down();
+    await page.mouse.move(b.x + b.width / 2, y);
+    await page.mouse.move(b.x + b.width / 2 + 2, y);
+    await page.mouse.up();
+    await expect(page).toHaveURL(/date(:|%3A)\d{4}-\d\d-\d\d\.\.\d{4}-\d\d-\d\d/);
+    const [, from, to] = new URL(page.url()).searchParams.get('q').match(/date:(\S+)\.\.(\S+)/);
+    const dates = (await page.locator('#main-content tbody td.date').allTextContents()).map(d => d.trim());
+    expect(dates.length).toBeGreaterThan(0);
+    expect(dates.length).toBeLessThan(before);
+    expect(dates.filter(d => d < from || d >= to)).toEqual([]);
+  });
+
+  // With several commodities, its legend chooses the one charted, each on
+  // its own scale. The entries are radio buttons' labels: clicks and the
+  // arrow keys both work, with no javascript involved.
+  test('the legend chooses the commodity charted', async ({ page }) => {
+    await page.goto('/register?account=equity:opening');
+    const shown = page.locator('.register-chart svg:visible');
+    await expect(page.locator('.register-chart > label')).toHaveText(['no symbol', 'ZZZ']);
+    await expect(shown).toHaveCount(1);
+    await expect(shown).toHaveAttribute('aria-label', 'Period Total');
+    await page.locator('.register-chart > label', { hasText: 'ZZZ' }).click();
+    await expect(shown).toHaveAttribute('aria-label', 'Period Total: ZZZ');
+    await page.keyboard.press('ArrowLeft');
+    await expect(shown).toHaveAttribute('aria-label', 'Period Total');
+  });
+
+  // The server draws it as wide as the browser last measured the page's
+  // main column, so that it fills the column without being scaled, its
+  // text included. Full window mode widens the column, and the next page
+  // draws the chart that wide.
+  test('is drawn as wide as it is shown', async ({ page }) => {
+    await page.goto('/journal');
+    await page.goto('/register?account=assets:bank:checking');
+    const chart = page.locator('.register-chart svg').first();
+    const drawn = Number(await chart.getAttribute('width'));
+    const shown = await chart.evaluate(svg => svg.getBoundingClientRect().width);
+    expect(drawn).not.toBe(880);
+    expect(Math.abs(shown - drawn)).toBeLessThan(1);
+    await page.locator('body').press('f');
+    await page.reload();
+    const wide = Number(await chart.getAttribute('width'));
+    const wideshown = await chart.evaluate(svg => svg.getBoundingClientRect().width);
+    expect(wide).toBeGreaterThan(drawn);
+    expect(Math.abs(wideshown - wide)).toBeLessThan(1);
+  });
+});

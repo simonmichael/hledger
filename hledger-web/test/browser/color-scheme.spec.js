@@ -1,10 +1,9 @@
 // Browser tests for the light and dark color schemes (#2706).
 //
-// The pages follow the browser's prefers-color-scheme with css alone, except
-// for the register chart, which flot draws on a canvas and hledger.js draws
-// again when the scheme changes. These tests catch what a reader in the dark
-// scheme would notice: something left light, text too dim to read, or a chart
-// in the other scheme's colors.
+// The pages follow the browser's prefers-color-scheme with css alone, the
+// register chart too: hledger draws it as SVG, styled by /chart.css. These
+// tests catch what a reader in the dark scheme would notice: something left
+// light, text too dim to read, or a chart in the other scheme's colors.
 //
 // Run with: npx playwright test color-scheme  (see README.md)
 const { test, expect } = require('@playwright/test');
@@ -12,9 +11,9 @@ const { watchPageErrors } = require('./helpers');
 
 // In the page: the visible elements that stand out as light on a dark page,
 // ie with a background or border brighter than mid-gray, or with text under
-// the WCAG AA minimum of 4.5:1 contrast against what is behind it. Legend
-// swatches take the chart's line colors, and bootstrap's close button is
-// faint on purpose; both look the same in either scheme.
+// the WCAG AA minimum of 4.5:1 contrast against what is behind it (an SVG's
+// text, like the register chart's, has the color of its fill). Bootstrap's
+// close button is faint on purpose, and looks the same in either scheme.
 function lightOnDark() {
   const parse = s => {
     const [r, g, b, a = 1] = s.match(/[\d.]+/g).map(Number);
@@ -47,7 +46,7 @@ function lightOnDark() {
   for (const el of [document.body, ...document.body.querySelectorAll('*')]) {
     const style = getComputedStyle(el);
     if (!el.getClientRects().length || style.visibility !== 'visible') continue;
-    if (el.closest('.legend-swatch, .close')) continue;
+    if (el.closest('.close')) continue;
     const name = el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') +
       [...el.classList].map(c => '.' + c).join('');
     const bg = behind(el);
@@ -60,7 +59,7 @@ function lightOnDark() {
     if ([...el.childNodes].some(n => n.nodeType === Node.TEXT_NODE && n.textContent.trim())) {
       let opacity = 1;
       for (let e = el; e; e = e.parentElement) opacity *= getComputedStyle(e).opacity;
-      const fg = parse(style.color);
+      const fg = parse(el instanceof SVGElement ? style.fill : style.color);
       const ratio = contrast(over({ ...fg, a: fg.a * opacity }, bg), bg);
       if (ratio < 4.5) found.push(`${name}: text contrast ${ratio.toFixed(2)}`);
     }
@@ -124,19 +123,15 @@ test('in the dark scheme, nothing on any page is left light', async ({ page }) =
   expect(errors).toEqual([]);
 });
 
-test('the register chart is drawn again for a change of scheme, and in the light one for printing', async ({ page }) => {
+test('the register chart takes its dark colors on screen, and prints light', async ({ page }) => {
   const errors = watchPageErrors(page);
-  await page.goto('/register?q=inacct:assets:bank:checking');
-  const chart = () => page.locator('#register-chart canvas.flot-base').evaluate(c => c.toDataURL());
-  const light = await chart();
+  await page.goto('/register?account=assets:bank:checking');
+  const line = page.locator('.register-chart svg .line').first();
+  const stroke = () => line.evaluate(el => getComputedStyle(el).stroke);
+  const light = await stroke();
   await page.emulateMedia({ colorScheme: 'dark' });
-  await expect.poll(chart).not.toEqual(light);
-  const dark = await chart();
+  await expect.poll(stroke).not.toEqual(light);
   await page.emulateMedia({ media: 'print' });
-  await expect.poll(chart).toEqual(light);
-  await page.emulateMedia({ media: 'screen' });
-  await expect.poll(chart).toEqual(dark);
-  // each drawing replaces the legend rather than adding to it
-  await expect(page.locator('#register-chart-label .legend-item')).toHaveCount(1);
+  await expect.poll(stroke).toEqual(light);
   expect(errors).toEqual([]);
 });
