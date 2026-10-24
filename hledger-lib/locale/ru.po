@@ -675,30 +675,56 @@ msgstr "Счета отчёта о прибылях и убытках"
 msgid "All accounts"
 msgstr "Все счета"
 
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Next report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Go to the next report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Previous report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Go to the previous report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid "Net, at cost:"
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid ""
 "The sum of every account, converted to cost: zero for balanced books; "
 "anything left comes from unbalanced virtual postings."
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid "Unbooked gains:"
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid ""
 "The sum of every account at market value: appreciation not booked by any "
 "entry. If realized gains are booked, this is the unrealized gains."
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid "Net flows:"
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid ""
 "The sum of every account: open positions in each commodity, and the cash "
