@@ -28,7 +28,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountParams, accountRegisterQuery, amountLinks, calcLinks, columnsLinks,
-              commodityLinks, controlsHint, controlsToggle, costsLinks, depthLinks,
+              commodityLinks, controlsHint, controlsToggle, optionsSummary, costsLinks, depthLinks,
               inertControls, listModeLinks, lotsLinks, mixedAmountAsHtmlElided,
               mixedAmountAsHtmlWith, moreCommodities, percentLinks, pricesLinks, realLinks,
               runningBalanceAsHtml, sortLinks, statusLinks, typeLinks,
@@ -67,7 +67,7 @@ getRegisterR = do
         Nothing         -> tr trs "all accounts"
         Just (a, True)  -> a
         Just (a, False) -> trf trs "{account} (excluding subaccounts)" [("account", a)]
-      header = if q /= Any then trf trs "{title}, filtered" [("title", title)] else title
+      header = if filterQuery (not . queryIsDepth) q /= Any then trf trs "{title}, filtered" [("title", title)] else title
 
   let rspec0 = reportspec_ (cliopts_ opts)
       ropts = maybe id setAmountMode mmode $
@@ -151,7 +151,7 @@ getRegisterR = do
         ]
       -- All of them behind the controls disclosure, closed by default,
       -- in the same order as on the report pages.
-      controlsRows = controlsToggle trs controlsOpen $ mconcat $
+      controlsRows = controlsToggle trs controlsOpen (optionsSummary trs deepest modeParams) $ mconcat $
         [intervalRow, yearsNav, statusRow, realRow, typeRow, typeHintRow, commodityRow] ++ [depthRow | deepest > 1] ++
         [listRow, amountsRow, costsRow, pricesRow, zeroRow, lotsRow, inertRows]
       -- the amount column's display format: with costs when asked

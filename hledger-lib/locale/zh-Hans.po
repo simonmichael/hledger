@@ -295,6 +295,7 @@ msgstr "累积增益"
 msgid "Historical gain"
 msgstr "历史收益"
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's calculation links, and the links' text and tooltips.
 #: hledger/Hledger/Cli/Commands/Balance.hs
 #: hledger-web/Hledger/Web/Widget/Common.hs
@@ -314,8 +315,10 @@ msgid "Transaction counts"
 msgstr "交易数"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
+#. the depth limit, in the list of options in effect.
 #: hledger/Hledger/Cli/Commands/Balance.hs
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Balance changes"
 msgstr "平衡性调整"
 
@@ -800,6 +803,7 @@ msgstr "没有任何"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Yearly"
 msgstr "每年"
 
@@ -810,6 +814,7 @@ msgstr "按年份显示列"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Quarterly"
 msgstr "每季"
 
@@ -820,6 +825,7 @@ msgstr "按季度显示列"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Monthly"
 msgstr "每月度"
 
@@ -830,6 +836,7 @@ msgstr "按月显示列"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Weekly"
 msgstr "每周"
 
@@ -840,6 +847,7 @@ msgstr "按周显示列"
 
 #. the interval links above a report: each link's text, and its tooltip.
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Daily"
 msgstr "每日"
 
@@ -854,7 +862,9 @@ msgid "Show how much each balance changed in each period"
 msgstr "展示每个期间各项余额的变化幅度"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
+#. the depth limit, in the list of options in effect.
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Ending balances"
 msgstr "期末余额"
 
@@ -865,7 +875,9 @@ msgid ""
 msgstr "显示每个期间结束时的余额，包括该期间之前的所有内容"
 
 #. the label before a report's accumulation mode links, and the links' text and tooltips.
+#. the depth limit, in the list of options in effect.
 #: hledger-web/Hledger/Web/ReportPage.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Cumulative totals"
 msgstr ""
 
@@ -1231,6 +1243,12 @@ msgstr ""
 msgid "Options"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+#, python-brace-format
+msgid "Depth {depth}"
+msgstr ""
+
 #. the tooltip on the muted control rows of the journal and register pages.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "These controls take effect on the report pages"
@@ -1288,6 +1306,7 @@ msgstr ""
 msgid "Amounts:"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's amount conversion links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "As recorded"
@@ -1298,6 +1317,7 @@ msgstr ""
 msgid "Show amounts in the commodities they were recorded in"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's amount conversion links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "At cost"
@@ -1308,6 +1328,7 @@ msgstr ""
 msgid "Show amounts converted to their cost, as recorded in transactions (-B)"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's amount conversion links, and the links' text and tooltips.
 #. the label before the holdings page's valuation links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
@@ -1438,6 +1459,7 @@ msgstr ""
 msgid "Show accounts as a flat list (--flat)"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's list/tree links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgctxt "accounts"
@@ -1449,6 +1471,7 @@ msgstr ""
 msgid "Show accounts as a tree (--tree)"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's list/tree links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgctxt "accounts"
@@ -1497,6 +1520,7 @@ msgstr ""
 msgid "Sort rows by account name"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's sort links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "By amount"
@@ -1523,6 +1547,7 @@ msgctxt "numbers"
 msgid "Amounts"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's amounts/percentages links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Percentages"
@@ -1549,6 +1574,7 @@ msgctxt "calculation"
 msgid "Sums"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's calculation links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Value change"
@@ -1559,9 +1585,60 @@ msgstr ""
 msgid "Show how period-end market values changed (--valuechange)"
 msgstr ""
 
+#. the depth limit, in the list of options in effect.
 #. the label before a report's calculation links, and the links' text and tooltips.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Unrealized gain"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Row totals"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Row averages"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Inferred prices"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Zero balances hidden"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Zero balances shown"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Lots shown"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Costs shown"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Closed positions shown"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Closed positions hidden"
+msgstr ""
+
+#. options in effect, listed on the closed options disclosure.
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgid "Secondary dates"
 msgstr ""
 
 #. the label before a report's calculation links, and the links' text and tooltips.

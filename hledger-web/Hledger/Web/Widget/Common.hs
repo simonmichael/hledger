@@ -10,6 +10,7 @@ module Hledger.Web.Widget.Common
   , balanceReportAsHtml
   , controlsHint
   , controlsToggle
+  , optionsSummary
   , inertControls
   , linksRow
   , linksRowClass
@@ -54,13 +55,13 @@ module Hledger.Web.Widget.Common
   ) where
 
 import Control.Applicative ((<|>))
-import Control.Monad (unless, when)
+import Control.Monad (guard, unless, when)
 import Control.Monad.Except (ExceptT, mapExceptT)
 import Data.Char (isDigit)
 import Data.Foldable (find, for_)
-import Data.List (elemIndex)
+import Data.List (elemIndex, sortOn)
 import Data.Set qualified as Set
-import Data.Maybe (isJust, isNothing, listToMaybe, mapMaybe, maybeToList)
+import Data.Maybe (fromMaybe, isJust, isNothing, listToMaybe, mapMaybe, maybeToList)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
@@ -185,14 +186,69 @@ linksRowGroups cls rowlabel groups renderUrl =
 -- browser in the showcontrols cookie (hledger.js), which the server
 -- reads (App.showControls), so each page is born the way the last one
 -- was left and nothing moves after paint.
-controlsToggle :: Translations -> Bool -> HtmlUrl r -> HtmlUrl r
-controlsToggle trs open rows =
+-- Closed, it lists the options in effect, so that the page's state is
+-- never hidden (see optionsSummary).
+controlsToggle :: Translations -> Bool -> [Text] -> HtmlUrl r -> HtmlUrl r
+controlsToggle trs open summary rows =
   -- TRANSLATORS: the disclosure hiding each page's rows of report controls: its text, and its tooltip.
   [hamlet|
 <details .report-controls :open:open>
-  <summary title=#{tr trs "Show the options that reshape this view"}>#{tr trs "Options"}
+  <summary title=#{tr trs "Show the options that reshape this view"}>
+    #{tr trs "Options"}
+    $if not (null summary)
+      <span .options-summary>#{T.intercalate " · " summary}
   ^{rows}
 |]
+
+-- | The report options a page's parameters set, as short phrases for the
+-- closed controls disclosure: the controls' own words where those stand
+-- alone ("Monthly", "Tree"), a phrase where a control's word would not
+-- ("Shown"). The pages' links carry only the options not at their
+-- defaults, so these are the options in effect, listed in the order of
+-- the controls' rows. The filters are not here: they are search terms,
+-- shown in the search box. A depth limit below none of the accounts
+-- (deeper than the given deepest account) is not one: the Depth links
+-- show it as All.
+optionsSummary :: Translations -> Int -> [(Text, Text)] -> [Text]
+optionsSummary trs deepest = mapMaybe phrase . sortOn (rowOrder . fst)
+  where
+    rowOrder k = fromMaybe maxBound $ elemIndex k
+      ["interval", "accum", "depth", "list", "value", "infer", "empty", "lots", "closed",
+       "total", "avg", "costs", "sort", "pct", "calc", "date2"]
+    phrase = \case
+      ("interval", w)     -> Just $ fromMaybe w $ lookup w
+        [ ("yearly", tr trs "Yearly"), ("quarterly", tr trs "Quarterly"), ("monthly", tr trs "Monthly")
+        , ("weekly", tr trs "Weekly"), ("daily", tr trs "Daily") ]
+      -- TRANSLATORS: the depth limit, in the list of options in effect.
+      ("depth", n)        -> do
+        d <- readMay (T.unpack n) :: Maybe Int
+        guard (d <= deepest)
+        Just $ trf trs "Depth {depth}" [("depth", n)]
+      ("accum", a)        -> lookup a
+        [ ("change", tr trs "Balance changes"), ("historical", tr trs "Ending balances")
+        , ("cumulative", tr trs "Cumulative totals") ]
+      ("value", "none")   -> Just $ tr trs "As recorded"
+      ("value", "cost")   -> Just $ tr trs "At cost"
+      ("value", _)        -> Just $ tr trs "At market value"
+      ("list", "tree")    -> Just $ trc trs "accounts" "Tree"
+      ("list", "flat")    -> Just $ trc trs "accounts" "List"
+      ("sort", "amount")  -> Just $ tr trs "By amount"
+      ("pct", "1")        -> Just $ tr trs "Percentages"
+      ("calc", c)         -> lookup c
+        [ ("valuechange", tr trs "Value change"), ("gain", tr trs "Unrealized gain")
+        , ("count", tr trs "Posting counts") ]
+      -- TRANSLATORS: options in effect, listed on the closed options disclosure.
+      ("total", "1")      -> Just $ tr trs "Row totals"
+      ("avg", "1")        -> Just $ tr trs "Row averages"
+      ("infer", "1")      -> Just $ tr trs "Inferred prices"
+      ("empty", "0")      -> Just $ tr trs "Zero balances hidden"
+      ("empty", "1")      -> Just $ tr trs "Zero balances shown"
+      ("lots", "1")       -> Just $ tr trs "Lots shown"
+      ("costs", "1")      -> Just $ tr trs "Costs shown"
+      ("closed", "1")     -> Just $ tr trs "Closed positions shown"
+      ("closed", "0")     -> Just $ tr trs "Closed positions hidden"
+      ("date2", "1")      -> Just $ tr trs "Secondary dates"
+      _                   -> Nothing
 
 -- | Rows of controls that take effect on other pages, their labels
 -- muted: they show and preserve the url's report state here too, so it

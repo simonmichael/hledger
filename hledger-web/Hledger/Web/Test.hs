@@ -61,11 +61,12 @@ import Yesod.Test
 import Web.Cookie (defaultSetCookie, setCookieName, setCookieValue)
 
 import Hledger.Web.Application ( makeAppWith )
+import Hledger.Utils.I18n (noTranslations)
 import Hledger.Web.Paging (pageNumbers)
 import Hledger.Web.ReportPage (intervalPeriodExpr, startupUrlState)
 import Hledger.Web.WebOptions  -- ( WebOpts(..), defwebopts, prognameandversion )
 import Hledger.Web.Import hiding (get, j)
-import Hledger.Web.Widget.Common (MovedOptions(..), normalisedSearch, splitPeriodExpr, transactionFragment)
+import Hledger.Web.Widget.Common (MovedOptions(..), normalisedSearch, optionsSummary, splitPeriodExpr, transactionFragment)
 import Hledger.Cli hiding (prognameandversion)
 
 
@@ -263,6 +264,16 @@ hledgerWebTest = do
       splitPeriodExpr refday "every 2 weeks from 2025-01-01" `shouldBe` Just (Weeks 2, "from 2025-01-01")
       splitPeriodExpr refday "2025" `shouldBe` Nothing
       splitPeriodExpr refday "monthly bogus" `shouldBe` Nothing
+
+  -- The options in effect, listed on the closed Options disclosure.
+  hspec $ describe "optionsSummary" $ do
+    it "lists the options in the controls' order, in their words, skipping other parameters" $
+      optionsSummary noTranslations 3 [("sort", "amount"), ("q", "assets"), ("depth", "2"), ("account", "assets"), ("interval", "monthly"), ("lots", "1")]
+        `shouldBe` ["Monthly", "Depth 2", "Lots shown", "By amount"]
+    it "shows an interval without a word of its own as written" $
+      optionsSummary noTranslations 3 [("interval", "every 2 weeks")] `shouldBe` ["every 2 weeks"]
+    it "omits a depth limit deeper than the deepest account, which the Depth links show as All" $
+      optionsSummary noTranslations 3 [("depth", "9"), ("lots", "1")] `shouldBe` ["Lots shown"]
 
   runTests "hledger-web" [] nulljournal $ do
 
@@ -782,6 +793,16 @@ hledgerWebTest = do
       loc <- headerValue "Location"
       assertEq "the page is reloaded with the depth as a parameter" loc
         (T.pack (defbaseurl defhost defport) <> "/balance?q=assets%20depth%3Aassets%3Abank%3D3&list=tree&depth=1")
+
+    yit "lists the options in effect on the closed Options disclosure, and does not call a depth limit a filter" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "interval" "monthly"
+        addGetParam "depth" "2"
+      statusIs 200
+      bodyContains "<span class=\"options-summary\">Monthly · Depth 2</span>"
+      bodyNotContains ", filtered</h2>"
 
     yit "keeps the depth in the search form" $ do
       request $ do

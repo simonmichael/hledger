@@ -20,7 +20,7 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsHint, controlsToggle,
+  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsHint, controlsToggle, optionsSummary,
    depthLinks, listModeLinks, lotsLinks,
    percentLinks, pricesLinks, realLinks, sortLinks,
    statusLinks, typeLinks, zeroBalanceLinks)
@@ -34,7 +34,8 @@ getBalanceR = do
   require ViewPermission
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
-  let dateless = filterQuery (not . queryIsDateOrDate2)
+  -- the title names the dates, and the depth limit is an option, not a filter
+  let dateless = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x))
       withFilter t = if dateless q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
@@ -130,7 +131,7 @@ getBalanceR = do
             yearsDays = map tdate $
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
             yearsNav = yearsRow trs BalanceR qparam today pageParams yearsDays
-            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
+            controlRows = controlsToggle trs controlsOpen (optionsSummary trs deepest pageParams) $ \render -> foldMap ($ render) $
               [ accumulationLinks trs BalanceR (qParams ++ removeAttributes ["accum"] pageParams) PerPeriod accum
               , intervalLinks trs BalanceR (removeAttributes ["interval"] pageParams) qparam rpInterval
               , yearsNav

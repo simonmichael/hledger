@@ -24,7 +24,7 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (accountParams, closedLinks, commodityLinks, controlsHint, controlsToggle,
+  (accountParams, closedLinks, commodityLinks, controlsHint, controlsToggle, optionsSummary,
    depthLinks, holdingsValueLinks, listModeLinks,
    lotsLinks, pricesLinks, realLinks, searchTerms,
    sortLinks, statusLinks, typeLinks, zeroBalanceLinks)
@@ -42,7 +42,7 @@ getHoldingsR = do
   params <- reqGetParams <$> getRequest
   urlrender <- getUrlRenderParams
   mclosedparam <- lookupGetParam "closed"
-  let withFilter t = if q /= Any then trf trs "{title}, filtered" [("title", t)] else t
+  let withFilter t = if filterQuery (not . queryIsDepth) q /= Any then trf trs "{title}, filtered" [("title", t)] else t
       rspecOrig = reportspec_ $ cliopts_ opts
       roptsOrig = _rsReportOpts rspecOrig
       -- The journal as displayed: with lots shown it includes the lot
@@ -273,7 +273,7 @@ getHoldingsR = do
             yearsDays = map tdate $
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} jfull
             yearsNav = yearsRow trs HoldingsR qparam today pageParams yearsDays
-            controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
+            controlRows = controlsToggle trs controlsOpen (optionsSummary trs deepest pageParams) $ \render -> foldMap ($ render) $
               [ yearsNav
               , statusLinks trs HoldingsR pageParams qparam
               , realLinks trs HoldingsR pageParams qparam

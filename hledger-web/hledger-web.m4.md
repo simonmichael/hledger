@@ -168,6 +168,8 @@ hledger-web's main views are:
 
 A row of links at the top of every page leads to the journal and report views.
 Below it are the search form, the options, and then the view's heading and content.
+The options are hidden until opened (click them, or press `o`); while hidden, they list
+the ones in effect, eg "Monthly · Depth 2 · Tree", so a view's shape is always visible.
 
 The journal and register views show the newest 1000 matching transactions, with links to the older
 and newer pages and to pages by number, so that a page stays a reasonable size
