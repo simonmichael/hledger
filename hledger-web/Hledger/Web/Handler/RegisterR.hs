@@ -28,7 +28,7 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
              (accountParams, accountRegisterQuery, amountLinks, calcLinks, columnsLinks,
-              commodityLinks, controlsHint, controlsToggle, optionsSummary, costsLinks, depthLinks,
+              commodityLinks, controlsHint, controlsToggle, optionsSummary, searchHeading, costsLinks, depthLinks,
               inertControls, listModeLinks, lotsLinks, mixedAmountAsHtmlElided,
               mixedAmountAsHtmlWith, moreCommodities, percentLinks, pricesLinks, realLinks,
               runningBalanceAsHtml, sortLinks, statusLinks, typeLinks,
@@ -67,7 +67,7 @@ getRegisterR = do
         Nothing         -> tr trs "all accounts"
         Just (a, True)  -> a
         Just (a, False) -> trf trs "{account} (excluding subaccounts)" [("account", a)]
-      header = if filterQuery (not . queryIsDepth) q /= Any then trf trs "{title}, filtered" [("title", title)] else title
+      header = searchHeading trs (date2_ (_rsReportOpts (reportspec_ (cliopts_ opts))) || date2On) q title
 
   let rspec0 = reportspec_ (cliopts_ opts)
       ropts = maybe id setAmountMode mmode $

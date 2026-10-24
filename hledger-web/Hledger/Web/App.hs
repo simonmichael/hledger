@@ -36,7 +36,7 @@ import Data.Time.Calendar (Day)
 import Network.HTTP.Conduit (Manager)
 import Network.HTTP.Types (status403)
 import Network.Wai (rawPathInfo, rawQueryString, requestHeaders, requestMethod)
-import Safe (readMay)
+import Safe (atMay, readMay)
 import System.Directory (XdgDirectory (..), createDirectoryIfMissing,
                          getXdgDirectory)
 import System.Entropy (getEntropy)
@@ -63,7 +63,7 @@ import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common (MovedOptions(..), accountParams, balanceReportAsHtml, normalisedSearch)
-import Data.List (isPrefixOf, partition)
+import Data.List (findIndex, isPrefixOf, partition)
 
 -- | The site argument for your application. This can be a good place to
 -- keep settings and values requiring initialization before your application
@@ -243,6 +243,21 @@ instance Yesod App where
         -- links' parameters.
         goItems :: [(Text, (Route App, [(Text, Text)]), Text, Text)]
         goItems = [ (rmGoKey i, (rmRoute i, sidebarParams), tr trs (rmLabel i), tr trs (rmTitle i)) | i <- reportMenuFor jHasLots ]
+        -- After them, g then n or p goes to the next or previous page in
+        -- the menu's order, going round; from a page not in the menu, to
+        -- the first or the last.
+        goSteps :: [(Text, (Route App, [(Text, Text)]), Text, Text)]
+        goSteps =
+          [ (key, (rmRoute i, sidebarParams), label, title)
+          | (key, step, label, title) <-
+              -- TRANSLATORS: the go menu's items for the next and previous page, and their tooltips.
+              [ ("n", 1,  tr trs "Next report",     tr trs "Go to the next report")
+              , ("p", -1, tr trs "Previous report", tr trs "Go to the previous report") ]
+          , Just i <- [goStep step] ]
+        goMenu = reportMenuFor jHasLots
+        goStep step = atMay goMenu $ case findIndex ((== here) . rmRoute) goMenu of
+          Just i  -> (i + step) `mod` length goMenu
+          Nothing -> if step > 0 then 0 else length goMenu - 1
         -- The links to the journal and reports at the top of every page,
         -- above the search, with the sidebar links' parameters.
         reportsRow = reportLinks trs here sidebarParams $ reportLinkGroups $ reportMenuFor jHasLots

@@ -674,30 +674,56 @@ msgstr "Cuentas de resultados"
 msgid "All accounts"
 msgstr "Todas las cuentas"
 
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Next report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Go to the next report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Previous report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
+#: hledger-web/Hledger/Web/App.hs
+msgid "Go to the previous report"
+msgstr ""
+
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid "Net, at cost:"
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid ""
 "The sum of every account, converted to cost: zero for balanced books; "
 "anything left comes from unbalanced virtual postings."
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid "Unbooked gains:"
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid ""
 "The sum of every account at market value: appreciation not booked by any "
 "entry. If realized gains are booked, this is the unrealized gains."
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid "Net flows:"
 msgstr ""
 
+#. the go menu's items for the next and previous page, and their tooltips.
 #: hledger-web/Hledger/Web/App.hs
 msgid ""
 "The sum of every account: open positions in each commodity, and the cash "
@@ -936,9 +962,8 @@ msgstr "Transacción añadida."
 
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
 #: hledger-web/Hledger/Web/Handler/HoldingsR.hs
-#: hledger-web/Hledger/Web/Handler/JournalR.hs
-#: hledger-web/Hledger/Web/Handler/RegisterR.hs
 #: hledger-web/Hledger/Web/Handler/StatementsR.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
 #, python-brace-format
 msgid "{title}, filtered"
 msgstr "{title}, con filtro"
@@ -1650,6 +1675,18 @@ msgstr ""
 #. options in effect, listed on the closed options disclosure.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Secondary dates"
+msgstr ""
+
+#. a journal or register page's heading when the search has dates, eg "General Journal in 2024".
+#: hledger-web/Hledger/Web/Widget/Common.hs
+#, python-brace-format
+msgid "{title} in {dates}"
+msgstr ""
+
+#. a journal or register page's heading when the search has dates, eg "General Journal in 2024".
+#: hledger-web/Hledger/Web/Widget/Common.hs
+#, python-brace-format
+msgid "{title} in {dates}, filtered"
 msgstr ""
 
 #. the label before a report's calculation links, and the links' text and tooltips.

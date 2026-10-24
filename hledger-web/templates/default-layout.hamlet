@@ -151,13 +151,18 @@ $# keyboard scrolls it (see focusPage).
       } catch (e) {}
     })();
 
-$# The g key's menu of pages, each with the key that goes to it (hledger.js).
+$# The g key's menu of pages, each with the key that goes to it (hledger.js),
+$# then the next and previous pages.
 $# The keys are not translated, like the other keys.
 $if elem ViewPermission perms
   <div #gomenu hidden aria-labelledby="gomenuLabel">
     <p #gomenuLabel>_{HMsg "Go to"}
     <ul>
       $forall (key, link, label, title) <- goItems
+        <li>
+          <a href=@?{link} data-gokey=#{key} title=#{title}><code>#{key}</code> #{label}
+    <ul .gomenu-steps>
+      $forall (key, link, label, title) <- goSteps
         <li>
           <a href=@?{link} data-gokey=#{key} title=#{title}><code>#{key}</code> #{label}
 

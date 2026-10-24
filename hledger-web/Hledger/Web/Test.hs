@@ -754,6 +754,21 @@ hledgerWebTest = do
       bodyContains "<code>a</code> All accounts</a>"
       bodyContains "<code>e</code> Balance sheet with equity</a>"
 
+    yit "offers the next and previous pages in the g key's menu, going round" $ do
+      let base = defbaseurl defhost defport
+      get BalanceR
+      statusIs 200
+      -- All accounts is between the cashflow statement and the balance
+      -- sheet with equity (this journal has no lots, so no Holdings page)
+      bodyContains ("<a href=\"" ++ base ++ "/balancesheetequity\" data-gokey=\"n\"")
+      bodyContains "<code>n</code> Next report</a>"
+      bodyContains ("<a href=\"" ++ base ++ "/cashflow\" data-gokey=\"p\"")
+      bodyContains "<code>p</code> Previous report</a>"
+      -- the journal, first, follows the last
+      get JournalR
+      statusIs 200
+      bodyContains ("<a href=\"" ++ base ++ "/balancesheetequity\" data-gokey=\"p\"")
+
     yit "styles the report through the stylesheet, not inline styles" $ do
       get BalanceR
       statusIs 200
@@ -1306,6 +1321,17 @@ hledgerWebTest = do
   -- The register: a period's transactions, with a running total from zero,
   -- or with accum=historical, the account's balance from before the period.
   runTests "hledger-web register page" [] bj $ do
+
+    yit "headings name the search's dates, and say filtered for its other filters" $ do
+      get (JournalR, [("q", "date:2025")])
+      statusIs 200
+      bodyContains ">General Journal in 2025</h2>"
+      get (JournalR, [("q", "date:2025 lunch")])
+      statusIs 200
+      bodyContains ">General Journal in 2025, filtered</h2>"
+      get (RegisterR, [("account", "assets:bank:checking"), ("q", "date:2025")])
+      statusIs 200
+      bodyContains ">assets:bank:checking in 2025</h2>"
 
     -- The register's table has a tbody; the sidebar, which shows the same
     -- accounts, has none, so these assertions look only at the register.

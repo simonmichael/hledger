@@ -534,6 +534,10 @@ dialog:focus {
 #gomenu li {
   padding: 2px 0;
 }
+/* the next and previous page items, a little apart from the pages */
+#gomenu ul.gomenu-steps {
+  margin-top: 6px;
+}
 #gomenu code {
   margin-right: 0.5em;
 }
