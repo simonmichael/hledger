@@ -87,6 +87,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // toggle the sidebar and open the add form as you spell "assets".
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey || e.metaKey || e.altKey) { return; }
+    // Escape closes an open dialog, even from one of its fields. Done here
+    // rather than left to the browser, so that the key is marked handled;
+    // otherwise Safari in full screen also takes it as leaving full screen.
+    var opendialog = document.querySelector('dialog[open]');
+    if (opendialog && e.key === 'Escape') {
+      opendialog.close();
+      e.preventDefault();
+      return;
+    }
     if (e.target.closest('input, textarea, select')) { return; }
     // The help keys toggle the help, so they close it too; while a dialog
     // is open the other keys do nothing.

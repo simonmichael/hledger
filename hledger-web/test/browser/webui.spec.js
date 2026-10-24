@@ -515,6 +515,27 @@ test.describe('modal dialogs', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  // Escape closes a dialog, even from one of its fields, marking the key
+  // handled, which keeps Safari in full screen.
+  test('escape closes a dialog, as a handled key', async ({ page }) => {
+    await page.goto('/journal');
+    await page.evaluate(() => {
+      window.addEventListener('keydown', e => { window.lastKeyHandled = e.defaultPrevented; });
+    });
+    await page.locator('body').press('h');
+    await expect(page.locator('#helpmodal')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#helpmodal')).toBeHidden();
+    expect(await page.evaluate(() => window.lastKeyHandled)).toBe(true);
+    await page.locator('body').press('a');
+    await expect(page.locator('#addmodal')).toBeVisible();
+    await page.locator('#addform input[name=description]').focus();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#addmodal')).toBeHidden();
+    expect(await page.evaluate(() => window.lastKeyHandled)).toBe(true);
+    expect(pageErrors).toEqual([]);
+  });
+
   // Clicking the backdrop closes the dialog (the help text promises this).
   test('clicking outside the dialog closes it', async ({ page }) => {
     await page.goto('/journal');
