@@ -668,6 +668,7 @@ msgstr "Cuentas de resultados"
 #. the menu screen's entries; translated when drawn.
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #. the browser tab title of this page.
+#. the name of a depth 0 report's one row, all accounts in one.
 #: hledger-ui/Hledger/UI/UIScreens.hs hledger-web/Hledger/Web/App.hs
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
 msgid "All accounts"
@@ -946,6 +947,14 @@ msgstr "{title}, con filtro"
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
 msgid "balance - hledger-web"
 msgstr "saldos - hledger-web"
+
+#. the name of a depth 0 report's one row, all accounts in one.
+#: hledger-web/Hledger/Web/Handler/BalanceR.hs
+#: hledger-web/Hledger/Web/Handler/StatementsR.hs
+#: hledger-web/Hledger/Web/Widget/Common.hs
+msgctxt "accounts"
+msgid "All"
+msgstr ""
 
 #. the hint below the account type filter row.
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs

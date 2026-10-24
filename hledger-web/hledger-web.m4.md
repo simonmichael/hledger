@@ -310,7 +310,8 @@ search.
 
 A `depth` parameter, like `--depth`, limits the account depth, eg
 `/balancesheet?depth=2`; the Depth links and the digit keys set it, and
-the pages' links carry it. A `depth:N` term typed in the search moves
+the pages' links carry it. Depth 0 shows only the total, as one row of
+all accounts. A `depth:N` term typed in the search moves
 there too (the page reloads with it as the `depth` parameter), so the
 search holds only the terms selecting data.
 In tree mode, the reports and the sidebar show the accounts below this

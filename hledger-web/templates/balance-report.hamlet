@@ -14,7 +14,7 @@ $forall (acct, adisplay, aindent, abal) <- items
         \#{indent aindent}
         <a.acct-name href="@?{acctlink acct}"
            title=#{tr trs "Show transactions affecting this account and subaccounts"}>
-          #{adisplay}
+          #{acctLabel acct adisplay}
         $if hasSubAccounts acct
           <a href="@?{acctonlylink acct}" .only.hidden-sm.hidden-xs
              title=#{tr trs "Show transactions affecting this account but not subaccounts"}>#{tr trs "only"}

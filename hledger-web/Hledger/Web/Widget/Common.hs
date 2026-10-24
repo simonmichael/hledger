@@ -139,8 +139,13 @@ balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel totti
   where
     l = ledgerFromJournal Any j
     indent a = preEscapedString $ concat $ replicate (2 + 2 * a) "&nbsp;"
-    hasSubAccounts acct = maybe True (not . null . asubs) $ ledgerAccount l acct
-    isInterestingAccount acct = maybe False isInteresting $ ledgerAccount l acct
+    -- A depth 0 sidebar's one row, all accounts in one, named "..." by
+    -- the report, is labelled as hledger-ui does, and always shown.
+    isAll = (== "...")
+    -- TRANSLATORS: the name of a depth 0 report's one row, all accounts in one.
+    acctLabel acct adisplay = if isAll acct then trc trs "accounts" "All" else adisplay
+    hasSubAccounts acct = not (isAll acct) && maybe True (not . null . asubs) (ledgerAccount l acct)
+    isInterestingAccount acct = isAll acct || maybe False isInteresting (ledgerAccount l acct)
       -- Costs and cost bases are stripped before the zero test, since they
       -- keep bought-and-fully-sold amounts from cancelling (eg a disposed
       -- lot, +10 A @ one cost and -10 A at another), and the sidebar
