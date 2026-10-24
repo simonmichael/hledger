@@ -113,43 +113,8 @@ document.addEventListener('DOMContentLoaded', function() {
       e.preventDefault();
       return;
     }
-    if (e.key >= '0' && e.key <= '9') {
-      if (depthSet(e.key)) { e.preventDefault(); }
-      return;
-    }
-    // In full window mode, s, o and / leave it, showing what they ask for.
-    switch (e.key) {
-      case 'h': case '?': helpToggle();                                     break;
-      case 'g': gomenuShow();                                               break;
-      case 's': if (fullWindowLeave()) { sidebarShow(); } else { sidebarToggle(); } break;
-      case 'o': if (fullWindowLeave()) { controlsShow(); } else { controlsToggle(); } break;
-      case 'z': emptyAccountsToggle();                                      break;
-      case 't': rowToggle('accounts', -1);                                  break;
-      case 'H': rowToggle('accum', 1);                                      break;
-      case 'L': rowToggle('lots', 1);                                       break;
-      case 'V': rowToggle('amounts', -1);                                   break;
-      case 'B': rowToggle('amounts', 1);                                    break;
-      case 'R': rowToggle('postings', 1);                                   break;
-      case 'U': rowToggle('status', 1);                                     break;
-      case 'P': rowToggle('status', 2);                                     break;
-      case 'C': rowToggle('status', 3);                                     break;
-      case 'S': rowToggle('sort', 1);                                       break;
-      case 'T': rowFollow('columns', 0);                                    break;
-      case 'A': rowFollow('columns', 1);                                    break;
-      case 'Y': rowToggle('interval', 1);                                   break;
-      case 'Q': rowToggle('interval', 2);                                   break;
-      case 'M': rowToggle('interval', 3);                                   break;
-      case 'W': rowToggle('interval', 4);                                   break;
-      case 'D': rowToggle('interval', 5);                                   break;
-      case '-': case '_': depthAdjust(-1);                                  break;
-      case '+': case '=': depthAdjust(1);                                   break;
-      case 'a': case 'n': addformShow();                                    break;
-      case 'f': fullWindowToggle();                                         break;
-      case '/': fullWindowLeave(); focusSearch();                           break;
-      // With nothing else to cancel, escape leaves full window mode.
-      case 'Escape': if (!fullWindowLeave()) { return; }                    break;
-      default: return;
-    }
+    var k = keymapFind(e.key);
+    if (!k || k.run(keyTarget(k), e.key) === false) { return; }
     e.preventDefault();
   });
   // Escape leaves the search field, keeping what was typed, so that the
@@ -201,6 +166,103 @@ document.addEventListener('DOMContentLoaded', function() {
 function focusPage() {
   var main = document.getElementById('main-content');
   if (main) { main.focus({ preventScroll: true }); }
+}
+
+//----------------------------------------------------------------------
+// KEYS
+
+// The keyboard shortcuts, as a table. Each entry has its keys and what
+// they do, and when they stand for a control on the page, how to find it:
+// a selector, or a function returning the element (nothing when this page
+// has none). The action is given that element and the key pressed, and
+// returns false when the key was not for it, leaving the key to the
+// browser. The keys are cased as hledger-ui's.
+// In full window mode, s, o and / leave it, showing what they ask for.
+var keymap = [
+  { keys: ['h', '?'], run: helpToggle },
+  { keys: ['g'], run: gomenuShow },
+  { keys: ['s'], run: function() { if (fullWindowLeave()) { sidebarShow(); } else { sidebarToggle(); } } },
+  { keys: ['o'], run: function() { if (fullWindowLeave()) { controlsShow(); } else { controlsToggle(); } } },
+  { keys: ['a', 'n'], run: function() { addformShow(); } },
+  { keys: ['f'], run: fullWindowToggle },
+  { keys: ['/'], run: function() { fullWindowLeave(); focusSearch(); } },
+  { keys: ['z'], at: '.zero-balances a:not(.current)', run: linkFollow },
+  { keys: ['t'], at: rowLink('accounts', -1),        run: linkToggle },
+  { keys: ['H'], at: rowLink('accum', 1),            run: linkToggle },
+  { keys: ['L'], at: rowLink('lots', 1),             run: linkToggle },
+  { keys: ['V'], at: rowLink('amounts', -1),         run: linkToggle },
+  { keys: ['B'], at: rowLink('amounts', 1),          run: linkToggle },
+  { keys: ['R'], at: rowLink('postings', 1),         run: linkToggle },
+  { keys: ['U'], at: rowLink('status', 1),           run: linkToggle },
+  { keys: ['P'], at: rowLink('status', 2),           run: linkToggle },
+  { keys: ['C'], at: rowLink('status', 3),           run: linkToggle },
+  { keys: ['S'], at: rowLink('sort', 1),             run: linkToggle },
+  // The Extra columns links each toggle their own column.
+  { keys: ['T'], at: rowLink('columns', 0),          run: linkFollow },
+  { keys: ['A'], at: rowLink('columns', 1),          run: linkFollow },
+  { keys: ['Y'], at: rowLink('interval', 1),         run: linkToggle },
+  { keys: ['Q'], at: rowLink('interval', 2),         run: linkToggle },
+  { keys: ['M'], at: rowLink('interval', 3),         run: linkToggle },
+  { keys: ['W'], at: rowLink('interval', 4),         run: linkToggle },
+  { keys: ['D'], at: rowLink('interval', 5),         run: linkToggle },
+  { keys: '0123456789'.split(''), at: rowLink('depth', -1), run: depthSet },
+  { keys: ['-', '_'], at: depthStep(-1),             run: linkFollow },
+  { keys: ['+', '='], at: depthStep(1),              run: linkFollow },
+  // With nothing else to cancel, escape leaves full window mode.
+  { keys: ['Escape'], run: function() { return fullWindowLeave(); } },
+];
+
+function keymapFind(key) {
+  return keymap.find(function(k) { return k.keys.indexOf(key) >= 0; });
+}
+
+// The element a keymap entry stands for on this page, if any.
+function keyTarget(k) {
+  if (!k.at) { return null; }
+  return typeof k.at === 'string' ? document.querySelector(k.at) : k.at();
+}
+
+// A finder for the link at idx (negative counts from the end) in a row of
+// control links. Each row builder says which position its keys rely on
+// (Widget.Common).
+function rowLink(rowCls, idx) {
+  return function() {
+    var links = document.querySelectorAll('#main-content .' + rowCls + ' a');
+    return links[idx < 0 ? links.length + idx : idx];
+  };
+}
+
+function linkFollow(a) {
+  if (a) { location.href = a.href; }
+}
+
+// hledger-ui's toggling keys, on a row of control links: follow the link,
+// or when it is already current, the row's first link, which shows the
+// default.
+function linkToggle(a) {
+  if (!a) { return; }
+  location.href = (a.classList.contains('current') ? a.closest('.report-links').querySelector('a') : a).href;
+}
+
+// A finder for the Depth link the - and + keys go to: the one delta
+// steps from the current one, through 0, 1, ... the deepest (no limit),
+// stopping at either end.
+function depthStep(delta) {
+  return function() {
+    var links = Array.prototype.slice.call(document.querySelectorAll('#main-content .depth a'));
+    var cur = links.findIndex(function(a) { return a.classList.contains('current'); });
+    return cur >= 0 ? links[cur + delta] : undefined;
+  };
+}
+
+// The digit keys set the depth limit, like hledger-ui's: the Depth row's
+// last link, the deepest, carries the page's url without a depth limit,
+// which the depth parameter adds.
+function depthSet(deepest, n) {
+  if (!deepest) { return false; }
+  var url = new URL(deepest.href);
+  url.searchParams.set('depth', n);
+  location.href = url.href;
 }
 
 // The entry targeted by the url hash is marked by a :target rule in
@@ -477,54 +539,6 @@ function fullWindowLeave() {
 function sidebarShow() {
   var sidebar = document.getElementById('sidebar-menu');
   if (sidebar && sidebar.classList.contains('col-any-0')) { sidebarToggle(); }
-}
-
-function emptyAccountsToggle() {
-  // The z key follows the Zero balances row's other link: the state is
-  // the page's empty parameter, so showing or hiding is a navigation.
-  var other = document.querySelector('.zero-balances a:not(.current)');
-  if (other) { location.href = other.href; }
-}
-
-function rowToggle(rowCls, idx) {
-  // hledger-ui's toggling keys, on a row of control links: follow the
-  // link at idx (negative counts from the end), or when it is already
-  // current, the row's first link, which shows the default. Each row
-  // builder says which position its keys rely on (Widget.Common).
-  var links = document.querySelectorAll('#main-content .' + rowCls + ' a');
-  if (!links.length) { return; }
-  var target = links[idx < 0 ? links.length + idx : idx];
-  if (!target) { return; }
-  location.href = (target.classList.contains('current') ? links[0] : target).href;
-}
-
-function rowFollow(rowCls, idx) {
-  // Follow a row's link at idx unconditionally: the Extra columns
-  // links each toggle their own column, so no fallback is wanted.
-  var links = document.querySelectorAll('#main-content .' + rowCls + ' a');
-  if (links[idx]) { location.href = links[idx].href; }
-}
-
-function depthAdjust(delta) {
-  // The - and + keys step the depth limit through the Depth row's
-  // links, 0, 1, ... the deepest (no limit), stopping at either end.
-  var links = document.querySelectorAll('#main-content .depth a');
-  var cur = -1;
-  links.forEach(function(a, i) { if (a.classList.contains('current')) { cur = i; } });
-  var next = links[cur + delta];
-  if (cur >= 0 && next) { location.href = next.href; }
-}
-
-function depthSet(n) {
-  // The digit keys set the depth limit, like hledger-ui's: the Depth
-  // row's last link, the deepest, carries the page's url without a depth
-  // limit, which the depth parameter adds.
-  var links = document.querySelectorAll('#main-content .depth a');
-  if (!links.length) { return false; }
-  var url = new URL(links[links.length - 1].href);
-  url.searchParams.set('depth', n);
-  location.href = url.href;
-  return true;
 }
 
 // Tree-mode report rows carry indent-N classes, their indent, and
