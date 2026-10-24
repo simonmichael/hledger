@@ -290,13 +290,19 @@ registerChartHtml trs j today mwidth q modeParams transactionFrag acct balancela
  where
    nodatelink = (RegisterR, [("q", t) | let t = T.unwords $ removeDates q, not (T.null t)] ++ modeParams)
    -- The commodities charted: at most ten, those with the most transactions
-   -- on the page. The balances keep only those before the chart is made,
-   -- which costs it a pass over the rest.
+   -- on the page. The balances keep only those before the chart is made.
    counts = M.fromListWith (+) [(c, 1 :: Int) | i <- items, c <- nub $ map acommodity $ amounts $ triAmount i]
    charted = take 10 . map fst . sortOn (\(c, n) -> (Down n, c)) $ M.toList counts
    leftout = M.size counts - length charted
-   -- the rows oldest first, as the chart's x positions are, each at its date in the register
-   rows = [ (t, ta, s, as, a, filterMixedAmount ((`elem` charted) . acommodity) b) | (t, ta, s, as, a, b) <- reverse items ]
+   -- the rows oldest first, as the chart's x positions are, each at its date in the register.
+   -- A balance can hold every commodity on the page, an amount one or two, so
+   -- only the oldest balance is cut to the charted commodities; each later one
+   -- is the one before plus its row's amount, cut, as the register sums them.
+   keep = filterMixedAmount ((`elem` charted) . acommodity)
+   rows = case reverse items of
+     [] -> []
+     (t, ta, s, as, a, b) : later -> scanl next (t, ta, s, as, a, keep b) later
+   next (_, _, _, _, _, bal) (t, ta, s, as, a, _) = (t, ta, s, as, a, bal `maPlus` keep a)
    regdates = M.fromList [(tindex $ triOrigTransaction i, triDate i) | i <- rows]
    regdate t = M.findWithDefault (tdate t) (tindex t) regdates
    chart = accountTransactionsReportAsChart (journalAccountType j) "" acct regdate rows
