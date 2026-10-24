@@ -378,18 +378,21 @@ timeSvg SvgOptions{svgPlotHeight = plotheight, svgPointLink, svgDateScale, svgTo
       let pts = [ fmap (\q -> (j, xcenter j, yofline (toD q), q)) (valueAt vals j) | let vals = seriesValues s, j <- [0 .. n - 1] ]
       forM_ (runs pts) $ \run ->
         S.polyline ! A.class_ ("line " <> toValue cls)
-          ! A.points (toValue $ T.unwords [num x <> "," <> num y | (x, y) <- thinPoints $ (if isJust datearray then steps else id) [(x, y) | (_, x, y, _) <- run]])
+          ! A.points (toValue $ T.unwords [num x <> "," <> num y | (x, y) <- thinPoints $ (if isJust datearray then dropFlat . steps else id) [(x, y) | (_, x, y, _) <- run]])
       -- invisible larger targets, for tooltips, and links if any
-      forM_ (hitPoints $ catMaybes pts) $ \(j, x, y, q) -> linked j $ withTooltip (tooltip (fromMaybe "" $ xlabels `atMay` j) s q) $
+      forM_ (hitPoints $ (if isJust datearray then changes else id) $ catMaybes pts) $ \(j, x, y, q) -> linked j $ withTooltip (tooltip (fromMaybe "" $ xlabels `atMay` j) s q) $
         S.circle ! A.class_ "hit" ! A.cx (toValue $ num x) ! A.cy (toValue $ num y) ! A.r "6"
     -- some markup for the given x position, as a link if it has one
     linked j m = case svgPointLink j of
       Just url -> S.a ! customAttribute "href" (toValue url) ! customAttribute "tabindex" "-1" $ m
       Nothing  -> m
-    -- The points of a line given tooltip targets: all of them, or beyond 400 x positions, the last point in each 4px column,
+    -- The points of a line by date where its value changes, and its first point. At the others nothing happened
+    -- to it, eg a register's transactions in other commodities.
+    changes ps = take 1 ps ++ [p | ((_, _, _, q0), p@(_, _, _, q)) <- zip ps (drop 1 ps), q /= q0]
+    -- The points of a line given tooltip targets: all of them, or beyond 400, the last point in each 4px column,
     -- which keeps the SVG small while the targets (12px across) still cover the whole line.
     hitPoints ps
-      | n <= 400  = ps
+      | length ps <= 400 = ps
       | otherwise = M.elems $ M.fromList [(floor (x / 4) :: Integer, p) | p@(_, x, _, _) <- ps]
     tooltip :: Text -> Series -> Quantity -> Text
     tooltip lbl s q = T.intercalate " · " (filter (not . T.null) [lbl, lbFull (seLabel s), showValue unit q])
@@ -600,6 +603,14 @@ clipMark vertical edge mid barsize sign =
 -- | The points of a step line through these points: each value holds until the next point's x position.
 steps :: [(Double, Double)] -> [(Double, Double)]
 steps ps = take 1 ps ++ concat (zipWith (\(_, py) (x, y) -> [(x, py), (x, y)]) ps (drop 1 ps))
+
+-- | Leave out the points inside a run of points at the same height, which a line draws the same without:
+-- eg a step line's long flat stretches, as when most of a register's transactions are in other commodities.
+dropFlat :: [(Double, Double)] -> [(Double, Double)]
+dropFlat (a : b : c : rest)
+  | snd a == snd b && snd b == snd c = dropFlat (a : c : rest)
+  | otherwise = a : dropFlat (b : c : rest)
+dropFlat ps = ps
 
 -- | Reduce a line's points to at most four per pixel column (the first, lowest, highest and last, in their original order),
 -- which draws the same line, but keeps the SVG small when there are many more points than pixels (eg a long register).
@@ -827,6 +838,10 @@ tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
   ,testCase "a long line has tooltips all along it, at most one per 4px column" $ do
      let hits = T.count "class=\"hit\"" $ svgText defaultSvgOptions $ lineChart 1000
      assertBool ("tooltip targets: " ++ show hits) (hits >= 150 && hits <= 220)
+  ,testCase "a line by date has tooltips where it changes" $ do
+     T.count "class=\"hit\"" (svgText defaultSvgOptions $ lineChartOf [1, 1, 1, 2, 2, 2]) @?= 2
+  ,testCase "dropFlat" $ do
+     dropFlat [(0, 1), (1, 1), (1, 1), (2, 1), (2, 2), (3, 2)] @?= [(0, 1), (2, 1), (2, 2), (3, 2)]
   ,testCase "a line's points can link somewhere, out of the tab order" $ do
      let svg = svgText defaultSvgOptions{svgPointLink = \j -> if even j then Just ("#t" <> T.pack (show j)) else Nothing} $ lineChart 3
      assertBool "the third point links" $ "<a href=\"#t2\" tabindex=\"-1\">" `T.isInfixOf` svg
