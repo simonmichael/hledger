@@ -224,7 +224,7 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 ## Possible future work
 
 - html: include the chart by default ?
-- hledger-web integration; could eventually replace the flot register chart
+- hledger-web integration: the register chart is the SVG chart; the report pages could show theirs
 - hledger-ui integration, a chart toggle ?
 - repeatable `-o`, for several outputs at once (see Decisions)
 - update hledger-bar doc, charts page
