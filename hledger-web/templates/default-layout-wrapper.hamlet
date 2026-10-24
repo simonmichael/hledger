@@ -16,7 +16,12 @@ $newline never
           document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/,'js');
           document.hledgerWebBaseurl = '#{base_url_ opts}'; // save for binding keys later
 
-    <body :browsemode:data-browse-mode :fullWindow:.fullwindow>
+    <body :browsemode:data-browse-mode>
+        $# Full window mode (the f key, hledger.js) is remembered in this
+        $# tab's session storage, which is separate for each hledger-web
+        $# (scheme, host and port), and restored here, before anything paints.
+        <script nonce=#{nonce}>
+          try { if (sessionStorage.getItem('fullwindow') === '1') { document.body.classList.add('fullwindow'); } } catch (e) {}
         <div .container-fluid>
             <div .row .row-offcanvas .row-offcanvas-left>
               ^{pageBody pc}
