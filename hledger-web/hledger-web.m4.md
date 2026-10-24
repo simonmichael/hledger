@@ -209,7 +209,7 @@ which work when you are not typing in a field:
 - `a` or `n` - add a transaction (escape to cancel)
 - `s` - show or hide the sidebar
 - `o` - show or hide the report options
-- `f` - full window: show only the report's heading and data, or everything
+- `f` - full window: show only the report's heading and data, or everything (`s`, `o` and `/` leave it, showing what they ask for)
 - `z` - show or hide accounts with zero balances
 - `t` - show accounts as a tree, or a list
 - `H` - show ending balances, or balance changes

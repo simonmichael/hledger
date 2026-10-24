@@ -117,11 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if (depthSet(e.key)) { e.preventDefault(); }
       return;
     }
+    // In full window mode, s, o and / leave it, showing what they ask for.
     switch (e.key) {
       case 'h': case '?': helpToggle();                                     break;
       case 'g': gomenuShow();                                               break;
-      case 's': sidebarToggle();                                            break;
-      case 'o': controlsToggle();                                           break;
+      case 's': if (fullWindowLeave()) { sidebarShow(); } else { sidebarToggle(); } break;
+      case 'o': if (fullWindowLeave()) { controlsShow(); } else { controlsToggle(); } break;
       case 'z': emptyAccountsToggle();                                      break;
       case 't': rowToggle('accounts', -1);                                  break;
       case 'H': rowToggle('accum', 1);                                      break;
@@ -144,9 +145,9 @@ document.addEventListener('DOMContentLoaded', function() {
       case '+': case '=': depthAdjust(1);                                   break;
       case 'a': case 'n': addformShow();                                    break;
       case 'f': fullWindowToggle();                                         break;
-      case '/': focusSearch();                                              break;
+      case '/': fullWindowLeave(); focusSearch();                           break;
       // With nothing else to cancel, escape leaves full window mode.
-      case 'Escape': if (!fullWindowOn()) { return; } fullWindowToggle();   break;
+      case 'Escape': if (!fullWindowLeave()) { return; }                    break;
       default: return;
     }
     e.preventDefault();
@@ -463,6 +464,18 @@ function fullWindowToggle() {
   document.cookie = 'fullwindow=' + (on ? '1' : '0') + '; path=/; samesite=lax';
 }
 
+function fullWindowLeave() {
+  // Leave full window mode, saying whether it was on.
+  if (!fullWindowOn()) { return false; }
+  fullWindowToggle();
+  return true;
+}
+
+function sidebarShow() {
+  var sidebar = document.getElementById('sidebar-menu');
+  if (sidebar && sidebar.classList.contains('col-any-0')) { sidebarToggle(); }
+}
+
 function emptyAccountsToggle() {
   // The z key follows the Zero balances row's other link: the state is
   // the page's empty parameter, so showing or hiding is a navigation.
@@ -594,6 +607,11 @@ function controlsInit() {
 function controlsToggle() {
   var d = document.querySelector('#main-content details.report-controls');
   if (d) { d.open = !d.open; }
+}
+
+function controlsShow() {
+  var d = document.querySelector('#main-content details.report-controls');
+  if (d) { d.open = true; }
 }
 
 // The sidebar's account tree is folded by an inline script right after its
