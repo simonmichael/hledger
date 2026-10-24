@@ -10,6 +10,7 @@ and then Application.hs completes the job.
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE QuasiQuotes           #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
@@ -21,7 +22,7 @@ module Hledger.Web.App where
 import Control.Applicative ((<|>))
 import Control.Monad (join, mfilter, when, unless)
 -- import Control.Monad.Except (runExceptT)  -- now re-exported by Hledger
-import Data.ByteString.Base64 qualified as B64
+import "base64-bytestring" Data.ByteString.Base64 qualified as B64  -- not base64's module of the same name
 import Data.ByteString.Char8 qualified as BC
 import Data.Foldable (for_)
 import Data.Map qualified as M
