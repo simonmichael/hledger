@@ -156,7 +156,8 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
 - SVG: self-contained, deterministic (one-decimal coordinates, one element per line, for golden tests), system fonts, literal colours in CSS
   (librsvg doesn't support `var()`), a `prefers-color-scheme` dark variant (omitted when embedded in html, which is light).
   Ticks by d3's 1-2-5 rule. Tooltips as `<title>` (marks wrapped in `<g>`, as blaze-svg leaf elements can't have children);
-  a line's points have invisible 12px targets for them, or beyond 400 points, the last point in each 4px column has one.
+  a line's points have invisible 12px targets for them (by date, only where the line changes), or beyond 400, the last point
+  in each 4px column has one; a step line's flat stretches have no points inside them.
   880px wide (shrinking to fit narrower pages), 14px text (estimated widths per kind of character, measured in Chrome with SF Pro);
   bars at most 56px (64px for single-period columns), 2px gaps between segments, and 3px rounded ends
   (each stack is clipped to one rounded outline, so the end is the same however thin its outermost segment); lines 3px, thinned to 4 points per pixel column
