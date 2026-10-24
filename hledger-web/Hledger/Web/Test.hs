@@ -447,8 +447,7 @@ hledgerWebTest = do
       -- a position's register link filters to its commodity
       bodyContains "/register?q=date%3A2026%20cur%3AAAA&amp;account=assets%3Abroker\""
       -- with lots hidden, the Depth row reaches the deepest real account
-      bodyContains "&amp;depth=2\""
-      bodyNotContains "&amp;depth=3\""
+      bodyContains "title=\"Show accounts at every depth\">2</a>"
 
     yit "shows one row per lot with lots=1" $ do
       request $ do
@@ -462,7 +461,8 @@ hledgerWebTest = do
       bodyContains "scope=\"rowgroup\">assets:broker</th>"
       -- lot subaccounts are ordinary accounts to the Depth row, which
       -- now reaches one level deeper, as in hledger-ui
-      bodyContains "&amp;depth=3\""
+      bodyContains "&amp;depth=2\" title=\"Show accounts down to depth 2\">2</a>"
+      bodyContains "title=\"Show accounts at every depth\">3</a>"
 
     yit "shows closed positions with closed=1" $ do
       request $ do
@@ -823,19 +823,21 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "<input type=\"hidden\" name=\"depth\" value=\"2\">"
 
-    yit "links to each depth, the deepest included, setting the depth parameter and keeping the search" $ do
+    yit "links to each depth from 0, setting the depth parameter and keeping the search; the deepest removes it" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
         addGetParam "q" "assets"
         addGetParam "depth" "1"
       statusIs 200
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets\" title=\"Show accounts at every depth\">All</a>")
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=1\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=2\"")
-      -- assets:bank:checking is at depth 3: its link shows the same
-      -- accounts as All, but holds the depth
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=3\"")
+      let base = defbaseurl defhost defport
+      bodyContains ("href=\"" ++ base ++ "/balance?q=assets&amp;depth=0\" title=\"Show only the total\">0</a>")
+      bodyContains ("class=\"current\" href=\"" ++ base ++ "/balance?q=assets&amp;depth=1\"")
+      bodyContains ("href=\"" ++ base ++ "/balance?q=assets&amp;depth=2\"")
+      -- assets:bank:checking is at depth 3, so its link removes the
+      -- limit, as hledger-ui does with a depth at or beyond the deepest
+      bodyContains ("href=\"" ++ base ++ "/balance?q=assets\" title=\"Show accounts at every depth\">3</a>")
+      bodyNotContains "&amp;depth=3\""
       bodyNotContains "depth=4"
 
     yit "squashes boring parents in tree mode, as the cli does" $ do
@@ -1180,6 +1182,10 @@ hledgerWebTest = do
       bodyNotContains ">checking</a>"
       -- the sidebar too, its one row always shown
       bodyContains "<tr data-indent=\"0\" data-acct=\"...\"><td class=\"acct \">"
+      -- the Depth row's 0 link is marked, not the deepest, which removes the limit
+      let base = defbaseurl defhost defport
+      bodyContains ("<a class=\"current\" href=\"" ++ base ++ "/balance?list=tree&amp;depth=0\" title=\"Show only the total\">0</a>")
+      bodyContains ("<a href=\"" ++ base ++ "/balance?list=tree\" title=\"Show accounts at every depth\">3</a>")
 
     yit "in tree mode, a per-account depth limit clips its accounts, as the cli does" $ do
       request $ do

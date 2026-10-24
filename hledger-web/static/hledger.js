@@ -464,31 +464,21 @@ function rowFollow(rowCls, idx) {
 
 function depthAdjust(delta) {
   // The - and + keys step the depth limit through the Depth row's
-  // links, whose order is: no limit first, then each depth ascending.
-  // Stepping past either end leaves or reaches the no-limit state.
+  // links, 0, 1, ... the deepest (no limit), stopping at either end.
   var links = document.querySelectorAll('#main-content .depth a');
-  if (!links.length) { return; }
   var cur = -1;
   links.forEach(function(a, i) { if (a.classList.contains('current')) { cur = i; } });
-  if (cur < 0) { return; }  // a depth outside the row's range, eg depth:0
-  var next;
-  if (cur === 0) {
-    next = delta < 0 ? links.length - 2 : cur;  // shallower than no limit skips the deepest link, which shows the same
-  } else {
-    next = cur + delta;
-    if (next < 1) { next = cur; }               // already the shallowest link
-    if (next >= links.length) { next = 0; }     // deeper than the deepest: no limit
-  }
-  if (next !== cur) { location.href = links[next].href; }
+  var next = links[cur + delta];
+  if (cur >= 0 && next) { location.href = next.href; }
 }
 
 function depthSet(n) {
   // The digit keys set the depth limit, like hledger-ui's: the Depth
-  // row's All link carries the page's url without a depth limit, which
-  // the depth parameter adds.
-  var all = document.querySelector('#main-content .depth a');
-  if (!all) { return false; }
-  var url = new URL(all.href);
+  // row's last link, the deepest, carries the page's url without a depth
+  // limit, which the depth parameter adds.
+  var links = document.querySelectorAll('#main-content .depth a');
+  if (!links.length) { return false; }
+  var url = new URL(links[links.length - 1].href);
   url.searchParams.set('depth', n);
   location.href = url.href;
   return true;

@@ -211,9 +211,8 @@ controlsToggle trs open summary rows =
 -- ("Shown"). The pages' links carry only the options not at their
 -- defaults, so these are the options in effect, listed in the order of
 -- the controls' rows. The filters are not here: they are search terms,
--- shown in the search box. A depth limit below none of the accounts
--- (deeper than the given deepest account) is not one: the Depth links
--- show it as All.
+-- shown in the search box. A depth limit at or beyond the given
+-- deepest account's depth is not one: the Depth links show it as none.
 optionsSummary :: Translations -> Int -> [(Text, Text)] -> [Text]
 optionsSummary trs deepest = mapMaybe phrase . sortOn (rowOrder . fst)
   where
@@ -227,7 +226,7 @@ optionsSummary trs deepest = mapMaybe phrase . sortOn (rowOrder . fst)
       -- TRANSLATORS: the depth limit, in the list of options in effect.
       ("depth", n)        -> do
         d <- readMay (T.unpack n) :: Maybe Int
-        guard (d <= deepest)
+        guard (d < deepest)
         Just $ trf trs "Depth {depth}" [("depth", n)]
       ("accum", a)        -> lookup a
         [ ("change", tr trs "Balance changes"), ("historical", tr trs "Ending balances")
@@ -313,29 +312,31 @@ valueWord = \case
     AtDate d mc -> showDate d <> comm mc
   where comm = maybe "" ("," <>)
 
--- | Links to the same report page limited to each account depth, from 1
--- up to and including the given deepest one, after an All link that
--- removes the limit. The deepest link shows the same accounts as All,
--- but holds the depth, which keeps clipping if showing lots deepens the
--- tree. Each sets the depth parameter, keeping the search and the given
--- parameters; the depth being shown, the given parameters' depth, is
--- marked, on All when it exceeds the deepest, as hledger-ui's digits
--- treat one. (A depth of 0, a single total, can be typed in the search,
--- as depth:0.)
--- The digit keys set a depth through the All link's url (hledger.js).
+-- | Links to the same report page limited to each account depth, from 0
+-- (only the total, as one row of all accounts, as --depth 0 shows) up
+-- to the given deepest one, which removes the limit, as hledger-ui
+-- does with a depth at or beyond the deepest. Each keeps the search and
+-- the given parameters; the depth being shown, the given parameters'
+-- depth, is marked, on the deepest link when there is no limit or it is
+-- at or beyond the deepest.
+-- The digit keys set a depth through the deepest link's url, and the -
+-- and + keys step through the links, going round (hledger.js).
 depthLinks :: Translations -> r -> [(Text, Text)] -> Text -> Int -> HtmlUrl r
 depthLinks trs route kept qparam deepest =
   -- TRANSLATORS: the label before a report's depth links, and the links' text and tooltips.
-  linksRowClass "depth" (tr trs "Depth:") $
-    (trc trs "depth" "All", tr trs "Show accounts at every depth", link Nothing, maybe True (> deepest) current)
-    : [ (T.pack (show n), depthTitle n, link (Just n), current == Just n)
-      | n <- [1 .. deepest] ]
+  linksRowClass "depth" (tr trs "Depth:")
+    [ (T.pack (show n), depthTitle n, link n, marked n) | n <- [0 .. deepest] ]
   where
     current = readMay . T.unpack =<< lookup "depth" kept
+    marked n | n == deepest = maybe True (>= deepest) current
+             | otherwise    = current == Just n
     -- TRANSLATORS: the tooltips of a report's depth links.
-    depthTitle n = trf trs "Show accounts down to depth {depth}" [("depth", T.pack (show n))]
-    link mn =
-      (route, [("q", qparam) | not (T.null qparam)] ++ filter ((/= "depth") . fst) kept ++ [("depth", T.pack (show (n :: Int))) | Just n <- [mn]])
+    depthTitle n
+      | n == 0       = tr trs "Show only the total"
+      | n == deepest = tr trs "Show accounts at every depth"
+      | otherwise    = trf trs "Show accounts down to depth {depth}" [("depth", T.pack (show n))]
+    link n =
+      (route, [("q", qparam) | not (T.null qparam)] ++ filter ((/= "depth") . fst) kept ++ [("depth", T.pack (show (n :: Int))) | n < deepest])
 
 -- | Links to the same report page showing amounts as recorded, at cost,
 -- or at market value, keeping the given parameters; the mode being

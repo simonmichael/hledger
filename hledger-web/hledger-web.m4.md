@@ -220,7 +220,7 @@ which work when you are not typing in a field:
 - `S` - sort by amount, or by account
 - `T`, `A` - add or remove the row total and average columns (multi-period reports)
 - `D`, `W`, `M`, `Q`, `Y` - set the report interval (daily, weekly, monthly, quarterly, yearly); pressed again, remove it
-- `0`-`9`, `-`, `+` - set or adjust the account depth limit
+- `0`-`9`, `-`, `+` - set or adjust the account depth limit (`-` and `+` step between 0 and the deepest)
 - `f` or `/` - focus the search form, ready to add a term (escape to leave it)
 
 The pages are light or dark, following your OS or browser's color scheme setting,
