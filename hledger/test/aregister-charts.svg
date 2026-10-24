@@ -23,6 +23,10 @@
 .hledger-chart .average{stroke:#0b0b0b}
 .hledger-chart .clip{fill:#0b0b0b}
 .hledger-chart .hatch{stroke:#fcfcfb}
+.hledger-chart .shade.past-negative{fill:#fbe4e4}
+.hledger-chart .shade.future{fill:#f1f0ec}
+.hledger-chart .shade.future-negative{fill:#f0dcda}
+.hledger-chart .axis.zero{stroke:#e34948}
 .hledger-chart .fill.ta0{fill:#2a78d6}
 .hledger-chart .line.ta0{stroke:#2a78d6}
 .hledger-chart .fill.ta1{fill:#1d5496}
@@ -109,6 +113,10 @@
 .hledger-chart .average{stroke:#ffffff}
 .hledger-chart .clip{fill:#ffffff}
 .hledger-chart .hatch{stroke:#1a1a19}
+.hledger-chart .shade.past-negative{fill:#432929}
+.hledger-chart .shade.future{fill:#252524}
+.hledger-chart .shade.future-negative{fill:#3a2a28}
+.hledger-chart .axis.zero{stroke:#e66767}
 .hledger-chart .fill.ta0{fill:#3987e5}
 .hledger-chart .line.ta0{stroke:#3987e5}
 .hledger-chart .fill.ta1{fill:#88b7ef}
