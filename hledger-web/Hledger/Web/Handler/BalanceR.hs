@@ -12,7 +12,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Cli.Commands.Balance qualified as Balance
 import Data.Text qualified as T
-import Hledger.Utils.I18n (tr, trf)
+import Hledger.Utils.I18n (tr, trc, trf)
 
 import Hledger.Web.Import
 import Hledger.Web.Widget.AddForm (addModal)
@@ -98,7 +98,8 @@ getBalanceR = do
             registerParams =
               [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
               removeAttributes ["accum", "value"] pageParams
-            relink = map (map (addLinkParams registerParams))
+            -- TRANSLATORS: the name of a depth 0 report's one row, all accounts in one.
+            relink = map (map (labelAllAccounts (trc trs "accounts" "All") . addLinkParams registerParams))
             headinglink = urlrender BalanceR . headingParams rpInterval qparam params
             -- The heading, and the report's rows in three parts, for the
             -- table's thead, tbody, and tfoot.
@@ -118,7 +119,7 @@ getBalanceR = do
                 in ( reportTitle ropts $ trimColon $ Balance.multiBalanceReportTitle roptsR mbr
                    , map (relinkDateHeaders trs (columnHeading ropts colspans) headinglink colspans) h, relink b, relink t)
         let isTree = accountlistmode_ ropts == ALTree
-            mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
+            mfold = fold_depth_ ropts
             -- In flat mode the account names' shared prefix is shown once,
             -- as a group heading, and each row shows only the rest, its
             -- remaining parent path dimmed (see splitAccountNames).

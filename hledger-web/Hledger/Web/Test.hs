@@ -1165,6 +1165,22 @@ hledgerWebTest = do
       bodyContains "<tr class=\"tree-fold-hide\"><td class=\"account indent-1 depth-3\">"
       bodyNotContains "<tr><td class=\"account indent-1 depth-3\">"
 
+    yit "in tree mode, depth 0 clips to one row of all accounts, as the cli does" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "list" "tree"
+        addGetParam "depth" "0"
+      statusIs 200
+      -- folding can't show a single total, so nothing is folded
+      bodyNotContains "data-depth-fold=\""
+      -- the one row, labelled as in hledger-ui, links to everything's register
+      bodyContains "<tr><td class=\"account indent-0 depth-1\"><a href=\"register?list=tree&amp;depth=0\""
+      bodyContains ">All</a>"
+      bodyNotContains ">checking</a>"
+      -- the sidebar too, its one row always shown
+      bodyContains "<tr data-indent=\"0\" data-acct=\"...\"><td class=\"acct \">"
+
     yit "in tree mode, a per-account depth limit clips its accounts, as the cli does" $ do
       request $ do
         setMethod "GET"

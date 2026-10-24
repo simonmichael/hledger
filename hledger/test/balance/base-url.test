@@ -352,3 +352,14 @@ $ hledger -f- bal -M -V -O html --base-url '' assets:broker
 $ hledger -f- bal -M -B -O html --base-url '' assets:broker
 > /<a href="register\?q=date:2025-01\+assets:broker&amp;account=assets:broker&amp;value=cost" title="Show the transactions that make up this amount">/
 >= 0
+
+# ** 25. A depth 0 report's one row, all accounts in one, links to the
+# register of everything.
+<
+2025-01-20 fee
+  assets:bank:checking  -5
+  expenses:fees
+
+$ hledger -f- bal depth:0 -O html --base-url ''
+> /<a href="register\?q=depth:0" title="Show transactions affecting this account and subaccounts">\.\.\.</
+>= 0

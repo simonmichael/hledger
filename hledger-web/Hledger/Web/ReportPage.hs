@@ -28,6 +28,7 @@ module Hledger.Web.ReportPage (
   setAmountMode,
   valueParams,
   addLinkParams,
+  labelAllAccounts,
   deepestDepth,
   parseInterval,
   depthParams,
@@ -152,7 +153,7 @@ reportParams rspecOrig qparam q qopts hideEmpty params = do
           value_           = value',
           accountlistmode_ = fromMaybe (accountlistmode_ roptsOrig) mlist,
           depth_           = if tree then mempty else depth_ ropts1,
-          fold_depth_      = if tree then dsFlatDepth (queryDepth q) else Nothing,
+          fold_depth_      = if folding then dsFlatDepth (queryDepth q) else Nothing,
           row_total_       = total,
           average_         = avg,
           sort_amount_     = sortAmt,
@@ -167,10 +168,12 @@ reportParams rspecOrig qparam q qopts hideEmpty params = do
       -- each deeper group openable in place (see reportTable and
       -- hledger.js); fold_depth_ keeps boring parents from being elided
       -- across it. Per-account depth limits still clip, as on the
-      -- command line.
+      -- command line, and so does depth 0, a single total, which
+      -- folding can't show.
+      folding = tree && dsFlatDepth (queryDepth q) /= Just 0
       rpRspec =
         rspecOrig {
-          _rsQuery = if tree then simplifyQuery $ filterQuery (not . queryIsFlatDepth) q else q,
+          _rsQuery = if folding then simplifyQuery $ filterQuery (not . queryIsFlatDepth) q else q,
           _rsReportOpts = rpRopts
         }
   Right ReportParams{..}
@@ -439,8 +442,18 @@ addLinkParams :: [(Text, Text)] -> Cell b Text -> Cell b Text
 addLinkParams [] c = c
 addLinkParams params c
   | T.null (cellAnchor c) = c
-  | otherwise = c {cellAnchor = cellAnchor c <> T.concat ["&" <> k <> "=" <> enc v | (k, v) <- params]}
-  where enc = TE.decodeUtf8 . urlEncode True . TE.encodeUtf8
+  | otherwise = c {cellAnchor = cellAnchor c <> sep <> T.intercalate "&" [k <> "=" <> enc v | (k, v) <- params]}
+  where
+    enc = TE.decodeUtf8 . urlEncode True . TE.encodeUtf8
+    sep = if "?" `T.isInfixOf` cellAnchor c then "&" else "?"
+
+-- | Label a depth 0 report's "..." row, all accounts in one, with the
+-- given word, as hledger-ui does.
+labelAllAccounts :: Text -> Cell b Text -> Cell b Text
+labelAllAccounts lbl c
+  | "account" `elem` T.words (textFromClass (cellClass c))
+  , T.dropWhile (== '\160') (cellContent c) == "..." = c {cellContent = lbl}
+  | otherwise = c
 
 -- | Force a report enough to surface the error a percentage report
 -- raises when its amounts span commodities: that depends on the data,

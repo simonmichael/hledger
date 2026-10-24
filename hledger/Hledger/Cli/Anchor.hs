@@ -105,8 +105,11 @@ linkSpan lo spn@(DateSpan _ e) =
         _          -> spn
 
 -- | The query parameters naming the account a link's register is for:
--- with its subaccounts, or with subs=0, without them.
+-- with its subaccounts, or with subs=0, without them. A depth 0
+-- report's "..." row, all accounts in one, names none: its register
+-- is the register of everything.
 accountParams :: Bool -> Text -> [(Text, Text)]
+accountParams _ "..." = []
 accountParams includesSubs acct = ("account", acct) : [("subs", "0") | not includesSubs]
 
 -- | A date: term for the span (date2: for a report using secondary
