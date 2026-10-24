@@ -34,7 +34,7 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (amountLinks, calcLinks, columnsLinks, commodityLinks, controlsToggle,
+  (amountLinks, columnsLinks, commodityLinks, controlsToggle,
    depthLinks, helplink,
    listModeLinks, lotsLinks, percentLinks, pricesLinks, realLinks,
    sortLinks, statusLinks, zeroBalanceLinks)

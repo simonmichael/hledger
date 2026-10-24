@@ -23,11 +23,12 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.Paging
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, removeAttributes, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
+-- ToDo: better use qualified imports here
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, removeAttributes, intervalLinks, intervalPeriodExpr, listWord, calcLinks, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
-             (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
+             (accountQuery, accountOnlyQuery, amountLinks, columnsLinks,
               commodityLinks, controlsHint, controlsToggle, costsLinks, depthLinks,
               inertControls, listModeLinks, lotsLinks, mixedAmountAsHtmlElided,
               mixedAmountAsHtmlWith, moreCommodities, percentLinks, pricesLinks, realLinks,
