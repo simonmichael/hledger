@@ -183,6 +183,11 @@ withTempConfigDir act = do
 failing :: String -> YesodExample App a
 failing msg = liftIO (expectationFailure msg) >> error "unreachable: expectationFailure returned"
 
+-- | The name of one of hledger-web's UI state cookies, as a test app,
+-- on the default port, names it (App.uiCookie).
+uiCookieName :: String -> BS.ByteString
+uiCookieName name = fromString $ name <> "_" <> show defport
+
 -- | Run hledger-web's built-in tests using the hspec test runner.
 hledgerWebTest :: IO ()
 hledgerWebTest = do
@@ -988,10 +993,18 @@ hledgerWebTest = do
     -- the disclosure is toggled, so the page is born as it was left
     -- and nothing moves after paint.
     yit "renders the controls open when the showcontrols cookie says so" $ do
-      testSetCookie defaultSetCookie{setCookieName = "showcontrols", setCookieValue = "1"}
+      testSetCookie defaultSetCookie{setCookieName = uiCookieName "showcontrols", setCookieValue = "1"}
       get JournalR
       statusIs 200
       bodyContains "<details class=\"report-controls\" open>"
+
+    -- Cookies are shared by all servers on a host, so the names end with
+    -- the port, and another hledger-web's cookie does not apply.
+    yit "ignores the showcontrols cookie of an hledger-web on another port" $ do
+      testSetCookie defaultSetCookie{setCookieName = fromString ("showcontrols_" <> show (defport + 1)), setCookieValue = "1"}
+      get JournalR
+      statusIs 200
+      bodyContains "<details class=\"report-controls\">"
 
     yit "marks each type a type: term selects, as a shift-click builds them" $ do
       request $ do
@@ -1831,7 +1844,7 @@ hledgerWebTest = do
       get BalanceR
       statusIs 200
       bodyNotContains "<details open=\"open\">"
-      testSetCookie defaultSetCookie{setCookieName = "showcommodities", setCookieValue = "1"}
+      testSetCookie defaultSetCookie{setCookieName = uiCookieName "showcommodities", setCookieValue = "1"}
       get BalanceR
       statusIs 200
       bodyContains "<details open=\"open\">"

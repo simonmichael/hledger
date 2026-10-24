@@ -625,7 +625,7 @@ hideEmptyAccounts = do
 shouldShowSidebar :: Handler Bool
 shouldShowSidebar = do
   msidebarparam <- lookupGetParam "sidebar"
-  msidebarcookie <- lookup "showsidebar" . reqCookies <$> getRequest
+  msidebarcookie <- uiCookie "showsidebar"
   return $
     let disablevalues = ["","0"]
     in maybe True (`notElem` disablevalues) $ msidebarparam <|> msidebarcookie
@@ -635,12 +635,28 @@ shouldShowSidebar = do
 -- so. Read server side, so each page is born the way the last one was
 -- left and nothing moves after paint.
 showControls :: Handler Bool
-showControls = (== Just "1") . lookup "showcontrols" . reqCookies <$> getRequest
+showControls = (== Just "1") <$> uiCookie "showcontrols"
 
 -- | Is the commodity filter's collapsed list open? Like showControls,
 -- via the showcommodities cookie.
 showCommodities :: Handler Bool
-showCommodities = (== Just "1") . lookup "showcommodities" . reqCookies <$> getRequest
+showCommodities = (== Just "1") <$> uiCookie "showcommodities"
+
+-- | One of the cookies in which the browser remembers this hledger-web's
+-- UI state (hledger.js). A browser shares cookies between all servers on
+-- a host, whatever their port, so their names end with the port (see
+-- uiCookieSuffix), keeping several hledger-webs' states apart.
+-- Cookies, because the server renders this state; full window mode, which
+-- it needn't know, is kept in the browser's session storage instead.
+uiCookie :: Text -> Handler (Maybe Text)
+uiCookie name = do
+  App{appOpts} <- getYesod
+  lookup (name <> uiCookieSuffix appOpts) . reqCookies <$> getRequest
+
+-- | The end of this hledger-web's UI cookie names, also given to the
+-- page's script (default-layout-wrapper.hamlet).
+uiCookieSuffix :: WebOpts -> Text
+uiCookieSuffix wopts = "_" <> T.pack (show $ port_ wopts)
 
 -- | Update our copy of the journal if the file changed. If there is an
 -- error while reloading, keep the old one and return the error, and set a

@@ -64,7 +64,7 @@ test('shift-clicking a year selects a range of years', async ({ page }) => {
   // the years row sits with the other controls, behind the disclosure,
   // which stays open across pages once its cookie is saved
   await page.locator('#main-content details.report-controls > summary').click();
-  await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+  await page.waitForFunction(() => /showcontrols_\d+=1/.test(document.cookie));
   await row.locator('a', { hasText: '2024' }).click({ modifiers: ['Shift'] });
   await expect(page).toHaveURL(/date(%3A|:)2024$/);
   await expect(row.locator('a.current')).toHaveText(['2024']);

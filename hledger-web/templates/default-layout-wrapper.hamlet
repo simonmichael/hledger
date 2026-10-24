@@ -14,7 +14,8 @@ $newline never
 
         <script nonce=#{nonce}>
           document.documentElement.className = document.documentElement.className.replace(/\bno-js\b/,'js');
-          document.hledgerWebBaseurl = '#{base_url_ opts}'; // save for binding keys later
+          document.hledgerWebBaseurl = '#{base_url_ opts}'; /* save for binding keys later */
+          document.hledgerWebCookieSuffix = '#{uiCookieSuffix opts}'; /* see App.uiCookie */
 
     <body :browsemode:data-browse-mode>
         $# Full window mode (the f key, hledger.js) is remembered in this
