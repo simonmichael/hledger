@@ -87,6 +87,15 @@ document.addEventListener('DOMContentLoaded', function() {
   // toggle the sidebar and open the add form as you spell "assets".
   document.addEventListener('keydown', function(e) {
     if (e.ctrlKey || e.metaKey || e.altKey) { return; }
+    // Escape closes an open dialog, even from one of its fields. Done here
+    // rather than left to the browser, so that the key is marked handled;
+    // otherwise Safari in full screen also takes it as leaving full screen.
+    var opendialog = document.querySelector('dialog[open]');
+    if (opendialog && e.key === 'Escape') {
+      opendialog.close();
+      e.preventDefault();
+      return;
+    }
     if (e.target.closest('input, textarea, select')) { return; }
     // The help keys toggle the help, so they close it too; while a dialog
     // is open the other keys do nothing.
@@ -108,11 +117,12 @@ document.addEventListener('DOMContentLoaded', function() {
       if (depthSet(e.key)) { e.preventDefault(); }
       return;
     }
+    // In full window mode, s, o and / leave it, showing what they ask for.
     switch (e.key) {
       case 'h': case '?': helpToggle();                                     break;
       case 'g': gomenuShow();                                               break;
-      case 's': sidebarToggle();                                            break;
-      case 'o': controlsToggle();                                           break;
+      case 's': if (fullWindowLeave()) { sidebarShow(); } else { sidebarToggle(); } break;
+      case 'o': if (fullWindowLeave()) { controlsShow(); } else { controlsToggle(); } break;
       case 'z': emptyAccountsToggle();                                      break;
       case 't': rowToggle('accounts', -1);                                  break;
       case 'H': rowToggle('accum', 1);                                      break;
@@ -134,7 +144,10 @@ document.addEventListener('DOMContentLoaded', function() {
       case '-': case '_': depthAdjust(-1);                                  break;
       case '+': case '=': depthAdjust(1);                                   break;
       case 'a': case 'n': addformShow();                                    break;
-      case 'f': case '/': focusSearch();                                    break;
+      case 'f': fullWindowToggle();                                         break;
+      case '/': fullWindowLeave(); focusSearch();                           break;
+      // With nothing else to cancel, escape leaves full window mode.
+      case 'Escape': if (!fullWindowLeave()) { return; }                    break;
       default: return;
     }
     e.preventDefault();
@@ -147,6 +160,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.key === 'Escape') { focusPage(); e.preventDefault(); }
     });
   }
+  var fullwindowexit = document.getElementById('fullwindow-exit');
+  if (fullwindowexit) { fullwindowexit.addEventListener('click', fullWindowToggle); }
   // A click elsewhere closes the g key's menu, as escape does.
   document.addEventListener('click', function(e) {
     if (gomenuOpen() && !e.target.closest('#gomenu')) { gomenuHide(); }
@@ -436,6 +451,34 @@ function sidebarToggle() {
   setCookie('showsidebar', sidebar && sidebar.classList.contains('col-any-0') ? '0' : '1');
 }
 
+function fullWindowOn() {
+  return document.body.classList.contains('fullwindow');
+}
+
+function fullWindowToggle() {
+  // Full window mode hides all but the report's heading and data
+  // (hledger.css). It is remembered for this tab, and each page restores
+  // it before painting (default-layout-wrapper.hamlet). Session storage,
+  // not a cookie like the sidebar's, since the server needn't know it, and
+  // that is kept per tab and per hledger-web automatically.
+  var on = document.body.classList.toggle('fullwindow');
+  try {
+    if (on) { sessionStorage.setItem('fullwindow', '1'); } else { sessionStorage.removeItem('fullwindow'); }
+  } catch (e) {}
+}
+
+function fullWindowLeave() {
+  // Leave full window mode, saying whether it was on.
+  if (!fullWindowOn()) { return false; }
+  fullWindowToggle();
+  return true;
+}
+
+function sidebarShow() {
+  var sidebar = document.getElementById('sidebar-menu');
+  if (sidebar && sidebar.classList.contains('col-any-0')) { sidebarToggle(); }
+}
+
 function emptyAccountsToggle() {
   // The z key follows the Zero balances row's other link: the state is
   // the page's empty parameter, so showing or hiding is a navigation.
@@ -569,19 +612,30 @@ function controlsToggle() {
   if (d) { d.open = !d.open; }
 }
 
+function controlsShow() {
+  var d = document.querySelector('#main-content details.report-controls');
+  if (d) { d.open = true; }
+}
+
 // The sidebar's account tree is folded by an inline script right after its
 // markup in default-layout.hamlet, like its scroll restore and for the same
 // reason: run from this file it would fold only at DOMContentLoaded, after
 // the browser has painted the tree in full, a visible jump.
 
+// The UI state cookies' names end with the server's port, so that several
+// hledger-webs on one host keep their own (App.uiCookie).
+function uiCookieName(name) {
+  return name + (document.hledgerWebCookieSuffix || '');
+}
+
 function setCookie(name, value) {
-  document.cookie = name + '=' + value + '; path=/; max-age=31536000; samesite=lax';
+  document.cookie = uiCookieName(name) + '=' + value + '; path=/; max-age=31536000; samesite=lax';
 }
 
 function getCookie(name) {
   return document.cookie.split('; ').reduce(function(found, c) {
     var parts = c.split('=');
-    return parts[0] === name ? parts.slice(1).join('=') : found;
+    return parts[0] === uiCookieName(name) ? parts.slice(1).join('=') : found;
   }, undefined);
 }
 

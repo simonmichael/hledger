@@ -114,6 +114,9 @@ $# keyboard scrolls it (see focusPage).
       _{HMsg "hledger-web is no longer running. It exits after fifteen minutes with no browser window showing it, or when stopped. To continue, start it again and reload this page."}
   $maybe m <- msg
     <div #message .alert.alert-info>#{m}
+  $# Shown only in full window mode (the f key), for leaving it without the keyboard.
+  <button #fullwindow-exit .btn.btn-default.btn-sm.hidden-print type=button title=_{HMsg "Leave full window"}>
+    <span .glyphicon .glyphicon-resize-small>
   $if elem ViewPermission perms
     ^{reportsRow}
     <form#searchform.input-group method=GET>
@@ -183,7 +186,8 @@ $if elem ViewPermission perms
                 <li> <code>a</code> - _{HMsg "add a transaction"}
                 <li> <code>s</code> - _{HMsg "toggle sidebar"}
                 <li> <code>o</code> - _{HMsg "toggle report options"}
-                <li> <code>f</code> _{HMsg "or"} <code>/</code> - _{HMsg "focus search form"}
+                <li> <code>f</code> - _{HMsg "toggle full window"}
+                <li> <code>/</code> - _{HMsg "focus search form"}
                 <li> <code>z</code> - _{HMsg "hide empty accounts"}
                 <li> <code>t</code> - _{HMsg "toggle tree mode"}
                 <li> <code>H</code> - _{HMsg "toggle historical balances"}

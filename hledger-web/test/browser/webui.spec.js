@@ -206,7 +206,7 @@ test.describe('keyboard shortcuts', () => {
     await expect(sidebar).toBeVisible();
     await page.locator('body').press('s');
     await expect(sidebar).not.toBeVisible();
-    // the server reads the showsidebar cookie, so a fresh page load keeps it hidden
+    // the server reads the showsidebar cookie (named for its port), so a fresh page load keeps it hidden
     await page.goto('/journal');
     await expect(sidebar).not.toBeVisible();
     expect(pageErrors).toEqual([]);
@@ -236,10 +236,10 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('"f" and "/" focus the search ready for another term, after a space', async ({ page }) => {
+  test('"/" focuses the search ready for another term, after a space', async ({ page }) => {
     await page.goto('/journal?q=assets');
     const search = page.locator('#searchform input[name=q]');
-    await page.locator('body').press('f');
+    await page.locator('body').press('/');
     await expect(search).toBeFocused();
     await expect(search).toHaveValue('assets ');
     // the cursor is at the end, nothing selected, so typing adds a term
@@ -256,13 +256,78 @@ test.describe('keyboard shortcuts', () => {
   test('escape leaves the search field, keeping its text, and the shortcuts work again', async ({ page }) => {
     await page.goto('/journal?q=assets');
     const search = page.locator('#searchform input[name=q]');
-    await page.locator('body').press('f');
+    await page.locator('body').press('/');
     await page.keyboard.type('date:2025');
     await page.keyboard.press('Escape');
     await expect(page.locator('#main-content')).toBeFocused();
     await expect(search).toHaveValue('assets date:2025');
     await page.locator('body').press('g');
     await expect(page.locator('#gomenu')).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('"f" toggles full window mode, which survives navigation; escape or its button leave it', async ({ page }) => {
+    await page.goto('/balance');
+    const sidebar = page.locator('#sidebar-menu');
+    const search = page.locator('#searchform');
+    const heading = page.locator('#main-content h2').first();
+    const table = page.locator('#main-content .report-table');
+    const exit = page.locator('#fullwindow-exit');
+    await expect(exit).toBeHidden();
+    await page.locator('body').press('f');
+    await expect(sidebar).toBeHidden();
+    await expect(search).toBeHidden();
+    await expect(page.locator('#main-content details.report-controls')).toBeHidden();
+    await expect(heading).toBeVisible();
+    await expect(table).toBeVisible();
+    await expect(exit).toBeVisible();
+    // pressed again, it leaves
+    await page.locator('body').press('f');
+    await expect(sidebar).toBeVisible();
+    await expect(search).toBeVisible();
+    // it's remembered for the tab, so a key that reloads the page keeps it
+    await page.locator('body').press('f');
+    await page.locator('body').press('M');
+    await expect(page).toHaveURL(/interval=monthly/);
+    await expect(search).toBeHidden();
+    // escape closes the g menu first, then leaves full window mode
+    await page.locator('body').press('g');
+    await page.locator('body').press('Escape');
+    await expect(page.locator('#gomenu')).toBeHidden();
+    await expect(search).toBeHidden();
+    await page.locator('body').press('Escape');
+    await expect(search).toBeVisible();
+    await expect(exit).toBeHidden();
+    // and the button leaves it
+    await page.locator('body').press('f');
+    await exit.click();
+    await expect(search).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('in full window mode, "s", "o" and "/" leave it, showing what they ask for', async ({ page }) => {
+    await page.goto('/balance');
+    const sidebar = page.locator('#sidebar-menu');
+    const controls = page.locator('#main-content details.report-controls');
+    const search = page.locator('#searchform input[name=q]');
+    // s shows the sidebar, even one hidden before full window mode
+    await page.locator('body').press('s');
+    await expect(sidebar).toBeHidden();
+    await page.locator('body').press('f');
+    await page.locator('body').press('s');
+    await expect(search).toBeVisible();
+    await expect(sidebar).toBeVisible();
+    // o opens the options
+    await expect(controls).toHaveJSProperty('open', false);
+    await page.locator('body').press('f');
+    await page.locator('body').press('o');
+    await expect(search).toBeVisible();
+    await expect(controls).toHaveJSProperty('open', true);
+    // / focuses the search
+    await page.locator('body').press('f');
+    await page.locator('body').press('/');
+    await expect(search).toBeVisible();
+    await expect(search).toBeFocused();
     expect(pageErrors).toEqual([]);
   });
 
@@ -316,10 +381,10 @@ test.describe('keyboard shortcuts', () => {
     await page.locator('body').press('o');
     await expect(details.locator('p.report-links').first()).toBeVisible();
     // the choice is saved like a click's, from the toggle event
-    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+    await page.waitForFunction(() => /showcontrols_\d+=1/.test(document.cookie));
     await page.locator('body').press('o');
     await expect(details.locator('p.report-links').first()).toBeHidden();
-    await page.waitForFunction(() => document.cookie.includes('showcontrols=0'));
+    await page.waitForFunction(() => /showcontrols_\d+=0/.test(document.cookie));
     expect(pageErrors).toEqual([]);
   });
 
@@ -379,7 +444,7 @@ test.describe('keyboard shortcuts', () => {
     await expect(details.locator('p.report-links').first()).toBeVisible();
     // the cookie is saved from the toggle event, which fires
     // asynchronously; wait for it before navigating away
-    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+    await page.waitForFunction(() => /showcontrols_\d+=1/.test(document.cookie));
     await page.goto('/journal');
     await expect(page.locator('#main-content details.report-controls p.report-links').first()).toBeVisible();
     expect(pageErrors).toEqual([]);
@@ -417,7 +482,7 @@ test.describe('keyboard shortcuts', () => {
     await expect(box.locator('summary .sel')).toHaveText('All');
     await box.locator('summary').click();
     // its cookie too is saved from the asynchronous toggle event
-    await page.waitForFunction(() => document.cookie.includes('showcommodities=1'));
+    await page.waitForFunction(() => /showcommodities_\d+=1/.test(document.cookie));
     await box.locator('a', { hasText: 'USD' }).click();
     await expect(page).toHaveURL(/cur%3AUSD/);
     // the selection reads back, and the opened list is remembered
@@ -473,6 +538,27 @@ test.describe('modal dialogs', () => {
     await expect(page.locator('#addmodal')).toBeVisible();
     await page.locator('body').press('a');
     await expect(page.locator('#addmodal')).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  // Escape closes a dialog, even from one of its fields, marking the key
+  // handled, which keeps Safari in full screen.
+  test('escape closes a dialog, as a handled key', async ({ page }) => {
+    await page.goto('/journal');
+    await page.evaluate(() => {
+      window.addEventListener('keydown', e => { window.lastKeyHandled = e.defaultPrevented; });
+    });
+    await page.locator('body').press('h');
+    await expect(page.locator('#helpmodal')).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#helpmodal')).toBeHidden();
+    expect(await page.evaluate(() => window.lastKeyHandled)).toBe(true);
+    await page.locator('body').press('a');
+    await expect(page.locator('#addmodal')).toBeVisible();
+    await page.locator('#addform input[name=description]').focus();
+    await page.keyboard.press('Escape');
+    await expect(page.locator('#addmodal')).toBeHidden();
+    expect(await page.evaluate(() => window.lastKeyHandled)).toBe(true);
     expect(pageErrors).toEqual([]);
   });
 

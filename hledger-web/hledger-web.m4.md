@@ -209,6 +209,7 @@ which work when you are not typing in a field:
 - `a` or `n` - add a transaction (escape to cancel)
 - `s` - show or hide the sidebar
 - `o` - show or hide the report options
+- `f` - full window: show only the report's heading and data, or everything (`s`, `o` and `/` leave it, showing what they ask for)
 - `z` - show or hide accounts with zero balances
 - `t` - show accounts as a tree, or a list
 - `H` - show ending balances, or balance changes
@@ -221,7 +222,7 @@ which work when you are not typing in a field:
 - `T`, `A` - add or remove the row total and average columns (multi-period reports)
 - `D`, `W`, `M`, `Q`, `Y` - set the report interval (daily, weekly, monthly, quarterly, yearly); pressed again, remove it
 - `0`-`9`, `-`, `+` - set or adjust the account depth limit (`-` and `+` step between 0 and the deepest)
-- `f` or `/` - focus the search form, ready to add a term (escape to leave it)
+- `/` - focus the search form, ready to add a term (escape to leave it)
 
 The pages are light or dark, following your OS or browser's color scheme setting,
 and switch when it changes.
