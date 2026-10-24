@@ -292,15 +292,6 @@ instance Yesod App where
     -- you to use normal widget features in default-layout.
     pc <- widgetToPageContent $ do
       addStylesheet $ StaticR css_bootstrap_min_css
-      -- load these things early, in HEAD:
-      -- jquery is here only because flot (the register chart) needs it.
-      toWidgetHead [hamlet|
-        <script type="text/javascript" src="@{StaticR js_jquery_min_js}">
-      |]
-      addScript $ StaticR js_jquery_flot_min_js
-      addScript $ StaticR js_jquery_flot_selection_min_js
-      addScript $ StaticR js_jquery_flot_time_min_js
-      addScript $ StaticR js_jquery_flot_tooltip_min_js
       addStylesheet $ StaticR hledger_css
       addScript $ StaticR hledger_js
       $(widgetFile "default-layout")
@@ -365,8 +356,8 @@ instance RenderMessage App FormMessage where
 -- | The Content-Security-Policy sent with every HTML page. Everything loads
 -- from our own origin, and the only inline scripts allowed are the ones
 -- carrying this response's nonce: the two in default-layout.hamlet and its
--- wrapper. The templates have no inline styles or event handlers, and flot
--- sets its styles through the CSSOM, which the policy does not govern.
+-- wrapper. The templates have no inline styles or event handlers, and
+-- hledger.js sets its styles through the CSSOM, which the policy does not govern.
 -- frame-ancestors stops the pages being framed by another origin
 -- (clickjacking of the add and edit forms); the other responses get
 -- X-Frame-Options instead, see Application.hs.

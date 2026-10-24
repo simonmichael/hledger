@@ -40,7 +40,6 @@ extra-source-files:
 - static/fonts/*.woff
 - static/hledger.css
 - static/hledger.js
-- static/js/*.js
 - templates/*.hamlet
 - hledger-web.1
 - hledger-web.txt

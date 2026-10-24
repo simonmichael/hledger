@@ -64,7 +64,7 @@ The pages follow the light or dark setting of the OS or browser
 - **No inline event handlers or `javascript:` urls**, for the same reason.
   hledger.js binds its handlers to hooks in the markup such as `data-toggle`.
 - **Styles set from javascript are fine** as long as they go through the CSSOM
-  (`element.style`, jquery's `.css()`), which the policy does not govern. Markup
+  (`element.style`), which the policy does not govern. Markup
   strings carrying `style=` attributes are not.
 - `test/browser/security.spec.js` fails on any policy violation, and
   `Hledger/Web/Test.hs` checks the header itself.
@@ -130,8 +130,8 @@ check that markup and behavior survive, but they cannot judge how it looks.
 
 Deliberately not addressed yet, in rough order of appeal:
 
-- **Bootstrap 3 itself.** It is the last large vendored asset besides jquery and
-  flot, and it pulls in glyphicons (7 in use, ~148KB of fonts). Bootstrap 4
+- **Bootstrap 3 itself.** It is the last vendored asset, and it pulls in
+  glyphicons (7 in use, ~148KB of fonts). Bootstrap 4
   dropped glyphicons, so any upgrade is also an icon migration. It has no dark
   scheme either, hence section 9 of `hledger.css`. Replacing it with plain
   modern css — the app has one layout — would remove more than it adds, but it
