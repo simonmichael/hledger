@@ -57,11 +57,11 @@ import Hledger.Cli.Commands.Balancesheetequity (balancesheetequitySpec)
 import Hledger.Cli.Commands.Cashflow (cashflowSpec)
 import Hledger.Cli.Commands.Incomestatement (incomestatementSpec)
 import Hledger.Cli.CompoundBalanceCommand (CompoundBalanceCommandSpec(..))
-import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, parseListMode, parseValue, reportLinks, setAmountMode)
+import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, intervalPeriodExpr, parseListMode, parseValue, reportLinks, setAmountMode)
 import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (balanceReportAsHtml, removeDepth, removeInacct, searchDepth)
+import Hledger.Web.Widget.Common (balanceReportAsHtml, normalisedSearch, removeInacct)
 import Data.List (isPrefixOf, partition)
 
 -- | The site argument for your application. This can be a good place to
@@ -212,7 +212,7 @@ instance Yesod App where
         rspec' = rspec{_rsQuery=sidebarQ,_rsReportOpts=ropts'}
 
     -- The parameters the search form and its clear button keep, so that
-    -- a search does not reset the page: a report page's period,
+    -- a search does not reset the page: a report page's interval, depth,
     -- accumulation mode, and amount conversion, and the register's modes.
     -- The accumulation mode is kept only when it is not the default, as
     -- the pages' own links carry it.
@@ -229,9 +229,9 @@ instance Yesod App where
     -- keeps; the page-local parameters (accum, costs) stay behind.
     let sidebarReports = reportLinkItems $ filter rmInSidebar $ reportMenuFor jHasLots
         sidebarParams =
-          [p | p@("period", _) <- keptParams] ++
+          [p | p@("interval", _) <- keptParams] ++
           [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
-          [p | p@(k, _) <- keptParams, k /= "period", k `elem` stickyParamNames]
+          [p | p@(k, _) <- keptParams, k /= "interval", k `elem` stickyParamNames]
         -- The pages g then a key goes to (hledger.js), with the sidebar
         -- links' parameters.
         goItems :: [(Text, (Route App, [(Text, Text)]), Text, Text)]
@@ -427,7 +427,7 @@ getViewData = do
 
   -- Get the query specified by the q request parameter, or no query if this fails.
   qparam <- fromMaybe "" <$> lookupGetParam "q"
-  setDepthFromSearch qparam
+  normaliseUrlState today qparam
   -- The depth parameter's limit joins the parsed query, as a depth:N term
   -- would, since the reports read depth limits from the query; qparam,
   -- the search text that the search box and links show, is left as it is.
@@ -461,24 +461,29 @@ getViewData = do
 
   return VD{opts, today, j, jfull, jHasLots, lotsShown, qparam, q, qopts, perms, trs, hideEmpty, controlsOpen, commoditiesOpen}
 
--- | A depth:N term in a page's search (typed there, or from a link
--- written before hledger-web had a depth parameter) is moved to the depth
--- parameter, by reloading the page: the search holds the terms selecting
--- data, and the Depth links and keys set the depth, as the other controls
--- set theirs. The last such term wins, as in the search. A depth:REGEX=N
--- term, limiting some accounts only, stays in the search.
-setDepthFromSearch :: Text -> Handler ()
-setDepthFromSearch qparam = do
+-- | Move the report options in a page's search, and in the old period
+-- parameter, to their own parameters, by reloading the page: the search
+-- holds the terms selecting data, and the parameters, set by the
+-- controls, the report's shape. A depth:N term (typed, or from a link
+-- written before hledger-web had a depth parameter) becomes the depth
+-- parameter, and a date:INTERVAL term's interval the interval parameter,
+-- leaving its date span in the search, where the old period parameter's
+-- span goes too. See normalisedSearch.
+normaliseUrlState :: Day -> Text -> Handler ()
+normaliseUrlState today qparam = do
   isget <- (== "GET") . requestMethod <$> waiRequest
   mroute <- getCurrentRoute
-  case (isget, searchDepth qparam, mroute) of
-    (True, Just n, Just route) -> do
+  mperiod <- lookupGetParam "period"
+  case (isget, mroute, normalisedSearch today qparam (mfilter (not . T.null) mperiod)) of
+    (True, Just route, Just (qparam', mdepth, mivl)) -> do
       params <- reqGetParams <$> getRequest
-      let qparam' = T.unwords $ removeDepth qparam
+      let mivltext = intervalPeriodExpr =<< mivl
+          replaced = ["q", "period"] ++ ["depth" | isJust mdepth] ++ ["interval" | isJust mivltext]
           params' =
-            [ if k == "q" then (k, qparam') else p
-            | p@(k, _) <- params, k /= "depth", k /= "q" || not (T.null qparam') ] ++
-            [("depth", T.pack (show n))]
+            [("q", qparam') | not (T.null qparam')] ++
+            [p | p@(k, _) <- params, k `notElem` replaced] ++
+            [("interval", w) | Just w <- [mivltext]] ++
+            [("depth", T.pack (show n)) | Just n <- [mdepth]]
       redirect (route, params')
     _ -> return ()
 
@@ -569,7 +574,7 @@ keptParamNames route
 -- only the control it names. date2 has no control, being deprecated,
 -- but is preserved like the rest.
 stickyParamNames :: [Text]
-stickyParamNames = ["period", "depth", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty", "lots"]
+stickyParamNames = ["interval", "depth", "value", "list", "total", "avg", "sort", "pct", "calc", "infer", "date2", "empty", "lots"]
 
 -- | Are zero-balance accounts hidden ? The empty parameter says (1
 -- shows them, 0 hides them, the direction of the command line's

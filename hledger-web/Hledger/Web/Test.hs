@@ -65,7 +65,7 @@ import Hledger.Web.Paging (pageNumbers)
 import Hledger.Web.ReportPage (intervalPeriodExpr, startupUrlState)
 import Hledger.Web.WebOptions  -- ( WebOpts(..), defwebopts, prognameandversion )
 import Hledger.Web.Import hiding (get, j)
-import Hledger.Web.Widget.Common (transactionFragment)
+import Hledger.Web.Widget.Common (normalisedSearch, splitPeriodExpr, transactionFragment)
 import Hledger.Cli hiding (prognameandversion)
 
 
@@ -217,7 +217,8 @@ hledgerWebTest = do
             , title_ = Just "My books"
             }
           (params, rspec') = startupUrlState defreportspec{_rsReportOpts = ropts}
-      lookup "period" params `shouldBe` Just "monthly"
+      lookup "interval" params `shouldBe` Just "monthly"
+      lookup "period" params `shouldBe` Nothing
       lookup "value" params `shouldBe` Just "end"
       lookup "list" params `shouldBe` Just "tree"
       -- -E means the opposite in the web ui: hide the zero balances shown by default
@@ -232,13 +233,33 @@ hledgerWebTest = do
       empty_ (_rsReportOpts rspec') `shouldBe` False
       -- a display preference with no url spelling stays in the spec
       title_ (_rsReportOpts rspec') `shouldBe` Just "My books"
-    it "spells intervals as period expressions and valuations as value words" $ do
+    it "spells intervals as in period expressions and valuations as value words" $ do
       let p ropts = fst $ startupUrlState defreportspec{_rsReportOpts = ropts}
-      lookup "period" (p defreportopts{interval_ = Weeks 2}) `shouldBe` Just "every 2 weeks"
+      lookup "interval" (p defreportopts{interval_ = Weeks 2}) `shouldBe` Just "every 2 weeks"
       lookup "value" (p defreportopts{value_ = Just (AtEnd (Just "EUR"))}) `shouldBe` Just "end,EUR"
       lookup "value" (p defreportopts{conversionop_ = Just ToCost}) `shouldBe` Just "cost"
       -- a depth regexp with a space must arrive as one quoted term
       lookup "q" (p defreportopts{depth_ = DepthSpec Nothing [(toRegex' "a b", 2)]}) `shouldBe` Just "\"depth:a b=2\""
+
+  -- Report options in the search, and the old period parameter, move to
+  -- their own parameters (App.normaliseUrlState).
+  hspec $ describe "normalisedSearch" $ do
+    let refday = fromGregorian 2026 10 23
+    it "moves a date term's interval out, keeping its span as written" $ do
+      normalisedSearch refday "assets \"date:monthly in thisyear\"" Nothing `shouldBe` Just ("assets \"date:in thisyear\"", Nothing, Just (Months 1))
+      normalisedSearch refday "date:weekly" Nothing `shouldBe` Just ("", Nothing, Just (Weeks 1))
+    it "moves the last flat depth out, keeping per-account depths" $ do
+      normalisedSearch refday "depth:2 depth:assets=3 depth:1" Nothing `shouldBe` Just ("depth:assets=3", Just 1, Nothing)
+    it "splits the period parameter into a date term and an interval, the search's interval winning" $ do
+      normalisedSearch refday "expenses" (Just "quarterly in 2025") `shouldBe` Just ("\"date:in 2025\" expenses", Nothing, Just (Quarters 1))
+      normalisedSearch refday "date:monthly" (Just "quarterly 2025") `shouldBe` Just ("date:2025", Nothing, Just (Months 1))
+      normalisedSearch refday "" (Just "2025-02") `shouldBe` Just ("date:2025-02", Nothing, Nothing)
+    it "leaves a search with nothing to move" $ do
+      normalisedSearch refday "assets date:2025 depth:assets=2" Nothing `shouldBe` Nothing
+    it "splits only an interval followed by a date span" $ do
+      splitPeriodExpr refday "every 2 weeks from 2025-01-01" `shouldBe` Just (Weeks 2, "from 2025-01-01")
+      splitPeriodExpr refday "2025" `shouldBe` Nothing
+      splitPeriodExpr refday "monthly bogus" `shouldBe` Nothing
 
   runTests "hledger-web" [] nulljournal $ do
 
@@ -386,7 +407,7 @@ hledgerWebTest = do
     yit "shows the holdings report, hiding closed positions by default" $ do
       request $ do
         setMethod "GET"
-        setUrl (HoldingsR, [("period", "2026")])
+        setUrl (HoldingsR, [("q", "date:2026")])
       statusIs 200
       bodyContains "Holdings on 2026-12-31"
       bodyContains ">Avg cost<"
@@ -410,7 +431,7 @@ hledgerWebTest = do
       bodyContains "scope=\"rowgroup\">assets</th>"
       bodyContains ">broker</a>"
       -- a position's register link filters to its commodity
-      bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3AAAA\""
+      bodyContains "/register?q=inacct%3Aassets%3Abroker%20date%3A2026%20cur%3AAAA\""
       -- with lots hidden, the Depth row reaches the deepest real account
       bodyContains "&amp;depth=2\""
       bodyNotContains "&amp;depth=3\""
@@ -418,7 +439,7 @@ hledgerWebTest = do
     yit "shows one row per lot with lots=1" $ do
       request $ do
         setMethod "GET"
-        setUrl (HoldingsR, [("period", "2026"), ("lots", "1")])
+        setUrl (HoldingsR, [("q", "date:2026"), ("lots", "1")])
       statusIs 200
       bodyContains ">Unit cost<"
       bodyContains "{2026-01-01, $10.00}"
@@ -432,7 +453,7 @@ hledgerWebTest = do
     yit "shows closed positions with closed=1" $ do
       request $ do
         setMethod "GET"
-        setUrl (HoldingsR, [("period", "2026"), ("closed", "1")])
+        setUrl (HoldingsR, [("q", "date:2026"), ("closed", "1")])
       statusIs 200
       bodyContains "0 BBB"
       bodyContains "$3.00"
@@ -443,7 +464,7 @@ hledgerWebTest = do
     yit "tree mode shows a single-commodity account as one combined row" $ do
       request $ do
         setMethod "GET"
-        setUrl (HoldingsR, [("period", "2026"), ("list", "tree")])
+        setUrl (HoldingsR, [("q", "date:2026"), ("list", "tree")])
       statusIs 200
       -- the boring root is squashed into the one account, which holds one
       -- commodity and so is a row, not a heading over a commodity row
@@ -454,7 +475,7 @@ hledgerWebTest = do
     yit "tree mode groups several commodities under an account heading" $ do
       request $ do
         setMethod "GET"
-        setUrl (HoldingsR, [("period", "2026"), ("list", "tree"), ("closed", "1")])
+        setUrl (HoldingsR, [("q", "date:2026"), ("list", "tree"), ("closed", "1")])
       statusIs 200
       -- with the closed BBB position shown, the account holds two
       -- commodities: a heading row subtotaling the dollar columns, then
@@ -465,7 +486,7 @@ hledgerWebTest = do
       bodyContains ">AAA</a>"
       bodyContains ">BBB</a>"
       -- each commodity row's register link filters to its own commodity
-      bodyContains "/register?q=inacct%3Aassets%3Abroker%20cur%3ABBB&amp;list=tree\""
+      bodyContains "/register?q=inacct%3Aassets%3Abroker%20date%3A2026%20cur%3ABBB&amp;list=tree\""
       -- the heading's RGain subtotals both commodities' realized gains
       bodyContains "$5.00"
 
@@ -652,7 +673,7 @@ hledgerWebTest = do
         bodyContains "x&quot; onmouseover=&quot;alert(2)"
         bodyNotContains "onmouseover=\"alert(2)"
 
-  -- The balance page: the balance report, or with a period expression,
+  -- The balance page: the balance report, or with an interval,
   -- the multi-period one, rendered without inline styles (the CSP).
   let biopts = rawOptsToInputOpts d usecolor $ mkRawOpts []
   bj <- fmap (either error' id) . runExceptT . journalFinalise biopts "balance.journal" "" =<<
@@ -714,27 +735,27 @@ hledgerWebTest = do
       bodyNotContains "<style"
       bodyNotContains "style=\""
 
-    yit "serves the multi-period report for a period expression" $ do
+    yit "serves the multi-period report for an interval" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
       statusIs 200
       bodyContains "Balance changes in 2025-01-01..2025-02-28"
       bodyContains ">2025-01<"
       bodyContains ">2025-02<"
       -- the search form keeps the period, and marks the current report
-      bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
+      bodyContains "<input type=\"hidden\" name=\"interval\" value=\"monthly\">"
       bodyContains "class=\"current\""
 
-    yit "restricts the report to the period expression's date span" $ do
+    yit "restricts the report to the search's date span" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "2025-01"
+        addGetParam "q" "date:2025-01"
       statusIs 200
       -- the report's own account links are relative (the sidebar's are not),
-      -- and carry the period, so the register they open is restricted too
+      -- and carry the search's dates, so the register they open is restricted too
       bodyContains "href=\"register?q=inacct:assets:bank:checking+date:2025-01\""
       bodyNotContains "href=\"register?q=inacct:expenses:food"
 
@@ -754,10 +775,10 @@ hledgerWebTest = do
         addGetParam "q" "assets depth:2 depth:assets:bank=3 depth:1"
         addGetParam "list" "tree"
       statusIs 303
-      -- the last depth term wins, as in the search (yesod-test sends the parameters in reverse)
+      -- the last depth term wins, as in the search
       loc <- headerValue "Location"
       assertEq "the page is reloaded with the depth as a parameter" loc
-        (T.pack (defbaseurl defhost defport) <> "/balance?list=tree&q=assets%20depth%3Aassets%3Abank%3D3&depth=1")
+        (T.pack (defbaseurl defhost defport) <> "/balance?q=assets%20depth%3Aassets%3Abank%3D3&list=tree&depth=1")
 
     yit "keeps the depth in the search form" $ do
       request $ do
@@ -820,50 +841,57 @@ hledgerWebTest = do
       -- the accounts below the limit are served too, for the carets to open
       bodyContains "q=inacct%3Aassets%3Abank%3Achecking"
 
-    yit "reports a period expression it cannot parse" $ do
+    yit "reports an interval it cannot parse" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "bogus"
+        addGetParam "interval" "bogus"
       statusIs 200
-      bodyContains "Could not parse the period expression"
+      bodyContains "Could not parse the reporting interval"
       bodyNotContains "<tfoot>"
 
-    yit "takes an interval from a date: search term, as the cli does" $ do
+    yit "takes an interval typed in the search, as the cli does, moving it to the interval parameter" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
         addGetParam "q" "date:monthly"
+      statusIs 303
+      loc <- headerValue "Location"
+      assertEq "the page is reloaded with the interval as a parameter" loc (T.pack (defbaseurl defhost defport) <> "/balance?interval=monthly")
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "interval" "monthly"
       statusIs 200
       bodyContains ">2025-01<"
       bodyContains ">2025-02<"
 
-    yit "prefers a search term's interval to the period parameter" $ do
+    yit "prefers an interval typed in the search to the interval parameter" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "yearly"
+        addGetParam "interval" "yearly"
         addGetParam "q" "date:monthly"
-      statusIs 200
-      bodyContains ">2025-01<"
-      bodyNotContains ">2025<"
+      statusIs 303
+      loc <- headerValue "Location"
+      assertEq "the search's interval replaces the parameter" loc (T.pack (defbaseurl defhost defport) <> "/balance?interval=monthly")
+
     yit "marks the report being shown for the interval" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly"
-        addGetParam "q" "date:yearly"
+        addGetParam "interval" "yearly"
       statusIs 200
-      -- the search term wins, so the yearly link is the current one
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?period=yearly")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?interval=yearly\"")
 
-    yit "keeps the period's date span in the report links" $ do
+    yit "keeps the search's dates in the interval links" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly in 2025"
+        addGetParam "q" "date:2025"
+        addGetParam "interval" "monthly"
       statusIs 200
-      bodyContains "balance?period=yearly%202025"
+      bodyContains "balance?q=date%3A2025&amp;interval=yearly\""
 
     yit "shows the accounts' shared prefix once, dimming remaining paths" $ do
       request $ do
@@ -911,13 +939,13 @@ hledgerWebTest = do
       bodyContains ("<a href=\"" ++ defbaseurl defhost defport ++ "/balance\" title=\"Show accounts of every type\"")
       bodyContains "Shift-click selects several types."
 
-    yit "survives a period whose weekday is out of range" $ do
+    yit "survives an interval whose weekday is out of range" $ do
       -- the period parser accepts this; naming the ninth weekday used
       -- to crash the page (#2771 review)
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "every 9th day of week"
+        addGetParam "interval" "every 9th day of week"
       statusIs 200
 
     -- intervalPeriodExpr is the period parser's interval syntax in
@@ -954,7 +982,7 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
         addRequestHeader ("Accept-Language", "de")
       statusIs 200
       bodyContains "<h2>Saldoänderungen in 2025-01-01..2025-02-28</h2>"
@@ -963,39 +991,39 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl JournalR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
         addGetParam "total" "1"
       statusIs 200
       -- kept by the search form, and carried on by the sidebar's report links
-      bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
-      bodyContains "/balancesheet?period=monthly&amp;total=1"
+      bodyContains "<input type=\"hidden\" name=\"interval\" value=\"monthly\">"
+      bodyContains "/balancesheet?interval=monthly&amp;total=1"
       -- and shown, dimmed: these controls take effect on the report pages
       bodyContains "controls-inert"
       bodyContains ">Interval:"
       request $ do
         setMethod "GET"
         setUrl RegisterR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
       statusIs 200
-      bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
+      bodyContains "<input type=\"hidden\" name=\"interval\" value=\"monthly\">"
       bodyContains "controls-inert"
 
     yit "shows balance changes for a period, and says so" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "2025-02"
+        addGetParam "q" "date:2025-02"
       statusIs 200
       bodyContains "<h2>Balance changes in 2025-02</h2>"
       -- the report's own links are relative (the sidebar's are not)
       bodyNotContains "href=\"register?q=inacct:income:salary"
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?period=2025-02\" title=\"Show how much")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-02\" title=\"Show how much")
 
     yit "shows ending balances with accum=historical, asking their registers for the same" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "2025-02"
+        addGetParam "q" "date:2025-02"
         addGetParam "accum" "historical"
       statusIs 200
       bodyContains "<h2>Ending balances (historical) in 2025-02</h2>"
@@ -1003,31 +1031,31 @@ hledgerWebTest = do
       bodyContains "href=\"register?q=inacct:income:salary+date:2025-02&amp;accum=historical\""
       -- the search form and the interval links keep the mode; the mode links mark it
       bodyContains "<input type=\"hidden\" name=\"accum\" value=\"historical\">"
-      bodyContains "/balance?period=monthly%202025-02&amp;accum=historical\""
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?period=2025-02&amp;accum=historical\"")
+      bodyContains "/balance?q=date%3A2025-02&amp;accum=historical&amp;interval=monthly\""
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-02&amp;accum=historical\"")
 
     yit "heads ending balance columns with their end dates, linking to this report for the period" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
         addGetParam "accum" "historical"
       statusIs 200
       bodyContains ">2025-01-31<"
       bodyContains ">2025-02-28<"
       -- the drilled view keeps the interval: one monthly column
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;period=monthly&amp;accum=historical\" title=\"Show this report for this period\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;accum=historical&amp;interval=monthly\" title=\"Show this report for this period\"")
 
     yit "links a balance change column's heading to this report for the period" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
         addGetParam "q" "date:2025"
       statusIs 200
       bodyContains ">2025-01<"
       -- the column's period replaces the search's date term; the interval is kept
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;period=monthly\" title=\"Show this report for this period\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;interval=monthly\" title=\"Show this report for this period\"")
 
     yit "reports an accumulation mode it does not know" $ do
       request $ do
@@ -1150,13 +1178,13 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalancesheetR
-        addGetParam "period" "quarterly"
+        addGetParam "interval" "quarterly"
         addGetParam "sort" "amount"
       statusIs 200
       -- in the sidebar, in the g menu, and in the row of page links
-      bodyContains ("<a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\" title=\"Show general journal entries, most recent first\">Journal</a>")
-      bodyContains ("<a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\" data-gokey=\"j\"")
-      bodyContains ("<p class=\"report-links reports\"><a href=\"" ++ base ++ "/journal?period=quarterly&amp;sort=amount\"")
+      bodyContains ("<a href=\"" ++ base ++ "/journal?interval=quarterly&amp;sort=amount\" title=\"Show general journal entries, most recent first\">Journal</a>")
+      bodyContains ("<a href=\"" ++ base ++ "/journal?interval=quarterly&amp;sort=amount\" data-gokey=\"j\"")
+      bodyContains ("<p class=\"report-links reports\"><a href=\"" ++ base ++ "/journal?interval=quarterly&amp;sort=amount\"")
 
     yit "starts each page with the report links, then the search, the options, and the heading" $ do
       get BalancesheetR
@@ -1278,13 +1306,13 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalancesheetR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
       statusIs 200
       bodyContains "<h2>Monthly Balance Sheet 2025-01-31..2025-02-28</h2>"
       bodyContains ">2025-01-31<"
       bodyContains ">2025-02-28<"
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=date%3A2025-01&amp;period=monthly\" title=\"Show this report for this period\"")
-      bodyContains "<input type=\"hidden\" name=\"period\" value=\"monthly\">"
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=date%3A2025-01&amp;interval=monthly\" title=\"Show this report for this period\"")
+      bodyContains "<input type=\"hidden\" name=\"interval\" value=\"monthly\">"
 
     yit "shows balance changes instead when asked, and says so" $ do
       request $ do
@@ -1296,7 +1324,7 @@ hledgerWebTest = do
       bodyNotContains "accum=historical"
       -- the search form and the interval links keep the override
       bodyContains "<input type=\"hidden\" name=\"accum\" value=\"change\">"
-      bodyContains "/balancesheet?period=monthly&amp;accum=change\""
+      bodyContains "/balancesheet?accum=change&amp;interval=monthly\""
 
     yit "does not keep the balance sheet's own mode as a parameter" $ do
       request $ do
@@ -1356,13 +1384,13 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl IncomestatementR
-        addGetParam "period" "quarterly"
+        addGetParam "interval" "quarterly"
         addGetParam "q" "inacct:assets:bank:checking expenses"
       statusIs 200
       -- the links keep the period and the search minus its account term
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/incomestatement?period=quarterly&amp;q=expenses\" title=\"Show revenues and expenses\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?period=quarterly&amp;q=expenses\" title=\"Show assets, liabilities, and net worth\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?period=quarterly&amp;q=expenses\" title=\"Show the balances of all accounts, by period, like the balance command\"")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/incomestatement?interval=quarterly&amp;q=expenses\" title=\"Show revenues and expenses\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?interval=quarterly&amp;q=expenses\" title=\"Show assets, liabilities, and net worth\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?interval=quarterly&amp;q=expenses\" title=\"Show the balances of all accounts, by period, like the balance command\"")
 
     yit "links All accounts to the statements too" $ do
       get BalanceR
@@ -1399,13 +1427,13 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl IncomestatementR
-        addGetParam "period" "quarterly"
+        addGetParam "interval" "quarterly"
         addGetParam "accum" "historical"
         addGetParam "q" "inacct:assets:bank:checking expenses"
       statusIs 200
       -- the period is kept, the mode is not: it belongs to this report
-      bodyContains ("colspan=\"2\"><a href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?period=quarterly&amp;q=expenses\" title=\"Show assets, liabilities, and net worth\">")
-      bodyNotContains "/balancesheet?period=quarterly&amp;accum"
+      bodyContains ("colspan=\"2\"><a href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?interval=quarterly&amp;q=expenses\" title=\"Show assets, liabilities, and net worth\">")
+      bodyNotContains "/balancesheet?interval=quarterly&amp;accum"
 
     yit "links the sidebar's reports from the journal and register too" $ do
       request $ do
@@ -1467,22 +1495,22 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "2025-01"
+        addGetParam "q" "date:2025-01"
         addGetParam "value" "end"
       statusIs 200
       -- 10 AAPL at January's end
       bodyContains "$1,000.00"
       bodyContains "href=\"register?q=inacct:assets:broker+date:2025-01&amp;value=end\""
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?period=2025-01&amp;value=end\"")
+      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=date%3A2025-01&amp;value=end\"")
       -- the other reports, and the search form, keep it
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?period=2025-01&amp;value=end\"")
+      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balancesheet?q=date%3A2025-01&amp;value=end\"")
       bodyContains "<input type=\"hidden\" name=\"value\" value=\"end\">"
 
     yit "shows costs with value=cost" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "2025-01"
+        addGetParam "q" "date:2025-01"
         addGetParam "value" "cost"
       statusIs 200
       bodyContains "$900.00"
@@ -1494,9 +1522,10 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "every 2 weeks in 2025-01"
+        addGetParam "q" "date:2025-01"
+        addGetParam "interval" "every 2 weeks"
       statusIs 200
-      bodyContains "&amp;period=every%202%20weeks"
+      bodyContains "&amp;interval=every%202%20weeks"
 
     -- Percentages need the amounts in one commodity, which depends on
     -- the data: the page explains and shows plain amounts, instead of
@@ -1618,7 +1647,7 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "2025-01"
+        addGetParam "q" "date:2025-01"
       statusIs 200
       bodyContains "10 AAPL"
       bodyNotContains "$1,000.00"
@@ -1862,7 +1891,7 @@ hledgerWebTest = do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly"
+        addGetParam "interval" "monthly"
       statusIs 200
       bodyContains ">2025-01<"
       bodyContains ">2025-02<"
@@ -2269,15 +2298,16 @@ hledgerWebTest = do
       bodyContains "txn 731</td>"  -- 2024-01-01
       bodyNotContains "Years:"
 
-    yit "shows the years row on the report pages too, the year links keeping only the period's interval" $ do
+    yit "shows the years row on the report pages too, the year links keeping the interval" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
-        addGetParam "period" "monthly in 2024"
+        addGetParam "q" "date:2024"
+        addGetParam "interval" "monthly"
       statusIs 200
       bodyContains ">Years:</span>"
-      bodyContains "/balance?q=date%3A2023&amp;period=monthly\" title=\"Show only 2023\""
-      -- the period parameter's span marks its year
+      bodyContains "/balance?q=date%3A2023&amp;interval=monthly\" title=\"Show only 2023\""
+      -- the search's date term marks its year
       bodyContains "aria-current=\"page\" title=\"Show only 2024\""
 
     yit "marks each year a range search covers, as a shift-click selects" $ do
@@ -2290,19 +2320,16 @@ hledgerWebTest = do
       bodyContains "aria-current=\"page\" title=\"Show only 2025\""
       bodyNotContains "aria-current=\"page\" title=\"Show only 2026\""
 
-    -- The period parameter does not narrow the journal and register
-    -- pages, so it must not mark a year as shown there: only the
-    -- search's dates do.
-    yit "marks All, not the period's year, on the pages a period does not narrow" $ do
+    -- Urls from before the interval parameter keep working.
+    yit "moves an old period parameter's dates to the search, and its interval to the interval parameter" $ do
       request $ do
         setMethod "GET"
         setUrl JournalR
-        addGetParam "period" "2024"
-      statusIs 200
-      bodyContains "aria-current=\"page\" title=\"Show all years\""
-      bodyNotContains "aria-current=\"page\" title=\"Show only 2024\""
-      -- positive control: the year links are there to mark
-      bodyContains "title=\"Show only 2024\""
+        addGetParam "period" "monthly in 2024"
+      statusIs 303
+      loc <- headerValue "Location"
+      assertEq "the page is reloaded without the period parameter" loc
+        (T.pack (defbaseurl defhost defport) <> "/journal?q=%22date%3Ain%202024%22&interval=monthly")
 
     -- A search narrowing only by secondary date sets the shown span too.
     yit "a date2: search marks its year" $ do

@@ -855,7 +855,7 @@ msgid "Could not calculate percentages:"
 msgstr ""
 
 #: hledger-web/Hledger/Web/ReportPage.hs
-msgid "Could not parse the period expression:"
+msgid "Could not parse the reporting interval:"
 msgstr ""
 
 #: hledger-web/Hledger/Web/ReportPage.hs

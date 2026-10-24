@@ -136,7 +136,7 @@ it's because they have a mixed-cost balance, which looks like zero when costs ar
 Report options and query arguments given at startup become url state:
 hledger-web translates them into the url that browse mode opens, and
 that `--serve` prints, eg `hledger-web -V -M` opens
-`/journal?period=monthly&value=end`, and `hledger-web --cleared -3 assets`
+`/journal?interval=monthly&value=end`, and `hledger-web --cleared -3 assets`
 opens `/journal?q=assets status:*&depth=3` (url-encoded). The server
 itself keeps the defaults, so every view is fully described by its
 url: a bare url shows the default view, and editing the url (or the
@@ -292,14 +292,17 @@ value. On such journals
 every page also gains a Lots link, showing lot subaccounts and per-lot
 postings everywhere with the same `lots` parameter.
 
-A `period` parameter, like the command line's `-p/--period`, selects
-the interval and/or the period, eg `/balancesheet?period=monthly` or
-`/incomestatement?period=quarterly in 2025`; the links above each
+The search box filters the reports like the other pages, its `date:`
+terms setting the report's dates. An `interval` parameter, like the
+command line's `-D`/`-W`/`-M`/`-Q`/`-Y` or the interval part of
+`-p/--period`, divides them into columns, eg `/balancesheet?interval=monthly`
+or `/incomestatement?q=date:2025&interval=quarterly`; the links above each
 report offer the usual intervals, and column headings link to the
-report for that period.
-The search box filters the reports like the other pages.
-A `date:` term can set the interval too, as on the command line (`date:monthly`, or
-`"date:quarterly in 2025"`), and wins over the `period` parameter.
+report for that column's dates.
+A `date:` term typed with an interval, as on the command line
+(`date:monthly`, or `"date:quarterly in 2025"`), moves its interval to
+the `interval` parameter (the page reloads), leaving its dates in the
+search.
 
 A `depth` parameter, like `--depth`, limits the account depth, eg
 `/balancesheet?depth=2`; the Depth links and the digit keys set it, and

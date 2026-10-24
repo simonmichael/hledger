@@ -23,7 +23,7 @@ import Hledger
 import Hledger.Cli.CliOptions
 import Hledger.Web.Import
 import Hledger.Web.Paging
-import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, removeAttributes, intervalLinks, intervalPeriodExpr, listWord, parseCalc, parseListMode, parseValue, setAmountMode, valueParams)
+import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, removeAttributes, intervalLinks, listWord, parseCalc, parseInterval, parseListMode, parseValue, setAmountMode, valueParams)
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
@@ -55,7 +55,7 @@ getRegisterR = do
   costsOn <- (== Just "1") <$> lookupGetParam "costs"
   inferOn <- (== Just "1") <$> lookupGetParam "infer"
   date2On <- (== Just "1") <$> lookupGetParam "date2"
-  mperiod <- lookupGetParam "period"
+  minterval <- lookupGetParam "interval"
   totalOn <- (== Just "1") <$> lookupGetParam "total"
   avgOn   <- (== Just "1") <$> lookupGetParam "avg"
   sortAmt <- (== Just "amount") <$> lookupGetParam "sort"
@@ -90,7 +90,7 @@ getRegisterR = do
       -- The report-shaping state shapes nothing here, but it is passed
       -- along and shown dimmed below, so it survives visiting a register.
       stickyParams =
-        [("period", p) | Just p <- [mperiod], not (T.null p)] ++
+        [("interval", w) | Just w <- [mfilter (not . T.null) minterval]] ++
         [("total", "1") | totalOn] ++
         [("avg", "1") | avgOn] ++
         [("sort", "amount") | sortAmt] ++
@@ -135,19 +135,12 @@ getRegisterR = do
         else const mempty
       -- The report-shaping controls, operative on the report pages,
       -- shown dimmed with the url's state marked.
-      (pivl, pspan) = case mperiod of
-        Just p | not (T.null p), Right r <- parsePeriodExpr today p -> r
-        _ -> (NoInterval, nulldatespan)
-      rpInterval = fromMaybe pivl $ intervalFromQueryOpts qopts
+      rpInterval = maybe NoInterval (either (const NoInterval) id . parseInterval) minterval
       calcCur = either (const CalcChange) id $ parseCalc mcalc
-      -- The years row; its links rewrite the date narrowing themselves,
-      -- so they reduce the period parameter to its interval. The period
-      -- does not narrow this page, so only the search's dates mark years
-      -- (hence nulldatespan, not pspan).
-      yearsKept = [("period", w) | Just w <- [intervalPeriodExpr pivl]] ++ removeAttributes ["period"] modeParams
-      yearsNav = yearsRow trs RegisterR qparam today nulldatespan yearsKept years
+      -- The years row; its links rewrite the search's date narrowing themselves.
+      yearsNav = yearsRow trs RegisterR qparam today modeParams years
       intervalRow = inertControls trs $
-        intervalLinks trs RegisterR (removeAttributes ["period"] modeParams) qparam pspan rpInterval
+        intervalLinks trs RegisterR (removeAttributes ["interval"] modeParams) qparam rpInterval
       inertRows = inertControls trs $ mconcat
         [ columnsLinks trs RegisterR (qParams qparam ++ removeAttributes ["total", "avg"] modeParams) totalOn avgOn
         , sortLinks trs RegisterR (qParams qparam ++ removeAttributes ["sort"] modeParams) sortAmt

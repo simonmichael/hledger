@@ -68,11 +68,11 @@ statementPage here tabtitle spec = do
     -- the add form, which the a key opens
     when (AddPermission `elem` perms) $ addModal AddR j today
     setTitleI (HMsg tabtitle)
-    case reportParams today rspecOrig qparam q qopts hideEmpty params of
+    case reportParams rspecOrig qparam q qopts hideEmpty params of
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ effectiveTitle roptsOrig $ tr trs $ cbctitle spec NoInterval
         paramError trs err
-      Right ReportParams{rpRopts, rpRspec, rpSpan, rpInterval, rpPeriod, rpAccum, rpValue} -> do
+      Right ReportParams{rpRopts, rpRspec, rpInterval, rpAccum, rpValue} -> do
         let accum = fromMaybe (cbcaccum spec) rpAccum
             override = mfilter (/= cbcaccum spec) rpAccum
             ropts = rpRopts{balanceaccum_ = accum}
@@ -95,7 +95,7 @@ statementPage here tabtitle spec = do
             -- What links staying on this page keep: the period as given, the
             -- accumulation mode when it is not the report's own, and each
             -- report-shaping parameter that is not at its default.
-            periodParams = [("period", p) | Just p <- [rpPeriod]]
+            intervalParams = [("interval", w) | Just w <- [intervalPeriodExpr rpInterval]]
             accumParams = [("accum", accumWord accum) | accum /= cbcaccum spec]
             valParams = valueParams roptsOrig rpValue
             listParams  = [("list", listWord (accountlistmode_ ropts)) | accountlistmode_ ropts /= accountlistmode_ roptsOrig]
@@ -110,7 +110,7 @@ statementPage here tabtitle spec = do
             lotsParams  = [("lots", "1") | lotsShown]
             pageParams =
               dbg1 "statement pageParams" $
-              periodParams ++ accumParams ++ valParams ++ listParams ++
+              intervalParams ++ accumParams ++ valParams ++ listParams ++
               totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
               inferParams ++ date2Params ++ emptyParams ++ lotsParams ++ depthParams q
             qParams = [("q", qparam) | not (T.null qparam)]
@@ -119,8 +119,7 @@ statementPage here tabtitle spec = do
             -- default, the startup options', converts them.
             registerParams =
               [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
-              [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++
-              removeAttributes ["period", "accum", "value"] pageParams
+              removeAttributes ["accum", "value"] pageParams
             relink = map (map (addLinkParams registerParams))
             headinglink = urlrender here . headingParams rpInterval qparam params
             CompoundBalanceReportParts{cbrpLeadingHeaders, cbrpDataHeaders, cbrpSections, cbrpNetRows} =
@@ -155,15 +154,13 @@ statementPage here tabtitle spec = do
             -- own account types.
             -- The years the search matches in, ignoring all date
             -- narrowing, as a row of links among the controls; the year
-            -- links rewrite the date narrowing themselves, so they
-            -- reduce the period to its interval.
+            -- links rewrite the search's date narrowing themselves.
             yearsDays = map tdate $
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
-            yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
-            yearsNav = yearsRow trs here qparam today rpSpan yearsKept yearsDays
+            yearsNav = yearsRow trs here qparam today pageParams yearsDays
             controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
               [ accumulationLinks trs here (qParams ++ removeAttributes ["accum"] pageParams) (cbcaccum spec) accum
-              , intervalLinks trs here (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
+              , intervalLinks trs here (removeAttributes ["interval"] pageParams) qparam rpInterval
               , yearsNav
               , statusLinks trs here pageParams qparam
               , realLinks trs here pageParams qparam
@@ -185,7 +182,7 @@ statementPage here tabtitle spec = do
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter $ cbrTitle cbr
         for_ pctErr $ Yesod.toWidget . pctError trs
         if empty
-          then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any && rpSpan == nulldatespan)
+          then Yesod.toWidget $ emptyNotice trs zerosHidden (q == Any)
           else Yesod.toWidget $ reportTable isTree mfold [header] sections (relink cbrpNetRows)
 
 -- | What an empty statement shows instead of a table: that its accounts

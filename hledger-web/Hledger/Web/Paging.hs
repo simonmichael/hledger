@@ -132,13 +132,12 @@ datelessQuery today qparam
 -- search narrowed to that year, after an All link that widens it again.
 -- Nothing when there is only one year, which has nowhere to go. More than
 -- twenty years are grouped by decade, a row each. The links keep the
--- given parameters. Takes today's date (for parsing the search's date
--- terms) and the period parameter's date span, which narrows the view
--- when the search does not: the years the shown span covers in full are
--- marked, so a range search (date:2023..2026, as a shift-click makes)
--- marks each of its years.
-yearsRow :: Translations -> r -> Text -> Day -> DateSpan -> [(Text, Text)] -> [Day] -> HtmlUrl r
-yearsRow trs here qparam today periodspan kept days = $(hamletFile "templates/years.hamlet")
+-- given parameters. Takes today's date, for parsing the search's date
+-- terms: the years the span they show covers in full are marked, so a
+-- range search (date:2023..2026, as a shift-click makes) marks each of
+-- its years.
+yearsRow :: Translations -> r -> Text -> Day -> [(Text, Text)] -> [Day] -> HtmlUrl r
+yearsRow trs here qparam today kept days = $(hamletFile "templates/years.hamlet")
   where
     showOnly y = trf trs "Show only {year}" [("year", T.pack (show y))]
     -- TRANSLATORS: the hint below the years row.
@@ -154,15 +153,12 @@ yearsRow trs here qparam today periodspan kept days = $(hamletFile "templates/ye
     isDateTerm t = any (`T.isPrefixOf` t) ["date:", "date2:"]
     -- the search without its date terms, which each year link replaces
     rest = removeDates qparam
-    -- The span being shown: the search's own date terms, or the period
-    -- parameter's span when the search has none. A search narrowing only
-    -- by secondary date (date2:) sets the span too, so its years are
+    -- The span being shown: the search's date terms'. A search narrowing
+    -- only by secondary date (date2:) sets the span too, so its years are
     -- marked rather than All.
-    shownSpan
-      | any isDateTerm terms =
-          either (const nulldatespan) (spanOf . fst) $
-            parseQuery today (T.unwords $ filter isDateTerm terms)
-      | otherwise = periodspan
+    shownSpan =
+      either (const nulldatespan) (spanOf . fst) $
+        parseQuery today (T.unwords $ filter isDateTerm terms)
     spanOf q =
       let s = queryDateSpan False q
       in if s == nulldatespan then queryDateSpan True q else s

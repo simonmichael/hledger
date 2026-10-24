@@ -45,11 +45,11 @@ getBalanceR = do
     when (AddPermission `elem` perms) $ addModal AddR j today
     -- TRANSLATORS: the browser tab title of this page.
     setTitleI (HMsg "balance - hledger-web")
-    case reportParams today rspecOrig qparam q qopts hideEmpty params of
+    case reportParams rspecOrig qparam q qopts hideEmpty params of
       Left err -> Yesod.toWidget $ do
         H.h2 $ H.toHtml $ withFilter $ reportTitle roptsOrig $ tr trs "All accounts"
         paramError trs err
-      Right ReportParams{rpRopts, rpRspec, rpSpan, rpInterval, rpPeriod, rpAccum, rpValue} -> do
+      Right ReportParams{rpRopts, rpRspec, rpInterval, rpAccum, rpValue} -> do
         let -- The page shows balance changes unless another mode was asked for.
             accum = fromMaybe PerPeriod rpAccum
             ropts = rpRopts{balanceaccum_ = accum}
@@ -70,7 +70,7 @@ getBalanceR = do
             colspans = prDates mbr
             -- What links staying on this page keep: the period as given, and each
             -- report-shaping parameter that is not at its default.
-            periodParams = [("period", p) | Just p <- [rpPeriod]]
+            intervalParams = [("interval", w) | Just w <- [intervalPeriodExpr rpInterval]]
             accumParams = [("accum", accumWord accum) | accum /= PerPeriod]
             valParams = valueParams roptsOrig rpValue
             listParams  = [("list", listWord (accountlistmode_ ropts)) | accountlistmode_ ropts /= accountlistmode_ roptsOrig]
@@ -85,7 +85,7 @@ getBalanceR = do
             lotsParams  = [("lots", "1") | lotsShown]
             pageParams =
               dbg1 "balance pageParams" $
-              periodParams ++ accumParams ++ valParams ++ listParams ++
+              intervalParams ++ accumParams ++ valParams ++ listParams ++
               totalParams ++ avgParams ++ sortParams ++ pctParams ++ calcParams ++
               inferParams ++ date2Params ++ emptyParams ++ lotsParams ++ depthParams q
             qParams = [("q", qparam) | not (T.null qparam)]
@@ -93,11 +93,10 @@ getBalanceR = do
             -- showing them as recorded must say so when the register's
             -- default, the startup options', converts them. The sticky
             -- report state travels along too; the link rewrites only the
-            -- dates, so of the period it keeps just the interval.
+            -- search's dates.
             registerParams =
               [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
-              [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++
-              removeAttributes ["period", "accum", "value"] pageParams
+              removeAttributes ["accum", "value"] pageParams
             relink = map (map (addLinkParams registerParams))
             headinglink = urlrender BalanceR . headingParams rpInterval qparam params
             -- The heading, and the report's rows in three parts, for the
@@ -127,15 +126,13 @@ getBalanceR = do
               | otherwise = splitAccountNames body
             -- The years the search matches in, ignoring all date
             -- narrowing, as a row of links among the controls; the year
-            -- links rewrite the date narrowing themselves, so they
-            -- reduce the period to its interval.
+            -- links rewrite the search's date narrowing themselves.
             yearsDays = map tdate $
               entriesReport rspecOrig{_rsQuery = filterQuery (\x -> not (queryIsDateOrDate2 x || queryIsDepth x)) q} j
-            yearsKept = [("period", w) | Just w <- [intervalPeriodExpr rpInterval]] ++ removeAttributes ["period"] pageParams
-            yearsNav = yearsRow trs BalanceR qparam today rpSpan yearsKept yearsDays
+            yearsNav = yearsRow trs BalanceR qparam today pageParams yearsDays
             controlRows = controlsToggle trs controlsOpen $ \render -> foldMap ($ render) $
               [ accumulationLinks trs BalanceR (qParams ++ removeAttributes ["accum"] pageParams) PerPeriod accum
-              , intervalLinks trs BalanceR (removeAttributes ["period"] pageParams) qparam rpSpan rpInterval
+              , intervalLinks trs BalanceR (removeAttributes ["interval"] pageParams) qparam rpInterval
               , yearsNav
               , statusLinks trs BalanceR pageParams qparam
               , realLinks trs BalanceR pageParams qparam

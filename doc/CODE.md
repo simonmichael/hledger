@@ -249,8 +249,9 @@ A rule of thumb: the query selects the data; report options control what is done
 On the command line these are query arguments and flags; in hledger-web, the search box and the URL parameters set by the page's links.
 A few query terms also affect the report: `date:` sets the report period, `depth:` summarises,
 and `inacct:` (a `QueryOpt`, not a filter) sets a register's focus account.
-hledger-web follows the rule for depth: a flat depth is its `depth` URL parameter, and a `depth:N` typed in the search is moved there
-(`App.setDepthFromSearch`); only per-account `depth:REGEX=N` terms stay in its search.
+hledger-web follows the rule for depth and the interval: a flat depth is its `depth` URL parameter, the interval its `interval` parameter,
+and a `depth:N`, or a `date:` term's interval, typed in the search is moved there by reloading the page (`App.normaliseUrlState`);
+only per-account `depth:REGEX=N` terms stay in its search. Its report dates are only ever the search's `date:` terms.
 Internally, though, the parameter is added to the parsed query (`ViewData.q`) as a `Depth` term, since the reports read depth limits
 from the query; the search text (`ViewData.qparam`) never shows it, and links turn it back into the parameter (`ReportPage.depthParams`).
 
@@ -258,7 +259,8 @@ The period and the query overlap on the span: `queryFromFlags` turns `period_` i
 and the report's dates are the intersection of that and any `date:` terms.
 
 Since 1.52 a `date:` term can also carry an interval (`date:monthly`), which goes against the rule above.
-The CLI and hledger-web use it; removing it is being discussed in [#2777](https://github.com/hledgerorg/hledger/issues/2777).
+The CLI uses it, and hledger-web accepts it as typed input, moving the interval to its `interval` parameter;
+removing it is being discussed in [#2777](https://github.com/hledgerorg/hledger/issues/2777).
 
 When converting a `Period` to a `DateSpan`, the period's unit awareness is lost; code that needs it (eg for a title)
 must look at the period, or reconstruct it with `dateSpanAsPeriod`.

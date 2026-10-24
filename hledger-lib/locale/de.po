@@ -876,8 +876,8 @@ msgid "Could not calculate percentages:"
 msgstr ""
 
 #: hledger-web/Hledger/Web/ReportPage.hs
-msgid "Could not parse the period expression:"
-msgstr "Der Periodenausdruck konnte nicht gelesen werden:"
+msgid "Could not parse the reporting interval:"
+msgstr ""
 
 #: hledger-web/Hledger/Web/ReportPage.hs
 msgid "Unknown balance accumulation mode:"
@@ -2245,6 +2245,9 @@ msgstr "Alle Jahre anzeigen"
 msgctxt "years row"
 msgid "All"
 msgstr "Alle"
+
+#~ msgid "Could not parse the period expression:"
+#~ msgstr "Der Periodenausdruck konnte nicht gelesen werden:"
 
 #~ msgid "Report:"
 #~ msgstr "Bericht:"

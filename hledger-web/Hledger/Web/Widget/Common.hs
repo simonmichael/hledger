@@ -36,8 +36,8 @@ module Hledger.Web.Widget.Common
   , listWord
   , valueWord
   , searchTerms
-  , searchDepth
-  , removeDepth
+  , normalisedSearch
+  , splitPeriodExpr
   , helplink
   , mixedAmountAsHtml
   , mixedAmountAsHtmlWith
@@ -54,13 +54,14 @@ module Hledger.Web.Widget.Common
   , journalDayQuery
   ) where
 
+import Control.Applicative ((<|>))
 import Control.Monad (unless, when)
 import Control.Monad.Except (ExceptT, mapExceptT)
 import Data.Char (isDigit)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
 import Data.Set qualified as Set
-import Data.Maybe (isNothing, mapMaybe, maybeToList)
+import Data.Maybe (isJust, isNothing, mapMaybe, maybeToList)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
@@ -71,6 +72,7 @@ import Text.Blaze.Html5 qualified as H
 import Text.Blaze.Html5.Attributes qualified as A
 import Text.Blaze.Internal (preEscapedString)
 import Text.Hamlet (hamletFile)
+import Text.Megaparsec (getInput)
 import Text.Printf (printf)
 import Yesod
 
@@ -651,14 +653,48 @@ removeDates = map quoteIfSpaced . Anchor.removeDates . searchTerms
 removeInacct :: Text -> [Text]
 removeInacct = map quoteIfSpaced . Anchor.removeInacct . searchTerms
 
--- | The search's terms without its depth:N terms, each quoted if it needs
--- to be. Its depth:REGEX=N terms, which limit some accounts, stay.
-removeDepth :: Text -> [Text]
-removeDepth = map quoteIfSpaced . filter (isNothing . flatDepth) . searchTerms
+-- | The report options in a search and in the old period parameter, which
+-- hledger-web keeps in their own parameters (see App.normaliseUrlState):
+-- the search without them, the depth of its last depth:N term, and the
+-- interval of its last date:INTERVAL term, else of the period parameter.
+-- A date:INTERVAL term is reduced to its date span, if it has one, and the
+-- period parameter's date span joins the search as a date: term. A
+-- depth:REGEX=N term, limiting some accounts only, stays in the search.
+-- Nothing when there is nothing to move.
+normalisedSearch :: Day -> Text -> Maybe Text -> Maybe (Text, Maybe Int, Maybe Interval)
+normalisedSearch today qparam mperiod
+  | isNothing mdepth && null termIntervals && isNothing mperiod = Nothing
+  | otherwise = Just (T.unwords $ map quoteIfSpaced $ periodTerms ++ concatMap rest terms, mdepth, mivl)
+  where
+    terms = searchTerms qparam
+    mdepth = lastMay $ mapMaybe flatDepth terms
+    dateInterval t = T.stripPrefix "date:" t >>= splitPeriodExpr today
+    termIntervals = [i | t <- terms, Just (i, _) <- [dateInterval t]]
+    rest t
+      | isJust (flatDepth t)           = []
+      | Just (_, sp) <- dateInterval t = ["date:" <> sp | not (T.null sp)]
+      | otherwise                      = [t]
+    -- A period that is not an interval and a span is a span only (or
+    -- unparseable, which its date: term then reports).
+    (periodInterval, periodTerms) = case mperiod of
+      Nothing -> (Nothing, [])
+      Just p  -> case splitPeriodExpr today p of
+        Just (i, sp) -> (Just i, ["date:" <> sp | not (T.null sp)])
+        Nothing      -> (Nothing, ["date:" <> p])
+    mivl = lastMay termIntervals <|> periodInterval
 
--- | The search's depth limit, from its last depth:N term.
-searchDepth :: Text -> Maybe Int
-searchDepth = lastMay . mapMaybe flatDepth . searchTerms
+-- | Split a period expression's reporting interval from its date span,
+-- keeping the span as written, eg "monthly in 2025" gives monthly and
+-- "in 2025". Nothing when it does not start with an interval, or what
+-- follows is not a date span.
+splitPeriodExpr :: Day -> Text -> Maybe (Interval, Text)
+splitPeriodExpr today s = do
+  (ivl, rest) <- either (const Nothing) Just $
+    parsewith ((,) <$> (skipNonNewlineSpaces *> reportingintervalp) <*> (skipNonNewlineSpaces *> getInput)) (T.toLower s)
+  let sp = T.strip rest
+  if T.null sp || either (const False) ((== NoInterval) . fst) (parsePeriodExpr today sp)
+    then Just (ivl, sp)
+    else Nothing
 
 -- | The depth a depth:N term limits all accounts to.
 flatDepth :: Text -> Maybe Int

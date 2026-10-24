@@ -50,6 +50,7 @@ module Hledger.Data.Dates (
   elapsedSeconds,
   prevday,
   periodexprp,
+  reportingintervalp,
   parsePeriodExpr,
   parsePeriodExpr',
   nulldatespan,

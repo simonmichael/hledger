@@ -336,7 +336,7 @@ test.describe('keyboard shortcuts', () => {
     await page.locator('body').press('t');
     await expect(page).toHaveURL(/list=tree/);
     await page.locator('body').press('M');
-    await expect(page).toHaveURL(/period=monthly/);
+    await expect(page).toHaveURL(/interval=monthly/);
     // the keys are cased as hledger-ui's: lowercase v is not a key
     await page.locator('body').press('v');
     await expect(page).toHaveURL(/value=end/);
