@@ -178,7 +178,6 @@ instance Yesod App where
       addHeader "Vary" "Cookie, Accept-Language"
     let lang = trLang trs
     showSidebar <- shouldShowSidebar
-    fullWindow <- showFullWindow
     -- The policy is sent from here rather than from a middleware, so that
     -- the header and the page's script tags always carry the same nonce;
     -- error pages come through here too, in a handler state of their own.
@@ -637,12 +636,6 @@ shouldShowSidebar = do
 -- left and nothing moves after paint.
 showControls :: Handler Bool
 showControls = (== Just "1") . lookup "showcontrols" . reqCookies <$> getRequest
-
--- | Is the page in full window mode, showing only the report's heading
--- and data? Like showControls, via the fullwindow cookie, which the f key
--- and the mode's exit button set.
-showFullWindow :: Handler Bool
-showFullWindow = (== Just "1") . lookup "fullwindow" . reqCookies <$> getRequest
 
 -- | Is the commodity filter's collapsed list open? Like showControls,
 -- via the showcommodities cookie.

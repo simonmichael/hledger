@@ -457,11 +457,14 @@ function fullWindowOn() {
 
 function fullWindowToggle() {
   // Full window mode hides all but the report's heading and data
-  // (hledger.css). The server reads this cookie, so the next page renders
-  // the same way; it lasts for the browser session, so a later visit
-  // starts with everything showing.
+  // (hledger.css). It is remembered for this tab, and each page restores
+  // it before painting (default-layout-wrapper.hamlet). Session storage,
+  // not a cookie like the sidebar's, since the server needn't know it, and
+  // that is kept per tab and per hledger-web automatically.
   var on = document.body.classList.toggle('fullwindow');
-  document.cookie = 'fullwindow=' + (on ? '1' : '0') + '; path=/; samesite=lax';
+  try {
+    if (on) { sessionStorage.setItem('fullwindow', '1'); } else { sessionStorage.removeItem('fullwindow'); }
+  } catch (e) {}
 }
 
 function fullWindowLeave() {

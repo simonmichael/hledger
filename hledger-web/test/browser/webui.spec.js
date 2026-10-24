@@ -285,7 +285,7 @@ test.describe('keyboard shortcuts', () => {
     await page.locator('body').press('f');
     await expect(sidebar).toBeVisible();
     await expect(search).toBeVisible();
-    // the server reads the fullwindow cookie, so a key that reloads the page keeps it
+    // it's remembered for the tab, so a key that reloads the page keeps it
     await page.locator('body').press('f');
     await page.locator('body').press('M');
     await expect(page).toHaveURL(/interval=monthly/);
