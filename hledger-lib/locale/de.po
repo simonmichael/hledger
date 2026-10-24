@@ -1963,6 +1963,10 @@ msgstr ""
 "Weiterarbeiten starten Sie es neu und laden diese Seite erneut."
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "Leave full window"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgctxt "search box"
 msgid "Search"
 msgstr "Suchen"
@@ -2005,6 +2009,10 @@ msgstr "Seitenleiste ein-/ausblenden"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle report options"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle full window"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet

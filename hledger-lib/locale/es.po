@@ -1967,6 +1967,10 @@ msgstr ""
 "continuar, inícielo de nuevo y recargue esta página."
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "Leave full window"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgctxt "search box"
 msgid "Search"
 msgstr "Buscar"
@@ -2010,6 +2014,10 @@ msgstr "mostrar u ocultar la barra lateral"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle report options"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle full window"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet
