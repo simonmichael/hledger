@@ -273,7 +273,6 @@ queryprefixes = map (<>":") [
     ,"status"
     ,"cur"
     ,"real"
-    ,"empty"
     ,"depth"
     ,"tag"
     ,"type"
