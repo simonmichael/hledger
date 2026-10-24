@@ -164,7 +164,8 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   (a 100k-posting register: 286s to 44s). The unit is shown only on the outermost y tick. x labels are thinned to an even stride
   that leaves room for all of them, after the end ones are moved inward.
 - Embedded SVG (`SvgOptions`, for pages like hledger-web's): without its styles, for a page that supplies `chartStylesheet` itself
-  (eg when its Content-Security-Policy allows no inline styles); with plots of another height than 260px, and about one y tick per 50px;
+  (eg when its Content-Security-Policy allows no inline styles); at another width than 880px, eg as wide as the page shows it;
+  with plots of another height than 260px, and about one y tick per 50px;
   with links on lines' tooltip targets, one per x position (eg to a register's rows), left out of the tab order;
   with each date plot's scale (`data-` attributes on a transparent rectangle under it), for a page's script to select dates by dragging;
   shaded as of today: the future, and the past below zero (tinted with the expenses' red), with the zero line red.
