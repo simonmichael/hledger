@@ -203,11 +203,12 @@ instance Yesod App where
           ,fold_depth_      = mfilter (const sidebarFold) $ dsFlatDepth $ queryDepth q
           }
         -- A depth limit clips the sidebar's accounts, except in tree
-        -- mode, where the sidebar is served at full depth and the limit
-        -- becomes its initial fold, as in the report tables: the carets
-        -- open the deeper accounts in place. fold_depth_ keeps boring
-        -- parents from being elided across it.
-        sidebarQ = if sidebarFold then filterQuery (not . queryIsDepth) q else q
+        -- mode, where the sidebar is served without the flat limit and
+        -- that becomes its initial fold, as in the report tables: the
+        -- carets open the deeper accounts in place. fold_depth_ keeps
+        -- boring parents from being elided across it. Per-account depth
+        -- limits still clip.
+        sidebarQ = if sidebarFold then filterQuery (not . queryIsFlatDepth) q else q
         sidebarFoldDepth
           | sidebarFold = maybe "" (T.pack . show) $ dsFlatDepth $ queryDepth q
           | otherwise   = ""

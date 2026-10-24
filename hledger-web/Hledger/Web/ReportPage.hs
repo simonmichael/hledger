@@ -162,13 +162,15 @@ reportParams rspecOrig qparam q qopts hideEmpty params = do
       -- Unlike the journal and register pages, keep any depth limit:
       -- the report reads it from the query, and it is how a balance
       -- report gets summarized (--depth at startup, or depth: in the
-      -- search). In tree mode the report is computed at full depth
-      -- instead, and the page folds it to the depth limit, with each
-      -- deeper group openable in place (see reportTable and hledger.js);
-      -- fold_depth_ keeps boring parents from being elided across it.
+      -- search). In tree mode the report is computed without the flat
+      -- depth limit instead, and the page folds it to that limit, with
+      -- each deeper group openable in place (see reportTable and
+      -- hledger.js); fold_depth_ keeps boring parents from being elided
+      -- across it. Per-account depth limits still clip, as on the
+      -- command line.
       rpRspec =
         rspecOrig {
-          _rsQuery = if tree then simplifyQuery $ filterQuery (not . queryIsDepth) q else q,
+          _rsQuery = if tree then simplifyQuery $ filterQuery (not . queryIsFlatDepth) q else q,
           _rsReportOpts = rpRopts
         }
   Right ReportParams{..}
