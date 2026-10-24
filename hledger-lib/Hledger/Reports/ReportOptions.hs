@@ -154,10 +154,13 @@ data ReportOpts = ReportOpts {
     ,conversionop_     :: Maybe ConversionOp  -- ^ Which operation should we apply to conversion transactions?
     ,value_            :: Maybe ValuationType  -- ^ What value should amounts be converted to ?
     ,infer_prices_     :: Bool      -- ^ Infer market prices from transactions ?
-    ,depth_            :: DepthSpec
+    ,depth_            :: DepthSpec  -- ^ --depth: clip the report to this depth (overall, or per account), removing
+                                     --   deeper accounts and summing their amounts into their parents.
+                                     --   Reports read it from their query, where queryFromFlags puts it.
+    ,no_elide_         :: Bool       -- ^ --no-elide: in tree mode, don't ever squash boring parent accounts into
+                                     --   their subaccount's row; in list mode, with -E, also show parent accounts.
     ,date2_            :: Bool
     ,empty_            :: Bool
-    ,no_elide_         :: Bool
     ,full_names_       :: Bool
     ,real_             :: Bool
     ,format_           :: StringFormat
@@ -228,9 +231,9 @@ defreportopts = ReportOpts
     , value_            = Nothing
     , infer_prices_     = False
     , depth_            = DepthSpec Nothing []
+    , no_elide_         = False
     , date2_            = False
     , empty_            = False
-    , no_elide_         = False
     , full_names_       = False
     , real_             = False
     , format_           = def
@@ -304,9 +307,9 @@ rawOptsToReportOpts d usecoloronstdout rawopts =
           ,value_            = value
           ,infer_prices_     = boolopt "infer-market-prices" rawopts
           ,depth_            = depth
+          ,no_elide_         = boolopt "no-elide" rawopts
           ,date2_            = boolopt "date2" rawopts
           ,empty_            = boolopt "empty" rawopts
-          ,no_elide_         = boolopt "no-elide" rawopts
           ,full_names_       = boolopt "full-names" rawopts
           ,real_             = boolopt "real" rawopts
           ,format_           = format
