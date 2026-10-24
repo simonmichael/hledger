@@ -85,14 +85,17 @@ data SvgOptions = SvgOptions
   , svgPlotHeight :: Double  -- ^ the height of each plot of values over time or of categories as columns, in pixels,
                              --   not counting its labels; also deciding how many y ticks it has (see 'plotIntervals').
                              --   (Horizontal bars are as tall as their rows.)
+  , svgPointLink  :: Int -> Maybe Text  -- ^ a link for each x position (by index), if any: lines' tooltip targets there link to it,
+                                        --   eg to a page's row for that transaction. They are left out of the tab order, being many.
   }
 
--- | A self-contained chart: with its styles, including their dark variant, and plots 260px high.
+-- | A self-contained chart: with its styles, including their dark variant, plots 260px high, and no links.
 defaultSvgOptions :: SvgOptions
 defaultSvgOptions = SvgOptions
   { svgStyles     = True
   , svgDark       = True
   , svgPlotHeight = 260
+  , svgPointLink  = const Nothing
   }
 
 -- | A chart as SVG markup, which can also be embedded in HTML, drawn with these options.
@@ -246,7 +249,7 @@ data XScale = EvenScale [Text] | DateScale [Day]
 -- | Draw series over time, along the given x scale:
 -- vertical stacked bars (with the grouped layout, a stack per group, side by side), lines, and total marks or lines.
 timeSvg :: SvgOptions -> Double -> Maybe Quantity -> BarLayout -> Amount -> [DrawSeries] -> Maybe Series -> Maybe (Text, Quantity) -> XScale -> (Double, Svg)
-timeSvg SvgOptions{svgPlotHeight = plotheight} top mscale layout unit drawn mtotal maverage xscale = (plotheight + 32, do
+timeSvg SvgOptions{svgPlotHeight = plotheight, svgPointLink} top mscale layout unit drawn mtotal maverage xscale = (plotheight + 32, do
     -- gridlines and y tick labels
     forM_ ticks $ \t -> do
       S.line ! A.class_ (if t == 0 then "axis" else "grid")
@@ -351,9 +354,13 @@ timeSvg SvgOptions{svgPlotHeight = plotheight} top mscale layout unit drawn mtot
       forM_ (runs pts) $ \run ->
         S.polyline ! A.class_ ("line " <> toValue cls)
           ! A.points (toValue $ T.unwords [num x <> "," <> num y | (x, y) <- thinPoints $ (if isJust datearray then steps else id) [(x, y) | (_, x, y, _) <- run]])
-      -- invisible larger targets, for tooltips
-      forM_ (hitPoints $ catMaybes pts) $ \(j, x, y, q) -> withTooltip (tooltip (fromMaybe "" $ xlabels `atMay` j) s q) $
+      -- invisible larger targets, for tooltips, and links if any
+      forM_ (hitPoints $ catMaybes pts) $ \(j, x, y, q) -> linked j $ withTooltip (tooltip (fromMaybe "" $ xlabels `atMay` j) s q) $
         S.circle ! A.class_ "hit" ! A.cx (toValue $ num x) ! A.cy (toValue $ num y) ! A.r "6"
+    -- some markup for the given x position, as a link if it has one
+    linked j m = case svgPointLink j of
+      Just url -> S.a ! customAttribute "href" (toValue url) ! customAttribute "tabindex" "-1" $ m
+      Nothing  -> m
     -- The points of a line given tooltip targets: all of them, or beyond 400 x positions, the last point in each 4px column,
     -- which keeps the SVG small while the targets (12px across) still cover the whole line.
     hitPoints ps
@@ -790,6 +797,10 @@ tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
   ,testCase "a long line has tooltips all along it, at most one per 4px column" $ do
      let hits = T.count "class=\"hit\"" $ svgText defaultSvgOptions $ lineChart 1000
      assertBool ("tooltip targets: " ++ show hits) (hits >= 150 && hits <= 220)
+  ,testCase "a line's points can link somewhere, out of the tab order" $ do
+     let svg = svgText defaultSvgOptions{svgPointLink = \j -> if even j then Just ("#t" <> T.pack (show j)) else Nothing} $ lineChart 3
+     assertBool "the third point links" $ "<a href=\"#t2\" tabindex=\"-1\">" `T.isInfixOf` svg
+     assertBool "the second point does not" $ not $ "#t1" `T.isInfixOf` svg
   ]
   where
     svgText opts = TL.toStrict . renderSvg . chartSvgMarkupWith opts

@@ -163,7 +163,8 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   (a 100k-posting register: 286s to 44s). The unit is shown only on the outermost y tick. x labels are thinned to an even stride
   that leaves room for all of them, after the end ones are moved inward.
 - Embedded SVG (`SvgOptions`, for pages like hledger-web's): without its styles, for a page that supplies `chartStylesheet` itself
-  (eg when its Content-Security-Policy allows no inline styles); with plots of another height than 260px, and about one y tick per 50px.
+  (eg when its Content-Security-Policy allows no inline styles); with plots of another height than 260px, and about one y tick per 50px;
+  with links on lines' tooltip targets, one per x position (eg to a register's rows), left out of the tab order.
 - Tests: shelltest; SVG goldens are separate files compared with diff, since shelltest treats lines starting with `<` as input.
 
 ## Decisions and rejected alternatives
@@ -228,7 +229,7 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
     - use it in docs
     - explore this style of report, make it available to users
 - png output
-- clickable chart ?
+- clickable chart ? Lines' points can link, for embedding (`SvgOptions`); bars can't yet.
 - more charts (budget (goal marks), prices, roi, holdings)
 - more kinds of chart (line, hbar, pie); a sparkline column for tables ? Vega-Lite.
 - a default fixed scale, if users ask: a `--chart-scale=SCALE` option that sets the scale without enabling charts,
