@@ -157,6 +157,20 @@ data ReportOpts = ReportOpts {
     ,depth_            :: DepthSpec  -- ^ --depth: clip the report to this depth (overall, or per account), removing
                                      --   deeper accounts and summing their amounts into their parents.
                                      --   Reports read it from their query, where queryFromFlags puts it.
+    ,fold_depth_       :: Maybe Int  -- ^ Unlike the CLI, where a depth limit (depth_) clips the tree before its rows
+                                     --   are laid out, in hledger-web's tree mode a depth limit only sets the depth
+                                     --   at which accounts are folded by default; the user can still open or close
+                                     --   individual accounts to show more or less depth. So there the rows are laid
+                                     --   out for the whole tree, and some are hidden. But folding can only hide whole
+                                     --   rows; a boring parent account squashed into its subaccount's row, like
+                                     --   "assets:bank", could not easily be folded to depth 1.
+                                     --   So fold_depth_ holds a folding UI's default fold depth, and we take care
+                                     --   not to squash accounts across this depth. Eg with fold depth 1, instead of
+                                     --   "assets:bank", we'll display "assets" and "bank" on separate rows.
+                                     --   (It's like no_elide_, but at this depth only.)
+                                     --   Note, hledger-web's balance reports and sidebar fold in this way, but not its
+                                     --   holdings report, where clipping merges positions by commodity, which folding
+                                     --   can't show; so it does depth-clipping, like the CLI holdings report.
     ,no_elide_         :: Bool       -- ^ --no-elide: in tree mode, don't ever squash boring parent accounts into
                                      --   their subaccount's row; in list mode, with -E, also show parent accounts.
     ,date2_            :: Bool
@@ -231,6 +245,7 @@ defreportopts = ReportOpts
     , value_            = Nothing
     , infer_prices_     = False
     , depth_            = DepthSpec Nothing []
+    , fold_depth_       = Nothing
     , no_elide_         = False
     , date2_            = False
     , empty_            = False

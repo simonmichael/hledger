@@ -6,7 +6,7 @@ $forall (route, label, title) <- reports
       <a href=@?{(route, reportParams)} :here == route:.inacct title=#{tr trs title}>
         #{tr trs label}
 $forall (acct, adisplay, aindent, abal) <- items
-  <tr data-depth=#{aindent} data-acct=#{acct}
+  <tr data-indent=#{aindent} data-acct=#{acct}
      :matchesAcctSelector acct:.inacct
      :hideEmpty && not (isInterestingAccount acct):.hide>
     <td .acct :not (isInterestingAccount acct):.empty>

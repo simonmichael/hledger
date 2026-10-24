@@ -515,7 +515,7 @@ test.describe('sidebar', () => {
       const problems = await page.locator('#sidebar-menu').evaluate((sidebar, beside) => {
         const s = sidebar.getBoundingClientRect();
         const found = [];
-        for (const tr of sidebar.querySelectorAll('tr[data-depth], tr.total')) {
+        for (const tr of sidebar.querySelectorAll('tr[data-indent], tr.total')) {
           const spans = [...tr.querySelectorAll('td.amount span.amount')].map(e => e.getBoundingClientRect());
           if (!tr.getClientRects().length || !spans.length) continue;
           const row = tr.getAttribute('data-acct') || 'total';
@@ -541,11 +541,14 @@ test.describe('report tree folding', () => {
   // the carets open and close groups in place, without changing the URL.
   test('folds to the depth limit, and carets unfold groups in place', async ({ page }) => {
     await page.goto('/balance?list=tree&depth=1');
-    // expenses is the branching group; the boring chains squash to leaves
-    const top = page.locator('td.account.depth-0', { hasText: 'expenses' });
-    const deep = page.locator('td.account.depth-1').first();
+    // expenses is a group, whose subaccounts are folded at depth 1
+    const top = page.locator('td.account.indent-0', { hasText: 'expenses' });
+    const deep = page.locator('td.account.indent-1', { hasText: 'food' });
     await expect(top).toBeVisible();
     await expect(deep).toBeHidden();
+    // a boring parent at the fold depth keeps its own row, as with --depth 1
+    await expect(page.locator('td.account.indent-0').getByText('assets', { exact: true })).toBeVisible();
+    await expect(page.locator('td.account.indent-1').getByText('bank:checking', { exact: true })).toBeHidden();
     await top.locator('.tree-caret').click();
     await expect(deep).toBeVisible();
     await expect(page).toHaveURL('/balance?list=tree&depth=1');
@@ -607,9 +610,9 @@ test.describe('report tree folding', () => {
   // Without a depth, the tree starts fully open and can be folded.
   test('an unfolded tree collapses from any group', async ({ page }) => {
     await page.goto('/balance?list=tree');
-    const deep = page.locator('td.account.depth-1').first();
+    const deep = page.locator('td.account.indent-1').first();
     await expect(deep).toBeVisible();
-    await page.locator('td.account.depth-0', { hasText: 'expenses' }).locator('.tree-caret').click();
+    await page.locator('td.account.indent-0', { hasText: 'expenses' }).locator('.tree-caret').click();
     await expect(deep).toBeHidden();
     expect(pageErrors).toEqual([]);
   });

@@ -664,7 +664,7 @@ ul {
 
 /* the line above an account is the row's, so that a balance below its
    name stays inside it */
-#sidebar-menu .main-menu tr[data-depth], #sidebar-menu .main-menu tr.total {
+#sidebar-menu .main-menu tr[data-indent], #sidebar-menu .main-menu tr.total {
     border-top: 1px solid var(--sidebar-rule);
 }
 
@@ -913,19 +913,19 @@ ul {
    hugs the name. */
 .tree-caret { display: inline-block; width: 1.1em; margin-left: -1.1em; text-align: right; padding-right: 0.15em; cursor: pointer; color: var(--link, #337ab7); user-select: none; }
 /* Depth 0 has no indent to absorb, so it gets one caret-width of its own. */
-.report-table td.account.depth-0  { padding-left: 1.1em; }
-.report-table td.account.depth-1  { padding-left: 1.6em; }
-.report-table td.account.depth-2  { padding-left: 3.0em; }
-.report-table td.account.depth-3  { padding-left: 4.4em; }
-.report-table td.account.depth-4  { padding-left: 5.8em; }
-.report-table td.account.depth-5  { padding-left: 7.2em; }
-.report-table td.account.depth-6  { padding-left: 8.6em; }
-.report-table td.account.depth-7  { padding-left: 10.0em; }
-.report-table td.account.depth-8  { padding-left: 11.4em; }
-.report-table td.account.depth-9  { padding-left: 12.8em; }
-.report-table td.account.depth-10 { padding-left: 14.2em; }
-.report-table td.account.depth-11 { padding-left: 15.6em; }
-.report-table td.account.depth-12 { padding-left: 17.0em; }
+.report-table td.account.indent-0  { padding-left: 1.1em; }
+.report-table td.account.indent-1  { padding-left: 1.6em; }
+.report-table td.account.indent-2  { padding-left: 3.0em; }
+.report-table td.account.indent-3  { padding-left: 4.4em; }
+.report-table td.account.indent-4  { padding-left: 5.8em; }
+.report-table td.account.indent-5  { padding-left: 7.2em; }
+.report-table td.account.indent-6  { padding-left: 8.6em; }
+.report-table td.account.indent-7  { padding-left: 10.0em; }
+.report-table td.account.indent-8  { padding-left: 11.4em; }
+.report-table td.account.indent-9  { padding-left: 12.8em; }
+.report-table td.account.indent-10 { padding-left: 14.2em; }
+.report-table td.account.indent-11 { padding-left: 15.6em; }
+.report-table td.account.indent-12 { padding-left: 17.0em; }
 
 /* The holdings page's tree mode: account heading rows stand out from the
    position rows (named by their commodity) grouped beneath them. */

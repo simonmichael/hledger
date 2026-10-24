@@ -28,12 +28,15 @@ import Hledger.Write.Spreadsheet qualified as Ods
 accountClass :: Ods.Class
 accountClass = Ods.Class "account"
 
--- | The class of an account cell in a tree-mode report: "account" and
--- its row's depth in the tree, so that a UI can fold the tree by
--- indent, as hledger-web does. In list mode, just "account".
-treeAccountClass :: ReportOpts -> Int -> Ods.Class
-treeAccountClass opts dep
-  | accountlistmode_ opts == ALTree = Ods.Class $ "account depth-" <> T.pack (show dep)
+-- | The class of an account cell in a tree-mode report: "account", its
+-- row's indent (indent-N), and the account's depth (depth-N, its name's
+-- level, which a depth limit counts; deeper than the indent when boring
+-- parents are squashed into its row), so that a UI can fold the tree, as
+-- hledger-web does. In list mode, just "account".
+treeAccountClass :: ReportOpts -> Int -> AccountName -> Ods.Class
+treeAccountClass opts indent acct
+  | accountlistmode_ opts == ALTree = Ods.Class $
+      "account indent-" <> T.pack (show indent) <> " depth-" <> T.pack (show (accountNameLevel acct))
   | otherwise = accountClass
 
 data RowClass = Value | Total
@@ -333,7 +336,7 @@ balanceSubReportAsSpreadsheetParts fmt opts@ReportOpts{..}
             lo = rowLinkOpts opts colspans shownParents acctName
             anchorCell =
               setAccountAnchorWith lo balance_base_url_ rowquery acctName $
-              (\c -> c{Ods.cellClass = treeAccountClass opts (prrIndent row)}) $
+              (\c -> c{Ods.cellClass = treeAccountClass opts (prrIndent row) acctName}) $
               accountCell $ renderPeriodicAcct opts nbsp row
     totalrows =
       if no_total_
