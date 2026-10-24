@@ -343,6 +343,24 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('"+" and "-" step the depth limit through the Depth links, stopping at the ends', async ({ page }) => {
+    // the fixture's deepest accounts are at depth 4, whose link removes the limit
+    await page.goto('/balance?depth=3');
+    await page.locator('body').press('+');
+    await expect(page).not.toHaveURL(/depth=/);
+    // at the deepest, + does nothing, so - goes to the one before it
+    await page.locator('body').press('+');
+    await page.locator('body').press('-');
+    await expect(page).toHaveURL(/depth=3/);
+    // 0 shows only the total; there, - does nothing, so + goes to 1
+    await page.locator('body').press('0');
+    await expect(page).toHaveURL(/depth=0/);
+    await page.locator('body').press('-');
+    await page.locator('body').press('+');
+    await expect(page).toHaveURL(/depth=1/);
+    expect(pageErrors).toEqual([]);
+  });
+
   // The rows of report controls sit behind a disclosure, closed by default;
   // opening it is remembered in a cookie the server reads, so the next
   // page renders it already open.
