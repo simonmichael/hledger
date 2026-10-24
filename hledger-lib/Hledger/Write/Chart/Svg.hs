@@ -90,9 +90,11 @@ data SvgOptions = SvgOptions
   , svgDateScale  :: Bool    -- ^ give each plot of values by date its date scale, for a page's script (eg to select dates by
                              --   dragging across it): a transparent rectangle over the plot (class plot), with its first and last
                              --   dates (data-d0, data-d1) and their x positions (data-x0, data-x1), between which dates are spaced evenly ?
+  , svgToday      :: Maybe Day  -- ^ today's date, if each plot of values by date should be shaded as of it: the future, after it,
+                                --   and the past where values are below zero (eg an overdrawn account), with the zero line in red.
   }
 
--- | A self-contained chart: with its styles, including their dark variant, plots 260px high, no links, and no date scale.
+-- | A self-contained chart: with its styles, including their dark variant, plots 260px high, no links, no date scale, and no shading.
 defaultSvgOptions :: SvgOptions
 defaultSvgOptions = SvgOptions
   { svgStyles     = True
@@ -100,6 +102,7 @@ defaultSvgOptions = SvgOptions
   , svgPlotHeight = 260
   , svgPointLink  = const Nothing
   , svgDateScale  = False
+  , svgToday      = Nothing
   }
 
 -- | A chart as SVG markup, which can also be embedded in HTML, drawn with these options.
@@ -115,7 +118,7 @@ chartSvgMarkupWith opts@SvgOptions{svgStyles, svgDark} c@Chart{chTitle, chXAxis,
     !? (not $ T.null chTitle, customAttribute "aria-label" (toValue chTitle))
     $ do
       unless (T.null chTitle) $ S.title (S.toMarkup chTitle)
-      when svgStyles $ S.style (S.toMarkup $ chartStylesheet svgDark)
+      when svgStyles $ S.style (S.toMarkup $ stylesheet (isJust $ svgToday opts) svgDark)
       S.rect ! A.class_ "bg" ! A.width "100%" ! A.height "100%"
       unless (T.null chTitle) $
         S.text_ ! A.class_ "title" ! A.x (toValue $ num pad) ! A.y (toValue $ num (pad + 17)) $ S.toMarkup chTitle
@@ -253,16 +256,25 @@ data XScale = EvenScale [Text] | DateScale [Day]
 -- | Draw series over time, along the given x scale:
 -- vertical stacked bars (with the grouped layout, a stack per group, side by side), lines, and total marks or lines.
 timeSvg :: SvgOptions -> Double -> Maybe Quantity -> BarLayout -> Amount -> [DrawSeries] -> Maybe Series -> Maybe (Text, Quantity) -> XScale -> (Double, Svg)
-timeSvg SvgOptions{svgPlotHeight = plotheight, svgPointLink, svgDateScale} top mscale layout unit drawn mtotal maverage xscale = (plotheight + 32, do
+timeSvg SvgOptions{svgPlotHeight = plotheight, svgPointLink, svgDateScale, svgToday} top mscale layout unit drawn mtotal maverage xscale = (plotheight + 32, do
     -- the plot's area with its date scale, if wanted, beneath the rest so that their tooltips and links still work
     when (svgDateScale && isJust datearray) $
       S.rect ! A.class_ "plot"
         ! A.x (toValue $ num plotleft) ! A.y (toValue $ num plottop) ! A.width (toValue $ num (plotright - plotleft)) ! A.height (toValue $ num plotheight)
         ! customAttribute "data-d0" (toValue $ showDate d0) ! customAttribute "data-d1" (toValue $ showDate d1)
         ! customAttribute "data-x0" (toValue $ num $ xofday d0) ! customAttribute "data-x1" (toValue $ num $ xofday d1)
+    -- the shading as of today, if wanted: the past below zero, and the future, divided halfway between today and tomorrow
+    forM_ mtoday $ \today -> do
+      let xnow = clamp plotleft plotright $ xofdays (fromIntegral (diffDays today d0) + 0.5)
+          yzero = yof 0
+          shade cls x y w h = when (w > 0 && h > 0) $ S.rect ! A.class_ ("shade " <> cls)
+            ! A.x (toValue $ num x) ! A.y (toValue $ num y) ! A.width (toValue $ num w) ! A.height (toValue $ num h)
+      shade "past-negative" plotleft yzero (xnow - plotleft) (plotbottom - yzero)
+      shade "future" xnow plottop (plotright - xnow) (yzero - plottop)
+      shade "future-negative" xnow yzero (plotright - xnow) (plotbottom - yzero)
     -- gridlines and y tick labels
     forM_ ticks $ \t -> do
-      S.line ! A.class_ (if t == 0 then "axis" else "grid")
+      S.line ! A.class_ (if t == 0 then (if isJust mtoday then "axis zero" else "axis") else "grid")
         ! A.x1 (toValue $ num plotleft) ! A.x2 (toValue $ num plotright) ! A.y1 (toValue $ num (yof t)) ! A.y2 (toValue $ num (yof t))
       S.text_ ! A.class_ "tick" ! A.x (toValue $ num (plotleft - 8)) ! A.y (toValue $ num (yof t + 5)) ! A.textAnchor "end" $ S.toMarkup (ticklabel t)
     -- x labels: periods' labels, thinned to avoid overlap; or ticks at calendar boundaries
@@ -317,7 +329,10 @@ timeSvg SvgOptions{svgPlotHeight = plotheight, svgPointLink, svgDateScale} top m
     (d0, d1) = case xscale of
       DateScale ds@(d:_) -> (minimumDef d ds, maximumDef d ds)
       _                  -> (fromGregorian 2000 1 1, fromGregorian 2000 1 1)
-    xofday d = plotleft + 8 + (plotright - plotleft - 16) * fromIntegral (diffDays d d0) / fromIntegral (max 1 (diffDays d1 d0))
+    xofday d = xofdays $ fromIntegral (diffDays d d0)
+    xofdays k = plotleft + 8 + (plotright - plotleft - 16) * k / fromIntegral (max 1 (diffDays d1 d0))
+    -- today, if the plot is to be shaded as of it
+    mtoday = if isJust datearray then svgToday else Nothing
     bars   = [d | d <- drawn, seMark (dsSeries d) == MarkBar]
     lines_ = [d | d <- drawn, seMark (dsSeries d) == MarkLine]
     -- the bar series in stacks: one, or with the grouped layout, one per group (see 'seGroup')
@@ -751,7 +766,12 @@ typeCode at = case at of
 -- since some SVG renderers (eg librsvg, used by many image viewers) don't support those.
 -- Charts include these styles, unless drawn without them for a page that supplies them (see 'SvgOptions').
 chartStylesheet :: Bool -> Text
-chartStylesheet dark = T.unlines $
+chartStylesheet = stylesheet True
+
+-- | The chart's styles, with the shading's or without them, as a chart includes them
+-- when it is shaded as of today or not.
+stylesheet :: Bool -> Bool -> Text
+stylesheet shaded dark = T.unlines $
   [ ".hledger-chart{max-width:100%;height:auto;font-family:system-ui,-apple-system,\"Segoe UI\",sans-serif;font-size:14px}"
   , ".hledger-chart .title{font-size:17px;font-weight:600}"
   , ".hledger-chart .heading{font-size:15px;font-weight:600}"
@@ -781,11 +801,18 @@ chartStylesheet dark = T.unlines $
       , (".grid", "stroke", "grid"), (".axis", "stroke", "axis")
       , (".line.total", "stroke", "ink"), (".mark.total", "stroke", "ink"), (".average", "stroke", "ink"), (".clip", "fill", "ink"), (".hatch", "stroke", "surface")
       ]
+      -- the shading as of today (see 'SvgOptions'), tinted with the expenses' red where values are below zero
+      ++ (if shaded
+          then [ (".shade.past-negative", "fill", "pastnegative"), (".shade.future", "fill", "future"), (".shade.future-negative", "fill", "futurenegative")
+               , (".axis.zero", "stroke", "zero") ]
+          else [])
     lightcolours :: [(Text, Text)]
     lightcolours =
-      [ ("surface", "#fcfcfb"), ("ink", "#0b0b0b"), ("ink2", "#52514e"), ("muted", "#898781"), ("grid", "#e1e0d9"), ("axis", "#c3c2b7") ]
+      [ ("surface", "#fcfcfb"), ("ink", "#0b0b0b"), ("ink2", "#52514e"), ("muted", "#898781"), ("grid", "#e1e0d9"), ("axis", "#c3c2b7")
+      , ("pastnegative", "#fbe4e4"), ("future", "#f1f0ec"), ("futurenegative", "#f0dcda"), ("zero", "#e34948") ]
     darkcolours =
-      [ ("surface", "#1a1a19"), ("ink", "#ffffff"), ("ink2", "#c3c2b7"), ("muted", "#898781"), ("grid", "#2c2c2a"), ("axis", "#383835") ]
+      [ ("surface", "#1a1a19"), ("ink", "#ffffff"), ("ink2", "#c3c2b7"), ("muted", "#898781"), ("grid", "#2c2c2a"), ("axis", "#383835")
+      , ("pastnegative", "#432929"), ("future", "#252524"), ("futurenegative", "#3a2a28"), ("zero", "#e66767") ]
 
 tests_Hledger_Write_Chart_Svg :: TestTree
 tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
@@ -814,9 +841,21 @@ tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
   ,testCase "a plot by date can give its date scale" $ do
      let svg = svgText defaultSvgOptions{svgDateScale = True} $ lineChart 3
      assertBool "its first and last dates" $ "data-d0=\"2024-01-01\" data-d1=\"2024-01-03\"" `T.isInfixOf` svg
+  ,testCase "a plot by date can be shaded as of today: the future, and the past below zero" $ do
+     -- a line falling below zero, today being its second day
+     let shading today = svgText defaultSvgOptions{svgToday = Just today} $ lineChartOf [1, -1, -2]
+         svg = shading (fromGregorian 2024 1 2)
+     assertBool "the past below zero" $ "class=\"shade past-negative\"" `T.isInfixOf` svg
+     assertBool "the future" $ "class=\"shade future\"" `T.isInfixOf` svg
+     assertBool "the future below zero" $ "class=\"shade future-negative\"" `T.isInfixOf` svg
+     assertBool "the zero line" $ "class=\"axis zero\"" `T.isInfixOf` svg
+     -- with today after the last day, it's all past
+     assertBool "no future" $ not $ "shade future" `T.isInfixOf` shading (fromGregorian 2024 1 9)
   ]
   where
     svgText opts = TL.toStrict . renderSvg . chartSvgMarkupWith opts
     -- a chart of one line, rising by 1 a day for n days from 2024-01-01
-    lineChart n = Chart "" (XDates $ take n $ iterate (addDays 1) (fromGregorian 2024 1 1))
-      [Panel nullamt [Series (ChartLabel "a" "a" 0 Nothing True) SeriesItem MarkLine [Just (fromIntegral k) | k <- [1 .. n]] 0 0] [] Nothing Diverging False []]
+    lineChart n = lineChartOf [fromIntegral k | k <- [1 .. n]]
+    -- a chart of one line, with these values on successive days from 2024-01-01
+    lineChartOf qs = Chart "" (XDates $ take (length qs) $ iterate (addDays 1) (fromGregorian 2024 1 1))
+      [Panel nullamt [Series (ChartLabel "a" "a" 0 Nothing True) SeriesItem MarkLine (map Just qs) 0 0] [] Nothing Diverging False []]
