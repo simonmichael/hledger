@@ -486,6 +486,17 @@ hledgerWebTest = do
       bodyContains ">assets:broker</a>"
       bodyNotContains "acctheading"
 
+    yit "tree mode clips to a depth limit, as the cli does, rather than folding" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("q", "date:2026"), ("list", "tree"), ("depth", "1")])
+      statusIs 200
+      -- the positions are merged under the clipped account; folding the
+      -- full tree could only have shown assets:broker
+      bodyContains "<table class=\"balancereport table table-condensed\">"
+      bodyContains "account=assets&amp;list=tree&amp;depth=1\""
+      bodyNotContains "account=assets%3Abroker&amp;list=tree"  -- (the sidebar's links put depth first)
+
     yit "tree mode groups several commodities under an account heading" $ do
       request $ do
         setMethod "GET"
