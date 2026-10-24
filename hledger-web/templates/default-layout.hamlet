@@ -16,11 +16,12 @@ $if elem ViewPermission perms
   $# same reason as the scroll restore below: folding at DOMContentLoaded
   $# paints the tree in full first and then collapses it, a visible jump.
   $# Folding first also gives the scroll restore the folded height.
-  $# In the page's tree mode (data-fold) the rows, which carry their depth
+  $# In the page's tree mode (data-fold) the rows, which carry their indent
   $# and account name, get fold carets. Each page starts from its baseline
   $# — folded to the depth limit (data-depth-fold) when the url has one,
-  $# fully open otherwise — and the groups opened or closed by hand are
-  $# remembered in this browser ({folded, opened} account names, applied
+  $# opening the accounts above it (the limit counts account name levels,
+  $# not indents), fully open otherwise — and the groups opened or closed
+  $# by hand are remembered in this browser ({folded, opened} account names, applied
   $# over the baseline), so the sidebar stays as you left it from page to
   $# page, whatever each page's depth. A caret clicked back to its page's
   $# baseline is forgotten, leaving the other pages' baselines alone.
@@ -31,8 +32,8 @@ $if elem ViewPermission perms
       if (!menu.hasAttribute('data-fold')) { return; }
       var fold = parseInt(menu.getAttribute('data-depth-fold') || '', 10);
       var rows = [];
-      menu.querySelectorAll('tr[data-depth]').forEach(function (tr) {
-        rows.push({tr: tr, depth: +tr.getAttribute('data-depth'),
+      menu.querySelectorAll('tr[data-indent]').forEach(function (tr) {
+        rows.push({tr: tr, indent: +tr.getAttribute('data-indent'),
                    acct: tr.getAttribute('data-acct'), expanded: true, parent: false});
       });
       if (!rows.length) { return; }
@@ -42,11 +43,11 @@ $if elem ViewPermission perms
         (saved.folded || []).forEach(function (a) { choice[a] = false; });
         (saved.opened || []).forEach(function (a) { choice[a] = true; });
       } catch (e) {}
-      function baseline(r) { return isNaN(fold) || r.depth < fold - 1; }
+      function baseline(r) { return isNaN(fold) || r.acct.split(':').length < fold; }
       function apply() {
         var stack = [];
         rows.forEach(function (r) {
-          while (stack.length > r.depth) { stack.pop(); }
+          while (stack.length > r.indent) { stack.pop(); }
           r.tr.classList.toggle('tree-fold-hide', !stack.every(function (open) { return open; }));
           r.caret.textContent = r.parent ? (r.expanded ? '▾' : '▸') : '';
           stack.push(r.expanded);
@@ -62,7 +63,7 @@ $if elem ViewPermission perms
         } catch (e) {}
       }
       rows.forEach(function (r, i) {
-        r.parent = i + 1 < rows.length && rows[i + 1].depth > r.depth;
+        r.parent = i + 1 < rows.length && rows[i + 1].indent > r.indent;
         r.expanded = (r.parent && choice[r.acct] !== undefined) ? choice[r.acct] : baseline(r);
         r.caret = document.createElement('span');
         r.caret.className = 'tree-caret';

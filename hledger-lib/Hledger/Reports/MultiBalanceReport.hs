@@ -359,7 +359,8 @@ markAccountBoring ReportSpec{_rsQuery=query,_rsReportOpts=ropts}
         notEnoughSubs = length interestingSubs < minimumSubs
         droppedAccount = accountNameLevel (aname acct) <= drop_ ropts
         interestingSubs = filter (anyAccounts (not . aboring)) $ asubs acct
-        minimumSubs = if no_elide_ ropts then 1 else 2
+        minimumSubs = if no_elide_ ropts || atFoldDepth then 1 else 2
+        atFoldDepth = fold_depth_ ropts == Just (accountNameLevel (aname acct))
 
     isZeroRow balance = all (mixedAmountLooksZero . balance)
     keepWhenEmpty acct = case accountlistmode_ ropts of

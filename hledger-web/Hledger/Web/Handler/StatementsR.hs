@@ -25,7 +25,7 @@ import Hledger.Cli.Commands.Balancesheetequity (balancesheetequitySpec)
 import Hledger.Cli.Commands.Cashflow (cashflowSpec)
 import Hledger.Cli.Commands.Incomestatement (incomestatementSpec)
 import Hledger.Cli.CompoundBalanceCommand
-import Hledger.Utils.I18n (Translations, i18n, tr, trf)
+import Hledger.Utils.I18n (Translations, i18n, tr, trc, trf)
 import Hledger.Write.Spreadsheet qualified as Spr
 
 import Hledger.Web.Import
@@ -121,7 +121,8 @@ statementPage here tabtitle spec = do
             registerParams =
               [("value", "none") | amountModeOf ropts == Just AsRecorded, amountModeOf roptsOrig /= Just AsRecorded] ++
               removeAttributes ["accum", "value"] pageParams
-            relink = map (map (addLinkParams registerParams))
+            -- TRANSLATORS: the name of a depth 0 report's one row, all accounts in one.
+            relink = map (map (labelAllAccounts (trc trs "accounts" "All") . addLinkParams registerParams))
             headinglink = urlrender here . headingParams rpInterval qparam params
             CompoundBalanceReportParts{cbrpLeadingHeaders, cbrpDataHeaders, cbrpSections, cbrpNetRows} =
               compoundBalanceReportAsSpreadsheetParts oneLineNoCostFmt "account" roptsR (cbcqueries spec) cbr
@@ -150,7 +151,7 @@ statementPage here tabtitle spec = do
             -- An empty report with zero balances hidden may have them all: look again showing them.
             zerosHidden = hideEmpty && not (noRows $ compoundBalanceReport rspecR{_rsReportOpts = roptsR{empty_ = True}} j (cbcqueries spec))
         let isTree = accountlistmode_ ropts == ALTree
-            mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
+            mfold = fold_depth_ ropts
             -- No type row among the controls: the statements choose their
             -- own account types.
             -- The years the search matches in, ignoring all date

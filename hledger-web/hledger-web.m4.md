@@ -220,7 +220,7 @@ which work when you are not typing in a field:
 - `S` - sort by amount, or by account
 - `T`, `A` - add or remove the row total and average columns (multi-period reports)
 - `D`, `W`, `M`, `Q`, `Y` - set the report interval (daily, weekly, monthly, quarterly, yearly); pressed again, remove it
-- `0`-`9`, `-`, `+` - set or adjust the account depth limit
+- `0`-`9`, `-`, `+` - set or adjust the account depth limit (`-` and `+` step between 0 and the deepest)
 - `f` or `/` - focus the search form, ready to add a term (escape to leave it)
 
 The pages are light or dark, following your OS or browser's color scheme setting,
@@ -310,11 +310,17 @@ search.
 
 A `depth` parameter, like `--depth`, limits the account depth, eg
 `/balancesheet?depth=2`; the Depth links and the digit keys set it, and
-the pages' links carry it. A `depth:N` term typed in the search moves
+the pages' links carry it. Depth 0 shows only the total, as one row of
+all accounts. A `depth:N` term typed in the search moves
 there too (the page reloads with it as the `depth` parameter), so the
-search holds only the terms selecting data. A per-account depth limit,
-like `depth:assets=3`, stays in the search, and applies to its accounts
-as on the command line.
+search holds only the terms selecting data.
+In tree mode, the reports and the sidebar show the accounts below this
+limit folded, with carets that open them in place; folded, they show
+the same rows as `--depth`. The holdings report is clipped to the
+limit instead, as on the command line, merging the clipped accounts'
+positions by commodity.
+A per-account depth limit, like `depth:assets=3`, stays in the search,
+and clips its accounts as on the command line, in tree mode too.
 
 The links above each report also set how amounts are shown, as recorded, at
 cost (like `-B`), or at market value at the end of each period (like

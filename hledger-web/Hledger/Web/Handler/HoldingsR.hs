@@ -73,7 +73,11 @@ getHoldingsR = do
         paramError trs err
       Right ReportParams{rpRopts, rpRspec, rpInterval, rpValue} -> do
         let ropts = rpRopts{empty_ = closedShown}
-            rspec = rpRspec{_rsReportOpts = ropts}
+            -- Unlike the other report pages, a depth limit clips the tree
+            -- here too, as on the command line, rather than folding it:
+            -- clipping merges each clipped account's positions by
+            -- commodity, which folding the full tree could not show.
+            rspec = rpRspec{_rsQuery = q, _rsReportOpts = ropts}
             -- The report's display lines: flat positions (or lots with
             -- lots shown), or account sections in tree mode (see
             -- holdingsTreeLines).
@@ -135,7 +139,6 @@ getHoldingsR = do
             showamtz = T.pack . showAmountWith noCostFmt{displayZeroCommodity=True}
 
             isTree = accountlistmode_ ropts == ALTree
-            mfold = mfilter (const isTree) $ dsFlatDepth $ queryDepth q
 
             -- In list mode, what the account names share above their leaves
             -- is shown once, as a group heading over the table, and each row
@@ -164,11 +167,11 @@ getHoldingsR = do
                 }
 
             -- In tree mode, an account, commodity, or lot cell at the given
-            -- depth (a fold point; hledger.js), linking to the register.
+            -- indent (a fold point; hledger.js), linking to the register.
             treecell d extracls content acct =
               (defaultCell content)
                 { cellClass = Class $ T.unwords $
-                    ["account", "depth-" <> T.pack (show (d :: Int))] ++ extracls
+                    ["account", "indent-" <> T.pack (show (d :: Int))] ++ extracls
                 , cellAnchor = acctlink acct
                 , cellTitle = acct <> "\n" <> tr trs "Show this account's register"
                 }
@@ -293,4 +296,4 @@ getHoldingsR = do
               , sortLinks trs HoldingsR (qParams ++ removeAttributes ["sort"] pageParams) (sort_amount_ ropts) ]
         Yesod.toWidget controlRows
         Yesod.toWidget $ H.h2 $ H.toHtml $ withFilter title
-        Yesod.toWidget $ reportTable isTree mfold header [(mprefixHeading, body, [])] totals
+        Yesod.toWidget $ reportTable isTree Nothing header [(mprefixHeading, body, [])] totals

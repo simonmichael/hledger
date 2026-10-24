@@ -447,8 +447,7 @@ hledgerWebTest = do
       -- a position's register link filters to its commodity
       bodyContains "/register?q=date%3A2026%20cur%3AAAA&amp;account=assets%3Abroker\""
       -- with lots hidden, the Depth row reaches the deepest real account
-      bodyContains "&amp;depth=2\""
-      bodyNotContains "&amp;depth=3\""
+      bodyContains "title=\"Show accounts at every depth\">2</a>"
 
     yit "shows one row per lot with lots=1" $ do
       request $ do
@@ -462,7 +461,8 @@ hledgerWebTest = do
       bodyContains "scope=\"rowgroup\">assets:broker</th>"
       -- lot subaccounts are ordinary accounts to the Depth row, which
       -- now reaches one level deeper, as in hledger-ui
-      bodyContains "&amp;depth=3\""
+      bodyContains "&amp;depth=2\" title=\"Show accounts down to depth 2\">2</a>"
+      bodyContains "title=\"Show accounts at every depth\">3</a>"
 
     yit "shows closed positions with closed=1" $ do
       request $ do
@@ -482,9 +482,20 @@ hledgerWebTest = do
       statusIs 200
       -- the boring root is squashed into the one account, which holds one
       -- commodity and so is a row, not a heading over a commodity row
-      bodyContains "class=\"account depth-0\""
+      bodyContains "class=\"account indent-0\""
       bodyContains ">assets:broker</a>"
       bodyNotContains "acctheading"
+
+    yit "tree mode clips to a depth limit, as the cli does, rather than folding" $ do
+      request $ do
+        setMethod "GET"
+        setUrl (HoldingsR, [("q", "date:2026"), ("list", "tree"), ("depth", "1")])
+      statusIs 200
+      -- the positions are merged under the clipped account; folding the
+      -- full tree could only have shown assets:broker
+      bodyContains "<table class=\"balancereport table table-condensed\">"
+      bodyContains "account=assets&amp;list=tree&amp;depth=1\""
+      bodyNotContains "account=assets%3Abroker&amp;list=tree"  -- (the sidebar's links put depth first)
 
     yit "tree mode groups several commodities under an account heading" $ do
       request $ do
@@ -494,9 +505,9 @@ hledgerWebTest = do
       -- with the closed BBB position shown, the account holds two
       -- commodities: a heading row subtotaling the dollar columns, then
       -- a position row per commodity
-      bodyContains "class=\"account depth-0 acctheading\""
+      bodyContains "class=\"account indent-0 acctheading\""
       bodyContains ">assets:broker</a>"
-      bodyContains "class=\"account depth-1 commodity\""
+      bodyContains "class=\"account indent-1 commodity\""
       bodyContains ">AAA</a>"
       bodyContains ">BBB</a>"
       -- each commodity row's register link filters to its own commodity
@@ -812,19 +823,21 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "<input type=\"hidden\" name=\"depth\" value=\"2\">"
 
-    yit "links to each depth, the deepest included, setting the depth parameter and keeping the search" $ do
+    yit "links to each depth from 0, setting the depth parameter and keeping the search; the deepest removes it" $ do
       request $ do
         setMethod "GET"
         setUrl BalanceR
         addGetParam "q" "assets"
         addGetParam "depth" "1"
       statusIs 200
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets\" title=\"Show accounts at every depth\">All</a>")
-      bodyContains ("class=\"current\" href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=1\"")
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=2\"")
-      -- assets:bank:checking is at depth 3: its link shows the same
-      -- accounts as All, but holds the depth
-      bodyContains ("href=\"" ++ defbaseurl defhost defport ++ "/balance?q=assets&amp;depth=3\"")
+      let base = defbaseurl defhost defport
+      bodyContains ("href=\"" ++ base ++ "/balance?q=assets&amp;depth=0\" title=\"Show only the total\">0</a>")
+      bodyContains ("class=\"current\" href=\"" ++ base ++ "/balance?q=assets&amp;depth=1\"")
+      bodyContains ("href=\"" ++ base ++ "/balance?q=assets&amp;depth=2\"")
+      -- assets:bank:checking is at depth 3, so its link removes the
+      -- limit, as hledger-ui does with a depth at or beyond the deepest
+      bodyContains ("href=\"" ++ base ++ "/balance?q=assets\" title=\"Show accounts at every depth\">3</a>")
+      bodyNotContains "&amp;depth=3\""
       bodyNotContains "depth=4"
 
     yit "squashes boring parents in tree mode, as the cli does" $ do
@@ -832,15 +845,28 @@ hledgerWebTest = do
         setMethod "GET"
         setUrl BalanceR
         addGetParam "list" "tree"
+      statusIs 200
+      -- every account chain here is boring, so each is one indent-0 row
+      bodyContains ">assets:bank:checking</a>"
+      bodyContains "class=\"account indent-0 depth-3\""
+      bodyNotContains "class=\"account indent-1"
+
+    yit "in tree mode with a depth limit, gives boring parents at the limit their own rows, so it folds to the cli's rows" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "list" "tree"
         addGetParam "depth" "1"
       statusIs 200
       bodyContains "data-depth-fold=\"1\""
-      -- every account chain here is boring, so each is one depth-0 row
-      bodyContains ">assets:bank:checking</a>"
-      bodyContains "class=\"account depth-0\""
-      bodyNotContains "class=\"account depth-1\""
-      -- the figure's register keeps the sticky state, tree mode included
-      bodyContains "href=\"register?account=assets:bank:checking&amp;list=tree&amp;depth=1\""
+      -- the top-level accounts are the rows left showing, as --depth 1 shows them
+      bodyContains "<tr><td class=\"account indent-0 depth-1\"><a href=\"register?account=assets&amp;list=tree&amp;depth=1\""
+      -- the rest of each chain is a row beneath, served folded
+      bodyContains "<tr class=\"tree-fold-hide\"><td class=\"account indent-1 depth-3\"><a href=\"register?account=assets:bank:checking&amp;list=tree&amp;depth=1\""
+      bodyContains ">bank:checking</a>"
+      -- the sidebar's tree is split the same way, for its own folding
+      bodyContains "<tr data-indent=\"0\" data-acct=\"assets\">"
+      bodyContains "<tr data-indent=\"1\" data-acct=\"assets:bank:checking\">"
 
     yit "offers the depth links on the journal page, where they clip the sidebar" $ do
       request $ do
@@ -1118,14 +1144,62 @@ hledgerWebTest = do
         addGetParam "depth" "1"
       statusIs 200
       bodyContains "data-depth-fold=\"1\""
-      -- assets is boring and squashed into its branching child
-      bodyContains ">assets:bank</a>"
-      bodyContains "class=\"account depth-0\""
+      bodyContains "<tr><td class=\"account indent-0 depth-1\">"
+      bodyContains ">assets</a>"
       -- the rows below the fold are served too, for the page to unfold,
       -- but already folded, so the table paints at its folded height
-      bodyContains "class=\"account depth-1\""
+      bodyContains "<tr class=\"tree-fold-hide\"><td class=\"account indent-1 depth-2\">"
+      bodyContains "<tr class=\"tree-fold-hide\"><td class=\"account indent-2 depth-3\">"
       bodyContains ">checking</a>"
-      bodyContains "<tr class=\"tree-fold-hide\">"
+
+    yit "folds a tree-mode report by account depth, not indent, where boring parents are squashed" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "list" "tree"
+        addGetParam "depth" "2"
+      statusIs 200
+      -- assets is boring and squashed into its branching child, which
+      -- is at depth 2 though not indented; its subaccounts are below
+      -- the limit, so they are folded
+      bodyContains "<tr><td class=\"account indent-0 depth-2\">"
+      bodyContains ">assets:bank</a>"
+      bodyContains "<tr class=\"tree-fold-hide\"><td class=\"account indent-1 depth-3\">"
+      bodyNotContains "<tr><td class=\"account indent-1 depth-3\">"
+
+    yit "in tree mode, depth 0 clips to one row of all accounts, as the cli does" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "list" "tree"
+        addGetParam "depth" "0"
+      statusIs 200
+      -- folding can't show a single total, so nothing is folded
+      bodyNotContains "data-depth-fold=\""
+      -- the one row, labelled as in hledger-ui, links to everything's register
+      bodyContains "<tr><td class=\"account indent-0 depth-1\"><a href=\"register?list=tree&amp;depth=0\""
+      bodyContains ">All</a>"
+      bodyNotContains ">checking</a>"
+      -- the sidebar too, its one row always shown
+      bodyContains "<tr data-indent=\"0\" data-acct=\"...\"><td class=\"acct \">"
+      -- the Depth row's 0 link is marked, not the deepest, which removes the limit
+      let base = defbaseurl defhost defport
+      bodyContains ("<a class=\"current\" href=\"" ++ base ++ "/balance?list=tree&amp;depth=0\" title=\"Show only the total\">0</a>")
+      bodyContains ("<a href=\"" ++ base ++ "/balance?list=tree\" title=\"Show accounts at every depth\">3</a>")
+
+    yit "in tree mode, a per-account depth limit clips its accounts, as the cli does" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "list" "tree"
+        addGetParam "q" "depth:assets=2"
+      statusIs 200
+      -- assets' subaccounts are clipped to depth 2, in the table and the
+      -- sidebar, leaving assets:bank with its subaccounts' total
+      bodyContains "<tr><td class=\"account indent-0 depth-2\"><a href=\"register?q=depth:assets%3d2&amp;account=assets:bank&amp;list=tree\""
+      bodyContains "<tr data-indent=\"0\" data-acct=\"assets:bank\">"
+      bodyNotContains ">checking</a>"
+      bodyNotContains "data-acct=\"assets:bank:checking\""
 
   -- The journal, register, and sidebar link to one another: a date to that
   -- day's journal entries, an account to its register, an amount to the

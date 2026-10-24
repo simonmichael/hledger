@@ -1,7 +1,8 @@
 // Browser tests for the /holdings page: in tree mode positions group
 // under account heading rows that subtotal the dollar columns, and with
-// lots=1 each position's lots are shown beneath it, the caret and a
-// depth limit folding them in place (reportTreeInit); the L key follows
+// lots=1 each position's lots are shown beneath it, the caret folding
+// them in place (reportTreeInit) and a depth limit clipping them, as on
+// the command line; the L key follows
 // the Lots row's links, toggling lot detail; a lot row's account
 // link reaches that lot's register, quoting the lot subaccount name -
 // including its auto label's double quotes - so the query round-trips;
@@ -55,7 +56,7 @@ test.afterAll(() => {
 
 test.describe('holdings page', () => {
 
-  test('tree mode shows lots under their position; the caret and a depth fold them', async ({ page }) => {
+  test('tree mode shows lots under their position; the caret folds them, a depth clips them', async ({ page }) => {
     const violations = await watchViolations(page);
     const errors = watchPageErrors(page);
     await page.goto(URL + '/holdings?list=tree&lots=1');
@@ -67,22 +68,24 @@ test.describe('holdings page', () => {
     await expect(lotRows.first()).toBeVisible();
     await expect(lotRows.last()).toBeVisible();
     // ...whose units are its lots' sum, so the group reconciles
-    const broker = page.locator('.report-table tr', { has: page.locator('td.account.depth-1 a', { hasText: /^broker$/ }) });
+    const broker = page.locator('.report-table tr', { has: page.locator('td.account.indent-1 a', { hasText: /^broker$/ }) });
     await expect(broker).toContainText('5 AAA');
     await expect(lotRows.first()).toContainText('2 AAA');
     await expect(lotRows.last()).toContainText('3 AAA');
     // the boring parent is squashed into its child, as on the command line
-    await expect(page.locator('td.account.depth-1 a', { hasText: 'other:broker2' })).toBeVisible();
+    await expect(page.locator('td.account.indent-1 a', { hasText: 'other:broker2' })).toBeVisible();
     // the position's caret folds its lots in place
     await expect(broker.locator('.tree-caret')).toHaveText('▾');
     await broker.locator('.tree-caret').click();
     await expect(lotRows.first()).toBeHidden();
     await expect(lotRows.last()).toBeHidden();
     // lot subaccounts are ordinary accounts to a depth limit, as in
-    // hledger-ui: a depth above them folds them from the start
+    // hledger-ui: a depth above them clips them, as on the command line,
+    // and the deeper position is shown at its depth-2 account
     await page.goto(URL + '/holdings?list=tree&lots=1&q=depth:2');
-    await expect(lotRows.first()).toBeHidden();
+    await expect(lotRows).toHaveCount(0);
     await expect(broker).toBeVisible();
+    await expect(page.locator('td.account.indent-1 a', { hasText: /^other$/ })).toBeVisible();
     expect(errors).toEqual([]);
     await expectNoViolations(page, violations);
   });
@@ -126,7 +129,7 @@ test.describe('holdings page', () => {
     await expect(heading).toContainText('assets');
     await expect(heading).toContainText('$55.00');
     // a single-commodity account is one combined row carrying its figures
-    const broker = page.locator('.report-table tr', { has: page.locator('td.account.depth-1 a', { hasText: /^broker$/ }) });
+    const broker = page.locator('.report-table tr', { has: page.locator('td.account.indent-1 a', { hasText: /^broker$/ }) });
     await expect(broker).toContainText('5 AAA');
     await expect(broker).toContainText('$60.00'); // 5 AAA at the $12 market price
     // the heading's caret folds the whole group

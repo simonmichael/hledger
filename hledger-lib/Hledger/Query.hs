@@ -43,6 +43,7 @@ module Hledger.Query (
   queryIsFind,
   queryIsType,
   queryIsDepth,
+  queryIsFlatDepth,
   queryIsReal,
   queryIsAmt,
   queryIsCur,
@@ -695,6 +696,12 @@ queryIsDepth :: Query -> Bool
 queryIsDepth (Depth _) = True
 queryIsDepth (DepthAcct _ _) = True
 queryIsDepth _ = False
+
+-- | Is this a flat depth limit (depth:N), applying to all accounts,
+-- rather than a per-account one (depth:REGEX=N) ?
+queryIsFlatDepth :: Query -> Bool
+queryIsFlatDepth (Depth _) = True
+queryIsFlatDepth _ = False
 
 queryIsReal :: Query -> Bool
 queryIsReal (Real _) = True

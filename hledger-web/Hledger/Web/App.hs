@@ -10,6 +10,7 @@ and then Application.hs completes the job.
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE NamedFieldPuns        #-}
 {-# LANGUAGE OverloadedStrings     #-}
+{-# LANGUAGE PackageImports        #-}
 {-# LANGUAGE QuasiQuotes           #-}
 {-# LANGUAGE TemplateHaskell       #-}
 {-# LANGUAGE TupleSections         #-}
@@ -21,7 +22,7 @@ module Hledger.Web.App where
 import Control.Applicative ((<|>))
 import Control.Monad (join, mfilter, when, unless)
 -- import Control.Monad.Except (runExceptT)  -- now re-exported by Hledger
-import Data.ByteString.Base64 qualified as B64
+import "base64-bytestring" Data.ByteString.Base64 qualified as B64  -- not base64's module of the same name
 import Data.ByteString.Char8 qualified as BC
 import Data.Foldable (for_)
 import Data.Map qualified as M
@@ -195,19 +196,25 @@ instance Yesod App where
         -- In the page's tree mode the sidebar gets fold carets (the
         -- inline script in default-layout.hamlet); its shape never changes.
         sidebarFold = fromMaybe (accountlistmode_ (_rsReportOpts rspec)) mlistmode == ALTree
+        -- whether a depth limit folds the sidebar rather than clipping
+        -- it: in tree mode, except depth 0, a single total
+        sidebarFolds = sidebarFold && dsFlatDepth (queryDepth q) /= Just 0
         ropts' = maybe id setAmountMode mvalmode $ (_rsReportOpts rspec)
           {accountlistmode_ = ALTree  -- always the account tree; tree mode only adds folding (data-fold below)
           ,empty_           = True    -- show zero items by default
           ,interval_        = NoInterval  -- one balance per account, over the search's own span
           ,infer_prices_    = infer_prices_ (_rsReportOpts rspec) || inferparam
+          ,fold_depth_      = mfilter (const sidebarFolds) $ dsFlatDepth $ queryDepth q
           }
         -- A depth limit clips the sidebar's accounts, except in tree
-        -- mode, where the sidebar is served at full depth and the limit
-        -- becomes its initial fold, as in the report tables: the carets
-        -- open the deeper accounts in place.
-        sidebarQ = if sidebarFold then filterQuery (not . queryIsDepth) q else q
+        -- mode, where the sidebar is served without the flat limit and
+        -- that becomes its initial fold, as in the report tables: the
+        -- carets open the deeper accounts in place. fold_depth_ keeps
+        -- boring parents from being elided across it. Per-account depth
+        -- limits still clip, and so does depth 0.
+        sidebarQ = if sidebarFolds then filterQuery (not . queryIsFlatDepth) q else q
         sidebarFoldDepth
-          | sidebarFold = maybe "" (T.pack . show) $ dsFlatDepth $ queryDepth q
+          | sidebarFolds = maybe "" (T.pack . show) $ dsFlatDepth $ queryDepth q
           | otherwise   = ""
         rspec' = rspec{_rsQuery=sidebarQ,_rsReportOpts=ropts'}
 

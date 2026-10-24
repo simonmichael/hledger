@@ -652,6 +652,7 @@ msgstr ""
 #. the menu screen's entries; translated when drawn.
 #. the report links above each report page and in the sidebar: each link's text, and its tooltip.
 #. the browser tab title of this page.
+#. the name of a depth 0 report's one row, all accounts in one.
 #: hledger-ui/Hledger/UI/UIScreens.hs hledger-web/Hledger/Web/App.hs hledger-web/Hledger/Web/Handler/BalanceR.hs
 msgid "All accounts"
 msgstr ""
@@ -903,6 +904,12 @@ msgstr ""
 #. the browser tab title of this page.
 #: hledger-web/Hledger/Web/Handler/BalanceR.hs
 msgid "balance - hledger-web"
+msgstr ""
+
+#. the name of a depth 0 report's one row, all accounts in one.
+#: hledger-web/Hledger/Web/Handler/BalanceR.hs hledger-web/Hledger/Web/Handler/StatementsR.hs hledger-web/Hledger/Web/Widget/Common.hs
+msgctxt "accounts"
+msgid "All"
 msgstr ""
 
 #. the hint below the account type filter row.
@@ -1220,15 +1227,14 @@ msgstr ""
 msgid "Depth:"
 msgstr ""
 
-#. the label before a report's depth links, and the links' text and tooltips.
+#. the tooltips of a report's depth links.
 #: hledger-web/Hledger/Web/Widget/Common.hs
 msgid "Show accounts at every depth"
 msgstr ""
 
-#. the label before a report's depth links, and the links' text and tooltips.
+#. the tooltips of a report's depth links.
 #: hledger-web/Hledger/Web/Widget/Common.hs
-msgctxt "depth"
-msgid "All"
+msgid "Show only the total"
 msgstr ""
 
 #. the tooltips of a report's depth links.
