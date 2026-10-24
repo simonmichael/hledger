@@ -5,8 +5,8 @@
 {-# LANGUAGE TemplateHaskell   #-}
 
 module Hledger.Web.Widget.Common
-  ( accountQuery
-  , accountOnlyQuery
+  ( accountParams
+  , accountRegisterQuery
   , balanceReportAsHtml
   , controlsHint
   , controlsToggle
@@ -36,6 +36,7 @@ module Hledger.Web.Widget.Common
   , listWord
   , valueWord
   , searchTerms
+  , MovedOptions(..)
   , normalisedSearch
   , splitPeriodExpr
   , helplink
@@ -49,8 +50,6 @@ module Hledger.Web.Widget.Common
   , journalFile404
   , transactionFragment
   , removeDates
-  , removeInacct
-  , replaceInacct
   , journalDayQuery
   ) where
 
@@ -61,7 +60,7 @@ import Data.Char (isDigit)
 import Data.Foldable (find, for_)
 import Data.List (elemIndex)
 import Data.Set qualified as Set
-import Data.Maybe (isJust, isNothing, mapMaybe, maybeToList)
+import Data.Maybe (isJust, isNothing, listToMaybe, mapMaybe, maybeToList)
 import Data.Text (Text)
 import Data.Text qualified as T
 import Data.Time.Calendar (Day)
@@ -133,8 +132,8 @@ registerKeptParams ps = [p | p@(k, _) <- ps, k `elem` ["depth", "value", "list",
 -- route, label, and title, with the parameters their links carry), then
 -- the accounts, linking to their registers. The current page's row is marked.
 balanceReportAsHtml ::
-  Eq r => r -> r -> [(r, Text, Text)] -> [(Text, Text)] -> Bool -> Text -> Text -> Translations -> Journal -> Text -> [QueryOpt] -> BalanceReport -> HtmlUrl r
-balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel tottitle trs j qparam qopts (items, total) =
+  Eq r => r -> r -> [(r, Text, Text)] -> [(Text, Text)] -> Bool -> Text -> Text -> Translations -> Journal -> Text -> Maybe (AccountName, Bool) -> BalanceReport -> HtmlUrl r
+balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel tottitle trs j qparam maccount (items, total) =
   $(hamletFile "templates/balance-report.hamlet")
   where
     l = ledgerFromJournal Any j
@@ -146,13 +145,14 @@ balanceReportAsHtml registerR here reports reportParams hideEmpty totlabel totti
       -- lot, +10 A @ one cost and -10 A at another), and the sidebar
       -- displays such balances as zero.
       where isInteresting a = not (all (mixedAmountLooksZero . mixedAmountStripCosts . bdexcludingsubs) . pdperiods $ adata a) || any isInteresting (asubs a)
-    matchesAcctSelector acct = Just True == ((`matchesAccount` acct) <$> inAccountQuery qopts)
+    matchesAcctSelector acct = maybe False ((`matchesAccount` acct) . accountRegisterQuery) maccount
     kept = registerKeptParams reportParams
-    acctlink acct = (registerR, ("q", replaceInacct qparam $ accountQuery acct) : kept)
-    acctonlylink acct = (registerR, ("q", replaceInacct qparam $ accountOnlyQuery acct) : kept)
-    -- The register of everything, for the sidebar's search minus any
-    -- account term; the search form's clear button is the way out of a search.
-    totallink = (registerR, [("q", t) | let t = T.unwords $ removeInacct qparam, not (T.null t)] ++ kept)
+    qps = [("q", qparam) | not (T.null qparam)]
+    acctlink acct = (registerR, qps ++ accountParams True acct ++ kept)
+    acctonlylink acct = (registerR, qps ++ accountParams False acct ++ kept)
+    -- The register of everything, for the sidebar's search; the search
+    -- form's clear button is the way out of a search.
+    totallink = (registerR, qps ++ kept)
 
 -- | A row of links above a report: a label, then each link's label,
 -- title, target, and whether it is the one being shown.
@@ -556,11 +556,16 @@ commodityLinks trs route kept qparam open hint j renderUrl
             | otherwise -> a : go b
           (a, _) -> [a]
 
-accountQuery :: AccountName -> Text
-accountQuery = ("inacct:" <>) . quoteForQuery
+-- | The parameters naming an account register's account: with its
+-- subaccounts, or with subs=0, without them. (An inacct: or inacctonly:
+-- term typed in the search becomes these; see App.normaliseUrlState.)
+accountParams :: Bool -> AccountName -> [(Text, Text)]
+accountParams = Anchor.accountParams
 
-accountOnlyQuery :: AccountName -> Text
-accountOnlyQuery = ("inacctonly:" <>) . quoteForQuery
+-- | The query selecting an account register's account, with its
+-- subaccounts or without them (as inacct: and inacctonly: do).
+accountRegisterQuery :: (AccountName, Bool) -> Query
+accountRegisterQuery (a, subs) = Acct $ (if subs then accountNameToAccountRegex else accountNameToAccountOnlyRegex) a
 
 mixedAmountAsHtml :: MixedAmount -> HtmlUrl a
 mixedAmountAsHtml = mixedAmountAsHtmlWith noCostFmt{displayZeroCommodity=True}
@@ -649,29 +654,39 @@ transactionFragment j Transaction{tindex, tsourcepos} =
 removeDates :: Text -> [Text]
 removeDates = map quoteIfSpaced . Anchor.removeDates . searchTerms
 
--- | The search's terms without those naming an account, each quoted if it needs to be.
-removeInacct :: Text -> [Text]
-removeInacct = map quoteIfSpaced . Anchor.removeInacct . searchTerms
+-- | What 'normalisedSearch' moves out of a search: the search without
+-- it, and the options found.
+data MovedOptions = MovedOptions {
+    moSearch   :: Text,
+    moDepth    :: Maybe Int,
+    moInterval :: Maybe Interval,
+    moAccount  :: Maybe (AccountName, Bool)  -- ^ the account, and whether with subaccounts
+  } deriving (Eq, Show)
 
 -- | The report options in a search and in the old period parameter, which
 -- hledger-web keeps in their own parameters (see App.normaliseUrlState):
--- the search without them, the depth of its last depth:N term, and the
--- interval of its last date:INTERVAL term, else of the period parameter.
--- A date:INTERVAL term is reduced to its date span, if it has one, and the
--- period parameter's date span joins the search as a date: term. A
--- depth:REGEX=N term, limiting some accounts only, stays in the search.
--- Nothing when there is nothing to move.
-normalisedSearch :: Day -> Text -> Maybe Text -> Maybe (Text, Maybe Int, Maybe Interval)
+-- the search without them, the depth of its last depth:N term, the
+-- interval of its last date:INTERVAL term, else of the period parameter,
+-- and the account of its first inacct: or inacctonly: term (the one an
+-- account register used). A date:INTERVAL term is reduced to its date
+-- span, if it has one, and the period parameter's date span joins the
+-- search as a date: term. A depth:REGEX=N term, limiting some accounts
+-- only, stays in the search. Nothing when there is nothing to move.
+normalisedSearch :: Day -> Text -> Maybe Text -> Maybe MovedOptions
 normalisedSearch today qparam mperiod
-  | isNothing mdepth && null termIntervals && isNothing mperiod = Nothing
-  | otherwise = Just (T.unwords $ map quoteIfSpaced $ periodTerms ++ concatMap rest terms, mdepth, mivl)
+  | isNothing mdepth && null termIntervals && isNothing macct && isNothing mperiod = Nothing
+  | otherwise = Just $ MovedOptions (T.unwords $ map quoteIfSpaced $ periodTerms ++ concatMap rest terms) mdepth mivl macct
   where
     terms = searchTerms qparam
     mdepth = lastMay $ mapMaybe flatDepth terms
     dateInterval t = T.stripPrefix "date:" t >>= splitPeriodExpr today
     termIntervals = [i | t <- terms, Just (i, _) <- [dateInterval t]]
+    accountTerm t = (\a -> (a, False)) <$> T.stripPrefix "inacctonly:" t
+                <|> (\a -> (a, True))  <$> T.stripPrefix "inacct:" t
+    macct = listToMaybe $ mapMaybe accountTerm terms
     rest t
       | isJust (flatDepth t)           = []
+      | isJust (accountTerm t)         = []
       | Just (_, sp) <- dateInterval t = ["date:" <> sp | not (T.null sp)]
       | otherwise                      = [t]
     -- A period that is not an interval and a span is a span only (or
@@ -707,11 +722,7 @@ searchTerms :: Text -> [Text]
 searchTerms = filter (not . T.null) . Query.words'' queryprefixes
 
 -- | The search for the journal page narrowed to a day: the day's date
--- term in place of any date terms, and without any account term, which
--- the journal page does not use.
+-- term in place of any date terms.
 journalDayQuery :: Text -> Day -> Text
 journalDayQuery qparam d =
-  T.unwords $ ("date:" <> showDate d) : removeDates (T.unwords $ removeInacct qparam)
-
-replaceInacct :: Text -> Text -> Text
-replaceInacct q acct = T.unwords $ acct : removeInacct q
+  T.unwords $ ("date:" <> showDate d) : removeDates qparam

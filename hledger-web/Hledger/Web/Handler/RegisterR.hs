@@ -27,18 +27,18 @@ import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, removeAt
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.Widget.Common
-             (accountQuery, accountOnlyQuery, amountLinks, calcLinks, columnsLinks,
+             (accountParams, accountRegisterQuery, amountLinks, calcLinks, columnsLinks,
               commodityLinks, controlsHint, controlsToggle, costsLinks, depthLinks,
               inertControls, listModeLinks, lotsLinks, mixedAmountAsHtmlElided,
               mixedAmountAsHtmlWith, moreCommodities, percentLinks, pricesLinks, realLinks,
               runningBalanceAsHtml, sortLinks, statusLinks, typeLinks,
-              zeroBalanceLinks, transactionFragment, removeDates, removeInacct, replaceInacct, journalDayQuery)
+              zeroBalanceLinks, transactionFragment, removeDates, journalDayQuery)
 
 -- | The main journal/account register view, with accounts sidebar.
 getRegisterR :: Handler Html
 getRegisterR = do
   checkServerSideUiEnabled
-  VD{jHasLots, lotsShown, perms, j, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{jHasLots, lotsShown, perms, j, q, opts, qparam, account, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   -- With accum=historical the running balance is the account's balance,
   -- starting from before the query's start date, rather than a total of
@@ -63,7 +63,7 @@ getRegisterR = do
   mcalc   <- lookupGetParam "calc"
   pagereq <- pageRequest
 
-  let title = case inAccount qopts of
+  let title = case account of
         Nothing         -> tr trs "all accounts"
         Just (a, True)  -> a
         Just (a, False) -> trf trs "{account} (excluding subaccounts)" [("account", a)]
@@ -97,12 +97,14 @@ getRegisterR = do
         [("pct", "1") | pctOn] ++
         [("calc", c) | Just c <- [mcalc], not (T.null c)]
       lotsParams = [("lots", "1") | lotsShown]
+      -- The account this register is for, which its own links keep.
+      acctParams = maybe [] (\(a, subs) -> accountParams subs a) account
       modeParams =
         dbg1 "register modeParams" $
-        stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams ++ lotsParams ++ depthParams q
-      -- Links to the journal carry the sticky state; the accumulation
-      -- mode and the costs toggle are this page's own.
-      journalCarry = removeAttributes ["accum", "costs"] modeParams
+        acctParams ++ stickyParams ++ accumParams ++ valParams ++ costsParams ++ inferParams ++ date2Params ++ emptyParams ++ listParams ++ lotsParams ++ depthParams q
+      -- Links to the journal carry the sticky state; the account, the
+      -- accumulation mode and the costs toggle are this page's own.
+      journalCarry = removeAttributes ["account", "subs", "accum", "costs"] modeParams
       -- An entry's date link: the journal on that date, same modes.
       dayParams t = ("q", journalDayQuery qparam (tdate t)) : journalCarry
       -- the rows of links above the chart: the filters (status,
@@ -155,10 +157,10 @@ getRegisterR = do
       -- the amount column's display format: with costs when asked
       amtfmt = noCostFmt{displayZeroCommodity = True, displayCost = costsOn}
       qParams t = [("q", t) | not (T.null t)]
-      acctQuery = fromMaybe Any (inAccountQuery qopts)
+      acctQuery = maybe Any accountRegisterQuery account
       -- An account's register, keeping this register's mode, opened on the
       -- page holding this transaction.
-      acctlink acc t = (RegisterR, ("q", replaceInacct qparam $ accountQuery acc) : ("txn", T.pack $ show $ tindex t) : modeParams)
+      acctlink acc t = (RegisterR, qParams qparam ++ accountParams True acc ++ ("txn", T.pack $ show $ tindex t) : removeAttributes ["account", "subs"] modeParams)
       -- In an account's register a type: term selects the postings
       -- totaled, not the accounts named beside them: a liability's
       -- register names the accounts it was posted against, whatever their
@@ -167,7 +169,7 @@ getRegisterR = do
           map (\(acct,(name,comma)) -> (acct, (T.pack name, T.pack comma))) .
           undecorateLinks . elideRightDecorated 40 . decorateLinks .
           addCommas . preferReal . otherTransactionAccounts j displayq acctQuery
-      displayq = if isJust (inAccount qopts) then filterQuery (not . queryIsType) q else q
+      displayq = if isJust account then filterQuery (not . queryIsType) q else q
       -- An account name, which breaks after a colon where the column is
       -- too narrow for it, rather than the amounts beside it.
       breakAtColons = mconcat . intersperse (toHtml (":" :: Text) <> H.wbr) . map toHtml . T.splitOn ":"
@@ -194,7 +196,7 @@ getRegisterR = do
         datelessQuery today qparam
       balancelabel
         | historical               = trc trs "column heading" "Historical Total"
-        | isJust (inAccount qopts) = trc trs "column heading" "Period Total"
+        | isJust account           = trc trs "column heading" "Period Total"
         | otherwise                = trc trs "column heading" "Total"
       -- The balance column's heading switches the mode, keeping the
       -- register's other modes.
@@ -211,9 +213,8 @@ getRegisterR = do
                     | secondary <- [date2_ ropts, not $ date2_ ropts] ]
       broughtForwardLink (secondary, start) =
         (RegisterR, [("q", T.unwords $
-          maybe [] (\(acc, incl) -> [if incl then accountQuery acc else accountOnlyQuery acc]) (inAccount qopts) ++
-          [(if secondary then "date2:.." else "date:..") <> showDate start] ++
-          removeDates (T.unwords $ removeInacct qparam))] ++ removeAttributes ["accum"] modeParams)
+          ((if secondary then "date2:.." else "date:..") <> showDate start) : removeDates qparam)] ++
+          removeAttributes ["accum"] modeParams)
       transactionFrag = transactionFragment j
   defaultLayout $ do
     -- TRANSLATORS: the browser tab title of this page.

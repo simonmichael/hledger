@@ -96,7 +96,7 @@ test('a link to a transaction on another page opens that page and scrolls to it'
   const row = page.locator('#main-content .table-responsive tbody tr').last();
   await expect(row).toContainText('txn 301');
   await row.locator('td.account a').click();
-  await expect(page).toHaveURL(/\/register\?q=inacct%3Aincome&txn=301#transaction-1-301$/);
+  await expect(page).toHaveURL(/\/register\?account=income&txn=301#transaction-1-301$/);
   await expect(page.locator('p.paging').first()).toContainText('Showing 1,001 to 2,000 of 2,300 transactions');
   await expect(page.locator('#transaction-1-301')).toBeInViewport();
 });

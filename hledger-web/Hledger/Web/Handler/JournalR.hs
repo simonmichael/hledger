@@ -17,18 +17,18 @@ import Hledger.Web.WebOptions
 import Hledger.Web.Widget.AddForm (addModal)
 import Hledger.Web.ReportPage (amountModeOf, deepestDepth, depthParams, intervalLinks, listWord, parseCalc, parseInterval, parseListMode, parseValue, removeAttributes, setAmountMode, valueParams)
 import Hledger.Web.Widget.Common
-            (accountQuery, amountLinks, calcLinks, columnsLinks, commodityLinks,
+            (accountParams, amountLinks, calcLinks, columnsLinks, commodityLinks,
              controlsHint, controlsToggle,
              depthLinks, inertControls, listModeLinks, lotsLinks,
              mixedAmountAsHtml, percentLinks, pricesLinks, realLinks, sortLinks,
              statusLinks, typeLinks,
-             transactionFragment, replaceInacct, journalDayQuery, zeroBalanceLinks)
+             transactionFragment, journalDayQuery, zeroBalanceLinks)
 
 -- | The formatted journal view, with sidebar.
 getJournalR :: Handler Html
 getJournalR = do
   checkServerSideUiEnabled
-  VD{perms, j, jHasLots, lotsShown, q, opts, qparam, qopts, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
+  VD{perms, j, jHasLots, lotsShown, q, opts, qparam, account, today, trs, hideEmpty, controlsOpen, commoditiesOpen} <- getViewData
   require ViewPermission
   mmode <- either (const Nothing) id . parseValue <$> lookupGetParam "value"
   mlist <- either (const Nothing) id . parseListMode <$> lookupGetParam "list"
@@ -41,13 +41,13 @@ getJournalR = do
   mcalc   <- lookupGetParam "calc"
   date2On <- (== Just "1") <$> lookupGetParam "date2"
   pagereq <- pageRequest
-  let title = case inAccount qopts of
+  let title = case account of
         Nothing         -> tr trs "General Journal"
         Just (a, True)  -> trf trs "Transactions in {account}" [("account", a)]
         Just (a, False) -> trf trs "Transactions in {account} (excluding subaccounts)" [("account", a)]
       title' = if q /= Any then trf trs "{title}, filtered" [("title", title)] else title
       -- An account's register, opened on the page holding this transaction.
-      acctlink a t = (RegisterR, ("q", replaceInacct qparam $ accountQuery a) : ("txn", T.pack $ show $ tindex t) : carried)
+      acctlink a t = (RegisterR, [("q", qparam) | not (T.null qparam)] ++ accountParams True a ++ ("txn", T.pack $ show $ tindex t) : carried)
       q' = filterQuery (not . queryIsDepth) q
       rspec = (reportspec_ $ cliopts_ opts){_rsQuery = q'}
       -- The matching transactions, newest first; this page shows one page of them.

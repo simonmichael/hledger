@@ -24,9 +24,9 @@ import Hledger.Web.Paging (yearsRow)
 import Hledger.Web.ReportPage
 import Hledger.Web.WebOptions
 import Hledger.Web.Widget.Common
-  (accountQuery, closedLinks, commodityLinks, controlsHint, controlsToggle,
+  (accountParams, closedLinks, commodityLinks, controlsHint, controlsToggle,
    depthLinks, holdingsValueLinks, listModeLinks,
-   lotsLinks, pricesLinks, realLinks, replaceInacct, searchTerms,
+   lotsLinks, pricesLinks, realLinks, searchTerms,
    sortLinks, statusLinks, typeLinks, zeroBalanceLinks)
 
 -- | The holdings view: investment holdings and their performance at the
@@ -104,13 +104,13 @@ getHoldingsR = do
             -- the states that page reads.
             registerKept = removeAttributes ["interval", "sort", "closed"] pageParams
             acctlink acct = urlrender RegisterR $
-              ("q", replaceInacct qparam $ accountQuery acct) : registerKept
+              qParams ++ accountParams True acct ++ registerKept
             -- A position's cell links to that register filtered to the
             -- holding's commodity: the transactions behind the row's figures.
             poslink acct com = urlrender RegisterR $
               ("q", T.unwords $
-                 map quoteIfSpaced (filter (not . T.isPrefixOf "cur:") (searchTerms $ replaceInacct qparam $ accountQuery acct))
-                 ++ [quoteIfSpaced $ "cur:" <> regexEscape com]) : registerKept
+                 map quoteIfSpaced (filter (not . T.isPrefixOf "cur:") (searchTerms qparam))
+                 ++ [quoteIfSpaced $ "cur:" <> regexEscape com]) : accountParams True acct ++ registerKept
 
             -- TRANSLATORS: the holdings table's column headings. The cost
             -- heading is "Unit cost", "Avg cost", or "Unit/Avg cost".

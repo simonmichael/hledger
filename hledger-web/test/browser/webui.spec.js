@@ -46,7 +46,7 @@ test.describe('page initialization', () => {
   // querySelector must guard it. A failure here leaves the page
   // half-initialized: no date picker, no keyboard shortcuts, no sidebar handlers.
   test('register url with a numeric transaction hash initializes fully', async ({ page }) => {
-    await page.goto('/register?q=inacct:assets:bank:checking#3');
+    await page.goto('/register?account=assets:bank:checking#3');
     expect(pageErrors).toEqual([]);
     await openAddForm(page);
     await expect(page.locator('#addform input[name=date]')).not.toHaveValue('');
@@ -647,7 +647,7 @@ test.describe('entry tooltip', () => {
   });
 
   test('a register row shows its entry too, but over an account link the link\'s title applies', async ({ page }) => {
-    await page.goto('/register?q=inacct:assets:bank:checking');
+    await page.goto('/register?account=assets:bank:checking');
     const tip = page.locator('.entry-tooltip');
     const row = page.locator('#main-content tbody tr', { hasText: 'Cafe Luna' });
     await hoverSettled(page, row.locator('td.description'));

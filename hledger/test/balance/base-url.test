@@ -52,18 +52,18 @@ $ hledger -f- bal -M -p 2025-01-15..2025-03-01 -O html --base-url ''
   income
 
 $ hledger -f- bal -W --layout=tidy -O html --base-url ''
-> /<a href="register\?q=inacct:assets:cash\+date:2025-01-13\.\.2025-01-20" title="[^"]*">2025-W03</
+> /<a href="register\?q=date:2025-01-13\.\.2025-01-20&amp;account=assets:cash" title="[^"]*">2025-W03</
 >= 0
 
 # ** 5. An inacct: term in the query is not carried into the links, which
-# name their own account.
+# name their own account, with the account parameter.
 <
 2025-01-15 a
   assets:cash  10
   income
 
 $ hledger -f- bal -O html --base-url '' inacct:assets
-> /<a href="register\?q=inacct:assets:cash" title="[^"]*">assets:cash</
+> /<a href="register\?account=assets:cash" title="[^"]*">assets:cash</
 >= 0
 
 # ** 6. Without --base-url, no links.
@@ -92,11 +92,11 @@ $ hledger -f- bal -W -O html
   assets:bank:checking
 
 $ hledger -f- bal -M -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank:checking\+date:2025-02" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-02&amp;account=assets:bank:checking" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 8. A list-mode parent whose subaccount has its own row shows its own
-# postings only, and links with inacctonly:.
+# postings only, and links with subs=0.
 <
 2025-01-10 salary
   assets:bank:checking  100
@@ -111,7 +111,7 @@ $ hledger -f- bal -M -O html --base-url ''
   assets:bank:checking
 
 $ hledger -f- bal -M -O html --base-url ''
-> /<a href="register\?q=inacctonly:assets:bank" title="Show transactions affecting this account but not subaccounts">assets:bank</
+> /<a href="register\?account=assets:bank&amp;subs=0" title="Show transactions affecting this account but not subaccounts">assets:bank</
 >= 0
 
 # ** 9. Its figures likewise.
@@ -129,7 +129,7 @@ $ hledger -f- bal -M -O html --base-url ''
   assets:bank:checking
 
 $ hledger -f- bal -M -O html --base-url ''
-> /<a href="register\?q=inacctonly:assets:bank\+date:2025-01" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-01&amp;account=assets:bank&amp;subs=0" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 10. A figure that looks zero has an empty register, and no link.
@@ -147,7 +147,7 @@ $ hledger -f- bal -M -O html --base-url ''
   assets:bank:checking
 
 $ hledger -f- bal -M -O html --base-url ''
-> !/inacctonly:assets:bank\+date:2025-02/
+> !/q=date:2025-02&amp;account=assets:bank&amp;subs=0/
 >= 0
 
 # ** 11. The totals row links each column's total to the register of
@@ -177,7 +177,7 @@ $ hledger -f- bal -M -O html --base-url '' expenses
   assets:bank
 
 $ hledger -f- bal -M -T -A -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank\+date:2025-01-01\.\.2025-03-01" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-01-01\.\.2025-03-01&amp;account=assets:bank" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 12b. The average has none.
@@ -206,7 +206,7 @@ $ hledger -f- bal -M -T -A -O html --base-url ''
   assets:bank
 
 $ hledger -f- bal -M -H -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank\+date:2025-02&amp;accum=historical" title="Show the transactions behind this balance">/
+> /<a href="register\?q=date:2025-02&amp;account=assets:bank&amp;accum=historical" title="Show the transactions behind this balance">/
 >= 0
 
 # ** 14. The account name's link too.
@@ -220,7 +220,7 @@ $ hledger -f- bal -M -H -O html --base-url ''
   assets:bank
 
 $ hledger -f- bal -M -H -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank&amp;accum=historical" title="Show transactions affecting this account and subaccounts">assets:bank</
+> /<a href="register\?account=assets:bank&amp;accum=historical" title="Show transactions affecting this account and subaccounts">assets:bank</
 >= 0
 
 # ** 15. A cumulative figure's register runs from the report's start.
@@ -234,7 +234,7 @@ $ hledger -f- bal -M -H -O html --base-url ''
   assets:bank
 
 $ hledger -f- bal -M --cumulative -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank\+date:2025-01-01\.\.2025-03-01" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-01-01\.\.2025-03-01&amp;account=assets:bank" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 15b. The first column's figure links to the first period alone.
@@ -248,7 +248,7 @@ $ hledger -f- bal -M --cumulative -O html --base-url ''
   expenses:food
 
 $ hledger -f- bal -M --cumulative -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank\+date:2025-01" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-01&amp;account=assets:bank" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 16. Figures that are not sums of postings do not link.
@@ -258,7 +258,7 @@ $ hledger -f- bal -M --cumulative -O html --base-url ''
   expenses:fees
 
 $ hledger -f- bal -M --count -O html --base-url ''
-> !/<a href="register\?q=inacct:assets:bank\+date:/
+> !/<a href="register\?q=date:[^"]*&amp;account=assets:bank"/
 >= 0
 
 # ** 17. Account names still do.
@@ -268,17 +268,17 @@ $ hledger -f- bal -M --count -O html --base-url ''
   expenses:fees
 
 $ hledger -f- bal -M --count -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank" title="[^"]*">assets:bank</
+> /<a href="register\?account=assets:bank" title="[^"]*">assets:bank</
 >= 0
 
-# ** 18. A depth-clipped row sums its subaccounts, and links with inacct:.
+# ** 18. A depth-clipped row sums its subaccounts, and links including them.
 <
 2025-01-20 fee
   assets:bank:checking  -5
   expenses:fees
 
 $ hledger -f- bal depth:1 -O html --base-url ''
-> /<a href="register\?q=inacct:assets\+depth:1" title="Show transactions affecting this account and subaccounts">assets</
+> /<a href="register\?q=depth:1&amp;account=assets" title="Show transactions affecting this account and subaccounts">assets</
 >= 0
 
 # ** 19. In a single-period report the figures link to the account's
@@ -293,7 +293,7 @@ $ hledger -f- bal depth:1 -O html --base-url ''
   assets:bank
 
 $ hledger -f- bal -p 2025-01 -O html --base-url '' expenses
-> /<a href="register\?q=inacct:expenses:fees\+date:2025-01\+expenses" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-01\+expenses&amp;account=expenses:fees" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 20. And the total to everything's.
@@ -317,7 +317,7 @@ $ hledger -f- bal -p 2025-01 -O html --base-url '' expenses
   expenses:fees
 
 $ hledger -f- bal -M -O fods --base-url ''
-> /<text:a xlink:href='register\?q=inacct:assets:bank\+date:2025-01'>/
+> /<text:a xlink:href='register\?q=date:2025-01&amp;account=assets:bank'>/
 >= 0
 
 # ** 22. A report using secondary dates asks the register to use them too.
@@ -331,7 +331,7 @@ $ hledger -f- bal -M -O fods --base-url ''
   assets:bank
 
 $ hledger -f- bal -M --date2 -O html --base-url ''
-> /<a href="register\?q=inacct:assets:bank\+date2:2025-02" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date2:2025-02&amp;account=assets:bank" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 23. Converting amounts to market value asks the register to
@@ -345,10 +345,10 @@ P 2025-02-01 AAPL $120
   assets:bank
 
 $ hledger -f- bal -M -V -O html --base-url '' assets:broker
-> /<a href="register\?q=inacct:assets:broker\+date:2025-01\+assets:broker&amp;value=end" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-01\+assets:broker&amp;account=assets:broker&amp;value=end" title="Show the transactions that make up this amount">/
 >= 0
 
 # ** 24. Converting them to cost.
 $ hledger -f- bal -M -B -O html --base-url '' assets:broker
-> /<a href="register\?q=inacct:assets:broker\+date:2025-01\+assets:broker&amp;value=cost" title="Show the transactions that make up this amount">/
+> /<a href="register\?q=date:2025-01\+assets:broker&amp;account=assets:broker&amp;value=cost" title="Show the transactions that make up this amount">/
 >= 0

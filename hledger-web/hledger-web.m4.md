@@ -159,7 +159,9 @@ hledger-web's main views are:
 
 - the **journal view** (the home page), showing journal entries, newest first, with their postings;
 - the **register view**, showing the transactions affecting one account (and its subaccounts),
-  with a running balance and a balance chart; and
+  with a running balance and a balance chart, the account named by an `account` parameter,
+  eg `/register?account=assets:bank` (with `subs=0`, excluding its subaccounts), which the
+  register's links and search keep; and
 - the **report views**, described [below](#reports): the balance sheet, income statement,
   and cashflow statement (and holdings, for journals using lots), also linked from the sidebar,
   and the All accounts report and the balance sheet with equity.

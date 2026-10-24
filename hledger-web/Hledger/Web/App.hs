@@ -61,7 +61,7 @@ import Hledger.Web.ReportPage (AmountMode(..), accumWord, amountModeOf, interval
 import Hledger.Web.Settings (Extra(..), widgetFile)
 import Hledger.Web.Settings.StaticFiles
 import Hledger.Web.WebOptions
-import Hledger.Web.Widget.Common (balanceReportAsHtml, normalisedSearch, removeInacct)
+import Hledger.Web.Widget.Common (MovedOptions(..), accountParams, balanceReportAsHtml, normalisedSearch)
 import Data.List (isPrefixOf, partition)
 
 -- | The site argument for your application. This can be a good place to
@@ -163,7 +163,7 @@ instance Yesod App where
 
     master <- getYesod
     here <- fromMaybe RootR <$> getCurrentRoute
-    VD{opts, j, jHasLots, qparam, q, qopts, perms, trs} <- getViewData
+    VD{opts, j, jHasLots, qparam, q, account, perms, trs} <- getViewData
     msg <- getMessage
     -- Unless --lang fixes the language: an explicit ?_LANG= choice is
     -- remembered in a cookie, which Yesod's languages reads on later
@@ -230,7 +230,7 @@ instance Yesod App where
     let sidebarReports = reportLinkItems $ filter rmInSidebar $ reportMenuFor jHasLots
         sidebarParams =
           [p | p@("interval", _) <- keptParams] ++
-          [("q", qt) | let qt = T.unwords $ removeInacct qparam, not (T.null qt)] ++
+          [("q", qparam) | not (T.null qparam)] ++
           [p | p@(k, _) <- keptParams, k /= "interval", k `elem` stickyParamNames]
         -- The pages g then a key goes to (hledger.js), with the sidebar
         -- links' parameters.
@@ -252,7 +252,7 @@ instance Yesod App where
             (tr trs "Net flows:",
              tr trs "The sum of every account: open positions in each commodity, and the cash that paid for them. Zero when nothing crosses commodities.")
         accounts =
-          balanceReportAsHtml RegisterR here sidebarReports sidebarParams hideEmptyAccts totlabel tottitle trs j qparam qopts $
+          balanceReportAsHtml RegisterR here sidebarReports sidebarParams hideEmptyAccts totlabel tottitle trs j qparam account $
           styleAmounts (journalCommodityStylesWith HardRounding j) $
           balanceReport rspec' j
 
@@ -386,6 +386,8 @@ data ViewData = VD
   , q     :: Query      -- ^ a query parsed from the q parameter. A depth parameter's limit
                         --   is also added hereas a Depth term, since the reports use it.
   , qopts :: [QueryOpt] -- ^ query options parsed from the q parameter
+  , account :: Maybe (AccountName, Bool)  -- ^ the account an account register is for, from the account
+                        --   parameter, and whether with its subaccounts (not with subs=0)
   , perms :: [Permission]  -- ^ permissions enabled for this request (by --allow and/or X-Sandstorm-Permissions)
   , trs   :: Translations  -- ^ translations for this request's language
   , hideEmpty :: Bool      -- ^ hide zero-balance accounts ? (the empty parameter, cf hideEmptyAccounts)
@@ -429,13 +431,16 @@ getViewData = do
   qparam <- fromMaybe "" <$> lookupGetParam "q"
   normaliseUrlState today qparam
   -- The depth parameter's limit joins the parsed query, as a depth:N term
-  -- would, since the reports read depth limits from the query; qparam,
-  -- the search text that the search box and links show, is left as it is.
+  -- would, since the reports read depth limits from the query (as the
+  -- command line's --depth does); qparam, the search text that the search
+  -- box and links show, is left as it is.
   mdepth <- (mfilter (>= 0) . readMay . T.unpack =<<) <$> lookupGetParam "depth"
   (q, qopts, mqerr) <- do
     case parseQuery today qparam of
       Right (q0, qopts) -> return (maybe q0 (\d -> simplifyQuery $ And [q0, Depth d]) mdepth, qopts, Nothing)
       Left err         -> return (Any, [], Just err)
+  subs <- (/= Just "0") <$> lookupGetParam "subs"
+  account <- fmap (, subs) . mfilter (not . T.null) <$> lookupGetParam "account"
   dbg1IO "q parameter" qparam
   dbg1IO "query" q
 
@@ -459,31 +464,35 @@ getViewData = do
   controlsOpen <- showControls
   commoditiesOpen <- showCommodities
 
-  return VD{opts, today, j, jfull, jHasLots, lotsShown, qparam, q, qopts, perms, trs, hideEmpty, controlsOpen, commoditiesOpen}
+  return VD{opts, today, j, jfull, jHasLots, lotsShown, qparam, q, qopts, account, perms, trs, hideEmpty, controlsOpen, commoditiesOpen}
 
 -- | Move the report options in a page's search, and in the old period
 -- parameter, to their own parameters, by reloading the page: the search
 -- holds the terms selecting data, and the parameters, set by the
 -- controls, the report's shape. A depth:N term (typed, or from a link
 -- written before hledger-web had a depth parameter) becomes the depth
--- parameter, and a date:INTERVAL term's interval the interval parameter,
+-- parameter, a date:INTERVAL term's interval the interval parameter,
 -- leaving its date span in the search, where the old period parameter's
--- span goes too. See normalisedSearch.
+-- span goes too, and an inacct: or inacctonly: term the account (and
+-- subs) parameters naming an account register's account. See
+-- normalisedSearch.
 normaliseUrlState :: Day -> Text -> Handler ()
 normaliseUrlState today qparam = do
   isget <- (== "GET") . requestMethod <$> waiRequest
   mroute <- getCurrentRoute
   mperiod <- lookupGetParam "period"
   case (isget, mroute, normalisedSearch today qparam (mfilter (not . T.null) mperiod)) of
-    (True, Just route, Just (qparam', mdepth, mivl)) -> do
+    (True, Just route, Just MovedOptions{moSearch, moDepth, moInterval, moAccount}) -> do
       params <- reqGetParams <$> getRequest
-      let mivltext = intervalPeriodExpr =<< mivl
-          replaced = ["q", "period"] ++ ["depth" | isJust mdepth] ++ ["interval" | isJust mivltext]
+      let mivltext = intervalPeriodExpr =<< moInterval
+          replaced = ["q", "period"] ++ ["depth" | isJust moDepth] ++ ["interval" | isJust mivltext]
+                     ++ concat [["account", "subs"] | isJust moAccount]
           params' =
-            [("q", qparam') | not (T.null qparam')] ++
+            [("q", moSearch) | not (T.null moSearch)] ++
+            maybe [] (\(a, subs) -> accountParams subs a) moAccount ++
             [p | p@(k, _) <- params, k `notElem` replaced] ++
             [("interval", w) | Just w <- [mivltext]] ++
-            [("depth", T.pack (show n)) | Just n <- [mdepth]]
+            [("depth", T.pack (show n)) | Just n <- [moDepth]]
       redirect (route, params')
     _ -> return ()
 
@@ -561,12 +570,12 @@ keptAccums route =
 -- nothing (the journal is the landing page, and the url hledger-web
 -- opens for its startup options), plus the page-local parameters, the
 -- accumulation mode (each page has its own default) and the register's
--- costs.
+-- account and costs.
 keptParamNames :: Route App -> [Text]
 keptParamNames route
   | route == HoldingsR        = "closed" : stickyParamNames
   | route `elem` reportRoutes = "accum" : stickyParamNames
-  | route == RegisterR        = "accum" : "costs" : stickyParamNames
+  | route == RegisterR        = "account" : "subs" : "accum" : "costs" : stickyParamNames
   | route == JournalR         = stickyParamNames
   | otherwise                 = []
 
