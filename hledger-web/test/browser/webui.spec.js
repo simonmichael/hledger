@@ -305,6 +305,32 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
+  test('in full window mode, "s", "o" and "/" leave it, showing what they ask for', async ({ page }) => {
+    await page.goto('/balance');
+    const sidebar = page.locator('#sidebar-menu');
+    const controls = page.locator('#main-content details.report-controls');
+    const search = page.locator('#searchform input[name=q]');
+    // s shows the sidebar, even one hidden before full window mode
+    await page.locator('body').press('s');
+    await expect(sidebar).toBeHidden();
+    await page.locator('body').press('f');
+    await page.locator('body').press('s');
+    await expect(search).toBeVisible();
+    await expect(sidebar).toBeVisible();
+    // o opens the options
+    await expect(controls).toHaveJSProperty('open', false);
+    await page.locator('body').press('f');
+    await page.locator('body').press('o');
+    await expect(search).toBeVisible();
+    await expect(controls).toHaveJSProperty('open', true);
+    // / focuses the search
+    await page.locator('body').press('f');
+    await page.locator('body').press('/');
+    await expect(search).toBeVisible();
+    await expect(search).toBeFocused();
+    expect(pageErrors).toEqual([]);
+  });
+
   // On wider screens the main content scrolls by itself, not the window, so
   // it must have focus for the keyboard to scroll it.
   test('a page loads ready to scroll from the keyboard', async ({ page }) => {
