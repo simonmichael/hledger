@@ -55,7 +55,7 @@ import Text.Blaze.Svg11.Attributes qualified as A
 import Text.DocLayout qualified as DL
 import Text.Printf (printf)
 
-import Hledger.Data.Amount (oneLineNoCostFmt, showAmountWith)
+import Hledger.Data.Amount (nullamt, oneLineNoCostFmt, showAmountWith)
 import Hledger.Data.Dates (showDate)
 import Hledger.Data.Types (AccountType(..), Amount(..), AmountPrecision(..), AmountStyle(..), Quantity)
 import Hledger.Utils.Test
@@ -351,9 +351,14 @@ timeSvg SvgOptions{svgPlotHeight = plotheight} top mscale layout unit drawn mtot
       forM_ (runs pts) $ \run ->
         S.polyline ! A.class_ ("line " <> toValue cls)
           ! A.points (toValue $ T.unwords [num x <> "," <> num y | (x, y) <- thinPoints $ (if isJust datearray then steps else id) [(x, y) | (_, x, y, _) <- run]])
-      -- invisible larger targets, for tooltips (only when there are not too many points)
-      when (n <= 400) $ forM_ (catMaybes pts) $ \(j, x, y, q) -> withTooltip (tooltip (fromMaybe "" $ xlabels `atMay` j) s q) $
+      -- invisible larger targets, for tooltips
+      forM_ (hitPoints $ catMaybes pts) $ \(j, x, y, q) -> withTooltip (tooltip (fromMaybe "" $ xlabels `atMay` j) s q) $
         S.circle ! A.class_ "hit" ! A.cx (toValue $ num x) ! A.cy (toValue $ num y) ! A.r "6"
+    -- The points of a line given tooltip targets: all of them, or beyond 400 x positions, the last point in each 4px column,
+    -- which keeps the SVG small while the targets (12px across) still cover the whole line.
+    hitPoints ps
+      | n <= 400  = ps
+      | otherwise = M.elems $ M.fromList [(floor (x / 4) :: Integer, p) | p@(_, x, _, _) <- ps]
     tooltip :: Text -> Series -> Quantity -> Text
     tooltip lbl s q = T.intercalate " · " (filter (not . T.null) [lbl, lbFull (seLabel s), showValue unit q])
 
@@ -782,4 +787,12 @@ tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
   ,testCase "barPath" $ do
      barPath True 10 100 20 (-50) True @?= "M 10 100 V 53 Q 10 50 13 50 H 27 Q 30 50 30 53 V 100 Z"
      barPath False 10 5 12 (-30) False @?= "M 10 5 H -20 Q -20 5 -20 5 V 17 Q -20 17 -20 17 H 10 Z"
+  ,testCase "a long line has tooltips all along it, at most one per 4px column" $ do
+     let hits = T.count "class=\"hit\"" $ svgText defaultSvgOptions $ lineChart 1000
+     assertBool ("tooltip targets: " ++ show hits) (hits >= 150 && hits <= 220)
   ]
+  where
+    svgText opts = TL.toStrict . renderSvg . chartSvgMarkupWith opts
+    -- a chart of one line, rising by 1 a day for n days from 2024-01-01
+    lineChart n = Chart "" (XDates $ take n $ iterate (addDays 1) (fromGregorian 2024 1 1))
+      [Panel nullamt [Series (ChartLabel "a" "a" 0 Nothing True) SeriesItem MarkLine [Just (fromIntegral k) | k <- [1 .. n]] 0 0] [] Nothing Diverging False []]
