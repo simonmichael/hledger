@@ -1966,6 +1966,10 @@ msgstr ""
 "снова и перезагрузите эту страницу."
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "Leave full window"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgctxt "search box"
 msgid "Search"
 msgstr "Поиск"
@@ -2008,6 +2012,10 @@ msgstr "показать/скрыть боковую панель"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle report options"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle full window"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet

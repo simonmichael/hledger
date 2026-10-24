@@ -993,6 +993,16 @@ hledgerWebTest = do
       statusIs 200
       bodyContains "<details class=\"report-controls\" open>"
 
+    -- Likewise full window mode (the f key), so a page reloaded by
+    -- another key shows only the report from the start.
+    yit "renders full window mode when the fullwindow cookie says so" $ do
+      get JournalR
+      bodyNotContains "<body class=\"fullwindow\""
+      testSetCookie defaultSetCookie{setCookieName = "fullwindow", setCookieValue = "1"}
+      get JournalR
+      statusIs 200
+      bodyContains "<body class=\"fullwindow\""
+
     yit "marks each type a type: term selects, as a shift-click builds them" $ do
       request $ do
         setMethod "GET"

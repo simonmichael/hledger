@@ -236,10 +236,10 @@ test.describe('keyboard shortcuts', () => {
     expect(pageErrors).toEqual([]);
   });
 
-  test('"f" and "/" focus the search ready for another term, after a space', async ({ page }) => {
+  test('"/" focuses the search ready for another term, after a space', async ({ page }) => {
     await page.goto('/journal?q=assets');
     const search = page.locator('#searchform input[name=q]');
-    await page.locator('body').press('f');
+    await page.locator('body').press('/');
     await expect(search).toBeFocused();
     await expect(search).toHaveValue('assets ');
     // the cursor is at the end, nothing selected, so typing adds a term
@@ -256,13 +256,52 @@ test.describe('keyboard shortcuts', () => {
   test('escape leaves the search field, keeping its text, and the shortcuts work again', async ({ page }) => {
     await page.goto('/journal?q=assets');
     const search = page.locator('#searchform input[name=q]');
-    await page.locator('body').press('f');
+    await page.locator('body').press('/');
     await page.keyboard.type('date:2025');
     await page.keyboard.press('Escape');
     await expect(page.locator('#main-content')).toBeFocused();
     await expect(search).toHaveValue('assets date:2025');
     await page.locator('body').press('g');
     await expect(page.locator('#gomenu')).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('"f" toggles full window mode, which survives navigation; escape or its button leave it', async ({ page }) => {
+    await page.goto('/balance');
+    const sidebar = page.locator('#sidebar-menu');
+    const search = page.locator('#searchform');
+    const heading = page.locator('#main-content h2').first();
+    const table = page.locator('#main-content .report-table');
+    const exit = page.locator('#fullwindow-exit');
+    await expect(exit).toBeHidden();
+    await page.locator('body').press('f');
+    await expect(sidebar).toBeHidden();
+    await expect(search).toBeHidden();
+    await expect(page.locator('#main-content details.report-controls')).toBeHidden();
+    await expect(heading).toBeVisible();
+    await expect(table).toBeVisible();
+    await expect(exit).toBeVisible();
+    // pressed again, it leaves
+    await page.locator('body').press('f');
+    await expect(sidebar).toBeVisible();
+    await expect(search).toBeVisible();
+    // the server reads the fullwindow cookie, so a key that reloads the page keeps it
+    await page.locator('body').press('f');
+    await page.locator('body').press('M');
+    await expect(page).toHaveURL(/interval=monthly/);
+    await expect(search).toBeHidden();
+    // escape closes the g menu first, then leaves full window mode
+    await page.locator('body').press('g');
+    await page.locator('body').press('Escape');
+    await expect(page.locator('#gomenu')).toBeHidden();
+    await expect(search).toBeHidden();
+    await page.locator('body').press('Escape');
+    await expect(search).toBeVisible();
+    await expect(exit).toBeHidden();
+    // and the button leaves it
+    await page.locator('body').press('f');
+    await exit.click();
+    await expect(search).toBeVisible();
     expect(pageErrors).toEqual([]);
   });
 

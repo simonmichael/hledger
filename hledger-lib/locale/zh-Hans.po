@@ -1962,6 +1962,10 @@ msgstr ""
 "止，它就会退出。若要继续使用，请重新启动程序并刷新此页面。"
 
 #: hledger-web/templates/default-layout.hamlet
+msgid "Leave full window"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
 msgctxt "search box"
 msgid "Search"
 msgstr "搜索"
@@ -2004,6 +2008,10 @@ msgstr "切换侧边栏"
 
 #: hledger-web/templates/default-layout.hamlet
 msgid "toggle report options"
+msgstr ""
+
+#: hledger-web/templates/default-layout.hamlet
+msgid "toggle full window"
 msgstr ""
 
 #: hledger-web/templates/default-layout.hamlet

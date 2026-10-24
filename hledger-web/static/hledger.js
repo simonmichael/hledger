@@ -134,7 +134,10 @@ document.addEventListener('DOMContentLoaded', function() {
       case '-': case '_': depthAdjust(-1);                                  break;
       case '+': case '=': depthAdjust(1);                                   break;
       case 'a': case 'n': addformShow();                                    break;
-      case 'f': case '/': focusSearch();                                    break;
+      case 'f': fullWindowToggle();                                         break;
+      case '/': focusSearch();                                              break;
+      // With nothing else to cancel, escape leaves full window mode.
+      case 'Escape': if (!fullWindowOn()) { return; } fullWindowToggle();   break;
       default: return;
     }
     e.preventDefault();
@@ -147,6 +150,8 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.key === 'Escape') { focusPage(); e.preventDefault(); }
     });
   }
+  var fullwindowexit = document.getElementById('fullwindow-exit');
+  if (fullwindowexit) { fullwindowexit.addEventListener('click', fullWindowToggle); }
   // A click elsewhere closes the g key's menu, as escape does.
   document.addEventListener('click', function(e) {
     if (gomenuOpen() && !e.target.closest('#gomenu')) { gomenuHide(); }
@@ -434,6 +439,19 @@ function sidebarToggle() {
   }
   // The server reads this cookie, so the next page renders the way we left it.
   setCookie('showsidebar', sidebar && sidebar.classList.contains('col-any-0') ? '0' : '1');
+}
+
+function fullWindowOn() {
+  return document.body.classList.contains('fullwindow');
+}
+
+function fullWindowToggle() {
+  // Full window mode hides all but the report's heading and data
+  // (hledger.css). The server reads this cookie, so the next page renders
+  // the same way; it lasts for the browser session, so a later visit
+  // starts with everything showing.
+  var on = document.body.classList.toggle('fullwindow');
+  document.cookie = 'fullwindow=' + (on ? '1' : '0') + '; path=/; samesite=lax';
 }
 
 function emptyAccountsToggle() {

@@ -761,6 +761,33 @@ ul {
     font-size:large;
 }
 
+/* Full window mode (the f key) shows only the page's heading and data, and
+   the paging links, across the window's full width; a small button at the
+   top right leaves it. */
+body.fullwindow #spacer,
+body.fullwindow #topbar,
+body.fullwindow #sidebar-menu,
+body.fullwindow #searchform,
+body.fullwindow .report-links.reports,
+body.fullwindow details.report-controls,
+body.fullwindow #addformlink,
+body.fullwindow footer {
+    display: none;
+}
+body.fullwindow #main-content {
+    width: 100%;
+}
+#fullwindow-exit {
+    display: none;
+}
+body.fullwindow #fullwindow-exit {
+    display: block;
+    position: fixed;
+    top: 8px;
+    right: 8px;
+    z-index: 10;
+}
+
 @media screen and (max-width: 768px) {
     .row-offcanvas {
         position: relative;
