@@ -622,14 +622,20 @@ function controlsShow() {
 // reason: run from this file it would fold only at DOMContentLoaded, after
 // the browser has painted the tree in full, a visible jump.
 
+// The UI state cookies' names end with the server's port, so that several
+// hledger-webs on one host keep their own (App.uiCookie).
+function uiCookieName(name) {
+  return name + (document.hledgerWebCookieSuffix || '');
+}
+
 function setCookie(name, value) {
-  document.cookie = name + '=' + value + '; path=/; max-age=31536000; samesite=lax';
+  document.cookie = uiCookieName(name) + '=' + value + '; path=/; max-age=31536000; samesite=lax';
 }
 
 function getCookie(name) {
   return document.cookie.split('; ').reduce(function(found, c) {
     var parts = c.split('=');
-    return parts[0] === name ? parts.slice(1).join('=') : found;
+    return parts[0] === uiCookieName(name) ? parts.slice(1).join('=') : found;
   }, undefined);
 }
 

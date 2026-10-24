@@ -206,7 +206,7 @@ test.describe('keyboard shortcuts', () => {
     await expect(sidebar).toBeVisible();
     await page.locator('body').press('s');
     await expect(sidebar).not.toBeVisible();
-    // the server reads the showsidebar cookie, so a fresh page load keeps it hidden
+    // the server reads the showsidebar cookie (named for its port), so a fresh page load keeps it hidden
     await page.goto('/journal');
     await expect(sidebar).not.toBeVisible();
     expect(pageErrors).toEqual([]);
@@ -381,10 +381,10 @@ test.describe('keyboard shortcuts', () => {
     await page.locator('body').press('o');
     await expect(details.locator('p.report-links').first()).toBeVisible();
     // the choice is saved like a click's, from the toggle event
-    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+    await page.waitForFunction(() => /showcontrols_\d+=1/.test(document.cookie));
     await page.locator('body').press('o');
     await expect(details.locator('p.report-links').first()).toBeHidden();
-    await page.waitForFunction(() => document.cookie.includes('showcontrols=0'));
+    await page.waitForFunction(() => /showcontrols_\d+=0/.test(document.cookie));
     expect(pageErrors).toEqual([]);
   });
 
@@ -444,7 +444,7 @@ test.describe('keyboard shortcuts', () => {
     await expect(details.locator('p.report-links').first()).toBeVisible();
     // the cookie is saved from the toggle event, which fires
     // asynchronously; wait for it before navigating away
-    await page.waitForFunction(() => document.cookie.includes('showcontrols=1'));
+    await page.waitForFunction(() => /showcontrols_\d+=1/.test(document.cookie));
     await page.goto('/journal');
     await expect(page.locator('#main-content details.report-controls p.report-links').first()).toBeVisible();
     expect(pageErrors).toEqual([]);
@@ -482,7 +482,7 @@ test.describe('keyboard shortcuts', () => {
     await expect(box.locator('summary .sel')).toHaveText('All');
     await box.locator('summary').click();
     // its cookie too is saved from the asynchronous toggle event
-    await page.waitForFunction(() => document.cookie.includes('showcommodities=1'));
+    await page.waitForFunction(() => /showcommodities_\d+=1/.test(document.cookie));
     await box.locator('a', { hasText: 'USD' }).click();
     await expect(page).toHaveURL(/cur%3AUSD/);
     // the selection reads back, and the opened list is remembered
