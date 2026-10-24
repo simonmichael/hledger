@@ -1165,6 +1165,20 @@ hledgerWebTest = do
       bodyContains "<tr class=\"tree-fold-hide\"><td class=\"account indent-1 depth-3\">"
       bodyNotContains "<tr><td class=\"account indent-1 depth-3\">"
 
+    yit "in tree mode, a per-account depth limit clips its accounts, as the cli does" $ do
+      request $ do
+        setMethod "GET"
+        setUrl BalanceR
+        addGetParam "list" "tree"
+        addGetParam "q" "depth:assets=2"
+      statusIs 200
+      -- assets' subaccounts are clipped to depth 2, in the table and the
+      -- sidebar, leaving assets:bank with its subaccounts' total
+      bodyContains "<tr><td class=\"account indent-0 depth-2\"><a href=\"register?q=depth:assets%3d2&amp;account=assets:bank&amp;list=tree\""
+      bodyContains "<tr data-indent=\"0\" data-acct=\"assets:bank\">"
+      bodyNotContains ">checking</a>"
+      bodyNotContains "data-acct=\"assets:bank:checking\""
+
   -- The journal, register, and sidebar link to one another: a date to that
   -- day's journal entries, an account to its register, an amount to the
   -- register that derives it, an entry to itself on either page.
