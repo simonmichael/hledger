@@ -160,6 +160,8 @@ Count charts (`pnCounts`) instead cap text at one cell per unit when no SCALE is
   (each stack is clipped to one rounded outline, so the end is the same however thin its outermost segment); lines 3px, thinned to 4 points per pixel column
   (a 100k-posting register: 286s to 44s). The unit is shown only on the outermost y tick. x labels are thinned to an even stride
   that leaves room for all of them, after the end ones are moved inward.
+- Embedded SVG (`SvgOptions`, for pages like hledger-web's): without its styles, for a page that supplies `chartStylesheet` itself
+  (eg when its Content-Security-Policy allows no inline styles); with plots of another height than 260px, and about one y tick per 50px.
 - Tests: shelltest; SVG goldens are separate files compared with diff, since shelltest treats lines starting with `<` as input.
 
 ## Decisions and rejected alternatives

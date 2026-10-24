@@ -12,6 +12,9 @@ Each mark has a tooltip (an SVG title) giving its x label, series and value.
 The SVG includes its own styles, with a colour-blind-safe palette and a dark-mode variant
 (used when the viewer prefers a dark colour scheme). Text widths are estimated, since fonts are not known.
 Coordinates are rounded to one decimal place, so the output is deterministic.
+
+A page embedding a chart can draw it with 'SvgOptions', eg without its styles, which the page then supplies
+('chartStylesheet').
 -}
 
 {-# LANGUAGE CPP #-}
@@ -21,6 +24,10 @@ module Hledger.Write.Chart.Svg (
   chartAsSvg,
   chartAsSvgWith,
   chartSvgMarkup,
+  SvgOptions(..),
+  defaultSvgOptions,
+  chartSvgMarkupWith,
+  chartStylesheet,
   tests_Hledger_Write_Chart_Svg,
 ) where
 
@@ -68,7 +75,29 @@ chartAsSvgWith dark = (<> "\n") . TL.replace "><" ">\n<" . renderSvg . chartSvgM
 
 -- | A chart as SVG markup, which can also be embedded in HTML; with or without the dark variant.
 chartSvgMarkup :: Bool -> Chart -> Svg
-chartSvgMarkup dark c@Chart{chTitle, chXAxis, chPanels} =
+chartSvgMarkup dark = chartSvgMarkupWith defaultSvgOptions{svgDark = dark}
+
+-- | How to draw a chart as SVG.
+data SvgOptions = SvgOptions
+  { svgStyles     :: Bool    -- ^ include the chart's styles ? A page embedding the chart can leave them out and supply
+                             --   'chartStylesheet' itself, eg one whose Content-Security-Policy allows no inline styles.
+  , svgDark       :: Bool    -- ^ include the styles' dark variant, for viewers preferring a dark colour scheme ?
+  , svgPlotHeight :: Double  -- ^ the height of each plot of values over time or of categories as columns, in pixels,
+                             --   not counting its labels; also deciding how many y ticks it has (see 'plotIntervals').
+                             --   (Horizontal bars are as tall as their rows.)
+  }
+
+-- | A self-contained chart: with its styles, including their dark variant, and plots 260px high.
+defaultSvgOptions :: SvgOptions
+defaultSvgOptions = SvgOptions
+  { svgStyles     = True
+  , svgDark       = True
+  , svgPlotHeight = 260
+  }
+
+-- | A chart as SVG markup, which can also be embedded in HTML, drawn with these options.
+chartSvgMarkupWith :: SvgOptions -> Chart -> Svg
+chartSvgMarkupWith opts@SvgOptions{svgStyles, svgDark} c@Chart{chTitle, chXAxis, chPanels} =
   S.svg
     ! customAttribute "xmlns" "http://www.w3.org/2000/svg"
     ! A.class_ "hledger-chart"
@@ -79,7 +108,7 @@ chartSvgMarkup dark c@Chart{chTitle, chXAxis, chPanels} =
     !? (not $ T.null chTitle, customAttribute "aria-label" (toValue chTitle))
     $ do
       unless (T.null chTitle) $ S.title (S.toMarkup chTitle)
-      S.style (S.toMarkup $ stylesheet dark)
+      when svgStyles $ S.style (S.toMarkup $ chartStylesheet svgDark)
       S.rect ! A.class_ "bg" ! A.width "100%" ! A.height "100%"
       unless (T.null chTitle) $
         S.text_ ! A.class_ "title" ! A.x (toValue $ num pad) ! A.y (toValue $ num (pad + 17)) $ S.toMarkup chTitle
@@ -92,17 +121,20 @@ chartSvgMarkup dark c@Chart{chTitle, chXAxis, chPanels} =
     (panelsbottom, panelmarkups) = foldl stackPanel (pad + titleheight, []) chPanels
     totalheight = if null chPanels then panelsbottom + 14 + pad else panelsbottom
     stackPanel (top, ms) p =
-      let (h, m) = panelSvg chXAxis (chartColouring c) showheadings top p
+      let (h, m) = panelSvg opts chXAxis (chartColouring c) showheadings top p
       in (top + h + panelGap, ms ++ [m])
 
--- Layout constants, in pixels.
-chartWidth, pad, panelGap, legendRowHeight, plotHeight, rowHeight :: Double
+-- Layout constants, in pixels. (The plots' height is in 'SvgOptions'.)
+chartWidth, pad, panelGap, legendRowHeight, rowHeight :: Double
 chartWidth      = 880
 pad             = 16
 panelGap        = 16
 legendRowHeight = 24
-plotHeight      = 260  -- height of a vertical-bar or line plot
 rowHeight       = 28   -- height of a row in a horizontal bar chart
+
+-- | How many intervals a plot this high (in pixels) divides its y axis into, roughly: about one per 50px, from 2 to 5.
+plotIntervals :: Double -> Int
+plotIntervals h = max 2 $ min 5 $ floor (h / 50)
 
 -- | Estimated rendered width of some text, in the 14px system sans font (fonts are not known),
 -- from the widths of kinds of character (measured with SF Pro; Segoe UI and others are similar or narrower).
@@ -127,8 +159,8 @@ data DrawSeries = DrawSeries
   }
 
 -- | Draw one panel with its top at the given y; return its height and markup.
-panelSvg :: XAxis -> Colouring -> Bool -> Double -> Panel -> (Double, Svg)
-panelSvg xaxis colouring showheading top Panel{pnUnit, pnSeries, pnGroupNames, pnScale, pnLayout, pnSummary} =
+panelSvg :: SvgOptions -> XAxis -> Colouring -> Bool -> Double -> Panel -> (Double, Svg)
+panelSvg opts xaxis colouring showheading top Panel{pnUnit, pnSeries, pnGroupNames, pnScale, pnLayout, pnSummary} =
   (headingh + legendh + bodyh + summaryh, do
     when (headingh > 0) $
       S.text_ ! A.class_ "heading" ! A.x (toValue $ num pad) ! A.y (toValue $ num (top + 16)) $ S.toMarkup (acommodity pnUnit)
@@ -159,9 +191,9 @@ panelSvg xaxis colouring showheading top Panel{pnUnit, pnSeries, pnGroupNames, p
                            (if length items > 1 then mtotalmark else Nothing) hascontra (suLabel <$> maverage)
     hascontra = or [isContra s q | s <- items, seMark s == MarkBar, Just q <- seValues s]
     (bodyh, bodym) = case xaxis of
-      XCategories ls -> categoriesSvg (top + headingh + legendh) pnScale pnUnit drawn mtotal ls
-      XPeriods ps    -> timeSvg (top + headingh + legendh) pnScale pnLayout pnUnit drawn mtotalmark averageline (EvenScale $ map snd ps)
-      XDates ds      -> timeSvg (top + headingh + legendh) pnScale pnLayout pnUnit drawn mtotalmark Nothing (DateScale ds)
+      XCategories ls -> categoriesSvg (svgPlotHeight opts) (top + headingh + legendh) pnScale pnUnit drawn mtotal ls
+      XPeriods ps    -> timeSvg opts (top + headingh + legendh) pnScale pnLayout pnUnit drawn mtotalmark averageline (EvenScale $ map snd ps)
+      XDates ds      -> timeSvg opts (top + headingh + legendh) pnScale pnLayout pnUnit drawn mtotalmark Nothing (DateScale ds)
     averageline = (\su -> (suLabel su <> " · " <> showSummary su, aquantity $ suValue su)) <$> maverage
 
 -- | A legend: a swatch and label for each series, flowing left to right, when there are several series.
@@ -213,8 +245,8 @@ data XScale = EvenScale [Text] | DateScale [Day]
 
 -- | Draw series over time, along the given x scale:
 -- vertical stacked bars (with the grouped layout, a stack per group, side by side), lines, and total marks or lines.
-timeSvg :: Double -> Maybe Quantity -> BarLayout -> Amount -> [DrawSeries] -> Maybe Series -> Maybe (Text, Quantity) -> XScale -> (Double, Svg)
-timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 32, do
+timeSvg :: SvgOptions -> Double -> Maybe Quantity -> BarLayout -> Amount -> [DrawSeries] -> Maybe Series -> Maybe (Text, Quantity) -> XScale -> (Double, Svg)
+timeSvg SvgOptions{svgPlotHeight = plotheight} top mscale layout unit drawn mtotal maverage xscale = (plotheight + 32, do
     -- gridlines and y tick labels
     forM_ ticks $ \t -> do
       S.line ! A.class_ (if t == 0 then "axis" else "grid")
@@ -234,7 +266,7 @@ timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 32, 
       S.line ! A.class_ "hatch" ! A.x1 "0" ! A.y1 "0" ! A.x2 "0" ! A.y2 "5"
     -- with a fixed scale, lines are clipped at the plot's edges
     when (isJust mscale) $ S.defs $ S.clippath ! A.id_ (toValue clipid) $
-      S.rect ! A.x (toValue $ num plotleft) ! A.y (toValue $ num plottop) ! A.width (toValue $ num (plotright - plotleft)) ! A.height (toValue $ num plotHeight)
+      S.rect ! A.x (toValue $ num plotleft) ! A.y (toValue $ num plottop) ! A.width (toValue $ num (plotright - plotleft)) ! A.height (toValue $ num plotheight)
     let clipLines = if isJust mscale then S.g ! A.clipPath (toValue $ "url(#" <> clipid <> ")") else id
     -- lines
     clipLines $ forM_ lines_ $ \d -> lineSvg (dsClass d) (dsSeries d)
@@ -288,15 +320,15 @@ timeSvg top mscale layout unit drawn mtotal maverage xscale = (plotHeight + 32, 
     pointvalues = [toD q | s <- map dsSeries lines_ ++ maybe [] pure mtotal, Just q <- seValues s]
     datamax = maximumDef 0 (stackedsums 1 ++ pointvalues)
     datamin = minimumDef 0 (stackedsums (-1) ++ pointvalues)
-    (lo, hi, ticks, tickdecimals) = panelScale mscale (min 0 datamin) (max 0 datamax)
+    (lo, hi, ticks, tickdecimals) = panelScale (plotIntervals plotheight) mscale (min 0 datamin) (max 0 datamax)
     ticklabel = tickLabel unit tickdecimals ticks
     plotleft = pad + maximumDef 0 (map (textWidth . ticklabel) ticks) + 12
     plotright = chartWidth - pad
     plottop = top + 6
-    plotbottom = plottop + plotHeight
+    plotbottom = plottop + plotheight
     -- a value's y position, within the plot (for bars and marks), or anywhere (for lines, which are clipped)
     yof = clamp plottop plotbottom . yofline
-    yofline v = plottop + plotHeight * (hi - v) / (hi - lo)
+    yofline v = plottop + plotheight * (hi - v) / (hi - lo)
     -- an id for the plot's clipping path, unique within the chart
     clipid = "hledger-chart-clip-" <> num top
     band = (plotright - plotleft) / fromIntegral (max 1 n)
@@ -340,9 +372,9 @@ placeXLabels = reverse . foldl' place []
 -- | Draw series of categories (eg accounts): as vertical bars, or as horizontal bars when there are more than 'maxColumns' categories.
 -- Categories with no values at all (eg accounts without this commodity) are left out.
 -- With a single series, each category's bar has its own account type's colour, if known.
-categoriesSvg :: Double -> Maybe Quantity -> Amount -> [DrawSeries] -> Maybe Series -> [ChartLabel] -> (Double, Svg)
-categoriesSvg top mscale unit drawn mtotal labels
-  | length rows <= maxColumns = columnsSvg top mscale unit rows rowValue
+categoriesSvg :: Double -> Double -> Maybe Quantity -> Amount -> [DrawSeries] -> Maybe Series -> [ChartLabel] -> (Double, Svg)
+categoriesSvg plotheight top mscale unit drawn mtotal labels
+  | length rows <= maxColumns = columnsSvg plotheight top mscale unit rows rowValue
   | otherwise                 = barsSvg top mscale unit rows rowValue
   where
     rows = [ (l, j, [(categoryColoured l d, q) | d <- drawn, Just q <- [valueAt (dsValues d) j]])
@@ -362,9 +394,9 @@ maxColumns :: Int
 maxColumns = 30
 
 -- | Draw categories as vertical bars (stacked if several series), with their names below (angled if they don't fit),
--- and their values above the bars (when they fit).
-columnsSvg :: Double -> Maybe Quantity -> Amount -> [(ChartLabel, Int, [(DrawSeries, Quantity)])] -> (Int -> Maybe Quantity) -> (Double, Svg)
-columnsSvg top mscale unit rows rowValue = (plotHeight + 22 + negroom + labelheight, do
+-- and their values above the bars (when they fit), in a plot this high.
+columnsSvg :: Double -> Double -> Maybe Quantity -> Amount -> [(ChartLabel, Int, [(DrawSeries, Quantity)])] -> (Int -> Maybe Quantity) -> (Double, Svg)
+columnsSvg plotheight top mscale unit rows rowValue = (plotheight + 22 + negroom + labelheight, do
     -- gridlines and y tick labels
     forM_ ticks $ \t -> do
       S.line ! A.class_ (if t == 0 then "axis" else "grid")
@@ -397,7 +429,7 @@ columnsSvg top mscale unit rows rowValue = (plotHeight + 22 + negroom + labelhei
   where
     n = length rows
     stackedsums sign = [sum [toD q | (_, q) <- segs, signum q == sign] | (_, _, segs) <- rows]
-    (lo, hi, ticks, tickdecimals) = panelScale mscale (minimumDef 0 $ stackedsums (-1)) (maximumDef 0 $ stackedsums 1)
+    (lo, hi, ticks, tickdecimals) = panelScale (plotIntervals plotheight) mscale (minimumDef 0 $ stackedsums (-1)) (maximumDef 0 $ stackedsums 1)
     ticklabel = tickLabel unit tickdecimals ticks
     -- the plot's left edge: after the tick labels, and far enough right that angled names don't extend beyond the chart's left edge
     ticksright = pad + maximumDef 0 (map (textWidth . ticklabel) ticks) + 12
@@ -406,8 +438,8 @@ columnsSvg top mscale unit rows rowValue = (plotHeight + 22 + negroom + labelhei
       | otherwise = ticksright
     plotright = chartWidth - pad
     plottop = top + 20  -- leaving room for values above the bars
-    plotbottom = plottop + plotHeight
-    yof v = plottop + plotHeight * (hi - clamp lo hi v) / (hi - lo)
+    plotbottom = plottop + plotheight
+    yof v = plottop + plotheight * (hi - clamp lo hi v) / (hi - lo)
     -- the width of each category's band, with the plot starting at this x position
     bandwith left = (plotright - left) / fromIntegral (max 1 n)
     band = bandwith plotleft
@@ -444,7 +476,7 @@ barsSvg top mscale unit rows rowValue = (fromIntegral (length rows) * rowHeight 
   )
   where
     stackedsums sign = [sum [toD q | (_, q) <- segs, signum q == sign] | (_, _, segs) <- rows]
-    (lo, hi, ticks, tickdecimals) = panelScale mscale (minimumDef 0 $ stackedsums (-1)) (maximumDef 0 $ stackedsums 1)
+    (lo, hi, ticks, tickdecimals) = panelScale 5 mscale (minimumDef 0 $ stackedsums (-1)) (maximumDef 0 $ stackedsums 1)
     ticklabel = tickLabel unit{acommodity = ""} tickdecimals []
     labelwidth = min (chartWidth * 0.4) $ maximumDef 0 [12 * fromIntegral (lbIndent l) + textWidth (lbShort l) | (l, _, _) <- rows]
     valuewidth = maximumDef 0 [textWidth (showValue unit q) | (_, j, _) <- rows, Just q <- [rowValue j]]
@@ -592,31 +624,32 @@ barPath vertical a b size len rounded
     sgn = if len < 0 then -1 else 1
     r = if rounded then minimum [3, size / 2, abs len] else 0
 
--- | The scale for a panel's values, given their range (which should include 0): a nice scale covering it ('niceScale'),
--- or with a fixed scale, exactly the range it spans ('scaleSpans'), with the nice scale's ticks that are within it.
-panelScale :: Maybe Quantity -> Double -> Double -> (Double, Double, [Double], Int)
-panelScale mscale datamin datamax = case mscale of
+-- | The scale for a panel's values, given their range (which should include 0), divided into about this many intervals:
+-- a nice scale covering it ('niceScale'), or with a fixed scale, exactly the range it spans ('scaleSpans'),
+-- with the nice scale's ticks that are within it.
+panelScale :: Int -> Maybe Quantity -> Double -> Double -> (Double, Double, [Double], Int)
+panelScale intervals mscale datamin datamax = case mscale of
   Just s | s > 0 ->
     let (hi, neg) = scaleSpans (toD s) (max 0 datamax) (abs $ min 0 datamin)
         lo = negate neg
-        (_, _, ticks, decimals) = niceScale lo hi
+        (_, _, ticks, decimals) = niceScale intervals lo hi
         eps = (hi - lo) * 1e-9
     in (lo, hi, filter (\t -> t >= lo - eps && t <= hi + eps) ticks, decimals)
-  _ -> niceScale datamin datamax
+  _ -> niceScale intervals datamin datamax
 
 -- | Limit a value to a range.
 clamp :: Double -> Double -> Double -> Double
 clamp lo hi = max lo . min hi
 
--- | A "nice" linear scale covering the given range (which should include 0):
--- its low and high ends, its ticks (about 5, at multiples of 1, 2 or 5 times a power of ten),
+-- | A "nice" linear scale covering the given range (which should include 0), in about this many intervals:
+-- its low and high ends, its ticks (at multiples of 1, 2 or 5 times a power of ten),
 -- and the number of decimal places needed to show the ticks.
-niceScale :: Double -> Double -> (Double, Double, [Double], Int)
-niceScale lo0 hi0 = (lo, hi, ticks, decimals)
+niceScale :: Int -> Double -> Double -> (Double, Double, [Double], Int)
+niceScale intervals lo0 hi0 = (lo, hi, ticks, decimals)
   where
     (a, b) = if hi0 - lo0 <= 0 then (lo0, lo0 + 1) else (lo0, hi0)
-    -- choose the 1, 2 or 5 times a power of ten nearest the step that would give 5 intervals (as d3 does)
-    rawstep = (b - a) / 5
+    -- choose the 1, 2 or 5 times a power of ten nearest the step that would give that many intervals (as d3 does)
+    rawstep = (b - a) / fromIntegral intervals
     magnitude = 10 ** fromIntegral (floor (logBase 10 rawstep) :: Int)
     err = rawstep / magnitude
     step | err >= sqrt 50 = 10 * magnitude
@@ -669,7 +702,7 @@ runs ms = case dropWhile isNothing ms of
   [] -> []
   rest -> let (run, more) = span (not . isNothing) rest in catMaybes run : runs more
 
--- | The CSS class for a colour. (The rules are in 'stylesheet'.)
+-- | The CSS class for a colour. (The rules are in 'chartStylesheet'.)
 colourClass :: Colour -> Text
 colourClass c = case c of
   TypeColour at k -> "t" <> typeCode (mainAccountType at) <> T.pack (show (k `mod` maxTints))
@@ -694,8 +727,9 @@ typeCode at = case at of
 -- with a dark variant used when the viewer prefers a dark colour scheme.
 -- Colours are written literally in each rule (rather than as CSS custom properties),
 -- since some SVG renderers (eg librsvg, used by many image viewers) don't support those.
-stylesheet :: Bool -> Text
-stylesheet dark = T.unlines $
+-- Charts include these styles, unless drawn without them for a page that supplies them (see 'SvgOptions').
+chartStylesheet :: Bool -> Text
+chartStylesheet dark = T.unlines $
   [ ".hledger-chart{max-width:100%;height:auto;font-family:system-ui,-apple-system,\"Segoe UI\",sans-serif;font-size:14px}"
   , ".hledger-chart .title{font-size:17px;font-weight:600}"
   , ".hledger-chart .heading{font-size:15px;font-weight:600}"
@@ -736,10 +770,15 @@ tests_Hledger_Write_Chart_Svg = testGroup "Write.Chart.Svg" [
    testCase "num" $ do
      map num [0, -0.04, 1, 1.26, -3.14159, 760] @?= ["0", "0", "1", "1.3", "-3.1", "760"]
   ,testCase "niceScale" $ do
-     niceScale 0 87 @?= (0, 100, [0, 20, 40, 60, 80, 100], 0)
-     niceScale (-15) 100 @?= (-20, 100, [-20, 0, 20, 40, 60, 80, 100], 0)
-     niceScale 0 0 @?= (0, 1, [0, 0.2, 0.4, 0.6000000000000001, 0.8, 1], 1)
-     niceScale 0 7.3 @?= (0, 8, [0, 2, 4, 6, 8], 0)
+     niceScale 5 0 87 @?= (0, 100, [0, 20, 40, 60, 80, 100], 0)
+     niceScale 5 (-15) 100 @?= (-20, 100, [-20, 0, 20, 40, 60, 80, 100], 0)
+     niceScale 5 0 0 @?= (0, 1, [0, 0.2, 0.4, 0.6000000000000001, 0.8, 1], 1)
+     niceScale 5 0 7.3 @?= (0, 8, [0, 2, 4, 6, 8], 0)
+     -- fewer intervals, for a shorter plot
+     niceScale 5 0 117 @?= (0, 120, [0, 20, 40, 60, 80, 100, 120], 0)
+     niceScale 3 0 117 @?= (0, 150, [0, 50, 100, 150], 0)
+  ,testCase "plotIntervals" $ do
+     map plotIntervals [260, 150, 100, 40] @?= [5, 3, 2, 2]
   ,testCase "barPath" $ do
      barPath True 10 100 20 (-50) True @?= "M 10 100 V 53 Q 10 50 13 50 H 27 Q 30 50 30 53 V 100 Z"
      barPath False 10 5 12 (-30) False @?= "M 10 5 H -20 Q -20 5 -20 5 V 17 Q -20 17 -20 17 H 10 Z"
