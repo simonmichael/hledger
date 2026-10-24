@@ -513,6 +513,96 @@ test.describe('keyboard shortcuts', () => {
 
 });
 
+test.describe('key hints', () => {
+
+  test('"." shows each control\'s key on it, on screen only, and the choice survives a reload', async ({ page }) => {
+    await page.goto('/balance');
+    const hints = page.locator('kbd.keyhint');
+    const unmarked = page.locator('#main-content .status a', { hasText: 'Unmarked' });
+    // the report links' hints are drawn by the stylesheet, from their g keys
+    const gHint = () => page.locator('#main-content .report-links.reports a[data-gokey="i"]')
+      .evaluate(a => getComputedStyle(a, '::before').content);
+    await expect(hints).toHaveCount(0);
+    expect(await gHint()).toBe('none');
+    await page.locator('body').press('.');
+    await expect(unmarked.locator('kbd.keyhint')).toHaveText('U');
+    expect(await gHint()).toMatch(/^"g i"/);
+    // the hints are not part of what the links say
+    await page.locator('body').press('o');
+    await expect(page.getByRole('link', { name: 'Unmarked', exact: true })).toHaveCount(1);
+    await page.reload();
+    await expect(unmarked.locator('kbd.keyhint')).toHaveText('U');
+    // they are left out of a printout
+    await expect(unmarked.locator('kbd.keyhint')).toBeVisible();
+    await page.emulateMedia({ media: 'print' });
+    await expect(unmarked.locator('kbd.keyhint')).toBeHidden();
+    expect(await gHint()).toBe('none');
+    await page.emulateMedia({ media: 'screen' });
+    await page.locator('body').press('.');
+    await expect(hints).toHaveCount(0);
+    await page.reload();
+    await expect(hints).toHaveCount(0);
+    expect(pageErrors).toEqual([]);
+  });
+
+  // The keys and their hints read one table (hledger.js), so a hint shows
+  // only where its key acts. This checks the other way: that each key
+  // standing for a control still finds it, so that the table and the
+  // pages' markup have not drifted apart. (L, which needs a journal with
+  // lots, is checked in holdings.spec.js.)
+  test('every control\'s key is hinted on a page where it works', async ({ page }) => {
+    const seen = new Set();
+    const collect = async () => {
+      for (const t of await page.locator('kbd.keyhint:visible').allTextContents()) { seen.add(t); }
+    };
+    await page.goto('/journal');
+    await page.locator('body').press('.');
+    await page.locator('body').press('o');
+    await collect();
+    // a depth limit, so that + has somewhere to go
+    await page.goto('/balance?depth=1');
+    await collect();
+    await page.locator('body').press('f');
+    await collect();
+    expect([...seen].sort()).toEqual([
+      '?', 's', 'o', '/', 'a', 'f', 'z', 't', 'H', 'V', 'B', 'R', 'U', 'P', 'C', 'S',
+      'T', 'A', 'Y', 'Q', 'M', 'W', 'D', '0-9', '-', '+',
+    ].sort());
+    expect(pageErrors).toEqual([]);
+  });
+
+  test('the page always shows the ? and . keys, as buttons that do what the keys do', async ({ page }) => {
+    await page.goto('/journal');
+    const keys = page.locator('#keys-hint #keyhints-toggle');
+    await expect(keys).toBeVisible();
+    await expect(keys).toHaveAttribute('aria-pressed', 'false');
+    await keys.click();
+    await expect(page.locator('#addformlink kbd.keyhint')).toHaveText('a');
+    await expect(keys).toHaveAttribute('aria-pressed', 'true');
+    await page.locator('#keys-hint button', { hasText: 'help' }).click();
+    await expect(page.locator('#helpmodal')).toBeVisible();
+    expect(pageErrors).toEqual([]);
+  });
+
+});
+
+// A touch screen has no keys to hint at.
+test.describe('key hints on a touch screen', () => {
+  test.use({ isMobile: true, hasTouch: true, viewport: { width: 390, height: 844 } });
+
+  test('are not shown, even when turned on', async ({ page }) => {
+    await page.goto('/journal');
+    await page.evaluate(() => localStorage.setItem('keyhints', '1'));
+    await page.reload();
+    // positive control: they are on, in the page
+    await expect(page.locator('body')).toHaveClass(/keyhints/);
+    await expect(page.locator('kbd.keyhint').first()).toBeAttached();
+    await expect(page.locator('kbd.keyhint:visible')).toHaveCount(0);
+    await expect(page.locator('#keys-hint')).toBeHidden();
+  });
+
+});
+
 test.describe('modal dialogs', () => {
 
   // A <dialog> shown with showModal() should capture the shortcut keys; before
